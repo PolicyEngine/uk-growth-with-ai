@@ -97,15 +97,18 @@ describe('tooltips', () => {
         ariaLabel="GNI"
       />,
     );
-    const chart = container.querySelector('.linechart');
-    fireEvent.focus(chart);
-    const tip = screen.getByRole('tooltip');
+    // the one tooltip (ChartHover, M4): the arrow keys walk the years,
+    // the first press from the last year
+    const chart = container.querySelector('.linechart .ch-hover');
+    fireEvent.keyDown(chart, { key: 'ArrowLeft' });
+    const tip = container.querySelector('.ch-tip');
     expect(tip.textContent).toContain('GNI, 2031');
     expect(tip.textContent).toContain('some foreign capital');
     expect(tip.textContent).toContain('Automation + productivity');
     expect(tip.textContent).toContain('1.23%');
+    expect(container.querySelector('[aria-live]').textContent).toContain('1.23%');
     fireEvent.keyDown(chart, { key: 'ArrowLeft' });
-    expect(screen.getByRole('tooltip').textContent).toContain('2030');
+    expect(container.querySelector('.ch-tip').textContent).toContain('2030');
   });
 
   it('dumbbell dot and tax-gap bar: focus shows arm, closure and value', () => {

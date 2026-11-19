@@ -72,7 +72,7 @@ export function cellTip(s, row, arm, m) {
     rows: [
       { name: 'Version', value: armRow?.short || armRow?.label || arm, icon: 'scenario' },
       { name: 'Foreign capital', value: CLOSURE_LABEL[row.cl], icon: 'closure' },
-      { name: 'Budget', value: RULES.find((r) => r.id === row.rule)?.label ?? row.rule, icon: 'budget' },
+      { name: 'Budget', value: RULES.find((r) => r.id === row.rule)?.label ?? row.rule, icon: 'rule' },
       { name: 'Gap', value: x == null ? 'not yet solved' : fmt(x, 2, m.unit), icon: 'gdp', path: x == null ? undefined : `${RULE_PATH[row.rule]}.${s.id}.${arm}.${row.cl}.gaps.${m.v}.${HEADLINE_YEAR}` },
       ...(other != null ? [{ name: CLOSURE_LABEL[other], value: y == null ? 'not yet solved' : fmt(y, 2, m.unit), icon: 'compare' }] : []),
     ],

@@ -176,7 +176,7 @@ function SensGrid({ res }) {
       rows: [
         { name: 'Version', value: a.short || a.label, color: ARM_COLOR[a.id] },
         { name: 'Foreign capital', value: `ζK ${zk}`, icon: 'closure' },
-        { name: 'Budget', value: 'Common fiscal rule', icon: 'budget' },
+        { name: 'Budget', value: 'Common fiscal rule', icon: 'rule' },
         { name: 'Gap', value: x == null ? 'not yet solved' : fmt(x, 2), icon: 'gdp', path: x == null ? undefined : `sensitivity.${SENS}.results.${s.id}.${a.id}.gaps.${c.v}.${HEADLINE_YEAR}` },
         { name: 'With ζK 0.1', value: ce == null ? 'not yet solved' : fmt(ce, 2), icon: 'compare' },
       ],

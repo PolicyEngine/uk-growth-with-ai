@@ -1,13 +1,14 @@
 'use client';
 
-import { TipBox } from '@/components/ab/Tip.jsx';
+import { useState } from 'react';
+import ChartHover from '@/components/story/chart/ChartHover.jsx';
 import { SCENARIOS, KORINEK_FULL, HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
-import { useHover } from '../shared/ui.jsx';
 import { useSvgScale } from '@/lib/svgScale.js';
 
 // The four scenarios on one map: productivity gain (x) against labour-share
 // fall (y), both the levels reached in the headline year, read from
-// surprise2028.json. Hover, tap or focus a point for its inputs.
+// the active data file. Hover, tap or reach a point by the arrow keys for its
+// inputs (the one tooltip, ChartHover, M4).
 const ROLE = {
   uk_low: 'Derived from the OBR J-curve path (Briefing paper No.9, ¶B.12)',
   uk_central: 'Headline: year 4 read off IMF SIP/2026/072 Figure 9, with the share fall derived from its 27% cost saving (¶44). Not an IMF pair',
@@ -26,7 +27,8 @@ export const scenarioTable = () => ({
 });
 
 export default function ScenarioMap({ caption = true }) {
-  const { hi, ref, bind } = useHover();
+  const [at, setAt] = useState(null);
+  const hi = at == null ? null : SCENARIOS[at]?.id;
   // the viewBox is drawn scaled (about 0.84 on desktop, 0.58 on a phone):
   // its text sizes are the chart type scale over the measured scale
   const [svgRef, sz] = useSvgScale(W, 0.838);
@@ -42,9 +44,17 @@ export default function ScenarioMap({ caption = true }) {
   const xt = Array.from({ length: xMax + 1 }, (_, i) => i);
   const yt = Array.from({ length: yMax + 1 }, (_, i) => i);
   const uk = SCENARIOS.filter((s) => s.id !== 'korinek');
-  const h = SCENARIOS.find((s) => s.id === hi);
+  const tips = SCENARIOS.map((s, i) => ({
+    head: s.id === 'korinek' ? KORINEK_FULL : s.label,
+    rows: [
+      { name: `Labour-share fall by ${HEADLINE_YEAR}`, value: `−${s.labour_share_fall_pp}pp`, icon: 'scenario', path: `scenarios.${i}.labour_share_fall_pp` },
+      { name: `Output gain at fixed inputs by ${HEADLINE_YEAR}`, value: `+${s.tfp_gain_pct}%`, icon: 'gdp', path: `scenarios.${i}.tfp_gain_pct` },
+    ],
+    unit: ROLE[s.id],
+    kind: 'input',
+  }));
   return (
-    <figure className="mx-map" ref={ref}>
+    <figure className="mx-map">
       {caption ? (
         <figcaption className="mx-fig-cap">
           <span className="mx-fig-title">Scenario inputs, {HEADLINE_YEAR}</span>
@@ -52,7 +62,7 @@ export default function ScenarioMap({ caption = true }) {
         </figcaption>
       ) : null}
       <div className="mx-map-body">
-      <div className="mx-map-plot">
+      <ChartHover className="mx-map-plot" label="Map of the four scenarios' inputs" items={tips} onActive={setAt}>
         <svg ref={svgRef} style={{ '--svg-k': sz.k }} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Map of the four scenarios' inputs">
           {xt.map((t) => (
             <g key={`x${t}`}>
@@ -97,7 +107,7 @@ export default function ScenarioMap({ caption = true }) {
               <g
                 key={s.id}
                 className={`mx-map-pt${up ? ' is-upper' : ''}${s.id === 'uk_central' ? ' is-head' : ''}${hi === s.id ? ' is-hi' : ''}`}
-                {...bind(s.id, `${s.label}: labour share −${s.labour_share_fall_pp}pp, output at fixed inputs +${s.tfp_gain_pct}%`)}
+                data-tip={SCENARIOS.indexOf(s)}
               >
                 {/* r = 23 keeps the tap target at least 24px where the map is drawn about 300px wide on a phone;
                     the halo shown on hover stays at r = 14 */}
@@ -120,18 +130,7 @@ export default function ScenarioMap({ caption = true }) {
             );
           })}
         </svg>
-        {h ? (
-          <span
-            className="mx-tip-anchor"
-            style={{ left: `${(sx(h.tfp_gain_pct) / W) * 100}%`, top: `${(sy(h.labour_share_fall_pp) / H) * 100}%` }}
-          >
-            <TipBox className="mx-tip">
-              <b>{h.id === 'korinek' ? KORINEK_FULL : h.label}</b>
-              <span>{ROLE[h.id]}</span>
-            </TipBox>
-          </span>
-        ) : null}
-      </div>
+      </ChartHover>
       <ul className="mx-map-read">
         <li>
           <span data-icon="" className="mx-key is-range" aria-hidden="true" />

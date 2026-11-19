@@ -89,6 +89,8 @@ export default function ChartHover({
   className = "",
   children,
   phonePin = true,
+  // told the item shown, or null (a crosshair or a linked chart draws from it)
+  onActive,
 }) {
   const host = useRef(null);
   const [at, setAt] = useState(null);
@@ -120,10 +122,12 @@ export default function ChartHover({
   const show = (i) => {
     setAt(i);
     place(i);
+    onActive?.(i);
   };
   const clear = () => {
     setAt(null);
     setPinned(false);
+    onActive?.(null);
   };
   // a tap outside a pinned item closes it
   useEffect(() => {
