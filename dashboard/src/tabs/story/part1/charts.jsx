@@ -2,7 +2,7 @@
 
 import { useEnterState, useDrawIn } from '@/components/story/motion.js';
 import { TileField, tileSettleMs } from '@/components/story/primitives.jsx';
-import { Crosshair, Legend, ModelBadge, barPath as chartBar } from '@/components/story/chart/index.js';
+import { ChartHover, Crosshair, Legend, ModelBadge, barPath as chartBar } from '@/components/story/chart/index.js';
 import { BICS_WAVE, EXPOSURE_GROUPS, FACTS, OBR, OBR_VINTAGE, OPH_BASE, SERIES } from './data.js';
 import { WORKERS_PERIOD, aiTitle, employmentTitle, forecastTitle, outputTitle, payTitle, productivityTitle, workersTitle } from './findings.js';
 import { FigTitle, FigUnit, Figure, SourceLine, XTicks, YGrid, linePath, linear, niceTicks, useBox, useSvgId, yearTicks } from './frame.jsx';
@@ -625,8 +625,24 @@ export function ExposureTiles({ state, source, entered = true }) {
       <FigTitle icon="workers" title={wHead.title} fallback={wHead.fallback} source={source} />
       <FigUnit>{`Each tile is one per cent of UK workers; two of the three groups are high exposure. IMF estimates, ${WORKERS_PERIOD}, via DSIT.`}</FigUnit>
       <Legend className="p1-tile-legend" items={EXPOSURE_GROUPS.map((g) => ({ key: g.id, label: shortGroup(g.name), color: g.color, block: true }))} />
+      {/* hover (M4): each group's share, from the data; one transparent
+          cell over each block (the whole grid before it splits) */}
+      <ChartHover
+        label="UK workers by exposure to AI"
+        items={[
+          ...EXPOSURE_GROUPS.map((g) => ({ head: g.name, rows: [{ name: 'Share of UK workers', value: share0(g.value), color: g.color }], unit: `IMF estimates, ${WORKERS_PERIOD}, via DSIT.` })),
+          { head: 'UK workers', rows: [{ name: 'Tiles', value: '100, one per cent each', icon: 'workers' }], unit: `IMF estimates, ${WORKERS_PERIOD}, via DSIT.` },
+        ]}
+      >
       <div className="p1-tiles">
         <TileField tiles={tiles} width={GRID_W} height={GRID_H} label={label} className="p1-tile-grid" />
+        <div className="p1-tile-hits" aria-hidden="true" style={{ '--cols': GRID_W }}>
+          {grouped ? (
+            EXPOSURE_GROUPS.map((g, gi) => <span key={g.id} data-tip={gi} style={{ gridColumn: `${gi * 6 + 1} / span 5` }} />)
+          ) : (
+            <span data-tip={EXPOSURE_GROUPS.length} style={{ gridColumn: '1 / -1' }} />
+          )}
+        </div>
         {/* each group's share under its block, once grouped (it restates
             the step's figures: data-axis); the names are in the legend */}
         <ul className="p1-tile-labels" aria-hidden="true" style={{ '--cols': GRID_W }}>
@@ -637,6 +653,7 @@ export function ExposureTiles({ state, source, entered = true }) {
           ))}
         </ul>
       </div>
+      </ChartHover>
     </figure>
   );
 }
