@@ -108,6 +108,10 @@ const SETS = {
     cohortsDir: 'analysis/surprise/cohorts',
     // the ref design notes and the audit are read at (a ref on GitHub)
     docsRef: 'rerun/surprise-2028',
+    // the branch the driver runs on, and whether the tools are told the
+    // year (--start/--year/YEAR; 2028 is their default)
+    runBranch: 'rerun/surprise-2028',
+    yearFlag: false,
     scenarioFile: (sid) => `uk_growth_with_ai/data/scenarios_surprise2028_${sid}.json`,
     // the commits and solve times each set was built with (R3-04)
     versionsFile: 'site-versions.json',
@@ -130,6 +134,8 @@ const SETS = {
     outputDir: 'analysis/surprise2027/output',
     cohortsDir: 'analysis/surprise2027/cohorts',
     docsRef: '3988c0b',
+    runBranch: 'rerun/surprise-2027',
+    yearFlag: true,
     scenarioFile: (sid) => `uk_growth_with_ai/data/scenarios_surprise2027_${sid}.json`,
     // OG-UK, OG-Core and PolicyEngine versions are the 2028 set's (same
     // environment); the solves entry is the data file's own commit (VERSIONS)

@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:2027": "NEXT_PUBLIC_DATA=2027 vitest run",
+    "test:2028": "NEXT_PUBLIC_DATA=2028 vitest run",
     "ratchet": "bun scripts/ratchet.mjs",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

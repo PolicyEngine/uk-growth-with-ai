@@ -8,13 +8,19 @@
 import { SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR } from '@/tabs/ai/surprise.js';
 import { SET, DATA_FILE, setHas } from '@/lib/dataKeys.js';
 
+// The 2027 set's commands differ from 2028's (docs/surprise_2027.md,
+// "Pipeline commands (2027)"): every tool is told the year (2028 is their
+// default), and the run committed its outputs without pushing (NO_PUSH=1).
+const Y = SET.yearFlag ? SURPRISE_YEAR : null;
+const start = Y ? ` --start ${Y}` : '';
+
 export const REF = 'dashboard/ab2026-redesign';
 
 export const SP_HELPER = `export PY=/path/to/og-uk/.venv/bin/python   # Python 3.13, OG-Core 0.17.0 + the γ patch
 export WORK=~/ugai-rerun-work                    # holds <closure>/baseline_p1 from the R1–R4 rerun
 export PYTHONPATH=$PWD OUT=$PWD/${SET.outputDir} RERUN=$PWD/analysis/rerun/output
-# Run the surprise CLI as driver.sh does: from $WORK, with the repo's output folders
-sp() { ( cd "$WORK" && "$PY" -m uk_growth_with_ai surprise "$@" --outdir "$OUT" --rerun-dir "$RERUN" ); }`;
+# Run the surprise CLI as driver.sh does: from $WORK, with the repo's output folders${Y ? `\n# --start ${Y} is required (the CLI defaults to the earlier timing)` : ''}
+sp() { ( cd "$WORK" && "$PY" -m uk_growth_with_ai surprise "$@" --outdir "$OUT" --rerun-dir "$RERUN"${start} ); }`;
 
 export const STEPS = [
   {
@@ -28,8 +34,18 @@ export const STEPS = [
       'It takes the machine’s heavy-job lock as a labelled file.',
       'It never touches anyone else’s lock.',
       'DEADLINE_AT (default 19:25) and SOLVE_BUDGET (default 600 s) gate each solve.',
+      ...(Y ? [`YEAR=${Y} sets the branch check, the output folders and --start.`, 'NO_PUSH=1 commits each output without pushing; FAIL_CONTINUE=1 keeps the lock past a failed solve.'] : []),
     ],
-    code: `# The default plan (12 Nov 2026)
+    code: Y
+      ? `# The ${Y} plan, as run (docs/surprise_${Y}.md)
+YEAR=${Y} NO_PUSH=1 FAIL_CONTINUE=1 SOLVE_TIMEOUT=3600 \\
+  analysis/surprise/run_locked.sh check zk0.1:prepare zk0:prepare zk0.5:prepare \\
+  zk0.1:continuation zk0.1:gate zk0:continuation zk0:gate zk0.5:continuation zk0.5:gate \\
+  zk0.1:arms:uk_central zk0:arms:uk_central ... zk0.1:arms_dnfull:uk_central cohorts
+
+# Or named items only, with a later deadline
+YEAR=${Y} DEADLINE_AT=23:00 analysis/surprise/run_locked.sh zk0.1:arms:uk_central`
+      : `# The default plan (12 Nov 2026)
 analysis/surprise/run_locked.sh
 
 # Or named items only, with a later deadline
@@ -41,14 +57,19 @@ DEADLINE_AT=23:00 analysis/surprise/run_locked.sh zk0.1:arms:uk_central`,
     short: 'Driver',
     title: 'The driver: one step at a time',
     file: 'analysis/surprise/driver.sh',
-    line: 'Runs each item in order, skips what is done, commits and pushes each output.',
+    line: Y
+      ? 'Runs each item in order, skips what is done and commits each output.'
+      : 'Runs each item in order, skips what is done, commits and pushes each output.',
     more: [
-      `It refuses to run on any branch but ${SET.branch}.`,
+      // the 2027 caveat: that run never pushed; its outputs reached this site
+      // with the swap's merge of the run branch
+      ...(Y ? [`The ${Y} run set NO_PUSH=1: its outputs were committed on ${SET.runBranch}, not pushed, and came into the dashboard with the swap’s merge.`] : []),
+      `It refuses to run on any branch but ${SET.runBranch}.`,
       'For a fork, edit BRANCH and progress().',
       'Items: check, nics, <closure>:continuation, <closure>:gate, <closure>:<arms|arms_dn|arms_fs>:<scenario>.',
     ],
     code: `# Normally called by run_locked.sh; the item syntax:
-analysis/surprise/driver.sh check nics \\
+${Y ? `YEAR=${Y} ` : ''}analysis/surprise/driver.sh check nics \\
   zk0.1:continuation zk0.1:gate \\
   zk0.1:arms:uk_central zk0:arms:uk_central`,
   },
@@ -64,7 +85,7 @@ analysis/surprise/driver.sh check nics \\
       'It also checks the list of shifted inputs.',
       'The build needs about 15 GB of memory and covers both foreign-capital cases.',
     ],
-    code: `sp check-specs --closure zk0.1 --work "$WORK"`,
+    code: `sp check-specs --closure zk0.1 --work "$WORK"${Y ? `     # asserts the gamma ramp equals calendar_weights(${Y})` : ''}`,
   },
   {
     id: 'p-gate',
@@ -123,7 +144,7 @@ sp status --closure zk0.1                   # minutes and convergence per solve`
       'The expected signs and sizes were committed before any solve, in expectations.json.',
       'Red-flag diagnostics are reported for every solve but never fail it.',
     ],
-    code: `"$PY" analysis/surprise/sanity.py zk0.1 uk_central_share_shift_tfp_ramp --outdir "$OUT"`,
+    code: `"$PY" analysis/surprise/sanity.py zk0.1 uk_central_share_shift_tfp_ramp --outdir "$OUT"${Y ? ` --year ${Y}` : ''}`,
   },
   {
     id: 'p-outputs',
@@ -145,7 +166,12 @@ ${setHas('scenarioFile') ? `# writes ${SET.scenarioFile('uk_central')}` : '# wri
     file: 'analysis/surprise/build_dashboard_data.py',
     line: `Writes ${DATA_FILE} from whatever solves exist. Missing ones are marked pending.`,
     more: ['Every gap is against the continuation of the same closure.', 'No solve is run.'],
-    code: `python3 analysis/surprise/build_dashboard_data.py   # dashboard/src/data/${DATA_FILE}
+    code: Y
+      ? `WORK="$WORK" python3 analysis/surprise/build_dashboard_data.py --year ${Y}   # dashboard/src/data/${DATA_FILE}
+UGAI_SURPRISE_YEAR=${Y} python3 paper/cohort_welfare.py --json dashboard/src/data/${SET.cohorts}
+python3 dashboard/scripts/build_method_facts.py --year ${Y}   # dashboard/src/data/${SET.methodFactsFile}
+cd dashboard && bun install --frozen-lockfile && bun run build`
+      : `python3 analysis/surprise/build_dashboard_data.py   # dashboard/src/data/${DATA_FILE}
 cd dashboard && bun install --frozen-lockfile && bun run build`,
   },
 ];
