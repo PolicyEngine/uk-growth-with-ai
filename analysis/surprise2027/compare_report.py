@@ -1,4 +1,4 @@
-"""Tables for /Users/vahid/ugai-reviews/surprise2027-runs.md: the 2027 set
+"""Tables for the 2027 run report (kept outside the repository): the 2027 set
 (arrival 2027, full size 2030) against the 2028 set (arrival 2028, full size
 2031), each at its own headline year, gaps against the same closure's
 no-shock continuation.  Reads the two dashboard exports only:

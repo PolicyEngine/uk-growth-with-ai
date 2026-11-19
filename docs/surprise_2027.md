@@ -81,4 +81,4 @@ python3 analysis/surprise2027/compare_report.py                                 
   - With the default (2028), each reproduces its 2028 output exactly.
 - **Year-named keys** follow the year: `foreign_share_dK_<headline>`, `profile_<shock>`, `income_<shock>_35_age45`, `wealth_by_age_<shock>`.
 
-The results, the rulings and the comparison with 2028 are in `/Users/vahid/ugai-reviews/surprise2027-runs.md` (outside the repo).
+The run report (results, rulings and the 2028 comparison) is kept outside the repository; its tables are reproduced by `analysis/surprise2027/compare_report.py`.
