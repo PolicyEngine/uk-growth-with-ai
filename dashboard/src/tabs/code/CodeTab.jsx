@@ -10,7 +10,7 @@ import { ext } from '../shared/ui.jsx';
 import Card, { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
 import PageIntro from '@/components/ui/PageIntro.jsx';
 import CHANGELOG from '@/data/site-changelog.json';
-import MF from '@/data/methodFacts.json';
+import { METHOD_FACTS as MF, setHas } from '@/lib/dataKeys.js';
 import { MODEL_VERSIONS, VINTAGES, AI_FULL_RERUN, AI_STUDY, RELEASES, ledger, ledgerTable, LAST_UPDATED, HAS_CHECKS, version } from './ledger.js';
 import { HISTORY } from './history.js';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
@@ -123,7 +123,10 @@ function BeforeYouStart() {
               { icon: 'measure', text: 'About 15 GB of memory for a specification build.' },
               {
                 icon: 'timing',
-                text: (
+                // the 2028 runs' solve times are not the active set's (R3-04)
+                text: !setHas('methodFactsFile') ? (
+                  <>Solve times for the {SURPRISE_YEAR} runs are not compiled yet.</>
+                ) : (
                   <>
                     Solves: median {MF.solve_minutes.median.toFixed(1)} minutes, {MF.solve_minutes.min.toFixed(1)} to{' '}
                     {MF.solve_minutes.max.toFixed(1)} across {MF.solve_minutes.records} committed solve records.

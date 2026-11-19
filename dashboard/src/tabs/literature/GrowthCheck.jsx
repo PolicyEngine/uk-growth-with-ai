@@ -9,7 +9,7 @@ import Card from '@/components/ui/Card.jsx';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
 import { TipBox } from '@/components/ab/Tip.jsx';
-import F from '@/data/methodFacts.json';
+import { METHOD_FACTS as F } from '@/lib/dataKeys.js';
 import { OBR_GROWTH, SOURCES } from '@/data/literature.js';
 import { code, SRC } from '@/tabs/method/sources.js';
 import { CENTRAL } from '@/tabs/ai/surprise.js';

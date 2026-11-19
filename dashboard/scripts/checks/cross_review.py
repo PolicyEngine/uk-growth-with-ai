@@ -93,7 +93,12 @@ def check(dump):
         bad += 1; print('solve minutes: methodFacts.json is stale against', len(xs), 'records')
     for sid in dump:
         code = dump[sid].get('code', '')
-        if f"{sm['records']} committed solve records" not in code:
+        # the 2028 solve times print only on the 2028 set (R3-04); another set
+        # says they are not compiled yet until its methodFacts file lands
+        if active_data.FLAG != '2028':
+            if 'not compiled yet' not in code:
+                bad += 1; print(sid, 'Data and code: no "not compiled yet" for this set\'s solve times')
+        elif f"{sm['records']} committed solve records" not in code:
             bad += 1; print(sid, 'Data and code: solve-record count not printed')
         who = dump[sid].get('who', '')
         full = CO.get('dnfull') or {}

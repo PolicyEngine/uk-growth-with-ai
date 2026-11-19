@@ -6,7 +6,7 @@
 // exactly as driver.sh does.
 
 import { SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR } from '@/tabs/ai/surprise.js';
-import { SET, DATA_FILE } from '@/lib/dataKeys.js';
+import { SET, DATA_FILE, setHas } from '@/lib/dataKeys.js';
 
 export const REF = 'dashboard/ab2026-redesign';
 
@@ -135,7 +135,7 @@ sp status --closure zk0.1                   # minutes and convergence per solve`
     more: ['assemble collects one scenario’s solves into a results file under uk_growth_with_ai/data/.'],
     code: `ls ${SET.outputDir}/zk0.1/
 sp assemble --closure zk0.1 --scenario uk_central
-# writes ${SET.scenarioFile('uk_central')}`,
+${setHas('scenarioFile') ? `# writes ${SET.scenarioFile('uk_central')}` : '# writes the scenario file for this set (not published yet)'}`,
   },
   {
     id: 'p-dash',

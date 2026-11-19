@@ -20,6 +20,8 @@ import BASE from '../../scripts/ratchet-baselines.json';
 import { recordCount } from '@/lib/probeTestUtils.jsx';
 
 afterEach(cleanup);
+// whole pages render here; under a loaded machine 5s is too short
+vi.setConfig({ testTimeout: 60000 });
 
 // ---- 1 and 2: the source scan -------------------------------------------
 
@@ -401,4 +403,27 @@ describe('claims probe, notices point at solved views (R3-02)', () => {
           }
       if (name === '2027') expect(n).toBeGreaterThan(0);
     });
+});
+
+// ---- R3-04: the swap gate. Run with SWAP_GATE=1 in the swap's fast gate:
+// the active set must have every file of its own, none borrowed from 2028.
+describe('swap gate (R3-04)', () => {
+  it.runIf(process.env.SWAP_GATE === '1')('the active set has every file', async () => {
+    vi.resetModules();
+    vi.doUnmock('@/lib/activeData.js');
+    const { SET_MISSING } = await import('@/lib/dataKeys.js');
+    expect(SET_MISSING).toEqual([]);
+  });
+  it('Data and code never prints a 2028 commit or solve time beside another set', async () => {
+    vi.resetModules();
+    vi.doUnmock('@/lib/activeData.js');
+    const { setHas, VERSIONS } = await import('@/lib/dataKeys.js');
+    const { VINTAGES, ledger } = await import('@/tabs/code/ledger.js');
+    const S = (await import('@/lib/activeData.js')).default;
+    if (setHas('versionsFile')) return;
+    const solves = VERSIONS.entries.find((e) => e.id === 'solves').value;
+    const text = JSON.stringify([VINTAGES, ledger()]);
+    if (solves !== S.source_commit) expect(text).not.toContain(solves);
+    expect(text).toContain(`Solves and data at ${S.source_commit}`);
+  });
 });

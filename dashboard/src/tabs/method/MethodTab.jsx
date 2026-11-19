@@ -16,7 +16,7 @@ import { METHOD, RULES as RULE_NAMES } from '@/lib/labels.js';
 import { S, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, foreignShareOf } from '@/tabs/ai/surprise.js';
 import { SET } from '@/lib/dataKeys.js';
 import { REPO, URLS, issue, pr } from '@/tabs/ai/links.js';
-import F from '@/data/methodFacts.json';
+import { METHOD_FACTS as F } from '@/lib/dataKeys.js';
 import { ext } from '../shared/ui.jsx';
 import ModelDiagram, { flowTable, diagramSvg } from './ModelDiagram.jsx';
 import Cohorts from './Cohorts.jsx';

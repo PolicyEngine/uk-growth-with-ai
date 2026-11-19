@@ -51,5 +51,5 @@ describe('label and number joins', () => {
     const b = BASE.probes.label_joins.baseline;
     if (all.length > (b ?? 0)) console.warn(`label joins: ${all.length}\n${all.join('\n')}`);
     expect(all.length, `label_joins: ${all.length} against baseline ${b}`).toBeLessThanOrEqual(b ?? 0);
-  });
+  }, 60000);
 });

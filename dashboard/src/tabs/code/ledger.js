@@ -11,7 +11,7 @@ import AI from '@/data/aiStudy2425.json';
 import UK from '@/data/ukContext.json';
 import REL from '@/data/relatedWork.json';
 import EV from '@/data/site-evidence-map.json';
-import V from '@/data/site-versions.json';
+import { VERSIONS as V, setHas } from '@/lib/dataKeys.js';
 import { SOURCES } from '@/data/literature.js';
 import { valueHref } from '@/tabs/literature/pages.js';
 import CHECKS from './checksHook.js';
@@ -73,7 +73,9 @@ export const AI_FULL_RERUN = AIM.manifest_full_rerun;
 export const MODEL_VERSIONS = [
   // a package version is named by the package (review round 1, R1-16:
   // "PolicyEngine UK" in prose, "policyengine-uk" for the package)
-  ...V.entries.map((e) => ({ model: 'OG-UK', ...e, label: e.label === 'PolicyEngine-UK' ? 'policyengine-uk' : e.label })),
+  // the 2028 solves' commit is not the active set's: on another set the row
+  // names the data file's own commit (R3-04)
+  ...V.entries.map((e) => (e.id === 'solves' && !setHas('versionsFile') ? { ...e, label: `OG-UK solves (${SURPRISE_YEAR} surprise)`, value: S.source_commit, where: `${DATA_FILE} source_commit; the versions file for this set is not built yet` } : e)).map((e) => ({ model: 'OG-UK', ...e, label: e.label === 'PolicyEngine-UK' ? 'policyengine-uk' : e.label })),
   { model: 'Household study', id: 'ai_pe_uk', label: 'policyengine-uk', value: AIM.policyengine_uk, where: 'aiStudy2425.json: the study’s build' },
   { model: 'Household study', id: 'ai_pe', label: 'policyengine', value: AIM.policyengine, where: 'aiStudy2425.json: release bundle' },
 ];
@@ -105,7 +107,7 @@ function officialRows(checks) {
 
 export function ledger(checks = CHECKS) {
   const rows = officialRows(checks);
-  rows.push({ figure: 'Every OG-UK result in Explore (gaps against the OBR’s central forecast path)', source: `OG-UK solves, ${SURPRISE_YEAR} surprise`, vintage: `Solves ${version('solves').value}; data built from ${S.source_commit}`, checked: day(S.generated_utc), group: 'OG-UK results' });
+  rows.push({ figure: 'Every OG-UK result in Explore (gaps against the OBR’s central forecast path)', source: `OG-UK solves, ${SURPRISE_YEAR} surprise`, vintage: setHas('versionsFile') ? `Solves ${version('solves').value}; data built from ${S.source_commit}` : `Solves and data at ${S.source_commit}`, checked: day(S.generated_utc), group: 'OG-UK results' });
   rows.push({ figure: 'Who gains: welfare by birth year and earnings group', source: CO.generated_by, vintage: COHORT_SOURCE, checked: null, group: 'OG-UK results' });
   rows.push({ figure: aiLabel('Household study results'), source: `Household study PR #${AI.source.pr}`, url: AI_STUDY.prUrl, vintage: `${aiWhere}, ${AI.source.dataset}`, checked: AI.source.fetched, group: 'Household study results' });
   for (const s of Object.values(SOURCES)) rows.push({ figure: s.title, source: s.short, url: s.url, vintage: s.loc, checked: null, note: s.read ?? null, group: 'Published studies' });
