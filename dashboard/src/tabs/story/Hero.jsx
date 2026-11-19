@@ -11,7 +11,7 @@ import { METHOD, MEASURE, PAGE_TITLE } from '@/lib/labels.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import { useSvgScale } from '@/lib/svgScale.js';
 import { payCaveat, payWords } from '@/tabs/story/part2/caveats.js';
-import { incomeNotes } from '@/tabs/ai/Landing.jsx';
+import { incomeNotes, signCaveat } from '@/tabs/ai/Landing.jsx';
 import { BOUND, HEADLINE_YEAR, LATE_YEAR, S, SCENARIOS, SCEN_NAME, SURPRISE_YEAR, YEARS, fmt, gap } from '@/tabs/ai/surprise.js';
 
 // The first screen: the story's first question, then one result unit on
@@ -238,7 +238,9 @@ export function heroStats(sid, cl) {
       name: MEASURE.Y.name,
       x: y,
       line: 'produced in the UK',
-      tip: `${MEASURE.Y.def} A gap in the level, ${YEARS_ON} years on; not a growth rate.`,
+      // the sign caveat where GDP's side may not survive netting the OBR's
+      // own AI productivity (obr-overlap-fable.md, direction chips)
+      tip: [`${MEASURE.Y.def} A gap in the level, ${YEARS_ON} years on; not a growth rate.`, signCaveat(sid, cl, 'Y')].filter(Boolean).join(' '),
     },
     {
       id: 'pay',

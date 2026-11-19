@@ -69,6 +69,9 @@ for (const [name, D] of Object.entries(FILES)) {
       if (name === '2028') {
         for (const c of ['uk_central zk0.1 debt_gdp_pp', 'uk_low zk0.1 debt_gdp_pp', 'uk_central zk0 Y', 'uk_low zk0 Y', 'uk_central zk0 GNI', 'uk_low zk0 GNI', 'uk_central zk0.1 NNI', 'uk_low zk0.1 NNI']) expect(fired).toContain(c);
         expect(fired.filter((c) => c.startsWith('korinek'))).toEqual([]);
+        // an extension beyond Fable's chip list, on the calendar clock only
+        // (Fable's own table has it flip at net 0.4): Explore's debt chip
+        expect(fired.filter((c) => c.startsWith('uk_high')).sort()).toEqual(['uk_high zk0 debt_gdp_pp', 'uk_high zk0 tax_gdp_pp']);
       }
     });
 

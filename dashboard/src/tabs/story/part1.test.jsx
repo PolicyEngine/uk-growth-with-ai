@@ -687,7 +687,7 @@ describe('hero', () => {
       expect(gni.textContent).toBe(sign(S.results[s].tfp[cl].gaps.GNI[i]));
       expect(stats[2].querySelector('.hf-stat-beside').textContent).toMatch(/^Before depreciation \(GNI\):/);
       // the GDP tip says it is a level
-      expect(heroStats(s, cl)[0].tip).toMatch(/A gap in the level, \d+ years on; not a growth rate\.$/);
+      expect(heroStats(s, cl)[0].tip).toMatch(/A gap in the level, \d+ years on; not a growth rate\.( Its sign depends on the productivity gain.*)?$/);
       // the gilt holders where no capital is foreign-owned
       expect(heroStats(s, cl)[2].tip).toContain(cl === 'zk0' ? 'gilt holders abroad' : 'owners abroad');
       // the kicker: plain, the sources icon on its line
