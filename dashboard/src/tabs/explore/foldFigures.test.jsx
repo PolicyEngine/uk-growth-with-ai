@@ -49,7 +49,7 @@ describe('figures in folds', () => {
     if (!done.length) {
       // nothing solved at zeta_K = 0.5: no range, and the card says so
       expect(t0).not.toMatch(/above the forecast path in \d{4}/);
-      expect(t0).toMatch(/not solved/);
+      expect(t0).toMatch(/not (?:yet )?solved/);
       return;
     }
     const gaps = done.map((a) => a.tfp.gaps.I);

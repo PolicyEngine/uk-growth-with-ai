@@ -50,7 +50,7 @@ function read(sid, closure, rule, vars) {
 export function economyAnswer(sid, closure, rule) {
   if (!ruleSolved(rule, sid)) return ruleGapText(rule, sid);
   const r = read(sid, closure, rule, [['gdp', 'GDP', 'Y'], ['gni', 'National income', 'GNI'], ['pay', 'Pay rate', 'w']]);
-  if (!r) return 'This combination is not solved yet.';
+  if (!r) return 'This combination is not yet solved.';
   const ls = gap(sid, 'tfp', r.cl, 'labour_share_pp', HEADLINE_YEAR, rule);
   const why =
     ls == null
@@ -65,7 +65,7 @@ export function economyAnswer(sid, closure, rule) {
 export function financesAnswer(sid, closure, rule) {
   if (!ruleSolved(rule, sid)) return ruleGapText(rule, sid);
   const r = read(sid, closure, rule, [['debt', `Debt/GDP in ${HEADLINE_YEAR}`, 'debt_gdp_pp'], ['tax', `Tax/GDP in ${HEADLINE_YEAR}`, 'tax_gdp_pp']]);
-  if (!r) return 'This combination is not solved yet.';
+  if (!r) return 'This combination is not yet solved.';
   return { ...r, link: { anchor: 'tax-gap', icon: 'limit', text: 'OG-UK’s revenue fall is smaller than OBR tax rates imply' } };
 }
 

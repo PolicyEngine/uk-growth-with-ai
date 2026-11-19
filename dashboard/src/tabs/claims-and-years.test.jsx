@@ -372,3 +372,33 @@ describe('claims probe, pending scenarios in the GDP scene (R3-01)', () => {
       if (name === '2027') expect(checked).toBeGreaterThan(0);
     });
 });
+
+// ---- R3-02: a not-solved notice only ever sends the reader to a solved view
+describe('claims probe, notices point at solved views (R3-02)', () => {
+  for (const [name, D] of Object.entries(FILES))
+    it(`surprise${name}.json`, async () => {
+      await pickFile(D);
+      const { emptyText, ruleGapText } = await import('@/tabs/ai/lines.js');
+      const { ruleSolved } = await import('@/tabs/ai/surprise.js');
+      const RK = { dn: 'debt_neutral', fixed: 'fixed_spending' };
+      const rec = (sid, a, cl, rule) => (RK[rule] ? D.rules[RK[rule]].results : D.results)?.[sid]?.[a]?.[cl];
+      const solvedAt = (sid, cl, rule) => ['tfp', 'tz', 'ss'].some((a) => rec(sid, a, cl, rule)?.status === 'done');
+      const NAME = Object.fromEntries(D.scenarios.map((s) => [s.id, s.id === 'korinek' ? 'Korinek et al., substantial (US)' : s.label]));
+      let n = 0;
+      for (const s of D.scenarios)
+        for (const rule of ['common', 'dn', 'fixed'])
+          for (const closure of ['central', 'closed']) {
+            const cl = closure === 'closed' ? 'zk0' : 'zk0.1';
+            if (solvedAt(s.id, cl, rule)) continue;
+            const t = ruleSolved(rule, s.id) ? emptyText(['tfp', 'tz', 'ss'], closure, rule, s.id) : ruleGapText(rule, s.id);
+            n += 1;
+            expect(t, `${s.id} ${rule} ${closure}`).toMatch(/not yet solved|solved for .* only/);
+            const fc = /Choose (Some|None) under Foreign capital/.exec(t)?.[1];
+            if (fc) expect(solvedAt(s.id, fc === 'Some' ? 'zk0.1' : 'zk0', rule), t).toBe(true);
+            if (/Choose the common fiscal rule/.test(t)) expect(solvedAt(s.id, 'zk0.1', 'common') || solvedAt(s.id, 'zk0', 'common'), t).toBe(true);
+            const sc = /Choose (.+) under Scenario/.exec(t)?.[1];
+            if (sc) for (const [id, nm] of Object.entries(NAME)) if (sc.includes(nm)) expect(solvedAt(id, 'zk0.1', rule) || solvedAt(id, 'zk0', rule), `${t} -> ${id}`).toBe(true);
+          }
+      if (name === '2027') expect(n).toBeGreaterThan(0);
+    });
+});

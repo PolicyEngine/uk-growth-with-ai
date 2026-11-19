@@ -63,7 +63,7 @@ export function heroAnswer(sid, cl = CENTRAL) {
   const y = gap(sid, 'tfp', cl, 'Y');
   const w = gap(sid, 'tfp', cl, 'w');
   const g = gap(sid, 'tfp', cl, 'GNI');
-  if (y == null || w == null) return 'This scenario is not solved yet for the foreign-capital case chosen above.';
+  if (y == null || w == null) return 'This scenario is not yet solved for the foreign-capital case chosen above.';
   const rel = (x) => (Math.abs(x) < 0.005 ? 'on' : x > 0 ? 'above' : 'below');
   const keep = g != null && y > 0 && g < y ? ', and national income gains less than GDP' : '';
   const pay = `pay rates are ${rel(w)} it${rel(w) === rel(y) ? ' too' : ''}`;
@@ -76,7 +76,7 @@ export function heroItems(sid, cl = CENTRAL) {
   const y = gap(sid, 'tfp', cl, 'Y');
   const w = gap(sid, 'tfp', cl, 'w');
   const g = gap(sid, 'tfp', cl, 'GNI');
-  if (y == null || w == null) return [{ icon: 'provisional', text: 'This scenario is not solved yet for the foreign-capital case chosen above' }];
+  if (y == null || w == null) return [{ icon: 'provisional', text: 'This scenario is not yet solved for the foreign-capital case chosen above' }];
   const out = [
     { icon: dirConcept(y), text: `GDP is ${dirWord(y)} the forecast path in ${HEADLINE_YEAR}` },
     { icon: dirConcept(w), text: `Pay rates are ${dirWord(w)} it${dirWord(w) === dirWord(y) ? ' too' : ''}` },
@@ -179,7 +179,7 @@ export function HeadlineTiles({ sid }) {
       </div>
       {DONE < TOTAL && sidPending ? (
         <Notice>
-          {DONE} of {TOTAL} solves are done. {result(sid, 'tfp', CENTRAL).status === 'done' ? `For this scenario the no-foreign-capital results are ${PENDING}.` : `This scenario is ${PENDING}.`}
+          {DONE} of the {TOTAL} main results are solved. {result(sid, 'tfp', CENTRAL).status === 'done' ? `For this scenario the no-foreign-capital results are ${PENDING}.` : `This scenario is ${PENDING}.`}
         </Notice>
       ) : null}
     </>

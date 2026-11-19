@@ -103,7 +103,7 @@ describe('the cards’ inline arrows', () => {
             const card = container.querySelector('#debt-gdp');
             if (!ruleSolved(rule, sid)) expect(card).toBeNull();
             else {
-              expect(card.textContent).toMatch(/not solved/);
+              expect(card.textContent).toMatch(/not (?:yet )?solved/);
               expect(card.querySelector('.card-head h3')?.textContent ?? '').not.toMatch(/\d\.\d/);
             }
           }

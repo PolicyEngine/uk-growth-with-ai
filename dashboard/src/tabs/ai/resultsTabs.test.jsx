@@ -151,9 +151,11 @@ describe('tooltips', () => {
     expect(other.all).not.toMatch(/[+−]\d+\.\d+(%|pp)/);
     const low = page('sub=finances&s=uk_low&rule=fixed').card;
     // the lead is title-level: no full stop (Vahid, 18 Nov)
-    expect(low).toContain('UK low is not solved under fixed spending');
-    expect(low).not.toContain('UK low is not solved under fixed spending.');
+    expect(low).toContain('UK low is not yet solved under fixed spending');
+    expect(low).not.toContain('UK low is not yet solved under fixed spending.');
     expect(low).toContain('Fixed spending is solved for UK central and Korinek et al., substantial (US) only');
+    // R3-02: the advice points at a solved view only (here the common rule)
+    expect(low).toContain('Choose the common fiscal rule.');
     // the common rule has nothing to compare: no box
     expect(page('sub=finances&s=uk_central').card).toBeNull();
     // the box prints no figures outside its dumbbells and table

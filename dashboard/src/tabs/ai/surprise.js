@@ -85,6 +85,22 @@ export const ruleSolved = (rule, sid) => !RULE_KEY[rule] || ruleScenarios(RULE_K
 // The scenarios a rule is solved for, in display order.
 export const solvedUnder = (rule) => SCENARIOS.filter((s) => ruleSolved(rule, s.id));
 
+// Where a reader can go from a view that is not solved, so a notice never
+// points at another unsolved view (review round 3, R3-02). The first solved
+// of: the other foreign-capital case under this rule; the common rule for
+// this scenario; the scenarios solved under this rule. A sentence, or null.
+export const CLOSURE_SHORT = { [CENTRAL]: 'Some', [BOUND]: 'None' };
+const andList = (xs) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`);
+const solvedAt = (sid, cl, rule) => ARMS.some((a) => resultAt(sid, a.id, cl, rule).status === 'done');
+export function nextSolved(sid, closure, rule = 'common') {
+  const cl = closure === 'closed' ? BOUND : CENTRAL;
+  const other = cl === CENTRAL ? BOUND : CENTRAL;
+  if (closure !== 'both' && solvedAt(sid, other, rule)) return `Choose ${CLOSURE_SHORT[other]} under Foreign capital.`;
+  if (rule !== 'common' && (solvedAt(sid, CENTRAL, 'common') || solvedAt(sid, BOUND, 'common'))) return 'Choose the common fiscal rule.';
+  const names = SCENARIOS.filter((s) => s.id !== sid && (solvedAt(s.id, CENTRAL, rule) || solvedAt(s.id, BOUND, rule))).map((s) => s.label);
+  return names.length ? `Choose ${andList(names)} under Scenario.` : null;
+}
+
 // Gap of variable v in a calendar year, or null when pending.
 export function gap(sid, arm, closure, v, year = HEADLINE_YEAR, rule = 'common') {
   const r = resultAt(sid, arm, closure, rule);
