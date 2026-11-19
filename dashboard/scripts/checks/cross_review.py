@@ -27,7 +27,7 @@ ROOT = os.path.join(HERE, '..', '..', '..')
 DATA = os.path.join(HERE, '..', '..', 'src', 'data')
 OUT = active_data.OUT
 S = active_data.load_surprise()
-MF = json.load(open(os.path.join(DATA, 'methodFacts.json')))
+MF = active_data.load_method_facts()
 CO = active_data.load_cohorts()
 
 
@@ -93,12 +93,9 @@ def check(dump):
         bad += 1; print('solve minutes: methodFacts.json is stale against', len(xs), 'records')
     for sid in dump:
         code = dump[sid].get('code', '')
-        # the 2028 solve times print only on the 2028 set (R3-04); another set
-        # says they are not compiled yet until its methodFacts file lands
-        if active_data.FLAG != '2028':
-            if 'not compiled yet' not in code:
-                bad += 1; print(sid, 'Data and code: no "not compiled yet" for this set\'s solve times')
-        elif f"{sm['records']} committed solve records" not in code:
+        # each set prints its own solve times (R3-04; both sets have their
+        # method facts since the swap)
+        if f"{sm['records']} committed solve records" not in code:
             bad += 1; print(sid, 'Data and code: solve-record count not printed')
         who = dump[sid].get('who', '')
         full = CO.get('dnfull') or {}

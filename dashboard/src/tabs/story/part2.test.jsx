@@ -248,7 +248,9 @@ describe('each state of each graphic', () => {
       'uk_central zk0.1': [16, 9, 6, 3, 3],
       'uk_central zk0': [16, 4, 2, 2, 3],
       'uk_high zk0.1': [29, 27, 17, 10, 5],
-      'uk_high zk0': [29, 16, 10, 6, 5],
+      // 2028 file: [29, 16, 10, 6, 5]; the swap's 2027 file (the fixture
+      // base): one fewer new tile, all on capital
+      'uk_high zk0': real.surprise_year === 2028 ? [29, 16, 10, 6, 5] : [29, 15, 10, 5, 5],
       'korinek zk0.1': [39, 49, 30, 19, 7],
       'korinek zk0': [39, 30, 19, 11, 6],
     };

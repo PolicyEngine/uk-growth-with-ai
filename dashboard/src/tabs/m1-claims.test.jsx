@@ -5,7 +5,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import S2028 from '@/data/surprise2028.json';
 import S2027 from 'ugai-surprise2027'; // null unless the 2027 run has its file (R4-16)
-import CO from '@/data/cohorts2028.json';
+import { COHORTS as CO } from '@/lib/dataKeys.js';
 
 // the 2027 file only when it is loaded (R4-16)
 const FILES = Object.fromEntries(Object.entries({ 2028: S2028, 2027: S2027 }).filter(([, D]) => D));

@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render } from '@testing-library/react';
 import { pickInPill } from '@/components/ui/pillTestUtils.js';
 import S from '@/lib/activeData.js';
-import CO from '@/data/cohorts2028.json';
+import { COHORTS as CO } from '@/lib/dataKeys.js';
 import { NavProvider } from '@/lib/nav.jsx';
 import ClosureSlope, { slopeRows, SLOPE_MEASURES } from '@/tabs/explore/ClosureSlope.jsx';
 import ResultsTab from '@/tabs/ai/ResultsTab.jsx';

@@ -60,10 +60,10 @@ export const SRC = {
   // the line that sets the year (R3-16): surprise.py's constant for the 2028
   // set; for another set the driver's YEAR, which every solve passes on as
   // --start (driver.sh:48 at 816a87e; the brief's :170 is the cohort export)
-  surpriseYear: DATA_SET === 2028 ? { label: `surprise.py: SURPRISE_YEAR = ${SURPRISE_YEAR}`, url: code('uk_growth_with_ai/surprise.py', 55) } : { label: `driver.sh: YEAR=${SURPRISE_YEAR}`, url: code('analysis/surprise/driver.sh', 48) },
+  surpriseYear: DATA_SET === 2028 ? { label: `surprise.py: SURPRISE_YEAR = ${SURPRISE_YEAR}`, url: code('uk_growth_with_ai/surprise.py', 56) } : { label: `driver.sh: YEAR=${SURPRISE_YEAR}`, url: code('analysis/surprise/driver.sh', 48) },
   rampWeights: { label: 'surprise.py: ramp weights', url: code('uk_growth_with_ai/surprise.py', 137) },
   debtTarget: { label: 'rerun.py: the 2030 debt target', url: code('uk_growth_with_ai/rerun.py', 74) },
-  fiscalRules: { label: 'design note: fiscal rules', url: `${REPO}/blob/${RUN}/${SET.designDoc}` },
+  fiscalRules: { label: 'design note: fiscal rules', url: `${REPO}/blob/${SET.docsRef}/${SET.designDoc}` },
   rerunNote: { label: 'rerun note', url: `${REPO}/blob/${RUN}/docs/rerun_r1_r4.md` },
   pr43: { label: 'PR #43', url: `${REPO}/pull/43` },
   checks: { label: 'checks.py', url: code('uk_growth_with_ai/checks.py') },

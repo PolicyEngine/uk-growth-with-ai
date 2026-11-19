@@ -11,7 +11,7 @@ import { DATA_SET } from '@/lib/dataFlag.js';
 
 // Figures pinned for one data file (a regression anchor); other files are
 // checked against their own data only.
-const PIN = { 2028: { n: 20, range: ['4', '66'] } }[DATA_SET];
+const PIN = { 2028: { n: 20, range: ['4', '66'] }, 2027: { n: 20, range: ['9', '66'] } }[DATA_SET];
 
 afterEach(cleanup);
 const L = S.years.indexOf(S.late_year);

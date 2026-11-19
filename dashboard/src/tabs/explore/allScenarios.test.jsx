@@ -15,7 +15,9 @@ afterEach(cleanup);
 
 // Counts and figures pinned to the 2028 file (the data these items were
 // written against); on another file the counts come from its own data.
-const PINNED = DATA_SET === 2028;
+// pinned for both full files (the swap re-pinned them to 2027, the default)
+const PINNED = DATA_SET === 2028 || DATA_SET === 2027;
+const NEAR_TIE = { 2028: [1.485, 1.481], 2027: [1.491, 1.475] }[DATA_SET];
 const SIDS = ['uk_low', 'uk_central', 'uk_high', 'korinek'];
 const RULES = ['common', 'fixed', 'dn'];
 const solved = (sid, cl, rule, v = 'Y', arm = 'tfp') => cellValue(sid, arm, cl, rule, v) != null;
@@ -119,9 +121,10 @@ describe('All scenarios', () => {
     expect(s.scenario.rows).toBe(2);
     expect(s.closure.rows).toBe(8);
     expect(s.rule.rows).toBe(4);
-    // the known near tie: A+P pay, scenario 1.485 against closure 1.481
-    expect(s.scenario.max).toBeCloseTo(1.485, 2);
-    expect(s.closure.max).toBeCloseTo(1.481, 2);
+    // the known near tie: A+P pay, scenario against closure (2028: 1.485
+    // and 1.481; 2027: 1.491 and 1.475), a tie either way
+    expect(s.scenario.max).toBeCloseTo(NEAR_TIE[0], 2);
+    expect(s.closure.max).toBeCloseTo(NEAR_TIE[1], 2);
   });
   it('the gate: lead, tie, open and still', () => {
     const f = (a, b, c) => ({ scenario: { max: a[0], mean: a[1] }, closure: { max: b[0], mean: b[1] }, rule: { max: c[0], mean: c[1] } });

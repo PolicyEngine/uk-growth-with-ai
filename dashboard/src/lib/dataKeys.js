@@ -17,9 +17,12 @@
 import S from '@/lib/activeData.js';
 import { DATA_SET } from '@/lib/dataFlag.js';
 import NICS2028 from '@/tabs/explore/nics2028.json';
+import NICS2027 from '@/tabs/explore/nics2027.json';
 import CO2028 from '@/data/cohorts2028.json';
+import CO2027 from '@/data/cohorts2027.json';
 import V2028 from '@/data/site-versions.json';
 import MF2028 from '@/data/methodFacts.json';
+import MF2027 from '@/data/methodFacts2027.json';
 import S2028 from '@/data/surprise2028.json';
 import S2027 from 'ugai-surprise2027'; // null unless the 2027 run has its file (R4-16)
 
@@ -36,16 +39,15 @@ export const foreignShareOf = (rec, D = S) => {
 };
 
 // ---- cohorts20xx.json --------------------------------------------------
-// One cohort file for both sets until cohorts2027.json lands: its years
-// are its own (COHORT_YEAR is 2028 under either flag), never SURPRISE_YEAR.
-export const COHORTS = CO2028;
-// The commit every cohort link and label names. Pinned, not read from the
-// file's `source`: model-runs' regeneration (rerun/surprise-2027 8d4c082)
-// records uk-growth-with-ai@79c006d, a commit not on GitHub, so push C keeps
-// the published 2558375 (peer ruling). The swap removes the pin, and reads
-// COHORTS.source again, once rerun/surprise-2027 is merged and pushed.
-export const COHORT_SOURCE_COMMIT = '2558375';
-export const COHORT_SOURCE = `${String(COHORTS.source ?? '').split('@')[0] || 'uk-growth-with-ai'}@${COHORT_SOURCE_COMMIT}`;
+// Each set's own cohort file (the swap: cohorts2027.json for the 2027 set);
+// its years are its own, never SURPRISE_YEAR.
+const COHORTS_BY_YEAR = { 2028: CO2028, 2027: CO2027 };
+export const COHORTS = COHORTS_BY_YEAR[S.surprise_year] ?? CO2028;
+// The commit every cohort link and label names: the cohort file's own
+// source. The push C pin (2558375) is gone with the swap: that commit is not
+// an ancestor of the pushed head, and both cohort files' sources are.
+export const COHORT_SOURCE_COMMIT = String(COHORTS.source ?? '').split('@')[1] ?? null;
+export const COHORT_SOURCE = String(COHORTS.source ?? '');
 export const COHORT_YEAR = COHORTS.shock_year;
 // Never mix years (review round 2, R2-03): any aggregate a cohort sentence
 // cites comes from the surprise file of the cohort's own shock year, and
@@ -103,32 +105,36 @@ const SETS = {
     nicsPath: 'analysis/nics/nics_2028.json',
     nicsRef: 'bf5de33',
     outputDir: 'analysis/surprise/output',
+    cohortsDir: 'analysis/surprise/cohorts',
+    // the ref design notes and the audit are read at (a ref on GitHub)
+    docsRef: 'rerun/surprise-2028',
     scenarioFile: (sid) => `uk_growth_with_ai/data/scenarios_surprise2028_${sid}.json`,
     // the commits and solve times each set was built with (R3-04)
     versionsFile: 'site-versions.json',
     methodFactsFile: 'methodFacts.json',
   },
+  // the swap (19 Nov): every 2027 file is in the tree. The 2027 runs are
+  // merged into this branch (rerun/surprise-2027 at 3988c0b, merge eca9b18),
+  // so links name commits on this branch's history, never the unpushed
+  // branch name.
   2027: {
     results: 'surprise2027.json',
-    // cohorts2027.json comes after the full set (surprise2027-runs.md)
-    cohorts: null,
-    // local commits only (816a87e, 5dc7474): links open once pushed
-    branch: 'rerun/surprise-2027',
-    // the 2027 runs keep the one design note, docs/surprise_2028.md
-    designDoc: null,
-    sanityDoc: null,
-    sanityRef: null,
-    // nics_2027.json exists on rerun/surprise-2027, but its copy is not in
-    // the dashboard (tabs/explore/nics2028.json is): the 2028 measure stands
-    nicsFile: null,
-    nicsPath: null,
-    nicsRef: null,
+    cohorts: 'cohorts2027.json',
+    branch: '3988c0b',
+    designDoc: 'docs/surprise_2027.md',
+    sanityDoc: 'docs/results_sanity_2027.md',
+    sanityRef: '3988c0b',
+    nicsFile: 'nics_2027.json',
+    nicsPath: 'analysis/nics/nics_2027.json',
+    nicsRef: 'bf5de33',
     outputDir: 'analysis/surprise2027/output',
-    // no scenarios_surprise2027_*.json at 816a87e
-    scenarioFile: null,
-    // the swap build writes these (review round 3, R3-04)
-    versionsFile: null,
-    methodFactsFile: null,
+    cohortsDir: 'analysis/surprise2027/cohorts',
+    docsRef: '3988c0b',
+    scenarioFile: (sid) => `uk_growth_with_ai/data/scenarios_surprise2027_${sid}.json`,
+    // OG-UK, OG-Core and PolicyEngine versions are the 2028 set's (same
+    // environment); the solves entry is the data file's own commit (VERSIONS)
+    versionsFile: 'site-versions.json',
+    methodFactsFile: 'methodFacts2027.json',
   },
 };
 // The active set's entry, each null field filled from the 2028 set.
@@ -146,11 +152,17 @@ export const DATA_FILE = `surprise${S.surprise_year}.json`;
 // fallback)? Pages that would print a 2028 commit or solve time beside the
 // active data say what they have instead (R3-04).
 export const setHas = (key) => !SET_MISSING.includes(key);
-// The commits behind the results (site-versions.json) and the method facts
-// (methodFacts.json): the 2028 files until the 2027 ones land.
-export const VERSIONS = V2028;
-export const METHOD_FACTS = MF2028;
+// The commits behind the results (site-versions.json) and the method facts.
+// The software versions are shared; the solves entry names the active
+// set's own solves (its data file's source_commit), so no page prints the
+// 2028 solves beside the 2027 data.
+export const VERSIONS = S.surprise_year === 2028 ? V2028 : {
+  ...V2028,
+  entries: V2028.entries.map((e) => (e.id === 'solves' ? { ...e, label: `OG-UK solves (${S.surprise_year} surprise)`, value: S.source_commit, where: `PolicyEngine/uk-growth-with-ai: the ${S.surprise_year} runs (${SET.results} source_commit), merged into the dashboard with the swap` } : e)),
+};
+const METHOD_FACTS_BY_YEAR = { 2028: MF2028, 2027: MF2027 };
+export const METHOD_FACTS = METHOD_FACTS_BY_YEAR[S.surprise_year] ?? MF2028;
 
 // The NICs measure the Public finances causes chart uses (PolicyEngine UK,
 // employer NICs on one basis; a copy of SET.nicsPath).
-export const NICS = NICS2028;
+export const NICS = { 2028: NICS2028, 2027: NICS2027 }[S.surprise_year] ?? NICS2028;

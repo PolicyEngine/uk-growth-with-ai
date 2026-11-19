@@ -3,5 +3,5 @@
   "imf_y4_output_pct": 2.52,
   "imf_y4_source": "IMF SIP/2026/072, Figure 9 (p.25), output line digitised from the vector data: 2.52% at year 4 (docs/uk_calibration.md, the IMF row of the calibration table; the digitised line reproduces Table 1's 3.26% at year 5).",
   "unchanged_return_gdp_pct": { "lo": 2.9, "hi": 3.2 },
-  "unchanged_return_source": "Results sanity audit, docs/results_sanity_2028.md section 7 (branch audit/sanity-2028-final): capital supplied at an unchanged return gives GDP +3.2% with labour unchanged and +2.9% with the arm's own labour gap. Arithmetic on UK central's inputs, not a solve."
+  "unchanged_return_source": "Results sanity audit, docs/results_sanity_2027.md section 7: capital supplied at an unchanged return gives GDP +3.2% with labour unchanged and +2.9% with the arm's own labour gap (UK central, ζK = 0.1, 2030, year 4 of the 2027 surprise). Arithmetic on UK central's inputs, not a solve."
 }

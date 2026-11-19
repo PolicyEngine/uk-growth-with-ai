@@ -9,7 +9,9 @@ const Y = (y) => S.years.indexOf(y);
 // caveats were written against; on another file each is checked against
 // that file's own data, and a claim the data no longer supports must be
 // dropped by its gate (null), not printed.
-const PINNED = DATA_SET === 2028;
+// pinned for both full files (the swap re-pinned them to 2027, the default)
+const PINNED = DATA_SET === 2028 || DATA_SET === 2027;
+const PIN = { 2028: { flag: 64, below: 2036 }, 2027: { flag: 65, below: 2035 } }[DATA_SET];
 const sensDone = (sid) => S.sensitivity?.['zk0.5']?.results?.[sid]?.tfp?.status === 'done';
 
 describe('economics review caveats, read from the active data file', () => {
@@ -37,7 +39,7 @@ describe('economics review caveats, read from the active data file', () => {
     if (!PINNED) return;
     expect(fl[0]).toMatchObject({ sid: 'korinek', arm: 'tfp', cl: 'zk0.5' });
     expect(fl[0].x).toBe(S.sensitivity['zk0.5'].results.korinek.tfp.gaps.I[Y(S.surprise_year)]);
-    expect(Math.round(fl[0].x)).toBe(64);
+    expect(Math.round(fl[0].x)).toBe(PIN.flag);
     fl.forEach((f) => expect(f.x).toBeGreaterThan(I_FLAG_PCT));
     expect(isFlagged('uk_low', 'tfp', 'zk0.5')).toBe(false);
   });
@@ -48,7 +50,9 @@ describe('economics review caveats, read from the active data file', () => {
     const run = from.findIndex((y) => !(c[Y(y)] < 0));
     expect(belowThrough('uk_central', 'zk0.1')).toBe(run === 0 ? null : from[(run < 0 ? from.length : run) - 1]);
     if (!PINNED) return;
-    expect(belowThrough('uk_central', 'zk0.1')).toBe(S.late_year);
+    // 2028: below through the late year; 2027: back above in 2036, so the
+    // "through 2036" caveat is dropped by its gate
+    expect(belowThrough('uk_central', 'zk0.1')).toBe(PIN.below);
     expect(debtDipIsDenominator('uk_central', 'zk0.1', 'common')).toBe(true);
     // debt-neutral transfers hold debt on the path from the year after the shock: the dip check is not used there
     const sides = debtSidesByRule('uk_central', 'zk0.1');

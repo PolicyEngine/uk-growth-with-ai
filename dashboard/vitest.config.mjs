@@ -8,8 +8,8 @@ const root = fileURLToPath(new URL('.', import.meta.url));
 // The 2027 file only with the flag on and the file present (R4-16). With
 // the flag on and no file, the 2027 run is skipped, not failed.
 const src2027 = surprise2027Source(root);
-const skip2027 = process.env.NEXT_PUBLIC_DATA === '2027' && !src2027;
-if (skip2027) console.warn('NEXT_PUBLIC_DATA=2027 but no surprise2027.json (set UGAI_SURPRISE2027): the 2027 run is skipped.');
+const skip2027 = ['', '2027'].includes(String(process.env.NEXT_PUBLIC_DATA ?? '')) && !src2027;
+if (skip2027) console.warn('The 2027 set is active but no surprise2027.json is found (set UGAI_SURPRISE2027): the run is skipped.');
 
 export default defineConfig({
   plugins: [react()],

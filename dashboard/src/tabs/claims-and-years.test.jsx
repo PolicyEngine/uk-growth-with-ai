@@ -36,7 +36,11 @@ const FIXED_FORMS = [
 // file + exact phrase + reason
 const ALLOW = [
   ['lib/dataFlag.js', "const KNOWN = ['2028', '2027'];", 'the flag values'],
-  ['lib/dataFlag.js', "? '2028' : String(raw)", 'the default data set'],
+  ['lib/dataFlag.js', "? '2027' : String(raw)", 'the default data set (2027 since the swap)'],
+  ['lib/dataKeys.js', 'const COHORTS_BY_YEAR = { 2028: CO2028, 2027: CO2027 };', 'each set’s cohort file'],
+  ['lib/dataKeys.js', 'export const VERSIONS = S.surprise_year === 2028 ? V2028 : {', 'the 2028 set’s versions file names its own solves'],
+  ['lib/dataKeys.js', 'const METHOD_FACTS_BY_YEAR = { 2028: MF2028, 2027: MF2027 };', 'each set’s method facts'],
+  ['lib/dataKeys.js', 'export const NICS = { 2028: NICS2028, 2027: NICS2027 }', 'each set’s NICs measure'],
   ['lib/activeData.js', 'const FILES = { 2028: S2028, 2027: S2027 };', 'the data-file table'],
   ['lib/dataKeys.js', '2028: {', 'the per-set table'],
   ['lib/dataKeys.js', '2027: {', 'the per-set table'],
@@ -126,6 +130,19 @@ describe('no typed years or keys', () => {
 
 // the 2027 file only when it is loaded (R4-16)
 const FILES = Object.fromEntries(Object.entries({ 2028: S2028, 2027: S2027 }).filter(([, D]) => D));
+// The partial 2027 file the pending checks were written against (UK low
+// and UK high, every rule and zeta_K 0.5 not solved), rebuilt from the full
+// file so the pending checks stay live after the swap.
+const partialOf = (D) => {
+  const F = JSON.parse(JSON.stringify(D));
+  for (const sid of ['uk_low', 'uk_high']) for (const a of ['tfp', 'tz', 'ss']) for (const cl of ['zk0.1', 'zk0']) F.results[sid][a][cl] = { status: 'pending' };
+  for (const r of Object.values(F.rules ?? {})) for (const by of Object.values(r.results ?? {})) for (const a of Object.keys(by)) for (const cl of Object.keys(by[a])) by[a][cl] = { status: 'pending' };
+  for (const sc of Object.values(F.sensitivity ?? {})) for (const by of Object.values(sc.results ?? {})) for (const a of Object.keys(by)) by[a] = { status: 'pending' };
+  for (const sid of ['uk_low', 'uk_high']) if (F.output_split?.change?.[sid]) for (const cl of Object.keys(F.output_split.change[sid])) F.output_split.change[sid][cl] = { status: 'pending' };
+  F.solves_done = 12;
+  return F;
+};
+const WITH_PARTIAL = S2027 ? { ...FILES, 'partial-2027': partialOf(S2027) } : FILES;
 const noAxis = (el) => {
   let t = '';
   const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
@@ -342,7 +359,7 @@ describe('claims probe, cohort views never mix years', () => {
 // ---- R3-01: a pending scenario's GDP is never said to rise or fall, and
 // the Morph never describes a UK range it does not draw ----------------------
 describe('claims probe, pending scenarios in the GDP scene (R3-01)', () => {
-  for (const [name, D] of Object.entries(FILES))
+  for (const [name, D] of Object.entries(WITH_PARTIAL))
     it(`surprise${name}.json`, async () => {
       await pickFile(D);
       const { morphCardSteps } = await import('@/tabs/story/part2/steps.jsx');
@@ -375,13 +392,13 @@ describe('claims probe, pending scenarios in the GDP scene (R3-01)', () => {
           }
         }
       // the full file has no pending cell: the 2027 file must have some
-      if (name === '2027') expect(checked).toBeGreaterThan(0);
+      if (name === 'partial-2027') expect(checked).toBeGreaterThan(0);
     });
 });
 
 // ---- R3-02: a not-solved notice only ever sends the reader to a solved view
 describe('claims probe, notices point at solved views (R3-02)', () => {
-  for (const [name, D] of Object.entries(FILES))
+  for (const [name, D] of Object.entries(WITH_PARTIAL))
     it(`surprise${name}.json`, async () => {
       await pickFile(D);
       const { emptyText, ruleGapText } = await import('@/tabs/ai/lines.js');
@@ -405,14 +422,15 @@ describe('claims probe, notices point at solved views (R3-02)', () => {
             const sc = /Choose (.+) under Scenario/.exec(t)?.[1];
             if (sc) for (const [id, nm] of Object.entries(NAME)) if (sc.includes(nm)) expect(solvedAt(id, 'zk0.1', rule) || solvedAt(id, 'zk0', rule), `${t} -> ${id}`).toBe(true);
           }
-      if (name === '2027') expect(n).toBeGreaterThan(0);
+      if (name === 'partial-2027') expect(n).toBeGreaterThan(0);
     });
 });
 
-// ---- R3-04: the swap gate. Run with SWAP_GATE=1 in the swap's fast gate:
-// the active set must have every file of its own, none borrowed from 2028.
+// ---- R3-04: the swap gate, on since the swap: the active set has every
+// file of its own, none borrowed from 2028.
 describe('swap gate (R3-04)', () => {
-  it.runIf(process.env.SWAP_GATE === '1')('the active set has every file', async () => {
+  // the swap made it a standing check: no set borrows another's files
+  it('the active set has every file', async () => {
     vi.resetModules();
     vi.doUnmock('@/lib/activeData.js');
     const { SET_MISSING } = await import('@/lib/dataKeys.js');

@@ -140,10 +140,10 @@ def expected(sid, mode):
     # OBR rates imply 19-23pp"), so it prints twice
     exp[f"{etr['labour'] - etr['capital_gross']:.1f}pp"] += 1
     # and PolicyEngine UK's average employer NICs rate, % of earnings (one
-    # decimal): the causes chart's NICs row, from analysis/nics/nics_2028.json
-    # (copied to src/tabs/explore/nics2028.json); OG-UK's flat rate prints
+    # decimal): the causes chart's NICs row, from analysis/nics/nics_<year>.json
+    # (copied to src/tabs/explore/nics<year>.json); OG-UK's flat rate prints
     # as a whole number
-    nics = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'tabs', 'explore', 'nics2028.json')))
+    nics = active_data.load_nics()
     exp[f"{nics['avg_employer_rate_on_employment_income'] * 100:.1f}%"] += 1
     return exp
 

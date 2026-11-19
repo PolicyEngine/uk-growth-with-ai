@@ -21,7 +21,10 @@ import { COHORTS as D } from '@/lib/dataKeys.js';
 import WhoHeatmap, { cohortSources } from '@/tabs/cohorts/WhoHeatmap.jsx';
 import SourceLine from '@/components/ui/SourceLine.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
-import { atRef, COHORTS_SHA } from '@/tabs/ai/links.js';
+import { REPO } from '@/tabs/ai/links.js';
+import { SRC } from '@/tabs/method/sources.js';
+// the paper draft lives on its own pushed branch, not on this history
+const PAPER_DRAFT = `${REPO}/blob/paper/first-draft/paper/main.tex`;
 
 // ONS, Household total wealth in Great Britain, April 2018 to March 2020: the
 // top tenth of households held 43% of wealth.
@@ -917,10 +920,10 @@ export default function WhoGainsTab() {
           UK central only
         </li>
         <li className="ex-mchip">
-          Extra AI starts in {ext(atRef(COHORTS_SHA, 'uk_growth_with_ai/surprise.py#L56'), `${D.shock_year} (an assumed date)`)}, as a surprise
+          Extra AI starts in {ext(SRC.surpriseYear.url, `${D.shock_year} (an assumed date)`)}, as a surprise
         </li>
         <li className="ex-mchip" title="The paper also reports Korinek et al., substantial (US), under debt-neutral transfers; its cohort paths are not in this site’s data yet">
-          Korinek, substantial (US): in the {ext(atRef(COHORTS_SHA, 'paper/main.tex'), 'paper draft')}, not yet here
+          Korinek, substantial (US): in the {ext(PAPER_DRAFT, 'paper draft')}, not yet here
         </li>
         {both ? (
           <li className="ex-mchip" title="The reasons below are for the case with some foreign capital">

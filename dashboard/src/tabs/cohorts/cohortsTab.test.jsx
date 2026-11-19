@@ -3,7 +3,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cohortSurprise } from '@/lib/dataTestUtils.js';
 import { cleanup, render } from '@testing-library/react';
-import D from '@/data/cohorts2028.json';
+import { COHORTS as D } from '@/lib/dataKeys.js';
 import WhoGainsTab, { cell, pct, tileRange, dnfullFor, whoAnswer, whoFindingOf, RETURN_LINE, byFormLead, whyTokens, consumptionWords, earningsWords, payWords, stressWords, HORIZON_YEAR } from '@/tabs/cohorts/CohortsTab.jsx';
 import { NavProvider } from '@/lib/nav.jsx';
 import S from '@/lib/activeData.js';
