@@ -49,6 +49,7 @@ const ALLOW = [
   ['components/ab/SiteFooter.jsx', '&copy; 2026 PolicyEngine', 'the copyright year'],
   ['tabs/ai/financesInfo.js', 'export const OGUK_TG1_YEAR = 2030;', 'a fixed model default (R1-23: stays)'],
   ['tabs/code/history.js', "'AI becomes an unanticipated 2028 shock from one 2027 start. Headline year 2031.'", 'a dated history entry: the 12 Nov design'],
+  ['tabs/code/history.js', "'AI now starts in 2027, as a surprise, and is in full by 2030, the headline year; the debt rule still starts in 2036. The 2028 timing is kept for comparison.'", 'a dated history entry: the 18 Nov swap to the 2027 timing (R5-03)'],
   ['tabs/code/CodeTab.jsx', 'start_date=datetime(2026, 1, 1)', 'the OG-UK API example'],
   ['tabs/code/CodeTab.jsx', 'start_year=2026', 'the OG-UK API example'],
   ['tabs/code/pipeline.js', 'the committed 2026-start secant', 'the R1-R4 rerun, a fixed past run'],

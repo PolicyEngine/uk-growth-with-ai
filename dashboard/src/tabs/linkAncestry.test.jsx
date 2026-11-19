@@ -5,7 +5,11 @@
 //     pushed head);
 //   - a branch name must exist on origin (rerun/surprise-2028,
 //     paper/first-draft), with the file on it;
-//   - "main" is skipped (the default branch, read at publish time).
+//   - "main" is skipped (the default branch, read at publish time);
+//   - a commit link (/commit/<sha>) must name exactly one object
+//     (`git rev-parse --verify` fails on an ambiguous short SHA, which
+//     GitHub serves as a 404; review round 5, R5-02) and that object must
+//     be an ancestor of HEAD.
 // Read from every page in the probe set, with every sources popover opened,
 // and from the URL tables the pages draw from (links.js, sources.js,
 // ledger.js), under the active data flag.
@@ -14,14 +18,16 @@ import { cleanup, fireEvent } from '@testing-library/react';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { PAGES, renderPage } from '@/lib/probeTestUtils.jsx';
-import { OG_RESULT_URLS, URLS } from '@/tabs/ai/links.js';
+import { OG_RESULT_URLS, REPO, URLS } from '@/tabs/ai/links.js';
 import { SRC } from '@/tabs/method/sources.js';
 import { VINTAGES, ledger } from '@/tabs/code/ledger.js';
+import CHANGELOG from '@/data/site-changelog.json';
 
 afterEach(cleanup);
 
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 const REPO_RE = /https:\/\/github\.com\/PolicyEngine\/uk-growth-with-ai\/(?:blob|tree)\/([^/#?]+(?:\/[^/#?]+)*?)\/((?:analysis|uk_growth_with_ai|docs|dashboard|paper|patches|tests|scripts)\/[^#?]*|[^/#?]+\.(?:md|py|json|sh|tex))(?:[#?].*)?$/;
+const COMMIT_RE = /https:\/\/github\.com\/PolicyEngine\/uk-growth-with-ai\/commit\/([^/#?]+)(?:[#?].*)?$/;
 const git = (...a) => {
   try {
     execFileSync('git', a, { cwd: ROOT, stdio: 'ignore' });
@@ -33,6 +39,15 @@ const git = (...a) => {
 const BRANCHES = ['rerun/surprise-2028', 'paper/first-draft', 'audit/sanity-2028-final', 'dashboard/surprise-2028', 'dashboard/story', 'dashboard/ab2026-redesign'];
 
 function check(url) {
+  const c = COMMIT_RE.exec(url);
+  if (c) {
+    const [, ref] = c;
+    // the bare ref, not ref^{commit}: the peel would pick the commit out of
+    // an ambiguous short SHA locally, where GitHub returns 404
+    if (!git('rev-parse', '--verify', '--quiet', ref)) return `${url}: ${ref} is ambiguous or unknown`;
+    if (!git('merge-base', '--is-ancestor', ref, 'HEAD')) return `${url}: commit not an ancestor of HEAD`;
+    return null;
+  }
   const m = REPO_RE.exec(url);
   if (!m) return null;
   let [, ref, file] = m;
@@ -66,8 +81,11 @@ describe('link ancestry', () => {
     for (const s of Object.values(SRC)) add(s?.url);
     for (const v of VINTAGES) for (const k of ['url', 'code', 'result']) add(typeof v[k] === 'string' ? v[k] : v[k]?.url);
     for (const r of ledger()) add(r.url);
+    // every Site changes entry, recent or folded away
+    for (const e of CHANGELOG.entries) add(`${REPO}/commit/${e.commit}`);
     const bad = [...urls].map(check).filter(Boolean);
     expect(urls.size).toBeGreaterThan(20);
+    expect([...urls].filter((u) => COMMIT_RE.test(u)).length).toBeGreaterThan(10);
     expect(bad, bad.join('\n')).toEqual([]);
   }, 180000);
 });
