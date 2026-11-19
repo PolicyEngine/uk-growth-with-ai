@@ -74,21 +74,23 @@ _gini_level = AI['baseline']['gini'].get('value_points', AI['baseline']['gini'][
 STORY_TEXT = [f"from {rnd(_gini_level, 1):.1f}", f"{rnd(AI['breakeven']['duration']['value_months'], 1)} months", 'not the main case']
 
 hh = Counter()
+# Explore > Households as rebuilt by item 24 (households/figures.js
+# householdsFigures): values whose home is the Story are restated there
+# with data-axis and not counted here; the Gini in points (R1-06)
 for r in AI['cost_components']['rows']:
-    hh['£0.1bn' if abs(r['cost_bn']) < 0.05 else bn(r['cost_bn'])] += 1
-for k in ('central_20', 'takeup', 'takeup_jsa', 'wage_cuts'): hh[pp(LAD[k]['gini_pp'])] += 1
-# full UC take-up and JSA: their home is Explore > Households (#hh-ladder) from round 1
-for k in ('takeup', 'takeup_jsa'): hh[bn(LAD[k]['cost_bn'])] += 1; hh[pp(LAD[k]['poverty_pp'])] += 1
-for k in ('obr', 'obr_takeup', 'obr_takeup_jsa'):
-    hh[bn(LAD[k]['cost_bn'])] += 1; hh[pp(LAD[k]['poverty_pp'])] += 1; hh[pp(LAD[k]['gini_pp'])] += 1
-hh[bn(RUL['klein_top_loaded']['cost_bn'])] += 1
-for k in ('uniform', 'junior', 'compression'): hh[pp(RUL[k]['gini_pp'])] += 1
-hh[pp(RUL['klein_top_loaded']['poverty_pp'])] += 1; hh[pp(RUL['klein_top_loaded']['gini_pp'])] += 1
+    hh[bn2(r['cost_bn']) if abs(r['cost_bn']) < 0.05 else bn(r['cost_bn'])] += 1
+hh[pence(PP['wage_cuts']['household_p'])] += 1
 for k in ('job_loss', 'job_loss_takeup', 'job_loss_takeup_jsa'): hh[pence(PP[k]['government_p'])] += 1; hh[pence(PP[k]['household_p'])] += 1
+for k in ('central_20', 'wage_cuts'): hh[pts(LAD[k]['gini_pp'])] += 1
+# full UC take-up and JSA: their home is Explore > Households (#hh-ladder) from round 1
+for k in ('takeup', 'takeup_jsa', 'obr', 'obr_takeup', 'obr_takeup_jsa'):
+    hh[bn(LAD[k]['cost_bn'])] += 1; hh[pp(LAD[k]['poverty_pp'])] += 1; hh[pts(LAD[k]['gini_pp'])] += 1
+for k in ('uniform', 'junior', 'compression'): hh[pts(RUL[k]['gini_pp'])] += 1
+hh[bn(RUL['klein_top_loaded']['cost_bn'])] += 1; hh[pp(RUL['klein_top_loaded']['poverty_pp'])] += 1; hh[pts(RUL['klein_top_loaded']['gini_pp'])] += 1
 for k in ('claim_uc', 'claim_uc_entitled', 'existing_unemployed_claim', 'capital_over_limit', 'other_earner', 'homeowner'):
     hh[share(AI['displaced'][k]['value'])] += 1
 for k in ('uc_per_displaced', 'uc_per_displaced_takeup', 'uc_per_existing_unemployed'): hh[gbp(AI['displaced'][k]['value'])] += 1
-for r in AI['policy']['rows']: hh[bn(r['cost_bn'])] += 1; hh[pp(r['poverty_pp'])] += 1; hh[pp(r['gini_pp'])] += 1
+for r in AI['policy']['rows']: hh[bn(r['cost_bn'])] += 1; hh[pp(r['poverty_pp'])] += 1; hh[pts(r['gini_pp'])] += 1
 # the three rankings' threshold (review round 1, R1-03): a decile that gains
 # under every ranking by under 0.2% "moves by less than 0.2%"
 _R = AI['rankings']

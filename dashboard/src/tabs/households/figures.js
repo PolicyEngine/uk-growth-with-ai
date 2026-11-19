@@ -79,21 +79,30 @@ const smallGain = () => {
 
 export function householdsFigures() {
   const X = D.displaced;
-  const small = (v) => (Math.abs(v) < 0.05 ? '£0.1bn' : fmtBn(v));
+  // a cost line under £0.05bn in size prints two decimals (item 24)
+  const small = (v) => (Math.abs(v) < 0.05 ? fmtBn2(v) : fmtBn(v));
   return [
+    // 1 the cost lines (the net: the Story's, restated)
     ...D.cost_components.rows.map((r) => small(r.cost_bn)),
-    ...['central_20', 'takeup', 'takeup_jsa', 'wage_cuts'].map((k) => fmtPp(lad(k).gini_pp)),
-    ...['takeup', 'takeup_jsa'].flatMap((k) => [fmtBn(lad(k).cost_bn), fmtPp(lad(k).poverty_pp)]),
-    ...['obr', 'obr_takeup', 'obr_takeup_jsa'].flatMap((k) => [fmtBn(lad(k).cost_bn), fmtPp(lad(k).poverty_pp), fmtPp(lad(k).gini_pp)]),
-    fmtBn(rule('klein_top_loaded').cost_bn),
-    ...['uniform', 'junior', 'compression'].map((k) => fmtPp(rule(k).gini_pp)),
-    fmtPp(rule('klein_top_loaded').poverty_pp), fmtPp(rule('klein_top_loaded').gini_pp),
+    // 2 per pound: the wage cuts' household part (the totals and the 20-draw
+    // job loss: the Story's), and the three seed-0 rows
+    fmtPence(pp('wage_cuts').household_p),
     ...['job_loss', 'job_loss_takeup', 'job_loss_takeup_jsa'].flatMap((k) => [fmtPence(pp(k).government_p), fmtPence(pp(k).household_p)]),
+    // 3 every variant: the Gini of the main case and wage cuts (their cost
+    // and poverty: the Story's), and every value of the others
+    ...['central_20', 'wage_cuts'].map((k) => fmtGiniPts(lad(k).gini_pp)),
+    ...['takeup', 'takeup_jsa', 'obr', 'obr_takeup', 'obr_takeup_jsa'].flatMap((k) => [fmtBn(lad(k).cost_bn), fmtPp(lad(k).poverty_pp), fmtGiniPts(lad(k).gini_pp)]),
+    // 4 the rules: the Gini of the three stylised rules other than the main
+    // one, and the top-loaded extreme case's three
+    ...['uniform', 'junior', 'compression'].map((k) => fmtGiniPts(rule(k).gini_pp)),
+    fmtBn(rule('klein_top_loaded').cost_bn), fmtPp(rule('klein_top_loaded').poverty_pp), fmtGiniPts(rule('klein_top_loaded').gini_pp),
+    // 5 who the displaced are
     ...['claim_uc', 'claim_uc_entitled', 'existing_unemployed_claim', 'capital_over_limit', 'other_earner', 'homeowner'].map((k) => fmtShare(X[k].value)),
     ...['uc_per_displaced', 'uc_per_displaced_takeup', 'uc_per_existing_unemployed'].map((k) => fmtGbp(X[k].value)),
-    ...D.policy.rows.flatMap((r) => [fmtBn(r.cost_bn), fmtPp(r.poverty_pp), fmtPp(r.gini_pp)]),
-    // the rankings' threshold, not a result (rankingsWords)
+    // 6 the rankings' threshold, not a result (rankingsLead)
     ...(smallGain() ? [`${SMALL_DECILE_PCT}%`] : []),
+    // 7 the policy responses
+    ...D.policy.rows.flatMap((r) => [fmtBn(r.cost_bn), fmtPp(r.poverty_pp), fmtGiniPts(r.gini_pp)]),
   ];
 }
 

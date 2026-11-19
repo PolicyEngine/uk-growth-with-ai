@@ -108,9 +108,6 @@
 svg.p3-dim {
   opacity: 0.4;
 }
-.p3-dim .uc-switch {
-  color: var(--pe-gray-600);
-}
 .p3-dim .p3-row-value,
 .p3-dim.p3-group-head,
 .p3-dim .p3-row-label {
@@ -530,10 +527,6 @@ svg.p3-dim {
   text-align: right;
   color: var(--pe-gray-900);
 }
-.hh-val-2 {
-  font-weight: 400;
-  color: var(--pe-gray-700);
-}
 .hh-group {
   margin-top: 6px;
   padding-top: 8px;
@@ -547,19 +540,6 @@ svg.p3-dim {
   padding-top: 0;
   border-top: 0;
 }
-.hh-ref {
-  display: inline-flex;
-  gap: 2px;
-  align-items: center;
-  min-height: 24px;
-  font-size: var(--t-meta);
-  font-weight: 400;
-  color: var(--c-link, var(--series-2));
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  white-space: nowrap;
-}
-
 /* Tiles */
 .hh-tiles {
   display: grid;
@@ -574,17 +554,6 @@ svg.p3-dim {
 }
 
 /* Deciles under three rankings */
-.hh-legend {
-  gap: 4px 14px;
-}
-.hh-leg {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-}
-.hh-leg .p3-swatch {
-  margin-left: 0;
-}
 .hh-rank ol {
   display: grid;
   gap: 8px;
@@ -1189,60 +1158,6 @@ svg.p3-dim {
 /* 3-7: break-even tracks, the switch, the take-up ladder */
 
 /* UC take-up (#hh-displaced): a plain switch, the only on/off on the site */
-.uc-switch {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 32px;
-  padding: 0;
-  font: inherit;
-  font-size: var(--chart-fs-tick, 14px);
-  color: var(--pe-gray-800);
-  background: none;
-  border: 0;
-  cursor: pointer;
-}
-.uc-switch-track {
-  position: relative;
-  flex: none;
-  width: 30px;
-  height: 18px;
-  border: 1px solid var(--pe-gray-400);
-  border-radius: 999px;
-  transition: border-color 150ms ease;
-}
-.uc-switch-thumb {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 12px;
-  height: 12px;
-  background: var(--pe-gray-500);
-  border-radius: 50%;
-  transition: transform 150ms ease, background-color 150ms ease;
-}
-.uc-switch[aria-checked='true'] .uc-switch-track {
-  border-color: var(--pe-teal-600);
-}
-.uc-switch[aria-checked='true'] .uc-switch-thumb {
-  background: var(--pe-teal-600);
-  transform: translateX(12px);
-}
-.uc-switch:focus-visible {
-  outline: 2px solid var(--c-highlight, var(--pe-teal-500));
-  outline-offset: 2px;
-}
-@media (max-width: 390px) {
-  .uc-switch {
-    font-size: 13px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .uc-switch-track,
-  .uc-switch-thumb {
-    transition: none;
-  }
-}
 /* step 8: icon and label on one line, the detail line under them */
 
 @media (max-width: 900px) {

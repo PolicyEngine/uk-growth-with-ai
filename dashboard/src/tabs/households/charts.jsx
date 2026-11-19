@@ -1,32 +1,22 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { NavLink } from '@/lib/nav.jsx';
 import { MINUS } from '@/tabs/story/part3/format.js';
 
-// Chart pieces for Explore > Households. Text stays HTML (legible at phone
-// width); marks are positioned spans or a measured SVG. A value whose home
-// is story part 3 is not reprinted here: its row carries one link to the
-// step ("See story, step N"), spanning the cells it would have filled.
-// Every figure is in the DOM from the first render; entry beats change
-// opacity and transforms only. Tooltips and popovers mount only while open.
+// Chart pieces for Explore > Households (item-24-fable.md). Text stays
+// HTML (legible at phone width); marks are positioned spans or a measured
+// SVG. Every value list is a real <table>: a label and its number are
+// separate cells, so copied text and screen readers never run them
+// together (section 3, "Labels and values"). Every figure is in the DOM
+// from the first render; entry beats change opacity and transforms only.
 
-// One link per row to the story scene that prints the row's other figures,
-// named (round 2: the Story has no numbered steps).
-export function StoryRef({ step }) {
-  return (
-    <NavLink tab="story" anchor={step.anchor} className="hh-ref" title={`Printed in the Story, part 3: ${step.name}`}>
-      Story: {step.name}
-    </NavLink>
-  );
-}
-
-// Part 3's scenes and the step each link lands on.
+// Part 3's scenes, for each card's one story link (Card `story`).
 export const STEP = {
   central: { name: 'the main case', anchor: 'p3-central-step' },
   rules: { name: 'who loses the job', anchor: 'p3-rules-step' },
-  margin: { name: 'job loss vs wage cuts', anchor: 'p3-margin-step' },
+  margin: { name: 'job loss against wage cuts', anchor: 'p3-margin-step' },
   deciles: { name: 'where the loss falls', anchor: 'p3-deciles-step' },
+  pound: { name: 'where a lost pound goes', anchor: 'p3-pound' },
 };
 
 // The measured width of a box (ResizeObserver), with a fallback for the
@@ -44,6 +34,11 @@ export function useWidth(fallback = 600) {
   return [ref, w];
 }
 
+// Below this width (px) a plane numbers its points instead of naming them
+// (the direct labels collide at 390); the table under it shows the same
+// numbers. The table's container query uses the same width.
+export const NARROW = 460;
+
 // "Nice" ticks from zero: three to five.
 export function ticks(max, n = 4) {
   const raw = max / n;
@@ -55,34 +50,29 @@ export function ticks(max, n = 4) {
 }
 export const signedTick = (t) => `${t > 0 ? '+' : t < 0 ? MINUS : ''}${Math.abs(t)}`;
 
-// The cost × poverty plane: cost on x, the change in absolute poverty on y,
-// both from zero. `points`: [{ id, x, y, icon, group, ring, name }];
-// `arrows`: [[fromId, toId]] (callers draw them only within a group); `off`:
-// a point beyond the x scale, drawn as an arrow at the right edge with its
-// printed value. Names and values are in the list under the plane.
-export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, label, height = 240, yTitle, xTitle }) {
+// The cost × poverty plane: cost on x, the rise in absolute poverty on y,
+// both from zero. `points`: [{ id, n, x, y, group, ring, name, lab, pos }]
+// (`n` the number a narrow plane draws, and the table's marker shows);
+// `arrows`: [[fromId, toId]] (callers draw them only within a group). Axis
+// titles name the quantity only; the ticks carry £bn and pp.
+export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, label, height = 240, yTitle, xTitle }) {
   const [ref, W] = useWidth(560);
+  const narrow = W < NARROW;
   const L = 48;
-  // room for the axis titles: the y title above the plot, the x title
-  // under the tick labels
   const B = xTitle ? 40 : 24;
-  // a y title wider than the chart (about 7.5px a character at the 14px
-  // tick size) takes two lines, split at its last comma
-  const yLines = yTitle && yTitle.length * 7.5 > W - 8 && yTitle.includes(', ') ? [yTitle.slice(0, yTitle.indexOf(', ') + 1), yTitle.slice(yTitle.indexOf(', ') + 2)] : yTitle ? [yTitle] : [];
-  const T = yTitle ? 24 + (yLines.length - 1) * 17 : 12;
-  // room at the right for the off-scale arrow; its value sits above it,
-  // ending where the arrow ends (clear of the Replay button in the corner)
-  const R = off ? 40 : 18;
+  const T = yTitle ? 24 : 12;
+  const R = 18;
   const pw = W - L - R;
   const ph = height - T - B;
   const X = (v) => L + (v / xMax) * pw;
   const Y = (v) => T + ph - (v / yMax) * ph;
   const at = Object.fromEntries(points.map((p) => [p.id, p]));
+  const head = `hh-head-${label.length}`;
   return (
-    <div className="hh-plane" ref={ref}>
+    <div className={`hh-plane${narrow ? ' is-narrow' : ''}`} ref={ref}>
       <svg width={W} height={height} viewBox={`0 0 ${W} ${height}`} role="img" aria-label={label}>
         <defs>
-          <marker id={`hh-head-${label.length}`} viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <marker id={head} viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M0,0 L8,4 L0,8 z" className="hh-arrow-head" />
           </marker>
         </defs>
@@ -94,11 +84,7 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, 
         </g>
         {yTitle ? (
           <text x={4} y={12} className="hh-axis-title" data-axis-title="y" data-axis="">
-            {yLines.map((l, i) => (
-              <tspan key={l} x={4} dy={i ? 17 : 0}>
-                {i ? ` ${l}` : l}
-              </tspan>
-            ))}
+            {yTitle}
           </text>
         ) : null}
         {xTitle ? (
@@ -120,22 +106,13 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, 
               className={`hh-arrow is-${p.group ?? 'a'}${on ? ' is-on' : ''}`}
               d={`M${X(p.x)},${Y(p.y)} L${X(p.x) + dx * k},${Y(p.y) + dy * k}`}
               pathLength={1}
-              markerEnd={`url(#hh-head-${label.length})`}
+              markerEnd={`url(#${head})`}
               style={{ transitionDelay: `${500 + i * 300}ms` }}
             />
           );
         })}
-        {off ? (
-          <path
-            className={`hh-arrow is-off${on ? ' is-on' : ''}`}
-            d={`M${L + pw - 36},${Y(off.y)} L${L + pw + 8},${Y(off.y)}`}
-            pathLength={1}
-            markerEnd={`url(#hh-head-${label.length})`}
-          />
-        ) : null}
       </svg>
-      {/* tick labels as HTML (scale, not data: data-axis; SVG text would
-          still reach innerText inside a hidden group) */}
+      {/* tick labels as HTML (scale, not data: data-axis) */}
       <div className="hh-ticks-ov" data-axis="" aria-hidden="true">
         {ticks(yMax).map((t) => (
           <span key={`y${t}`} className="is-y" style={{ left: L - 6, top: Y(t) }}>
@@ -149,9 +126,6 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, 
           </span>
         ))}
       </div>
-      {/* plain dots, each with a direct label (round 2, C13); `lab` is the
-          short label, `pos` where it sits (r, l, t, b, tl, br); a point
-          with no `lab` is named by its group's label or the list below */}
       {points.map((p, i) => (
         <span
           key={p.id}
@@ -161,62 +135,109 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, 
           aria-hidden="true"
         />
       ))}
+      {/* a wide plane: a direct label per point (`lab`, placed at `pos`: r,
+          l, t, b, tl, br); a narrow one: each point's number */}
       {points
-        .filter((p) => p.lab)
+        .filter((p) => (narrow ? p.n != null : p.lab))
         .map((p, i) => (
-          <span key={`l-${p.id}`} className={`hh-pt-lab is-${p.pos ?? 'r'}${on ? ' is-on' : ''}`} style={{ left: X(p.x), top: Y(p.y), transitionDelay: `${300 + i * 90}ms` }} aria-hidden="true">
-            {p.lab}
+          <span
+            key={`l-${p.id}`}
+            className={`hh-pt-lab ${narrow ? `is-num is-${p.npos ?? 'r'}` : `is-${p.pos ?? 'r'}`}${on ? ' is-on' : ''}`}
+            style={{ left: X(p.x), top: Y(p.y), transitionDelay: `${300 + i * 90}ms` }}
+            aria-hidden="true"
+          >
+            {narrow ? p.n : p.lab}
           </span>
         ))}
-      {off ? (
-        <span className={`hh-off-val${on ? ' is-on' : ''}`} style={{ right: W - (L + pw + 8), top: Y(off.y) - 4 }}>
-          {off.text}
-        </span>
-      ) : null}
     </div>
   );
 }
 
-// The list under a plane: one row per point, its marker, the name, the
-// values whose home is here, and one story link for the rest (a cell
-// { span, node } spans that many value columns).
-export function PointList({ rows, cols, wideFirst = false }) {
+// A bar from `from` to `to` on a 0..`max` scale, or stacked `parts`
+// ([[value, className], ...]) from zero. Drawn, never printed: the values
+// are in their own cells.
+export function Bar({ value, max, parts, fill = 'is-neutral', thin = false, delay = 0 }) {
+  const segs = parts ?? [[value, fill]];
+  // each segment starts where the ones before it end
+  const lefts = segs.map((_, i) => segs.slice(0, i).reduce((a, [v]) => a + Math.max(0, v), 0));
   return (
-    <div className={`hh-list${wideFirst ? ' is-wide-c1' : ''}`} style={{ '--hh-cols': cols.length }}>
-      <div className="hh-list-head" aria-hidden="true">
-        <span />
-        <span />
-        {cols.map((c) => (
-          <span key={c}>{c}</span>
-        ))}
-      </div>
-      <ul>
-        {rows.map((r) =>
-          r.group ? (
-            <li key={r.id} className="hh-list-group">
-              {r.group}
-            </li>
-          ) : (
-            <li key={r.id} className={`hh-list-row is-${r.tone ?? 'a'}`} data-row={r.id}>
-              <span className={`hh-pt-key is-${r.tone ?? 'a'}${r.ring ? ' is-ring' : ''}`} aria-hidden="true" />
-              <span className="hh-list-label">{r.label}</span>
-              {r.cells.map((c, i) =>
-                c && c.span ? (
-                  <span key={i} className="hh-list-span" style={{ gridColumn: `span ${c.span}` }}>
+    <span className={`hh-bar${thin ? ' is-thin' : ''}`} aria-hidden="true">
+      {segs.map(([v, cls], i) => (
+        <span key={i} className={`hh-bar-seg ${cls}`} style={{ left: `${(lefts[i] / max) * 100}%`, width: `${(Math.max(0, v) / max) * 100}%`, transitionDelay: `${delay + i * 160}ms` }} />
+      ))}
+    </span>
+  );
+}
+
+// A value table (section 3): label | bar (optional) | value cells, each
+// value in its own cell under a column head, right-aligned. Rows:
+//   { group: node }                       a group head (16px, 600)
+//   { id, label, cells: [node], bar?, marker?: { tone, ring, n }, main?, sub?, muted? }
+// The main case: ring marker, label weight 600 (`main`). A sub-row is
+// indented and muted (`sub`). On a narrow card the label takes its own
+// line and the values sit under the column heads (`stack`, the default),
+// or label, bar and values stay on one line (`inline`), or the bar and
+// values share the second line (`barline`).
+export function ValueTable({ cols, rows, bar = false, caption, rowHead = 'Row', layout = 'stack', className = '', foot }) {
+  const width = 1 + (bar ? 1 : 0) + cols.length;
+  return (
+    <div className={`hh-tblwrap is-${layout} ${className}`.trim()} style={{ '--hh-n': cols.length }}>
+      <table className={`hh-tbl${bar ? ' has-bar' : ''}`}>
+        {caption ? <caption className="visually-hidden">{caption}</caption> : null}
+        <thead>
+          <tr>
+            <th scope="col" className="hh-tbl-label">
+              <span className="visually-hidden">{rowHead}</span>
+            </th>
+            {bar ? <td className="hh-tbl-bar" aria-hidden="true" /> : null}
+            {cols.map((c) => (
+              <th key={c} scope="col" className="hh-tbl-num">
+                {c}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) =>
+            r.group ? (
+              <tr key={r.id} className="hh-tbl-group">
+                <th scope="colgroup" colSpan={width}>
+                  {r.group}{' '}
+                </th>
+              </tr>
+            ) : (
+              <tr key={r.id} data-row={r.id} className={[r.main ? 'is-main' : '', r.sub ? 'is-sub' : '', r.muted ? 'is-muted' : ''].filter(Boolean).join(' ') || undefined}>
+                <th scope="row" className="hh-tbl-label">
+                  {r.marker ? (
+                    <span className={`hh-pt-key is-${r.marker.tone ?? 'a'}${r.marker.ring ? ' is-ring' : ''}`} aria-hidden="true">
+                      {r.marker.n != null ? <span className="hh-pt-n">{r.marker.n}</span> : null}
+                    </span>
+                  ) : null}
+                  <span className="hh-tbl-name">{r.label}</span>{' '}
+                </th>
+                {bar ? <td className="hh-tbl-bar">{r.bar}</td> : null}
+                {r.cells.map((c, i) => (
+                  <td key={i} className="hh-tbl-num">
                     {' '}
-                    {c.node}
-                  </span>
-                ) : (
-                  <span key={i} className="hh-val">
-                    {' '}
-                    {c}
-                  </span>
-                ),
-              )}
-            </li>
-          ),
-        )}
-      </ul>
+                    {c}{' '}
+                  </td>
+                ))}
+              </tr>
+            ),
+          )}
+        </tbody>
+        {foot ? (
+          <tfoot aria-hidden="true">
+            <tr>
+              <td className="hh-tbl-label" />
+              {bar ? <td className="hh-tbl-bar">{foot}</td> : null}
+              {cols.map((c) => (
+                <td key={c} className="hh-tbl-num" />
+              ))}
+            </tr>
+          </tfoot>
+        ) : null}
+      </table>
     </div>
   );
 }

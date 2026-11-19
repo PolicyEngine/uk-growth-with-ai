@@ -26,8 +26,8 @@
       "source": "label-joins.test.jsx at the C1 head, both data files: R1-21 starting list (story-fact, p2-wf-row, ex-mtoggle-row, bars lists, ex-mx-btn, p3-ch-be-row)"
     },
     "eslint_ugai_one_chooser": {
-      "baseline": 2,
-      "source": "ugai/one-chooser: ResultsTab ControlBar, HouseholdsExplore role=switch"
+      "baseline": 0,
+      "source": "ugai/one-chooser: 0 at perf/c-hh (item 24 removed the HouseholdsExplore role=switch; the ResultsTab ControlBar was already gone at the push C base)"
     },
     "eslint_ugai_one_fold": {
       "baseline": 2,
