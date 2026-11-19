@@ -1,0 +1,292 @@
+{
+ "closure": "zk0.5",
+ "label": "uk_central_share_shift_ramp_zfixed",
+ "ok": true,
+ "fails": [],
+ "flags": [
+  "2027 investment jump <= old 2026 +17%"
+ ],
+ "gaps_2030": {
+  "Y": 1.8883642341839257,
+  "GNI": 1.2141272585601603,
+  "NNI": 0.08224941935419672,
+  "K": 5.504245731003965,
+  "L": -0.10800575091339804,
+  "w": -0.51214945924416,
+  "C": -0.1329250870111487,
+  "I": 5.450904176282401,
+  "r_bp": 9.260319134629727,
+  "debt_gdp_pp": -0.9005463541250536,
+  "labour_share_pp": -1.5999639323652701
+ },
+ "gaps_2027": {
+  "Y": 0.5292423290130577,
+  "GNI": 0.3650611901533374,
+  "NNI": 0.09459484761407122,
+  "K": 1.3853091138210205,
+  "L": 0.054584062113804954,
+  "w": -0.14387633851730142,
+  "C": -0.16443266525689726,
+  "I": 19.760455042295245,
+  "r_bp": 2.691863999634489,
+  "debt_gdp_pp": -0.49916027147766107,
+  "labour_share_pp": -0.3999814895094005
+ },
+ "headline_year": 2030,
+ "surprise_year": 2027,
+ "checks": [
+  {
+   "check": "K = K_d + K_f",
+   "ok": true,
+   "level": "fail",
+   "detail": 0.0
+  },
+  {
+   "check": "K_d = B - D_d",
+   "ok": true,
+   "level": "fail",
+   "detail": 0.0
+  },
+  {
+   "check": "D = D_d + D_f",
+   "ok": true,
+   "level": "fail",
+   "detail": 0.0
+  },
+  {
+   "check": "GNI <= GDP where K_f > 0",
+   "ok": true,
+   "level": "fail",
+   "detail": []
+  },
+  {
+   "check": "NNI < GNI",
+   "ok": true,
+   "level": "fail",
+   "detail": []
+  },
+  {
+   "check": "|RC/GDP| <= 1e-5, 2026-2036",
+   "ok": true,
+   "level": "fail",
+   "detail": {
+    "2026": 1.0359935128771144e-06,
+    "2027": 1.3481834149909551e-06,
+    "2028": 2.600974318179389e-06,
+    "2029": 2.6173937087924147e-06,
+    "2030": 2.783026441628272e-06,
+    "2031": 3.2038362366529577e-06,
+    "2032": 3.66586009382723e-06,
+    "2033": 4.128715757241285e-06,
+    "2034": 4.552990081368676e-06,
+    "2035": 4.904619212415259e-06,
+    "2036": 5.144271097334548e-06
+   }
+  },
+  {
+   "check": "every gap exactly 0 in 2026",
+   "ok": true,
+   "level": "fail",
+   "detail": []
+  },
+  {
+   "check": "sign 2030 w <0",
+   "ok": true,
+   "level": "fail",
+   "detail": -0.51214945924416
+  },
+  {
+   "check": "sign 2030 labour_share_pp <0",
+   "ok": true,
+   "level": "fail",
+   "detail": -1.5999639323652701
+  },
+  {
+   "check": "labour share = -target x ramp weight",
+   "ok": true,
+   "level": "fail",
+   "detail": {
+    "target_fall_pp": 1.6,
+    "gap_pp": {
+     "2027": -0.3999814895094005,
+     "2028": -0.7999661211537585,
+     "2029": -1.1999704539876532,
+     "2030": -1.5999639323652701
+    },
+    "minus_expected_pp": {
+     "2027": 1.851049059953258e-05,
+     "2028": 3.38788462415085e-05,
+     "2029": 2.9546012346948203e-05,
+     "2030": 3.606763472996377e-05
+    }
+   }
+  },
+  {
+   "check": "size band vs 2026-start 2030",
+   "ok": true,
+   "level": "info",
+   "detail": "no band (zk0.5|common|zfixed)"
+  },
+  {
+   "check": "2027 investment jump <= old 2026 +17%",
+   "ok": false,
+   "level": "flag",
+   "detail": {
+    "I_2027_pct": 19.760455042295245,
+    "L_2027_pct": 0.054584062113804954
+   }
+  },
+  {
+   "check": "diagnostics (red flags 1-3)",
+   "ok": true,
+   "level": "info",
+   "detail": {
+    "capital_supply_elasticity": {
+     "2030": {
+      "dlnK": 0.05358101001403815,
+      "dln_rental": 0.009826728539946726,
+      "elasticity": 5.452578627386061
+     },
+     "2036": {
+      "dlnK": 0.051475345559247446,
+      "dln_rental": 0.010560405337331477,
+      "elasticity": 4.874372139607173
+     },
+     "SS": {
+      "dlnK": 0.05149433702241906,
+      "dln_rental": 0.011344077774105614,
+      "elasticity": 4.539314525854347
+     }
+    },
+    "gdp_per_tfp": {},
+    "tax_gdp_2030": {
+     "change_pp": -0.5782455693413291,
+     "by_base_pp": {
+      "iit_revenue": -0.5416055018726662,
+      "payroll_tax_revenue": 0.0,
+      "business_tax_revenue": 0.1844000520180175,
+      "cons_tax_revenue": -0.17752183179105402,
+      "bequest_tax_revenue": -0.01261829388419988,
+      "wealth_tax_revenue": -0.03089999381142676
+     },
+     "per_pp_of_labour_share_fall": -0.3614116278774441,
+     "obr_per_pp": [
+      -0.19,
+      -0.23
+     ],
+     "receipts_level_change_pct_gdp": 0.1529854021650573,
+     "obr_receipts_6_18_pct_gdp": -0.17,
+     "labour_share_fall_pp": 1.5999639323652701,
+     "by_base_pp_payroll_split": {
+      "payroll (employer NICs, tau_payroll)": -0.23999458985479016,
+      "income tax and employee NICs": -0.3016109120178747
+     }
+    },
+    "effective_rates_2030": {
+     "arm": {
+      "labour": 34.565345193372835,
+      "labour_excl_payroll": 19.565345193372828,
+      "capital_gross": 14.813416583285658,
+      "capital_net_of_depreciation": 34.14835400950226,
+      "payroll_pct_gdp": 9.509999359028974,
+      "income_tax_and_employee_nics_pct_gdp": 14.210636559010483,
+      "household_capital_income_pct_gdp": 9.231672248126408
+     },
+     "reference": {
+      "labour": 34.587512062167406,
+      "labour_excl_payroll": 19.587512062167402,
+      "capital_gross": 14.88991152475388,
+      "capital_net_of_depreciation": 34.772845560417494,
+      "payroll_pct_gdp": 9.749993948883764,
+      "income_tax_and_employee_nics_pct_gdp": 14.512247471028358,
+      "household_capital_income_pct_gdp": 9.08932449778766
+     },
+     "obr": {
+      "FRS 2026 Box 4.1": {
+       "labour": 46.0,
+       "capital": 27.0
+      },
+      "EFO Nov 2025 2.64": {
+       "labour": 40.0,
+       "capital": 17.0
+      }
+     }
+    }
+   }
+  }
+ ],
+ "scenario": "uk_central",
+ "diagnostics": {
+  "capital_supply_elasticity": {
+   "2030": {
+    "dlnK": 0.05358101001403815,
+    "dln_rental": 0.009826728539946726,
+    "elasticity": 5.452578627386061
+   },
+   "2036": {
+    "dlnK": 0.051475345559247446,
+    "dln_rental": 0.010560405337331477,
+    "elasticity": 4.874372139607173
+   },
+   "SS": {
+    "dlnK": 0.05149433702241906,
+    "dln_rental": 0.011344077774105614,
+    "elasticity": 4.539314525854347
+   }
+  },
+  "gdp_per_tfp": {},
+  "tax_gdp_2030": {
+   "change_pp": -0.5782455693413291,
+   "by_base_pp": {
+    "iit_revenue": -0.5416055018726662,
+    "payroll_tax_revenue": 0.0,
+    "business_tax_revenue": 0.1844000520180175,
+    "cons_tax_revenue": -0.17752183179105402,
+    "bequest_tax_revenue": -0.01261829388419988,
+    "wealth_tax_revenue": -0.03089999381142676
+   },
+   "per_pp_of_labour_share_fall": -0.3614116278774441,
+   "obr_per_pp": [
+    -0.19,
+    -0.23
+   ],
+   "receipts_level_change_pct_gdp": 0.1529854021650573,
+   "obr_receipts_6_18_pct_gdp": -0.17,
+   "labour_share_fall_pp": 1.5999639323652701,
+   "by_base_pp_payroll_split": {
+    "payroll (employer NICs, tau_payroll)": -0.23999458985479016,
+    "income tax and employee NICs": -0.3016109120178747
+   }
+  },
+  "effective_rates_2030": {
+   "arm": {
+    "labour": 34.565345193372835,
+    "labour_excl_payroll": 19.565345193372828,
+    "capital_gross": 14.813416583285658,
+    "capital_net_of_depreciation": 34.14835400950226,
+    "payroll_pct_gdp": 9.509999359028974,
+    "income_tax_and_employee_nics_pct_gdp": 14.210636559010483,
+    "household_capital_income_pct_gdp": 9.231672248126408
+   },
+   "reference": {
+    "labour": 34.587512062167406,
+    "labour_excl_payroll": 19.587512062167402,
+    "capital_gross": 14.88991152475388,
+    "capital_net_of_depreciation": 34.772845560417494,
+    "payroll_pct_gdp": 9.749993948883764,
+    "income_tax_and_employee_nics_pct_gdp": 14.512247471028358,
+    "household_capital_income_pct_gdp": 9.08932449778766
+   },
+   "obr": {
+    "FRS 2026 Box 4.1": {
+     "labour": 46.0,
+     "capital": 27.0
+    },
+    "EFO Nov 2025 2.64": {
+     "labour": 40.0,
+     "capital": 17.0
+    }
+   }
+  }
+ }
+}
