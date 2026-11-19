@@ -149,8 +149,13 @@ describe('Related PolicyEngine work', () => {
     expect(t).toContain('not this dashboard’s');
     const s = REL.items.find((x) => x.id === 'income_shift');
     const b = REL.items.find((x) => x.id === 'budget_lab');
-    const figs = [s.gini_base, s.gini_full, `−£${s.revenue_min_bn}B`, `${s.revenue_min_shift_pct}%`, `$${b.rapid_revenue_bn}B`, `${b.rapid_poverty_pp}pp`];
+    const figs = [s.gini_base, s.gini_full, `−£${s.revenue_min_bn}bn`, `${s.revenue_min_shift_pct}%`, `$${b.rapid_revenue_bn}bn`, `${b.rapid_poverty_pp}pp`];
     for (const fig of figs) expect(t).toContain(fig);
+    // R1-16: the package with its version, by its package name
+    expect(t).not.toMatch(/PolicyEngine-UK \d/);
+    expect(t).toContain('policyengine-uk 4.4.4');
+    // R2-28: £bn, and the Gini's scale
+    expect(t).toContain('Net-income Gini (0 to 1):');
     for (const it of REL.items) expect(container.querySelector(`a[href="${it.url}"]`)).not.toBeNull();
     expect(container.querySelectorAll('[data-path^="relatedWork.items."]')).toHaveLength(6);
   });

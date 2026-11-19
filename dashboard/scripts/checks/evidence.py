@@ -65,7 +65,7 @@ def related(text):
     if line not in sec:
         out.append(f'related work: provenance line {line!r} missing')
     s, b = (next(i for i in REL['items'] if i['id'] == k) for k in ('income_shift', 'budget_lab'))
-    for fig in (s['gini_base'], s['gini_full'], f"−£{s['revenue_min_bn']}B", f"{s['revenue_min_shift_pct']}%", f"${b['rapid_revenue_bn']}B", f"{b['rapid_poverty_pp']}pp"):
+    for fig in (s['gini_base'], s['gini_full'], f"−£{s['revenue_min_bn']}bn", f"{s['revenue_min_shift_pct']}%", f"${b['rapid_revenue_bn']}bn", f"{b['rapid_poverty_pp']}pp"):
         if fig not in sec:
             out.append(f'related work: figure {fig!r} missing')
     return out

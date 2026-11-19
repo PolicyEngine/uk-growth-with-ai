@@ -1,5 +1,6 @@
 'use client';
 
+import { Fragment } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { TipBox } from '@/components/ab/Tip.jsx';
 import { SOURCES, MODELS, CHANNELS } from '@/data/literature.js';
@@ -87,11 +88,14 @@ function ImfGap() {
 // the sources. Published figures come from data/literature.js (each with its
 // location); ours from surprise2028.json and methodFacts.json.
 
+// `key`: the download legend's label and mark (built from the levels used,
+// as the on-page key is: review round 2, R2-15). `text`: the page key's
+// gloss, empty where the label says it all (R2-25).
 const LEVELS = {
-  yes: { label: 'Modelled', text: 'In the model' },
-  part: { label: 'Partly', text: 'Assumed, imposed or partial' },
-  no: { label: 'No', text: 'Not in the model' },
-  na: { label: 'Not stated', text: 'The source does not say' },
+  yes: { label: 'Modelled', text: '', key: { label: 'Modelled', shape: 'dot' } },
+  part: { label: 'Partly', text: 'assumed, imposed or partial', key: { label: 'Partly: assumed, imposed or partial', shape: 'half' } },
+  no: { label: 'Not in the model', text: '', key: { label: 'Not in the model', shape: 'ring', off: true } },
+  na: { label: 'Not stated', text: 'the source does not say', key: { label: 'Not stated: the source does not say', shape: 'dash' } },
 };
 
 // Coverage marks: a filled, half or empty circle, or a dash. Shape and text
@@ -124,7 +128,8 @@ function Legend() {
           <li key={k}>
             <Mark level={k} />
             <span>
-              <b>{v.label}</b> {v.text.toLowerCase()}
+              <b>{v.label}</b>
+              {v.text ? `: ${v.text}` : ''}
             </span>
           </li>
         ))}
@@ -209,10 +214,10 @@ function Matrix() {
           rows: CHANNELS.map((ch) => [ch.label, ...MODELS.map((m) => ch.cells[m.id][1])]),
         }),
         svg: matrixSvg,
-        legend: () => [
-          { label: 'Modelled', color: CHART_COLOURS.mark, shape: 'dot' },
-          { label: 'Not in the model', color: CHART_COLOURS.markOff, shape: 'ring' },
-        ],
+        legend: () =>
+          Object.entries(LEVELS)
+            .filter(([k]) => USED.has(k))
+            .map(([, v]) => ({ label: v.key.label, color: v.key.off ? CHART_COLOURS.markOff : CHART_COLOURS.mark, shape: v.key.shape })),
       }}
     >
       <div ref={ref}>
@@ -223,9 +228,12 @@ function Matrix() {
             Channel
           </span>
           {MODELS.map((m) => (
-            <span key={m.id} className={`mx-mcol${m.id === 'oguk' ? ' is-ours' : ''}`} role="columnheader">
-              {m.src ? ext(SOURCES[m.src].url, m.short) : m.short}
-            </span>
+            <Fragment key={m.id}>
+              {' '}
+              <span className={`mx-mcol${m.id === 'oguk' ? ' is-ours' : ''}`} role="columnheader">
+                {m.src ? ext(SOURCES[m.src].url, m.short) : m.short}
+              </span>
+            </Fragment>
           ))}
         </div>
         {CHANNELS.map((ch) => (
@@ -249,7 +257,7 @@ function Matrix() {
 
 function Takeaways() {
   return (
-    <div className="cards-grid cols-3">
+    <div className="cards-grid">
       <InfoCard icon={iconFor('generations')} title="Of the five, only OG-UK: households by age">
         <Items
           items={[
@@ -258,15 +266,14 @@ function Takeaways() {
           ]}
         />
       </InfoCard>
-      <InfoCard icon={iconFor('labour')} title="Of the five, only Korinek et al.: jobs and tasks">
+      <InfoCard icon={iconFor('labour')} title="Of the five, only Korinek et al.: new tasks and unemployment">
         <Items
           items={[
-            { icon: 'jobLoss', text: 'They model new tasks and unemployment.' },
             { icon: 'excluded', text: 'OG-UK has neither; the OBR assumes higher unemployment.' },
           ]}
         />
       </InfoCard>
-      <InfoCard icon={iconFor('scarceGoods')} title="What none of the five models">
+      <InfoCard icon={iconFor('scarceGoods')} title="What none of the five models" className="mx-take-wide">
         <Items
           items={[
             { icon: 'scarceGoods', text: 'Demand shifting to goods that stay scarce.' },

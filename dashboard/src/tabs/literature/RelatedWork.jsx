@@ -13,7 +13,12 @@ import R from '@/data/relatedWork.json';
 // of this dashboard and come from other models, countries and policies.
 
 const READ_DATE = new Date(`${R.read}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
-const SHIFT = R.items.find((x) => x.id === 'income_shift');
+// A package version is named by the package (review round 1, R1-16:
+// "PolicyEngine UK" in prose, "policyengine-uk" for the package), mapped
+// here as ledger.js maps site-versions; the JSON keeps the page's words.
+const pkg = (m) => (m ?? '').replace(/PolicyEngine-UK (?=\d)/g, 'policyengine-uk ');
+const SHIFT0 = R.items.find((x) => x.id === 'income_shift');
+const SHIFT = { ...SHIFT0, model: pkg(SHIFT0.model) };
 const LAB = R.items.find((x) => x.id === 'budget_lab');
 const P = (id, k) => `relatedWork.items.${id}.${k}`;
 
@@ -27,7 +32,7 @@ const CARDS = [
         icon: 'inequality',
         text: (
           <>
-            Net-income Gini: <span data-path={P('income_shift', 'gini_base')}>{SHIFT.gini_base}</span> to{' '}
+            Net-income Gini (0 to 1): <span data-path={P('income_shift', 'gini_base')}>{SHIFT.gini_base}</span> to{' '}
             <span data-path={P('income_shift', 'gini_full')}>{SHIFT.gini_full}</span> when all of it moves.
           </>
         ),
@@ -36,7 +41,7 @@ const CARDS = [
         icon: 'cost',
         text: (
           <>
-            Net revenue lowest, <span data-path={P('income_shift', 'revenue_min_bn')}>−£{SHIFT.revenue_min_bn}B</span>, at a{' '}
+            Net revenue lowest, <span data-path={P('income_shift', 'revenue_min_bn')}>−£{SHIFT.revenue_min_bn}bn</span>, at a{' '}
             <span data-path={P('income_shift', 'revenue_min_shift_pct')}>{SHIFT.revenue_min_shift_pct}%</span> shift.
           </>
         ),
@@ -53,7 +58,7 @@ const CARDS = [
         text: (
           <>
             Rapid adoption, proportional wages: net revenue up{' '}
-            <span data-path={P('budget_lab', 'rapid_revenue_bn')}>${LAB.rapid_revenue_bn}B</span> in 2030.
+            <span data-path={P('budget_lab', 'rapid_revenue_bn')}>${LAB.rapid_revenue_bn}bn</span> in 2030.
           </>
         ),
       },
