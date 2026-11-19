@@ -137,6 +137,14 @@ export function payLine(sid, closure, w = gap(sid, 'tfp', closure, 'w')) {
   return 'pay for the same work';
 }
 
+// R4's tolerance: the stress test's headline-year GDP gap is held within
+// 0.01pp of zero (surprise2027-runs.md, ruling 4). Inside it the figure is
+// the solver's residue, so it prints as 0.00 (held), never +0.01
+// (review round 3, R3-05).
+export const R4_TOL_PP = 0.01;
+export const heldAtHeadline = (arm, v, x) => arm === 'ss' && v === 'Y' && x != null && Math.abs(x) <= R4_TOL_PP;
+export const fmtHeld = (arm, v, x, dp = 2, unit = '%') => (heldAtHeadline(arm, v, x) ? `${(0).toFixed(dp)}${unit} (held)` : fmt(x, dp, unit));
+
 // What a cell not solved yet prints in place of a figure: never a zero.
 export const PENDING = 'not yet solved';
 export const fmt = (x, dp = 2, unit = '%') => (x == null ? PENDING : `${signed(x, dp)}${unit}`);

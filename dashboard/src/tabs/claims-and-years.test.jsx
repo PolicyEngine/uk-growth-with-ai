@@ -427,3 +427,37 @@ describe('swap gate (R3-04)', () => {
     expect(text).toContain(`Solves and data at ${S.source_commit}`);
   });
 });
+
+// ---- R3-05: the stress test's headline-year GDP inside R4's 0.01pp
+// tolerance prints as held at zero, never as a residue such as +0.01 -------
+describe('tolerance gates, the stress test held (R3-05)', () => {
+  for (const [name, D] of Object.entries(FILES))
+    it(`surprise${name}.json`, async () => {
+      await pickFile(D);
+      const { NavProvider } = await import('@/lib/nav.jsx');
+      const { default: RT } = await import('@/tabs/ai/ResultsTab.jsx');
+      const { R4_TOL_PP, fmt } = await import('@/tabs/ai/surprise.js');
+      expect(R4_TOL_PP).toBe(0.01);
+      let n = 0;
+      for (const s of D.scenarios)
+        for (const [closure, cl] of [['central', 'zk0.1'], ['closed', 'zk0']]) {
+          const x = g(D, s.id, 'ss', cl, 'Y', D.headline_year);
+          if (x == null) continue;
+          n += 1;
+          expect(Math.abs(x), `${s.id} ${cl}: R4 holds GDP within its tolerance`).toBeLessThanOrEqual(R4_TOL_PP);
+          for (const sub of ['income', 'economy']) {
+            window.history.replaceState(null, '', `/?tab=explore&sub=${sub}&s=${s.id}&closure=${closure}`);
+            const r = render(
+              <NavProvider>
+                <RT sub={sub} />
+              </NavProvider>,
+            );
+            const t = r.container.querySelector(sub === 'income' ? '#measures' : '#explore-part-economy')?.textContent ?? '';
+            expect(t, `${s.id} ${cl} ${sub}`).toContain('0.00% (held)');
+            if (fmt(x) !== '0.00%') expect(t.includes(`${fmt(x)} (held)`)).toBe(false);
+            r.unmount();
+          }
+        }
+      expect(n).toBeGreaterThan(0);
+    });
+});

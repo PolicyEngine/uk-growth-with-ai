@@ -6,7 +6,7 @@
 // sentence is gated on the conditions that file sets; a sentence whose
 // condition fails is left out or replaced by the file's alternative.
 import {
-  S, YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, ARMS, resultAt, gap, signed,
+  S, YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, ARMS, resultAt, gap, signed, R4_TOL_PP,
 } from '@/tabs/ai/surprise.js';
 import { closuresFor, primaryClosure, side } from '@/tabs/ai/lines.js';
 
@@ -168,7 +168,7 @@ export function debtWhy(sid, closure, rule) {
     if (above.length) {
       const yh = Object.fromEntries(hy('Y').map((c) => [c.id, c.x]));
       const smaller = below.length && above.every((c) => below.every((b) => yh[c.id] < yh[b.id]));
-      const zeroSs = above.some((c) => c.id === 'ss') && Math.abs(yh.ss ?? 1) < 0.005;
+      const zeroSs = above.some((c) => c.id === 'ss') && Math.abs(yh.ss ?? 1) <= R4_TOL_PP;
       // "gap is lower": in some cells Technology unchanged has no GDP gain
       // (review round 1, R1-04)
       const why = smaller ? `: their GDP gap is lower${zeroSs ? ', and zero in the stress test' : ''}` : '';

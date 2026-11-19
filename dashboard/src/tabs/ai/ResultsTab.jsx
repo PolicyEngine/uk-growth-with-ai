@@ -10,7 +10,7 @@ import Pill from '@/components/ui/Pill.jsx';
 import { versionsShownSection } from '@/components/ui/SettingsBar.jsx';
 import { useNav, subOf, NavLink } from '@/lib/nav.jsx';
 import {
-  HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, path, gap, signed, SCEN_NAME, ruleSolved, solvedUnder, PENDING,
+  HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, path, gap, signed, SCEN_NAME, ruleSolved, solvedUnder, PENDING, heldAtHeadline,
 } from '@/tabs/ai/surprise.js';
 import { seriesFor, boundPending, emptyText, primaryClosure, closureWords, contextLine, seriesTable, legendOf, side, ruleGapText } from '@/tabs/ai/lines.js';
 import { ruleLabel, rulePlain } from '@/lib/labels.js';
@@ -106,7 +106,9 @@ export function PathCard({
   // a tidy card (Public finances, item 17) draws every version, named once
   // in the shared legend, with no chooser of its own
   const arms = tidy ? ARMS.map((a) => a.id) : st.arms;
-  const raw = seriesFor(sid, v, years, arms, st.closure, scale, rule).map((s, i, all) => (all.slice(0, i).some((t) => !t.noEndLabel && same(t, s)) ? { ...s, noEndLabel: true } : s));
+  const raw = seriesFor(sid, v, years, arms, st.closure, scale, rule)
+    .map((s) => (years[years.length - 1] === HEADLINE_YEAR && heldAtHeadline(s.arm, v, s.values[s.values.length - 1]) ? { ...s, endHeld: true } : s))
+    .map((s, i, all) => (all.slice(0, i).some((t) => !t.noEndLabel && same(t, s)) ? { ...s, noEndLabel: true } : s));
   // the line that carries a shared label names the lines under it, so no
   // colour is left without a label ("all versions" when every line is one)
   const series = raw.map((s, i) => {

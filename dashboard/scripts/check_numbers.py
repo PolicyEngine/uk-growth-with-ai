@@ -46,6 +46,13 @@ def g(sid, arm, cl, v, year=H):
     r = D['results'].get(sid, {}).get(arm, {}).get(cl, {'status': 'pending'})
     return r['gaps'][v][Y.index(year)] if r['status'] == 'done' else None
 
+# R4 holds the stress test's headline-year GDP within 0.01pp of zero
+# (surprise.js R4_TOL_PP, review round 3, R3-05): inside it the page prints
+# 0.00% (held), not the solver's residue
+R4_TOL_PP = 0.01
+def held(arm, v, x):
+    return 0.0 if arm == 'ss' and v == 'Y' and x is not None and abs(x) <= R4_TOL_PP else x
+
 NUM = re.compile(r"[+−]?\d+\.\d+(?:%|pp)")
 # the economy wall: every tile's lines end in their headline-year value,
 # GNI and GDP included (item 13, 18 Nov: values on every panel)
@@ -86,14 +93,14 @@ def expected(sid, mode):
         # reference-row rule: one per comparison chart).
         for v in ['GNI', 'Y', 'NNI', 'w']:
             for cl in shown:
-                add(g(sid, arm, cl, v), 2, '%')
+                add(held(arm, v, g(sid, arm, cl, v)), 2, '%')
         # Economy: headline-year end labels (the central line with Both)
         for v, unit, k in ECON:
             x = g(sid, arm, main, v)
             # an arm whose path coincides with an earlier arm's (within half the
             # last printed digit in every year, same printed end value) prints
             # no end value (ResultsTab)
-            if x is not None and not coincides(sid, arm, main, v, k): add(x * k, 2, unit)  # Economy end labels, 2dp (ResultsTab endDp)
+            if x is not None and not coincides(sid, arm, main, v, k): add(held(arm, v, x) * k, 2, unit)  # Economy end labels, 2dp (ResultsTab endDp)
         # Public finances: debt/GDP late-year and tax/GDP headline-year end labels
         if not coincides(sid, arm, main, 'debt_gdp_pp', 1, [y for y in Y if D['window'][0] <= y <= LATE]):
             add(g(sid, arm, main, 'debt_gdp_pp', LATE), 2, 'pp')
