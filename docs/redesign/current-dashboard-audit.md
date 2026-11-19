@@ -1,7 +1,7 @@
 # uk-growth-with-ai dashboard: current-state UX audit
 
 Audited: `http://localhost:4340`, PR #40, branch `dashboard/ab2026-tabs` at `2ebcc4d` (read-only; server untouched).
-Method: headless Chromium, desktop 1440×900 and phone 390×844 (touch, 2× DPR); 14 screens × 2 viewports, folds closed and open; 51 state, tooltip and focus captures; DOM audit (overflow, target sizes, contrast, text-transform, landmarks); full text dump with every fold open; source read for conditional content. AB2026 glanced live (7 views, desktop + phone) and in `/Users/vahid/ab2026-latest/src`.
+Method: headless Chromium, desktop 1440×900 and phone 390×844 (touch, 2× DPR); 14 screens × 2 viewports, folds closed and open; 51 state, tooltip and focus captures; DOM audit (overflow, target sizes, contrast, text-transform, landmarks); full text dump with every fold open; source read for conditional content. AB2026 glanced live (7 views, desktop + phone) and in the `src/` of a local AB2026 checkout.
 
 Files (all under this folder):
 - `shots/` — `{d|m}-{tab}[-{sub}]-{top|full|open-full}.png` (84 files)
