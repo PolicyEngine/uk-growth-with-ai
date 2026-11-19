@@ -15,6 +15,7 @@ import { AI_FULL_RERUN, AI_STUDY } from '@/tabs/code/ledger.js';
 import { URLS } from '@/tabs/ai/links.js';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { fmtInputPct, fmtPct1 } from '@/tabs/story/part3/format.js';
+import { methodName } from './figures.js';
 
 // Method and sources > Household method: how uk-ai-study (PolicyEngine/
 // uk-ai-study PR #18; its status is read from the data) produces the results in story part 3 and
@@ -240,11 +241,11 @@ export default function HouseholdsMethod() {
           <Items
             className="hm-items"
             items={[
-              { icon: 'ai', text: <><b>In proportion to exposure</b> (the main case): the rule above.</> },
-              { icon: 'age', text: <><b>Junior-tilted:</b> higher chance at ages 16 to 24, same occupation quotas.</> },
-              { icon: 'pay', text: <><b>Expertise compression:</b> doubled chances for the top earnings third, above-median-exposure occupations.</> },
-              { icon: 'draws', text: <><b>Uniform:</b> every employee equally likely.</> },
-              { icon: 'limit', text: <><b>Top-loaded extreme case:</b> exposure times junior and wage-tier factors.</> },
+              { icon: 'ai', text: <><b>{methodName('exposure')}</b>, the main case: in proportion to exposure, the rule above.</> },
+              { icon: 'age', text: <><b>{methodName('junior')}:</b> higher chance at ages 16 to 24, same occupation quotas.</> },
+              { icon: 'pay', text: <><b>{methodName('compression')}:</b> doubled chances for the top earnings third, above-median-exposure occupations.</> },
+              { icon: 'draws', text: <><b>{methodName('uniform')}:</b> every employee equally likely.</> },
+              { icon: 'limit', text: <><b>{methodName('klein_top_loaded')}:</b> exposure times junior and wage-tier factors.</> },
               { icon: 'deciles', text: 'It loads displacement on above-median earners: an upper stress case.' },
             ]}
           />

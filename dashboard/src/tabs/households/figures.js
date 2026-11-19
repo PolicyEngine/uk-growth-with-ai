@@ -5,6 +5,20 @@
 import D from '@/data/aiStudy2425.json';
 import { MINUS, fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtMillions, fmtPct1, fmtPctSigned1, fmtPence, fmtPp, fmtShare } from '@/tabs/story/part3/format.js';
 
+// The displacement rules' names, one map for every tab (review round 1,
+// R1-15): the plain name first, as the Story names them; the study's own
+// term once, in brackets, on Household method (`methodName`). `short` is
+// the plane's direct label.
+export const RULE_NAMES = {
+  uniform: { plain: 'Uniform', short: 'Uniform', study: null },
+  junior: { plain: 'Ages 16 to 24', short: 'Ages 16 to 24', study: 'junior-tilted' },
+  exposure: { plain: 'By AI exposure', short: 'By AI exposure (main case)', study: 'exposure-proportional' },
+  compression: { plain: 'Exposed higher earners', short: 'Exposed higher earners', study: 'expertise compression' },
+  klein_top_loaded: { plain: 'Top-loaded extreme case', short: 'Top-loaded', study: null },
+};
+export const ruleName = (id) => RULE_NAMES[id]?.plain ?? id;
+export const methodName = (id) => (RULE_NAMES[id]?.study ? `${RULE_NAMES[id].plain} (${RULE_NAMES[id].study})` : ruleName(id));
+
 // What the number check counts: £ amounts, pp, Gini points, pence, per
 // cent, millions.
 export const FIG = /−?£[\d,]+(?:\.\d+)?(?:bn)?|[+−]?\d+\.\d\dpp|[+−]\d+\.\d\d points|\b\d+p(?![A-Za-z])|[+−]?\d+(?:\.\d+)?%|\d+\.\d\dm/g;

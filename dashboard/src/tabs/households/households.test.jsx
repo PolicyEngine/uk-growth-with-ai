@@ -9,7 +9,7 @@ import Part3 from '@/tabs/story/Part3.jsx';
 import HouseholdsExplore, { FINDINGS, VARIANT_ARROWS, costSteps } from './HouseholdsExplore.jsx';
 import { fmtBn, fmtShare as fmtShareT } from '@/tabs/story/part3/format.js';
 import HouseholdsMethod from './HouseholdsMethod.jsx';
-import { FIG, counts, householdsFigures, storyFigures } from './figures.js';
+import { FIG, RULE_NAMES, counts, householdsFigures, methodName, storyFigures } from './figures.js';
 import { CAVEAT_GREY, DESTS, absorbGraph } from './Absorb.jsx';
 import { imbalances } from '@/components/story/Sankey.jsx';
 
@@ -235,6 +235,20 @@ describe('Where a lost pound goes (the Story again, item 19; Explore links to it
     expect(line.querySelector('a').getAttribute('href')).toContain('#p3-pound');
     expect(text(line).match(FIG)).toBeNull();
     expect(container.querySelector('.sankey')).toBeNull();
+  });
+});
+
+// Review round 1, R1-15: one map of the rules' names (figures.js), the
+// plain name first; the study's term once, in brackets, on Method.
+describe('the rules\u2019 names', () => {
+  it('Method gives each plain name with the study\u2019s term once in brackets; the Story uses the same plain names', () => {
+    const m = render(<HouseholdsMethod />).container.textContent;
+    for (const [id, n] of Object.entries(RULE_NAMES)) {
+      expect(m, id).toContain(methodName(id));
+      if (n.study) expect(m.match(new RegExp(`\\(${n.study}\\)`, 'g')), id).toHaveLength(1);
+    }
+    const story = render(<Part3 part={{ id: 'story-part-3', n: 3, icon: 'usersRound', kicker: 'Part 3', title: 'A model of households' }} />).container.textContent.toLowerCase();
+    for (const id of ['uniform', 'junior', 'exposure', 'compression']) expect(story, id).toContain(RULE_NAMES[id].plain.toLowerCase());
   });
 });
 
