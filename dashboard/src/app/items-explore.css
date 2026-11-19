@@ -3092,3 +3092,12 @@
 @media (max-width: 480px) {
   .hh-page .hh-ref { white-space: normal; }
 }
+/* the tax-gap card's lower labels right of centre end at their mark on
+   phones, as an at-end label does (FinancesSection.jsx Cause, ph-end) */
+@media (max-width: 480px) {
+  .app .cause-mark-label.ph-end {
+    left: auto;
+    right: -4px;
+    transform: none;
+  }
+}
