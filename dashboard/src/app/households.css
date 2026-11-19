@@ -329,6 +329,9 @@
   .hh-tblwrap.is-stack .hh-tbl thead .hh-tbl-bar {
     display: none;
   }
+  .hh-tblwrap.is-stack .hh-tbl tbody tr:not(.hh-tbl-group) > .hh-tbl-bar + .hh-tbl-num {
+    grid-column: 2;
+  }
   /* barline: the bar shares the second line with the values */
   .hh-tblwrap.is-barline .hh-tbl .hh-tbl-bar {
     grid-column: 1;
@@ -367,6 +370,10 @@
   .hh-db-table .hh-db-row {
     grid-template-columns: 24% minmax(0, 1fr) 24%;
     column-gap: 6px;
+  }
+  /* card 5's bar sets: the head names the set; no column head */
+  .hh-tblwrap.hh-set-tbl .hh-tbl thead {
+    display: none;
   }
   /* ticks every 2% */
   .hh-db-ticks .is-odd {
