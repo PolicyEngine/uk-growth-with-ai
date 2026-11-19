@@ -85,6 +85,22 @@ export const ruleSolved = (rule, sid) => !RULE_KEY[rule] || ruleScenarios(RULE_K
 // The scenarios a rule is solved for, in display order.
 export const solvedUnder = (rule) => SCENARIOS.filter((s) => ruleSolved(rule, s.id));
 
+// Where a reader can go from a view that is not solved, so a notice never
+// points at another unsolved view (review round 3, R3-02). The first solved
+// of: the other foreign-capital case under this rule; the common rule for
+// this scenario; the scenarios solved under this rule. A sentence, or null.
+export const CLOSURE_SHORT = { [CENTRAL]: 'Some', [BOUND]: 'None' };
+const andList = (xs) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`);
+const solvedAt = (sid, cl, rule) => ARMS.some((a) => resultAt(sid, a.id, cl, rule).status === 'done');
+export function nextSolved(sid, closure, rule = 'common') {
+  const cl = closure === 'closed' ? BOUND : CENTRAL;
+  const other = cl === CENTRAL ? BOUND : CENTRAL;
+  if (closure !== 'both' && solvedAt(sid, other, rule)) return `Choose ${CLOSURE_SHORT[other]} under Foreign capital.`;
+  if (rule !== 'common' && (solvedAt(sid, CENTRAL, 'common') || solvedAt(sid, BOUND, 'common'))) return 'Choose the common fiscal rule.';
+  const names = SCENARIOS.filter((s) => s.id !== sid && (solvedAt(s.id, CENTRAL, rule) || solvedAt(s.id, BOUND, rule))).map((s) => s.label);
+  return names.length ? `Choose ${andList(names)} under Scenario.` : null;
+}
+
 // Gap of variable v in a calendar year, or null when pending.
 export function gap(sid, arm, closure, v, year = HEADLINE_YEAR, rule = 'common') {
   const r = resultAt(sid, arm, closure, rule);
@@ -120,6 +136,14 @@ export function payLine(sid, closure, w = gap(sid, 'tfp', closure, 'w')) {
   if (w < -0.005) return payRises(sid, 'tfp', closure) ? 'slower growth, not a cut' : 'below the forecast path';
   return 'pay for the same work';
 }
+
+// R4's tolerance: the stress test's headline-year GDP gap is held within
+// 0.01pp of zero (surprise2027-runs.md, ruling 4). Inside it the figure is
+// the solver's residue, so it prints as 0.00 (held), never +0.01
+// (review round 3, R3-05).
+export const R4_TOL_PP = 0.01;
+export const heldAtHeadline = (arm, v, x) => arm === 'ss' && v === 'Y' && x != null && Math.abs(x) <= R4_TOL_PP;
+export const fmtHeld = (arm, v, x, dp = 2, unit = '%') => (heldAtHeadline(arm, v, x) ? `${(0).toFixed(dp)}${unit} (held)` : fmt(x, dp, unit));
 
 // What a cell not solved yet prints in place of a figure: never a zero.
 export const PENDING = 'not yet solved';

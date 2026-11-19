@@ -35,7 +35,7 @@ const DATE_NOTE = `Extra AI, beyond the OBR’s central forecast, starts in ${SU
 function FinancesAnswer({ st }) {
   if (!ruleSolved(st.rule, st.s)) return <p className="page-a-text">{ruleGapText(st.rule, st.s)}</p>;
   const f = financesFinding(st.s, st.closure, st.rule);
-  if (!f) return <p className="page-a-text">This combination is not solved yet.</p>;
+  if (!f) return <p className="page-a-text">This combination is not yet solved.</p>;
   return (
     <>
       <Finding id="fin-finding" icon="finances" lead={f.lead} lines={f.lines} />

@@ -43,9 +43,11 @@ const oneFold = {
       JSXOpeningElement(node) {
         const name = elName(node);
         if (name === 'Disclosure') {
+          // any title that is not the literal "More info", JSX and
+          // expressions included (review round 3, R3-13)
           const t = attr(node, 'title');
           const v = literal(t);
-          if (t && v != null && v !== 'More info') ctx.report({ node, message: `Disclosure titled "${v}": a fold is "More info".` });
+          if (t && v !== 'More info') ctx.report({ node, message: `Disclosure titled ${v != null ? `"${v}"` : 'by an expression'}: a fold is the literal "More info".` });
         }
       },
       JSXElement(node) {

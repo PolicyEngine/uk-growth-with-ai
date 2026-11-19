@@ -272,6 +272,8 @@ function SensGrid({ res }) {
 // longer key (counts, the held stress-test GDP, why the flips) stays in More
 // info.
 function GridKeyLine({ res }) {
+  // no key while every cell of the grid is pending (R3-14)
+  if (!SCENARIOS.some((sc) => ARMS.some((a) => res?.[sc.id]?.[a.id]?.status === 'done'))) return null;
   const flips = gridKey(res).some((k) => k.key === 'flip');
   return (
     <p className="ex-sg-keyline" data-fable="item 39 wording">

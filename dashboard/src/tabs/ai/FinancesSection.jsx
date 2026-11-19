@@ -368,7 +368,7 @@ function TaxGapCard({ sid, closure, rule }) {
       about={{
         how:
           fall == null ? (
-            'The labour-share fall for this scenario is not solved yet.'
+            'This scenario is not yet solved.'
           ) : (
             <Items
               items={[
@@ -589,7 +589,7 @@ export function ruleShiftWords(rule, sid, closure) {
 }
 export function ruleFinding(rule, sid, closure) {
   const name = ruleLabel(rule).toLowerCase();
-  if (!ruleSolved(rule, sid)) return { lead: `${SCEN_NAME[sid]} is not solved under ${name}.`, lines: [ruleGapText(rule, sid)] };
+  if (!ruleSolved(rule, sid)) return { lead: `${SCEN_NAME[sid]} is not yet solved under ${name}.`, lines: [ruleGapText(rule, sid)] };
   const table = 'The table gives the change for every version.';
   if (rule === 'dn')
     return {

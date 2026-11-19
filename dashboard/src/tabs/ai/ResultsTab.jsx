@@ -10,7 +10,7 @@ import Pill from '@/components/ui/Pill.jsx';
 import { versionsShownSection } from '@/components/ui/SettingsBar.jsx';
 import { useNav, subOf, NavLink } from '@/lib/nav.jsx';
 import {
-  HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, path, gap, signed, SCEN_NAME, ruleSolved, solvedUnder,
+  HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, path, gap, signed, SCEN_NAME, ruleSolved, solvedUnder, PENDING, heldAtHeadline,
 } from '@/tabs/ai/surprise.js';
 import { seriesFor, boundPending, emptyText, primaryClosure, closureWords, contextLine, seriesTable, legendOf, side, ruleGapText } from '@/tabs/ai/lines.js';
 import { ruleLabel, rulePlain } from '@/lib/labels.js';
@@ -61,7 +61,7 @@ export function PendingLine({ names }) {
   return (
     <p className="icon-line is-muted">
       <Icon name="hourglass" size={16} />
-      <span>The no-foreign-capital case is not solved yet for: {names.join(', ')}.</span>
+      <span>The no-foreign-capital case is not yet solved for: {names.join(', ')}.</span>
     </p>
   );
 }
@@ -106,7 +106,9 @@ export function PathCard({
   // a tidy card (Public finances, item 17) draws every version, named once
   // in the shared legend, with no chooser of its own
   const arms = tidy ? ARMS.map((a) => a.id) : st.arms;
-  const raw = seriesFor(sid, v, years, arms, st.closure, scale, rule).map((s, i, all) => (all.slice(0, i).some((t) => !t.noEndLabel && same(t, s)) ? { ...s, noEndLabel: true } : s));
+  const raw = seriesFor(sid, v, years, arms, st.closure, scale, rule)
+    .map((s) => (years[years.length - 1] === HEADLINE_YEAR && heldAtHeadline(s.arm, v, s.values[s.values.length - 1]) ? { ...s, endHeld: true } : s))
+    .map((s, i, all) => (all.slice(0, i).some((t) => !t.noEndLabel && same(t, s)) ? { ...s, noEndLabel: true } : s));
   // the line that carries a shared label names the lines under it, so no
   // colour is left without a label ("all versions" when every line is one)
   const series = raw.map((s, i) => {
@@ -201,7 +203,9 @@ export function PathCard({
         />
       ) : (
         <div className="unpublished-plot">
-          <Items items={sentenceItems(emptyText(arms, st.closure, rule, sid))} />
+          {/* a wall tile says only "not yet solved"; the wall's notice, once,
+              says where to go (R3-02) */}
+          <Items items={sentenceItems(tile && arms.length ? `${PENDING[0].toUpperCase()}${PENDING.slice(1)}.` : emptyText(arms, st.closure, rule, sid))} />
         </div>
       )}
     </Card>
@@ -433,6 +437,9 @@ function EconomyPanel({ sid }) {
       <SectionHeading id="economy-wall" icon={iconFor('path')} title={`The economy, ${FIRST_YEAR}–${HEADLINE_YEAR}`}>
         <Lead c="measure">Eight measures, each against the OBR’s central forecast path</Lead>
       </SectionHeading>
+      {seriesFor(sid, 'Y', WINDOW_YEARS, st.arms, st.closure, 1, st.rule).length || !st.arms.length ? null : (
+        <p className="page-a-text ex-wall-notice">{emptyText(st.arms, st.closure, st.rule, sid)}</p>
+      )}
       <div className="ex-wall-head">
         {/* item 37: the versions shown, as a section of the wall's pill (no
             chip toggles anywhere) */}
@@ -503,7 +510,7 @@ export function RulePending({ sid }) {
   const { st, set } = useNav();
   const solved = solvedUnder(st.rule);
   return (
-    <Card id="rule-pending" icon={iconFor('timing')} title={`${SCEN_NAME[sid]} is not solved under ${ruleLabel(st.rule).toLowerCase()}`} logo={false}>
+    <Card id="rule-pending" icon={iconFor('timing')} title={`${SCEN_NAME[sid]} is not yet solved under ${ruleLabel(st.rule).toLowerCase()}`} logo={false}>
       <div className="rule-pending">
         <Items items={sentenceItems(ruleGapText(st.rule, sid))} />
         <div className="rule-pending-actions">

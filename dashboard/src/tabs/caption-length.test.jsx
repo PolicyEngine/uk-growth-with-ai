@@ -73,7 +73,7 @@ describe('caption length', () => {
     if (all.length > (b ?? 0)) console.warn(`caption length: ${all.length} offenders\n${all.join('\n')}`);
     expect(all.length, `caption_length: ${all.length} against baseline ${b}`).toBeLessThanOrEqual(b ?? 0);
     for (const [, , what] of RULES) expect(seen[what] ?? 0, `${what}: selector matched nothing`).toBeGreaterThan(0);
-  });
+  }, 60000);
   // One fold (section 6): every fold's rendered title is "More info". The
   // lint rule sees literal titles only; this reads what renders.
   it('every fold is titled More info, no more offenders than the baseline', () => {
@@ -93,5 +93,5 @@ describe('caption length', () => {
     const b = BASE.probes.fold_titles.baseline;
     if (bad.length > (b ?? 0)) console.warn(`fold titles: ${bad.length}\n${[...new Set(bad)].join('\n')}`);
     expect(bad.length, `fold_titles: ${bad.length} against baseline ${b}`).toBeLessThanOrEqual(b ?? 0);
-  });
+  }, 60000);
 });

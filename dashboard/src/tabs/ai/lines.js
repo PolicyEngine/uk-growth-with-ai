@@ -1,7 +1,7 @@
 // The lines a results chart draws for the reader's choices: the arms in
 // view (control bar) at the closure(s) chosen in the header.
 import {
-  YEARS, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, resultAt, ruleSolved, solvedUnder, signed,
+  YEARS, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, resultAt, ruleSolved, solvedUnder, signed, nextSolved,
 } from '@/tabs/ai/surprise.js';
 import { closureLabel, ruleLabel } from '@/lib/labels.js';
 import { SCEN_NAME } from '@/tabs/ai/surprise.js';
@@ -45,16 +45,19 @@ export function boundPending(sid, arms, closure, rule = 'common') {
 export function ruleGapText(rule, sid) {
   if (ruleSolved(rule, sid)) return null;
   const names = solvedUnder(rule).map((s) => s.label);
+  // advice only towards a solved view (R3-02)
+  const go = nextSolved(sid, 'central', rule) ?? nextSolved(sid, 'closed', rule);
   // the partial 2027 export: a rule planned but with no scenario solved yet
-  if (!names.length) return `${ruleLabel(rule)} is not yet solved for any scenario. Choose the common fiscal rule.`;
-  return `${ruleLabel(rule)} is solved for ${names.join(' and ')} only. Choose ${names.join(' or ')} under Scenario, or the common fiscal rule.`;
+  if (!names.length) return [`The ${ruleLabel(rule).toLowerCase()} rule is not yet solved for any scenario.`, go].filter(Boolean).join(' ');
+  return [`${ruleLabel(rule)} is solved for ${names.join(' and ')} only.`, go].filter(Boolean).join(' ');
 }
 
 export function emptyText(arms, closure, rule = 'common', sid = null) {
   if (!arms.length) return 'Every version is hidden. Choose one under Versions above.';
   if (sid && !ruleSolved(rule, sid)) return ruleGapText(rule, sid);
-  if (closure === 'closed') return 'The no-foreign-capital results for this scenario are not solved yet. Choose Some under Foreign capital at the top of the page.';
-  return 'This scenario is not solved yet.';
+  const go = nextSolved(sid, closure, rule);
+  if (closure === 'closed') return ['The no-foreign-capital results for this scenario are not yet solved.', go].filter(Boolean).join(' ');
+  return ['This scenario is not yet solved.', go].filter(Boolean).join(' ');
 }
 
 // What a download says was selected

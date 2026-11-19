@@ -68,7 +68,9 @@ export const ogScenarioFile = (sid) => atRef(RESULTS_SHA, SET.scenarioFile(sid))
 export const OG_RESULT_URLS = {
   assemble: atRef(RESULTS_SHA, 'uk_growth_with_ai/surprise.py'),
   doc: atRef(RESULTS_SHA, SET.designDoc),
-  cohortsDir: atRef(RESULTS_SHA, 'analysis/surprise/cohorts', 'tree'),
+  // the cohort state files at the pinned cohort commit (R3-03): the 2028
+  // results commit lacks the _dnfull files cohorts2028.json reads
+  cohortsDir: atRef(COHORTS_SHA, 'analysis/surprise/cohorts', 'tree'),
   cohortScript: atRef(COHORTS_SHA, 'paper/cohort_welfare.py'),
   // the sanity gate: the shock-year investment flag (+17%), flagged, never failed
   sanity: atRef(RESULTS_SHA, `${SET.designDoc}#the-sanity-gate-after-every-solve`),

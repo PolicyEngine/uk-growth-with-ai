@@ -229,7 +229,7 @@ describe('the zeta_K 0.5 card’s More info fold', () => {
     // nothing solved at zeta_K 0.5 (the partial 2027 export): the card says
     // so and prints no figure
     if (S.sensitivity['zk0.5'].results.uk_central.tfp.status !== 'done') {
-      expect(card.textContent).toMatch(/not solved/);
+      expect(card.textContent).toMatch(/not (?:yet )?solved/);
       expect(card.querySelector('.ex-sg')?.textContent ?? '').not.toMatch(/\d\.\d\d/);
       return;
     }

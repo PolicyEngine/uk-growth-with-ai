@@ -7,7 +7,7 @@ import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
-import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result, PENDING } from '@/tabs/ai/surprise.js';
+import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result, PENDING, fmtHeld } from '@/tabs/ai/surprise.js';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 
@@ -274,11 +274,11 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                           className={`db-value${right ? ' is-right' : ' is-left'}${onSummary(a.id, m.v, rule) ? ' is-ref' : ''}`}
                           style={{ ...(right ? { left: pct(outer) } : { right: `calc(100% - ${pct(outer)})` }), ...(onSummary(a.id, m.v, rule) ? {} : { color: ARM_TEXT_COLOR[a.id] }) }}
                         >
-                          {fmt(main)}
+                          {fmtHeld(a.id, m.v, main)}
                         </span>
                       </>
                     )}
-                    {showC && showB ? <span className="visually-hidden">no foreign capital {fmt(b)}</span> : null}
+                    {showC && showB ? <span className="visually-hidden">no foreign capital {fmtHeld(a.id, m.v, b)}</span> : null}
                   </div>
                 </div>
               );

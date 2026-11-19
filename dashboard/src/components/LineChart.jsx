@@ -316,13 +316,15 @@ export default function LineChart({
 
   // End labels: name, value and any "(off scale)" note, as segments.
   const points = strip?.points || [];
-  const segsFor = (text, value, strong, offScale) => [
+  // a series may carry endHeld: its end value is held at zero by design
+  // within the solver's tolerance, printed as 0 with "(held)" (R3-05)
+  const segsFor = (text, value, strong, offScale, held = false) => [
     ...(endLabel === 'value' ? [] : [{ kind: 'text', text, weight: strong ? 700 : 500 }]),
-    ...(noValue && endLabel !== 'value' ? [] : [{ kind: 'value', text: `${valueFormat(value)}${endLabel === 'value' ? unit : ''}`, weight: endLabel === 'value' ? 600 : 700 }]),
+    ...(noValue && endLabel !== 'value' ? [] : [{ kind: 'value', text: `${valueFormat(held ? 0 : value)}${endLabel === 'value' ? unit : ''}${held ? ' (held)' : ''}`, weight: endLabel === 'value' ? 600 : 700 }]),
     ...(offScale ? [{ kind: 'off', text: '(off scale)', weight: 500 }] : []),
   ];
   const rawLabels = [
-    ...series.filter((s) => !s.noEndLabel && !noEndLabels).map((s) => ({ s, segs: segsFor(s.label, s.values[s.values.length - 1], true, false) })),
+    ...series.filter((s) => !s.noEndLabel && !noEndLabels).map((s) => ({ s, segs: segsFor(s.label, s.values[s.values.length - 1], true, false, Boolean(s.endHeld)) })),
     ...points.map((p) => ({ p, segs: segsFor(p.label, p.value, false, p.offScale) })),
   ];
 

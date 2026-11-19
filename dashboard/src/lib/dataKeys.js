@@ -15,9 +15,11 @@
 // A key is built from the file's own year fields, or found by its prefix
 // with its years and age read from the key itself.
 import S from '@/lib/activeData.js';
-import { DATA_SET, DATA_FILE } from '@/lib/dataFlag.js';
+import { DATA_SET } from '@/lib/dataFlag.js';
 import NICS2028 from '@/tabs/explore/nics2028.json';
 import CO2028 from '@/data/cohorts2028.json';
+import V2028 from '@/data/site-versions.json';
+import MF2028 from '@/data/methodFacts.json';
 import S2028 from '@/data/surprise2028.json';
 import S2027 from '@/data/surprise2027.json';
 
@@ -102,6 +104,9 @@ const SETS = {
     nicsRef: 'bf5de33',
     outputDir: 'analysis/surprise/output',
     scenarioFile: (sid) => `uk_growth_with_ai/data/scenarios_surprise2028_${sid}.json`,
+    // the commits and solve times each set was built with (R3-04)
+    versionsFile: 'site-versions.json',
+    methodFactsFile: 'methodFacts.json',
   },
   2027: {
     results: 'surprise2027.json',
@@ -121,13 +126,30 @@ const SETS = {
     outputDir: 'analysis/surprise2027/output',
     // no scenarios_surprise2027_*.json at 816a87e
     scenarioFile: null,
+    // the swap build writes these (review round 3, R3-04)
+    versionsFile: null,
+    methodFactsFile: null,
   },
 };
 // The active set's entry, each null field filled from the 2028 set.
-export const SET = Object.fromEntries(Object.entries(SETS[2028]).map(([k, v]) => [k, SETS[DATA_SET][k] ?? v]));
+// keyed by the data file's own shock year, so the paths always match the
+// data shown (the flag only picks the file)
+const ACTIVE_SET = SETS[S.surprise_year] ?? SETS[DATA_SET];
+export const SET = Object.fromEntries(Object.entries(SETS[2028]).map(([k, v]) => [k, ACTIVE_SET[k] ?? v]));
 // The fields the active set takes from 2028 (empty on the 2028 set).
-export const SET_MISSING = Object.keys(SETS[2028]).filter((k) => SETS[DATA_SET][k] == null);
-export { DATA_SET, DATA_FILE };
+export const SET_MISSING = Object.keys(SETS[2028]).filter((k) => ACTIVE_SET[k] == null);
+export { DATA_SET };
+// The data file's name, from the file itself (its shock year), so a page
+// never names one file while showing another.
+export const DATA_FILE = `surprise${S.surprise_year}.json`;
+// Is the active set's own copy of a SET field in place (not the 2028
+// fallback)? Pages that would print a 2028 commit or solve time beside the
+// active data say what they have instead (R3-04).
+export const setHas = (key) => !SET_MISSING.includes(key);
+// The commits behind the results (site-versions.json) and the method facts
+// (methodFacts.json): the 2028 files until the 2027 ones land.
+export const VERSIONS = V2028;
+export const METHOD_FACTS = MF2028;
 
 // The NICs measure the Public finances causes chart uses (PolicyEngine UK,
 // employer NICs on one basis; a copy of SET.nicsPath).
