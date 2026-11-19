@@ -162,8 +162,9 @@ export function SummaryQuestion({ sid, titleId = 'summary-q' }) {
   return (
     <div className="hero">
       <h2 id={titleId} className="hero-q">
-        <span className="hero-q-lead">How could AI affect the UK economy?</span> <span className="hero-q-main">{SCENARIO_COUNT_WORD} scenarios, from {SURPRISE_YEAR}</span>
+        <span className="hero-q-main">How could AI affect the UK economy?</span>
       </h2>
+      <p className="hero-sub">{SCENARIO_COUNT_WORD} scenarios, from {SURPRISE_YEAR}</p>
       <Items className="hero-a hero-items" items={heroItems(sid, cl)} />
       <p className="hero-meta">
         {NAME[sid]} scenario{sid === 'korinek' ? ', the upper case' : ''}, {cl === BOUND ? 'no foreign capital' : 'some foreign capital'}, {HEADLINE_YEAR}, against the OBR&rsquo;s central forecast path, as run in <A href={URLS.ogUk}>OG-UK</A>. {SURPRISE_YEAR} is a modelling choice, not a forecast

@@ -299,8 +299,9 @@ export default function Hero() {
               question, which carries the weight */}
           <p className="hero-series">{PAGE_TITLE}</p>
           <h2 id="story-q" className="hero-q">
-            <span className="hero-q-lead">How could AI affect the UK economy?</span> <span className="hero-q-main">{SCENARIO_COUNT_WORD} scenarios, from {SURPRISE_YEAR}</span>
+            <span className="hero-q-main">How could AI affect the UK economy?</span>
           </h2>
+          <p className="hero-sub">{SCENARIO_COUNT_WORD} scenarios, from {SURPRISE_YEAR}</p>
         </div>
         <a className="story-scroll-cue" href="#story-part-1">
           <Icon name="arrowDown" size={16} /> Start with where the UK stands

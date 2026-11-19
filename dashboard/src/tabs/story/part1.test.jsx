@@ -736,8 +736,8 @@ describe('hero', () => {
     expect(el.querySelector('.story-hero-text p.hero-series').textContent).toBe('AI and the UK economy: Beyond the forecast');
     const h2 = el.querySelector('h2#story-q');
     expect(h2.previousElementSibling.classList.contains('hero-series')).toBe(true);
-    expect(h2.querySelector('.hero-q-lead').textContent).toBe('How could AI affect the UK economy?');
-    expect(h2.querySelector('.hero-q-main').textContent).toBe(`Four scenarios, from ${S.surprise_year}`);
+    expect(h2.textContent.trim()).toBe('How could AI affect the UK economy?');
+    expect(h2.parentElement.querySelector('.hero-sub').textContent).toBe(`Four scenarios, from ${S.surprise_year}`);
     expect(h2.textContent).not.toMatch(/arriv/i);
   });
   it('draws all four lines from the surprise year, each labelled, with axis titles', async () => {

@@ -1194,6 +1194,16 @@
 .hero-q-main {
   color: inherit;
 }
+/* the subtitle under the question (Vahid, 19 Nov): the scenario count and
+   the start year, read from the data; small and muted, like the series line */
+p.hero-sub {
+  max-width: none;
+  margin: 12px 0 0;
+  font-size: var(--t-label);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--t-muted);
+}
 
 /* The exposure grid's legend (Maria's review, M3): above the grid, the
    three group names with their swatches, shown once the tiles are grouped
