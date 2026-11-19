@@ -4,6 +4,16 @@
  "at": "ea2cc1c",
  "entries": [
   {
+   "date": "2026-11-19",
+   "commit": "6ffe276",
+   "text": "One settings control replaces the separate toggles; larger chart text; plainer chart titles and notes; source links for the household study; checked against two rounds of review."
+  },
+  {
+   "date": "2026-11-18",
+   "commit": "84b1ec5",
+   "text": "Story: question sections only grow or shrink as you scroll, on a faded teal band; part openers sit on the page; each scene's heading stays in view with its chart."
+  },
+  {
    "date": "2026-11-16",
    "commit": "ea2cc1c",
    "text": "Old shared links to the earlier tabs open on the right page without showing the story first."
