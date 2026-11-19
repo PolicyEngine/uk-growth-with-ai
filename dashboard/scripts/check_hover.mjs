@@ -62,7 +62,7 @@ const FIND = () => {
     if (!s.querySelector('path, rect, circle, line, polyline')) continue;
     cands.push([s, s.closest(BOX) ?? s.parentElement]);
   }
-  for (const f of panel.querySelectorAll('figure.p3-figure, figure.p2-figure, .lens-fig, .p3-close-card')) {
+  for (const f of panel.querySelectorAll('figure.p3-figure, figure.p2-figure, .lens-fig')) {
     if (!shown(f) || f.querySelector('[data-hover-svg]')) continue;
     const b = f.getBoundingClientRect();
     if (b.width < 80 || b.height < 40) continue;

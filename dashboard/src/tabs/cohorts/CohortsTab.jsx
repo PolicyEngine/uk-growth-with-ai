@@ -3,6 +3,7 @@
 import { useId, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
+import ChartHover from '@/components/story/chart/ChartHover.jsx';
 import LineChart from '@/components/LineChart.jsx';
 import Card, { SectionHeading, StatTile } from '@/components/ui/Card.jsx';
 import Finding from '@/components/ui/Finding.jsx';
@@ -568,7 +569,11 @@ function ConsLine({ c }) {
     <figure className="ex-cl">
       <div className="ex-cl-plot" style={{ height: `${H}px` }}>
         {end('start', first)}
-        <div className="ex-cl-area" style={{ height: `${H}px` }}>
+        <ChartHover
+          className="ex-cl-area"
+          label="Consumption against the forecast path, by year"
+          items={ys.map(([y, v]) => ({ head: String(y), rows: [{ name: 'Consumption gap', value: pct(v), icon: 'consumption' }], unit: 'Against the forecast path, %. OG-UK works it out.' }))}
+        >
           <svg viewBox={`0 0 100 ${H}`} preserveAspectRatio="none" role="img" aria-label={`Consumption against the forecast path, ${first[0]} to ${last[0]}: ${pct(first[1])} to ${pct(last[1])}`}>
             <line x1="0" x2="100" y1={Y(0)} y2={Y(0)} className="ex-cl-zero" vectorEffect="non-scaling-stroke" />
             <polyline points={ys.map(([, v], i) => `${X(i)},${Y(v)}`).join(' ')} className="ex-cl-line" vectorEffect="non-scaling-stroke" />
@@ -576,21 +581,11 @@ function ConsLine({ c }) {
           <span className="ex-cl-zero-label" style={{ top: `${Y(0)}px` }}>
             Forecast path
           </span>
-          {ys.map(([y, v], i) => (
-            <TipTarget
-              key={y}
-              className="ex-cl-hit"
-              style={{ left: `${X(i)}%`, width: `${100 / ys.length}%` }}
-              label={`${y}: ${pct(v)}`}
-              tip={
-                <>
-                  <b>{y}</b>
-                  <span className="tip-value">{pct(v)}</span>
-                </>
-              }
-            />
+          {/* hover (M4): one transparent column per year, the one tooltip */}
+          {ys.map(([y], i) => (
+            <span key={y} className="ex-cl-hit" data-tip={i} style={{ left: `${X(i)}%`, width: `${100 / ys.length}%` }} aria-hidden="true" />
           ))}
-        </div>
+        </ChartHover>
         {end('end', last)}
       </div>
       <figcaption className="ex-bars2-cap" data-axis-title="y">Consumption gap vs forecast path, %</figcaption>

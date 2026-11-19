@@ -161,15 +161,13 @@ function Ticks({ max, fmt }) {
 // shows; then the others slide out along their connectors in turn
 // (--beat), and the stress-test note fades in last. Final state on a jump
 // or reload, replay on scroll-back, static under reduced motion (CSS).
-// The list items are the hover and focus targets; the readout mounts only
-// while one is hovered or focused (data-axis: it restates the labels).
+// The list items are the hover targets; the one tooltip (ChartHover, M4)
+// mounts only while one is hovered, tapped or reached by the arrow keys.
 function RulesPanel({ on }) {
   const [hot, setHot] = useState(null);
   const c = rule('exposure');
   const cx = px(c.cost_bn);
   const cy = py(c.poverty_pp);
-  const hd = hot ? rule(hot) : null;
-  const hr = RULES.find((r) => r.id === hot);
   return (
     <div className={`p3-plane${on ? ' is-on' : ''}${hot ? ' is-hot' : ''}`}>
       <p className="p3-group-head p3-group-first" data-title-fallback={MAIN_BETWEEN ? undefined : ''}>
@@ -186,6 +184,22 @@ function RulesPanel({ on }) {
           <Icon name="arrowRight" size={14} />
         </span>
       </div>
+      {/* hover (M4): each rule's cost, poverty rise and Gini, the one tooltip */}
+      <ChartHover
+        label="Cost and absolute poverty rise under each rule"
+        items={RULES.map((r) => {
+          const d = rule(r.id);
+          return {
+            head: r.label,
+            rows: [
+              { name: 'Cost', value: `${fmtBn(d.cost_bn)} a year`, icon: 'cost' },
+              { name: 'Absolute poverty', value: fmtPp(d.poverty_pp), icon: 'poverty' },
+              { name: 'Gini', value: fmtPp(d.gini_pp).replace('pp', ' points'), icon: 'deciles' },
+            ],
+            unit: `${d.draws} draws. The household study.`,
+          };
+        })}
+      >
       <div className="p3-plane-plot">
         <svg className="p3-plane-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
           {Y_TICKS.filter((t) => t > 0).map((t) => (
@@ -228,6 +242,7 @@ function RulesPanel({ on }) {
               <li
                 key={r.id}
                 data-row={r.id}
+                data-tip={RULES.indexOf(r)}
                 className={`p3-plane-label is-${side} is-${anchor}${r.central ? ' is-central' : ''}${hot === r.id ? ' is-hot' : ''}`}
                 style={{ left: `${px(d.cost_bn)}%`, top: `${py(d.poverty_pp)}%`, '--lead': `${lead}px`, '--beat': `${r.beat}ms` }}
                 tabIndex={0}
@@ -254,12 +269,8 @@ function RulesPanel({ on }) {
             );
           })}
         </ol>
-        {hd ? (
-          <p className="p3-plane-readout" data-axis="" role="tooltip">
-            <strong>{hr.label}</strong>: {fmtBn(hd.cost_bn)} a year; poverty {fmtPp(hd.poverty_pp)}; Gini {fmtPp(hd.gini_pp).replace('pp', ' points')}
-          </p>
-        ) : null}
       </div>
+      </ChartHover>
       <p className="p3-plane-xtitle" data-mark="r-cost">
         <AxisTitle axis="x">Cost to the public finances, £bn a year</AxisTitle>
       </p>

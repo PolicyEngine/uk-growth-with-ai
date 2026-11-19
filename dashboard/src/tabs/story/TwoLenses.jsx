@@ -254,7 +254,12 @@ export default function TwoLenses() {
         </ul>
         <p className="close-why">{CLOSE_WHY}</p>
       </header>
-      <figure ref={ref} className={`lens-fig story-frame${entry.entered ? ' is-in' : ''}${snap ? ' is-snap' : ''}`} aria-labelledby="story-close-h">
+      <figure
+        ref={ref}
+        className={`lens-fig story-frame${entry.entered ? ' is-in' : ''}${snap ? ' is-snap' : ''}`}
+        aria-labelledby="story-close-h"
+        data-hover-exempt="a diagram of what each model covers, no values; each item carries its own tip"
+      >
         <div className="lens-venn">
           {/* item 35: the lens is 88px wide on desktop and 72px tall on
               phones, so the overlap label (on the 14px tick token) sits
