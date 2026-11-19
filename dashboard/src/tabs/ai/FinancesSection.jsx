@@ -13,7 +13,7 @@ import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { esc } from '@/lib/download.js';
 import {
   S,
-  YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, CLOSURES, SCENARIOS, ARMS, CLOSURE_LABEL, resultAt, ruleSolved, scenarioById, gap, signed, fmt, SCEN_NAME,
+  YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, CLOSURES, SCENARIOS, ARMS, CLOSURE_LABEL, resultAt, ruleSolved, scenarioById, gap, signed, fmt, SCEN_NAME, PENDING,
 } from '@/tabs/ai/surprise.js';
 import { closuresFor, contextLine, side, ruleGapText, primaryClosure } from '@/tabs/ai/lines.js';
 import { PathCard } from '@/tabs/ai/ResultsTab.jsx';
@@ -30,7 +30,7 @@ import AIS from '@/data/aiScenarios.json';
 const WORLD_RATE = AIS.assum?.closure?.world_int_rate_annual;
 import { sourcesItems } from '@/tabs/explore/sources.jsx';
 import { docItem, navItem } from '@/lib/sourceItems.js';
-import NICS from '@/tabs/explore/nics2028.json';
+import { NICS, SET } from '@/lib/dataKeys.js';
 import { AxisTitles } from '@/tabs/explore/axes.jsx';
 import { OGUK_TG1_YEAR, debtTitle, taxTitle, debtMoreInfo, taxMoreInfo } from '@/tabs/ai/financesInfo.js';
 
@@ -179,7 +179,7 @@ const NIC_PE = NICS.avg_employer_rate_on_employment_income * 100;
 // scenarios.py (OG-UK's default is 4, so 2030).
 const TG1_URL = atRef(RESULTS_SHA, 'uk_growth_with_ai/scenarios.py#L45');
 const EFO_NOV25 = 'https://obr.uk/efo/economic-and-fiscal-outlook-november-2025/';
-const NICS_URL = atRef('bf5de33', 'analysis/nics/nics_2028.json');
+const NICS_URL = atRef(SET.nicsRef, SET.nicsPath);
 const RED_FLAGS_URL = atRef('bf5de33', 'docs/red_flags_1_3.md');
 // The two rows of the tax card, as drawn and as downloaded
 const CAUSES = [
@@ -239,7 +239,7 @@ function TaxStrip({ model, uk, onChart }) {
         <span className="ex-taxtrack">
           <span className="ex-taxzero" style={{ left: pos(0) }} aria-hidden="true" />
           {model == null ? (
-            <span className="ex-taxval">pending</span>
+            <span className="ex-taxval">{PENDING}</span>
           ) : (
             <span className="ex-taxdot" style={{ left: pos(model) }}>
               {onChart ? null : <span className="ex-taxval">{`${signed(model, 2)}pp`}</span>}
@@ -262,7 +262,7 @@ function TaxStrip({ model, uk, onChart }) {
         <span className="ex-taxtrack">
           <span className="ex-taxzero" style={{ left: pos(0) }} aria-hidden="true" />
           {uk == null ? (
-            <span className="ex-taxval">pending</span>
+            <span className="ex-taxval">{PENDING}</span>
           ) : (
             <span className="ex-taxbar" style={{ left: pos(Math.min(...uk)), width: `${((Math.abs(uk[0] - uk[1]) / -lo) * 100).toFixed(2)}%` }}>
               <span className="ex-taxval">{`${signed(uk[0], 2)} to ${signed(uk[1], 2)}pp`}</span>
@@ -393,7 +393,7 @@ function TaxGapCard({ sid, closure, rule }) {
             docItem('red_flags_1_3.md', RED_FLAGS_URL),
             docItem('tau_payroll', URLS.ogUkDefaults),
             docItem('HMRC employer rates', URLS.hmrcEmployerRates),
-            docItem('nics_2028.json', NICS_URL),
+            docItem(SET.nicsFile, NICS_URL),
             navItem('Method: how labour is taxed', 'method', 'm-tax', 'how'),
           ],
           method: 'limits',

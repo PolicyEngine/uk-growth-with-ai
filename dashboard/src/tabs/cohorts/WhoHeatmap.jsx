@@ -10,7 +10,7 @@ import { OG_RESULT_URLS, COHORTS_SHA, RESULTS_SHA } from '@/tabs/ai/links.js';
 import Pill from '@/components/ui/Pill.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { ruleLabel } from '@/lib/labels.js';
-import D from '@/data/cohorts2028.json';
+import { COHORTS as D } from '@/lib/dataKeys.js';
 import { Lead } from '@/tabs/explore/direction.jsx';
 
 // Who gains by age and lifetime-earnings group: a heatmap diverging around
@@ -149,7 +149,7 @@ export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms
       download={{
         title: `Welfare change by age and earnings group, ${m.label}`,
         context: () => `UK central · ${ARM_NAME[arm] ?? arm} · ${ruleLabel(rule)} · ${cl === 'zk0' ? 'no foreign capital' : 'some foreign capital'}`,
-        table: () => ({ columns: ['Age in 2028', ...cols.map((c) => `${c} (%)`)], rows: rows.map((r) => [r.age, ...r.cells]) }),
+        table: () => ({ columns: [`Age in ${D.shock_year}`, ...cols.map((c) => `${c} (%)`)], rows: rows.map((r) => [r.age, ...r.cells]) }),
       }}
     >
       {any ? null : (

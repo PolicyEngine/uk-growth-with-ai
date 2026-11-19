@@ -3,7 +3,7 @@
 import Card from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
-import { S, ARMS, ARM_COLOR, SCENARIOS, YEARS, HEADLINE_YEAR, CENTRAL, fmt, resultAt } from '@/tabs/ai/surprise.js';
+import { S, ARMS, ARM_COLOR, SCENARIOS, YEARS, HEADLINE_YEAR, CENTRAL, fmt, resultAt, foreignShareOf } from '@/tabs/ai/surprise.js';
 import Icon from '@/components/ab/Icon.jsx';
 import { side } from '@/tabs/ai/lines.js';
 import { dirConcept } from '@/tabs/explore/direction.jsx';
@@ -17,12 +17,12 @@ import { NavLink } from '@/lib/nav.jsx';
 import { fracWord } from '@/tabs/story/part2/caveats.js';
 
 // The foreign-owned share of the added capital in the headline year: the
-// data file's foreign_share_dK_2031 for UK central's main version, the same
+// data file's foreign-share key (lib/dataKeys.js) for UK central's main version, the same
 // cell as the 77% at zeta_K 0.1 (Method, FOREIGN_DK), as words and a whole
 // per cent (zk05-share-fable.md). The share drifts above 100% after the
 // headline year, so the line carries the year.
 export function foreignShareLine(res) {
-  const x = res?.uk_central?.tfp?.foreign_share_dK_2031;
+  const x = foreignShareOf(res?.uk_central?.tfp);
   if (x == null) return null;
   const w = fracWord(x / 100, { all: true });
   const pct = `${Math.round(x)}%`;
@@ -54,13 +54,16 @@ const cls = (x) => (x == null ? '' : x > 0.005 ? ' is-gain' : x < -0.005 ? ' is-
 function mainRows(res) {
   return SCENARIOS.map((s) => ({ sens: res?.[s.id]?.tfp, central: resultAt(s.id, 'tfp', CENTRAL, 'common') })).filter((r) => r.sens?.status === 'done' && r.central.status === 'done');
 }
+// "in every scenario" holds only when every scenario is solved at both
+// closures: on a partial file (the 2027 export) no claim is made.
+const complete = (rows) => rows.length === SCENARIOS.length;
 export function payAboveGate(res) {
   const rows = mainRows(res);
-  return rows.length > 0 && rows.every((r) => side(at(r.sens, 'w')) === 'above' && side(at(r.central, 'w')) === 'below');
+  return complete(rows) && rows.every((r) => side(at(r.sens, 'w')) === 'above' && side(at(r.central, 'w')) === 'below');
 }
 export function sensTitle(res = S.sensitivity?.[SENS]?.results) {
   const rows = mainRows(res);
-  if (!rows.length) return 'Gaps with much more foreign capital';
+  if (!complete(rows)) return 'Gaps with much more foreign capital';
   if (payAboveGate(res)) return 'More foreign capital puts the main version’s pay rate above the path';
   if (rows.every((r) => side(at(r.sens, 'w')) !== 'below')) return 'More foreign capital: main version’s pay rate on or above the path';
   if (rows.every((r) => at(r.sens, 'Y') - at(r.central, 'Y') > 0.005)) return 'With much more foreign capital, GDP is higher in every scenario';
@@ -69,8 +72,8 @@ export function sensTitle(res = S.sensitivity?.[SENS]?.results) {
 
 export function sensClaims(res = S.sensitivity?.[SENS]?.results) {
   if (!res) return [];
-  const rows = SCENARIOS.map((s) => ({ sens: res[s.id]?.tfp, central: resultAt(s.id, 'tfp', CENTRAL, 'common') })).filter((r) => r.sens?.status === 'done' && r.central.status === 'done');
-  if (!rows.length) return [];
+  const rows = mainRows(res);
+  if (!complete(rows)) return [];
   const diff = (v) => rows.map((r) => at(r.sens, v) - at(r.central, v));
   const versus = (v, name) => {
     const d = diff(v);

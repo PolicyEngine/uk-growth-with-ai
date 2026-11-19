@@ -5,7 +5,7 @@
 // from printed figures, by a rule the source does not state), default (OG-UK's
 // default parameter, no UK estimate behind it), choice (a modelling choice,
 // not from a published source), external (an external source, linked).
-import { scenarioById, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR } from '@/tabs/ai/surprise.js';
+import { scenarioById, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, RAMP_WORD } from '@/tabs/ai/surprise.js';
 
 const sc = (id) => scenarioById(id);
 const pp = (id) => `−${sc(id).labour_share_fall_pp.toFixed(1)}pp`;
@@ -26,13 +26,13 @@ export const INPUTS = [
   { group: 'Scenarios', input: 'UK central: output at fixed inputs', value: `${pc('uk_central')}, model input (rounded; OBR ramp gives 0.40%)`, kind: 'derived', how: 'IMF Table 1 prints years 5 and 10 only; year 4 is read off Figure 9 as about 0.42% (0.41–0.44%). Cross-check: the OBR’s central 0.2pp a year, phased in linearly, gives 0.40%.', src: ['imfSipT1', 'imfSipFig9', 'bp9B14', 'efoOct127'] },
   { group: 'Scenarios', input: 'UK central: labour-share fall (headline)', value: pp('uk_central'), kind: 'derived', how: 'Derived, not published by the IMF. Year-4 TFP is read off IMF SIP/2026/072 Figure 9 as about 0.42% (0.41–0.44%; only years 5 and 10 are printed). Divided by the IMF’s 27% cost saving, the 0.41–0.44% reading gives 1.5–1.6pp. The UK central scenario uses 1.6pp.', note: 'The share is derived from the 0.42 reading, but the TFP input is the rounded 0.4, which on its own would give 0.4 ÷ 0.27 = 1.5pp. The OBR cross-check (1.78pp) sits above 1.6, so 1.6 is not biased high.', src: ['imfSipFig9', 'imfSip44', 'frs87'] },
   { group: 'Scenarios', input: 'UK high: output at fixed inputs', value: pc('uk_high'), kind: 'derived', how: 'The OBR’s high alternative, up to 0.8pp a year (a decade average), phased in linearly to year five: 2 × 0.8 = 1.6%. Ramping to it by year five is a modelling choice.', src: ['frs86', 'bp9B14', 'imfArt4'] },
-  { group: 'Scenarios', input: 'UK high: labour-share fall', value: pp('uk_high'), kind: 'derived', how: 'The OBR’s upper-end path, wages and salaries 40% → 20% of GDP over 45 years: 20/45 × 4 = 1.78pp, rescaled to OG-UK’s 65% labour share: × 65/40 = 2.89pp. Rescaling and the 2028 start are modelling choices.', src: ['frs87', 'frs88'] },
+  { group: 'Scenarios', input: 'UK high: labour-share fall', value: pp('uk_high'), kind: 'derived', how: `The OBR’s upper-end path, wages and salaries 40% → 20% of GDP over 45 years: 20/45 × 4 = 1.78pp, rescaled to OG-UK’s 65% labour share: × 65/40 = 2.89pp. Rescaling and the ${SURPRISE_YEAR} start are modelling choices.`, src: ['frs87', 'frs88'] },
   { group: 'Scenarios', input: 'Korinek et al., substantial (US): labour share and TFP', value: `${pp('korinek')}; ${pc('korinek')}`, kind: 'published', how: 'The ‘substantial’ scenario of Korinek et al. (2026), a US case used as the upper case, not calibrated to the UK: labour share 60.0 → 56.1; measured TFP +3.1% in 2030.', src: ['korinekT3'] },
   { group: 'Scenarios', input: 'Stress test: GDP held at the OBR’s central forecast path', value: `GDP gap 0 in ${HEADLINE_YEAR}`, kind: 'choice', how: 'After the OBR’s displacement scenario, GDP unchanged. The 0.01pp tolerance is a modelling choice.', src: ['efoMarBox22'] },
   { group: 'Scenarios', input: 'Which pairs, the three arms, the headline', value: '—', kind: 'choice', how: 'The study’s design.', src: ['calibNote', 'fiscalRules'] },
   // timing
-  { group: 'Timing', input: 'Extra AI starts as a surprise; one starting point', value: '2028; 2027', kind: 'choice', how: 'No published source sets 2028.', src: ['surpriseYear'] },
-  { group: 'Timing', input: 'Linear four-year ramp to full weight', value: '2028–2031', kind: 'choice', how: 'No published source; the IMF’s adoption path is convex.', src: ['rampWeights'] },
+  { group: 'Timing', input: 'Extra AI starts as a surprise; one starting point', value: `${SURPRISE_YEAR}; ${FIRST_YEAR}`, kind: 'choice', how: `No published source sets ${SURPRISE_YEAR}.`, src: ['surpriseYear'] },
+  { group: 'Timing', input: `Linear ${RAMP_WORD}-year ramp to full weight`, value: `${SURPRISE_YEAR}–${HEADLINE_YEAR}`, kind: 'choice', how: 'No published source; the IMF’s adoption path is convex.', src: ['rampWeights'] },
   { group: 'Timing', input: 'Perfect foresight after the surprise', value: '—', kind: 'choice', how: 'OG-Core’s time path iteration.', src: ['fiscalRules'] },
   // the baseline
   { group: 'Baseline', input: 'Trend productivity growth', value: '1% a year', kind: 'published', how: 'The forecast path uses the March 2026 EFO’s trend. It includes the OBR’s central AI effect.', src: ['efoMarPath', 'bp9B14'] },
@@ -51,7 +51,9 @@ export const INPUTS = [
   { group: 'Model parameters', input: 'Households: 80 ages, seven earnings groups', value: '20–99', kind: 'default', how: 'OG-UK’s defaults.', src: ['ogukParams'] },
   { group: 'Model parameters', input: 'Employer NICs as a payroll tax', value: '15%', kind: 'default', how: 'OG-UK’s default payroll tax.', src: ['ogukParams'] },
   // fiscal rules and solver
-  { group: 'Fiscal rules and solver', input: 'Common rule; debt rule from 2036', value: 'tG1 = 10', kind: 'choice', how: 'OG-UK’s default is 4. Not an OBR rule.', src: ['tg1', 'rerunNote'] },
+  // tG1 = 10: periods from the 2026 baseline start, so 2036, in both data
+  // sets (review round 2, R2-02); never the 2027 run's internal 9
+  { group: 'Fiscal rules and solver', input: `Common rule; debt rule from ${LATE_YEAR}`, value: 'tG1 = 10', kind: 'choice', how: 'OG-UK’s default is 4. Not an OBR rule.', src: ['tg1', 'rerunNote'] },
   { group: 'Fiscal rules and solver', input: 'Fixed spending', value: '—', kind: 'choice', how: 'A choice on Explore; no OBR source is cited for it.', src: ['fiscalRules'] },
   { group: 'Fiscal rules and solver', input: 'Debt-neutral transfers', value: `Debt on path ${SURPRISE_YEAR + 1}–${LATE_YEAR}`, kind: 'choice', how: 'Households receive or pay the fiscal effect through transfers.', src: ['fiscalRules'] },
   { group: 'Fiscal rules and solver', input: 'Debt repricing speed (sensitivity)', value: '—', kind: 'external', how: 'The OBR’s October 2026 debt interest ready reckoner: 26% in year one, 50% by year six.', src: ['efoOct', 'pr43'] },
@@ -82,7 +84,7 @@ const SHORT = {
   'ζK: share of excess capital demand foreigners supply': ['Kept from OG-Core’s default. That it is the central case is the study’s choice', null],
   'World interest rate': ['Not calibrated; OG-Core’s own default is 4%', null],
   'Depreciation δ': ['From ONS capital stocks and fixed capital consumption, 2022', null],
-  'Common rule; debt rule from 2036': ['OG-UK’s default is 4; not an OBR rule', null],
+  [`Common rule; debt rule from ${LATE_YEAR}`]: ['OG-UK’s default is 4; not an OBR rule', null],
   'Fixed spending': ['A choice on Explore; no OBR source is cited', null],
   'Debt-neutral transfers': ['Households receive or pay the fiscal effect as transfers', null],
   'Debt repricing speed (sensitivity)': ['OBR ready reckoner: 26% in year one, 50% by year six', null],

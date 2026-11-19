@@ -13,7 +13,8 @@ import { iconFor } from '@/lib/concepts.js';
 import IconText from './IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { METHOD, RULES as RULE_NAMES } from '@/lib/labels.js';
-import { S, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR } from '@/tabs/ai/surprise.js';
+import { S, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, foreignShareOf } from '@/tabs/ai/surprise.js';
+import { SET } from '@/lib/dataKeys.js';
 import { REPO, URLS, issue, pr } from '@/tabs/ai/links.js';
 import F from '@/data/methodFacts.json';
 import { ext } from '../shared/ui.jsx';
@@ -33,7 +34,7 @@ const cite = (k) => ext(SRC[k].url, SRC[k].label);
 // that use it (UsedBy). Sources and published figures are on Evidence;
 // commands, vintages and the revision history on Data and code.
 
-const DOC = (p) => `${REPO}/blob/rerun/surprise-2028/docs/${p}`;
+const DOC = (p) => `${REPO}/blob/${SET.branch}/docs/${p}`;
 const DOC_MAIN = (p) => `${REPO}/blob/main/docs/${p}`;
 const pct = (x, dp = 1) => `${(x * 100).toFixed(dp)}%`;
 
@@ -118,12 +119,12 @@ function ClosureCards() {
 }
 
 // The foreign-owned share of UK central's extra capital in the headline year
-// (main arm, some foreign capital, common rule): surprise2028.json
-// foreign_share_dK_2031, whole per cent. Its figure has one home (the
+// (main arm, some foreign capital, common rule): the data file's
+// foreign-share key (lib/dataKeys.js), whole per cent. Its figure has one home (the
 // story's GNI tile); Method says only whether it is most.
 const FOREIGN_DK = (() => {
-  const x = S.results?.uk_central?.tfp?.[CENTRAL]?.foreign_share_dK_2031;
-  return typeof x === 'number' ? Math.round(x) : null;
+  const x = foreignShareOf(S.results?.uk_central?.tfp?.[CENTRAL]);
+  return x == null ? null : Math.round(x);
 })();
 
 const MEASURES = [
@@ -239,7 +240,7 @@ export default function MethodTab() {
       <div className="page-body">
         <PageIntro
           question="How does OG-UK turn an AI scenario into these results?"
-          answer={<IconText icon="model">A model of the whole UK economy in which every market clears. Each result is a gap against the OBR’s central forecast path: OG-UK’s own path on the OBR’s March 2026 productivity growth and debt target, restarted in 2028 without the extra AI. Not a forecast.</IconText>}
+          answer={<IconText icon="model">A model of the whole UK economy in which every market clears. Each result is a gap against the OBR’s central forecast path: OG-UK’s own path on the OBR’s March 2026 productivity growth and debt target, restarted in {SURPRISE_YEAR} without the extra AI. Not a forecast.</IconText>}
         >
           <WhyChain
             className="mx-chain"
@@ -293,7 +294,7 @@ export default function MethodTab() {
                         <>
                           PolicyEngine UK, {nic.year}: <span data-path="methodFacts.nics.employer_avg_of_employment_income">{pct(nic.employer_avg_of_employment_income)}</span> of employment income;{' '}
                           <span data-path="methodFacts.nics.employer_marginal">{pct(nic.employer_marginal)}</span> at the margin (
-                          {ext(`${REPO}/blob/rerun/surprise-2028/analysis/nics/measure_nics.py`, 'measure_nics.py')}).
+                          {ext(`${REPO}/blob/${SET.branch}/analysis/nics/measure_nics.py`, 'measure_nics.py')}).
                         </>
                       ),
                     },

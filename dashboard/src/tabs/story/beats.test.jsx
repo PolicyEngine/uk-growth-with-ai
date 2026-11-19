@@ -4,7 +4,7 @@
 // and each part's model label with a one-line tip without figures.
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
-import S from '@/data/surprise2028.json';
+import S from '@/lib/activeData.js';
 import U from '@/data/ukContext.json';
 import StoryTab from './StoryTab.jsx';
 import { NavProvider } from '@/lib/nav.jsx';

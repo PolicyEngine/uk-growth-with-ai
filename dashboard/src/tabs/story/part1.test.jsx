@@ -651,11 +651,16 @@ describe('hero', () => {
       </NavProvider>,
     ).container;
   };
-  it('prints the chosen scenario’s three 2031 gaps, each linked to its home', async () => {
-    const S = (await import('@/data/surprise2028.json')).default;
+  it('prints the chosen scenario’s three headline-year gaps, each linked to its home', async () => {
+    const S = (await import('@/lib/activeData.js')).default;
     const { heroStats } = await import('@/tabs/story/Hero.jsx');
     const i = S.years.indexOf(S.headline_year);
-    for (const [s, cl, q] of [['uk_high', 'zk0.1', 's=uk_high'], ['uk_low', 'zk0', 's=uk_low&closure=closed']]) {
+    const { payLine, scenarioById } = await import('@/tabs/ai/surprise.js');
+    const done = (s, cl) => S.results[s].tfp[cl].status === 'done';
+    // UK high (some foreign capital) and UK low (none); on a partial file
+    // the solved pair UK central and Korinek et al. instead
+    const pick = done('uk_high', 'zk0.1') && done('uk_low', 'zk0') ? [['uk_high', 'zk0.1', 's=uk_high'], ['uk_low', 'zk0', 's=uk_low&closure=closed']] : [['uk_central', 'zk0.1', 's=uk_central'], ['korinek', 'zk0', 's=korinek&closure=closed']];
+    for (const [s, cl, q] of pick) {
       const el = await at(q);
       // one result unit on the chart's frame: three stats, one anatomy, numbers for all three
       const stats = [...el.querySelectorAll('.hf-stat')];
@@ -672,7 +677,8 @@ describe('hero', () => {
       // neutral ink, no arrows
       expect(el.querySelector('.hf-stat-dir, .hf-unit .is-gain, .hf-unit .is-loss')).toBeNull();
       // the pay line from the data; national income's is the ledger's
-      expect(stats[1].querySelector('.hf-stat-line').textContent).toBe('slower growth, not a cut');
+      expect(stats[1].querySelector('.hf-stat-line').textContent).toBe(payLine(s, cl));
+      if (s === 'uk_high' || s === 'uk_low') expect(payLine(s, cl)).toBe('slower growth, not a cut');
       expect(stats[2].querySelector('.hf-stat-line').textContent).toBe('GDP less net income paid abroad');
       // the GDP tip says it is a level
       expect(heroStats(s, cl)[0].tip).toMatch(/A gap in the level, \d+ years on; not a growth rate\.$/);
@@ -680,14 +686,15 @@ describe('hero', () => {
       expect(heroStats(s, cl)[2].tip).toContain(cl === 'zk0' ? 'gilt holders abroad' : 'owners abroad');
       // the kicker: plain, the sources icon on its line
       const kick = el.querySelector('.hf-kicker');
-      expect(kick.textContent).toMatch(new RegExp(`^${s === 'uk_high' ? 'UK high' : 'UK low'} scenario · ${S.headline_year} · gap to the forecast path · not a forecast`));
+      const nm = (scenarioById(s).short ?? scenarioById(s).label).replace(/[.()]/g, '\\$&');
+      expect(kick.textContent).toMatch(new RegExp(`^${nm}( scenario)? · ${S.headline_year} · gap to the forecast path · not a forecast`));
       expect(kick.querySelector('button.src-line-btn')).not.toBeNull();
       expect(el.querySelector('.hf-chip-ctx, figcaption.hf-src')).toBeNull();
       cleanup();
     }
   });
   it('titles the hero: the series name above, then the question in two sentences', async () => {
-    const S = (await import('@/data/surprise2028.json')).default;
+    const S = (await import('@/lib/activeData.js')).default;
     const el = await at('s=uk_central');
     expect(el.querySelector('.story-hero-text p.hero-series').textContent).toBe('AI and the UK economy: Beyond the forecast');
     const h2 = el.querySelector('h2#story-q');
@@ -696,8 +703,8 @@ describe('hero', () => {
     expect(h2.querySelector('.hero-q-main').textContent).toBe(`What if, from ${S.surprise_year}, it takes on more work than the OBR expects?`);
     expect(h2.textContent).not.toMatch(/arriv/i);
   });
-  it('draws all four lines from 2028, each labelled, with axis titles', async () => {
-    const S = (await import('@/data/surprise2028.json')).default;
+  it('draws all four lines from the surprise year, each labelled, with axis titles', async () => {
+    const S = (await import('@/lib/activeData.js')).default;
     const el = await at('s=uk_central');
     const wide = el.querySelector('svg.hf-svg.is-wide');
     expect(wide.getAttribute('role')).toBe('img');
@@ -707,7 +714,10 @@ describe('hero', () => {
     expect(wide.textContent).toContain('Extra AI in full');
     expect(wide.getAttribute('aria-label')).toContain(`each line starts in ${S.surprise_year}`);
     const lines = [...wide.querySelectorAll('path.hf-line')];
-    expect(lines.map((p) => p.dataset.mark).sort()).toEqual(['korinek', 'uk_central', 'uk_high', 'uk_low']);
+    // a line for every scenario solved (all four on the full file)
+    const solvedIds = S.scenarios.map((s) => s.id).filter((s) => S.results[s].tfp['zk0.1'].status === 'done').sort();
+    expect(lines.map((p) => p.dataset.mark).sort()).toEqual(solvedIds);
+    if (S.solves_done === S.solves_total) expect(solvedIds).toEqual(['korinek', 'uk_central', 'uk_high', 'uk_low']);
     // form (b): each line has a point for every year from 2028 on, and its
     // first x is the 2028 guide's
     const i0 = S.years.indexOf(S.surprise_year);
@@ -722,7 +732,7 @@ describe('hero', () => {
     expect(start.dataset.mark).toBe('uk_central');
     expect(Number(start.getAttribute('cx'))).toBeCloseTo(guide, 0);
     const i = S.years.indexOf(S.headline_year);
-    for (const s of ['uk_low', 'uk_central', 'uk_high', 'korinek']) {
+    for (const s of solvedIds) {
       expect(wide.textContent).toContain(sign(S.results[s].tfp['zk0.1'].gaps.Y[i]));
     }
     // the first frame is the final one: no draw-in, no count-up

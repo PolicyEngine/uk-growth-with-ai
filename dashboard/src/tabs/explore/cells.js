@@ -2,7 +2,7 @@
 // year: the data behind Explore > All scenarios (its panels, table and
 // downloads). Values come from surprise2028.json through resultAt(); a cell
 // that is not solved is { value: null, status: 'pending' }.
-import { HEADLINE_YEAR, YEARS, SCENARIOS, CENTRAL, BOUND, CLOSURE_LABEL, resultAt } from '@/tabs/ai/surprise.js';
+import { PENDING, HEADLINE_YEAR, YEARS, SCENARIOS, CENTRAL, BOUND, CLOSURE_LABEL, resultAt } from '@/tabs/ai/surprise.js';
 import { RULES } from '@/lib/labels.js';
 import { iconFor } from '@/lib/concepts.js';
 
@@ -54,7 +54,7 @@ export const cellsTable = (arm, armLabel) => ({
     ROWS.flatMap((row) =>
       SCENARIOS.map((s) => {
         const x = cellValue(s.id, arm, row.cl, row.rule, m.v);
-        return [m.label, m.unit === '%' ? '% difference from the OBR’s central forecast path' : 'pp of GDP, difference from the OBR’s central forecast path', RULES.find((r) => r.id === row.rule).label, CLOSURE_LABEL[row.cl], s.label, armLabel, x, x == null ? 'pending' : 'solved'];
+        return [m.label, m.unit === '%' ? '% difference from the OBR’s central forecast path' : 'pp of GDP, difference from the OBR’s central forecast path', RULES.find((r) => r.id === row.rule).label, CLOSURE_LABEL[row.cl], s.label, armLabel, x, x == null ? PENDING : 'solved'];
       }),
     ),
   ),
@@ -109,7 +109,13 @@ const cap = (t) => `${t.charAt(0).toUpperCase()}${t.slice(1)}`;
 // three this card shows; debt/GDP's line is the AcrossDebt card's), the
 // first measure's line first. Measures with the same case and factors
 // merge with "and".
+// A factor with no like-for-like rows (a block not solved yet, as on the
+// partial 2027 file) has spread 0 and would lose every comparison: no
+// "moves X most" line is drawn then (review round 2, R2-04).
+export const DRIVERS_PENDING = 'Not every choice is solved yet, so no comparison is drawn';
 export function drivers(arm, vs = ['Y', 'GNI', 'w']) {
+  if (vs.some((v) => Object.values(spreads(arm, v)).some((f) => f.rows === 0)))
+    return [{ choice: 'pending', kind: 'pending', measures: vs, text: DRIVERS_PENDING }];
   const groups = [];
   for (const v of vs) {
     const g = gate(spreads(arm, v));

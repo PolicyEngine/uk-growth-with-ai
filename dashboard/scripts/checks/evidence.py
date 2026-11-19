@@ -22,9 +22,12 @@ import json, os, sys
 from datetime import date
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+import sys as _sys
+_sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+import active_data  # noqa: E402
 DATA = os.path.join(HERE, '..', '..', 'src', 'data')
 MAP = json.load(open(os.path.join(DATA, 'site-evidence-map.json')))
-S = json.load(open(os.path.join(DATA, 'surprise2028.json')))
+S = active_data.load_surprise()
 REL = json.load(open(os.path.join(DATA, 'relatedWork.json')))
 TITLE = 'Published estimates of AI’s economic effects'
 

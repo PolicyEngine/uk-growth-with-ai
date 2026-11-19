@@ -6,7 +6,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { pickInPill } from '@/components/ui/pillTestUtils.js';
 
 afterEach(cleanup);
-import real from '@/data/surprise2028.json';
+import real from '@/lib/fixtureBase.js';
 
 const fixture = JSON.parse(JSON.stringify(real));
 const H = fixture.years.indexOf(fixture.headline_year);
@@ -23,7 +23,7 @@ fixture.results.uk_central.tfp.zk0 = { status: 'pending' };
 // the debt-neutral variant: an altered main-arm GDP gap with some foreign capital
 fixture.rules.debt_neutral.results.uk_central.tfp['zk0.1'].gaps.Y[H] = 3.2109;
 
-vi.doMock('@/data/surprise2028.json', () => ({ default: fixture }));
+vi.doMock('@/lib/activeData.js', () => ({ default: fixture }));
 
 const { default: ResultsTab } = await import('@/tabs/ai/ResultsTab.jsx');
 const { default: LineChart } = await import('@/components/LineChart.jsx');
@@ -76,7 +76,7 @@ describe('Results follows the data file', () => {
       expect(pop.match(/headline figures, at home in the story/g)).toBeNull();
       unmount();
     }
-    expect(income).toContain('no foreign capital pending');
+    expect(income).toContain('no foreign capital not yet solved');
     expect(text('sub=economy')).toContain('+4.44%');
     expect(text('sub=finances')).toContain('+7.78pp');
   });

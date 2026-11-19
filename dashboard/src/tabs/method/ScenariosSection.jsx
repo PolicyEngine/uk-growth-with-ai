@@ -7,7 +7,8 @@ import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from './IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
-import { CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, FIRST_YEAR, LATE_YEAR, YEARS, ARMS, fixedInputVsTz, gap, signed } from '@/tabs/ai/surprise.js';
+import { CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, FIRST_YEAR, LATE_YEAR, YEARS, ARMS, fixedInputVsTz, gap, signed, PENDING, PRE_SHOCK_YEARS, yearList, RAMP_WORD } from '@/tabs/ai/surprise.js';
+import { SET } from '@/lib/dataKeys.js';
 import { REPO } from '@/tabs/ai/links.js';
 import { ext } from '../shared/ui.jsx';
 import Timeline, { timelineTable, timelineSvg } from './Timeline.jsx';
@@ -22,7 +23,7 @@ import ScenarioMap, { scenarioTable } from './ScenarioMap.jsx';
 // scenario-map, scen-*, arm-*, timing, m-jump), so old links land. ScenariosTab.jsx wraps the same
 // section while the Scenarios sub-tab is still in the nav.
 
-const DOC = (p) => `${REPO}/blob/rerun/surprise-2028/docs/${p}`;
+const DOC = (p) => `${REPO}/blob/${SET.branch}/${p}`;
 
 // The stress test's technology change, from the solves (UK central), per
 // closure: a cut under some foreign capital, a slight rise with closed
@@ -38,7 +39,7 @@ export function stressMove(x) {
 }
 // Technology unchanged's GDP against the forecast path.
 export function tzGdpMove(x) {
-  if (x == null) return { icon: 'caveat', word: 'is pending' };
+  if (x == null) return { icon: 'caveat', word: `is ${PENDING}` };
   if (Math.abs(x) < 0.005) return { icon: 'onPath', word: 'is unchanged' };
   return x > 0 ? { icon: 'gapUp', word: 'rises a little as capital deepens' } : { icon: 'gapDown', word: 'ends slightly below the forecast path' };
 }
@@ -56,7 +57,7 @@ export function stressItems(sid = REF_SID) {
   });
 }
 function stressFixedText() {
-  const w = (x) => stressMove(x)?.word ?? 'pending';
+  const w = (x) => stressMove(x)?.word ?? PENDING;
   return `Some foreign capital: ${w(fx(CENTRAL))}; no foreign capital: ${w(fx(BOUND))}`;
 }
 export function tzGdpItems(sid = REF_SID) {
@@ -283,7 +284,7 @@ export default function ScenariosSection({ uses = null }) {
                 { icon: 'model', text: 'OG-Core always starts a run in the forecast path’s first year.' },
                 { icon: 'timing', text: 'So inputs are shifted two years.' },
                 { icon: 'generations', text: <>The run inherits the {FIRST_YEAR} wealth, debt and population.</> },
-                { icon: 'source', text: <>Details: {ext(DOC('surprise_2028.md'), 'design note')}.</> },
+                { icon: 'source', text: <>Details: {ext(DOC(SET.designDoc), 'design note')}.</> },
               ]}
             />
           }
@@ -292,9 +293,9 @@ export default function ScenariosSection({ uses = null }) {
         >
           <Items
             items={[
-              { icon: 'start', text: <>2026 and {FIRST_YEAR} are identical in every scenario.</> },
+              { icon: 'start', text: PRE_SHOCK_YEARS.length > 1 ? <>{yearList(PRE_SHOCK_YEARS)} are identical in every scenario.</> : <>{yearList(PRE_SHOCK_YEARS)} is identical in every scenario.</> },
               { icon: 'rule', text: <>The {SURPRISE_YEAR} start: a modelling choice ({ext(SRC.surpriseYear.url, 'surprise.py')}).</> },
-              { icon: 'rule', text: <>So is the linear four-year ramp ({ext(SRC.rampWeights.url, 'ramp weights')}).</> },
+              { icon: 'rule', text: <>So is the linear {RAMP_WORD}-year ramp ({ext(SRC.rampWeights.url, 'ramp weights')}).</> },
               { icon: 'excluded', text: 'There is no anticipation.' },
             ]}
           />

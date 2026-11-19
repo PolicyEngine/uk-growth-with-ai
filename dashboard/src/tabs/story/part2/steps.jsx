@@ -1,6 +1,7 @@
 'use client';
 
 import { Key } from '@/components/story/highlight.jsx';
+import { COHORT_YEAR, cohortNotice } from '@/lib/dataKeys.js';
 import { YEARS, SURPRISE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 import { welfareCell, entryDip, peakAge, series } from './charts.jsx';
 import { PART_COLOR } from './split.js';
@@ -28,7 +29,7 @@ export function partMarks(sid) {
     path: { color: 'var(--pe-gray-700)', shape: 'line', label: 'Forecast path' },
     ons: { color: 'var(--pe-gray-800)', shape: 'circle', label: 'ONS outturn' },
     obr: { color: 'var(--pe-gray-500)', shape: 'circle', label: 'OBR forecast' },
-    'cohort-adults': { color: 'var(--pe-gray-800)', shape: 'line', label: 'Adults alive in 2028' },
+    'cohort-adults': { color: 'var(--pe-gray-800)', shape: 'line', label: `Adults alive in ${COHORT_YEAR}` },
     'cohort-later': { color: 'var(--pe-gray-800)', shape: 'line', label: 'Cohorts entering later' },
   };
 }
@@ -178,6 +179,7 @@ export function whoCardSteps() {
           <Say>
             This chart uses another budget assumption: transfers adjust to keep debt on track. Gains peak for <Key id="cohort-adults">adults {peakAge() >= 55 ? 'near retirement' : 'in middle age'}</Key>, who hold most wealth.
           </Say>
+          {cohortNotice() ? <Say>{cohortNotice()}</Say> : null}
         </>
       ),
     },
@@ -190,7 +192,7 @@ export function whoCardSteps() {
         <>
           <Say>
             <Key id="cohort-later">Later cohorts</Key> {allGain ? 'gain too' : 'are drawn in the band'}
-            {dip ? `; those entering just after ${SURPRISE_YEAR} gain least` : ''}.
+            {dip ? `; those entering just after ${COHORT_YEAR} gain least` : ''}.
           </Say>
         </>
       ),

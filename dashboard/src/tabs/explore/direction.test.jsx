@@ -4,7 +4,7 @@
 // own threshold, not with the helper the pages use.
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
-import S from '@/data/surprise2028.json';
+import S from '@/lib/activeData.js';
 import CO from '@/data/cohorts2028.json';
 import { NavProvider } from '@/lib/nav.jsx';
 import ResultsTab from '@/tabs/ai/ResultsTab.jsx';
@@ -14,6 +14,8 @@ import { stressItems } from '@/tabs/ai/Headline.jsx';
 import { whySigns } from '@/tabs/cohorts/CohortsTab.jsx';
 import WhoGainsTab from '@/tabs/cohorts/CohortsTab.jsx';
 import { sensClaims } from '@/tabs/explore/SensitivityTable.jsx';
+import { ruleSolved } from '@/tabs/ai/surprise.js';
+import { cohortSurprise } from '@/lib/dataTestUtils.js';
 
 afterEach(cleanup);
 
@@ -95,7 +97,16 @@ describe('the cards’ inline arrows', () => {
           const p = debtParts(sid, closure, rule);
           const a = val(sid, 'tfp', cl, 'debt_gdp_pp', rule);
           const b = val(sid, 'tfp', cl, 'debt_gdp_pp', rule, L);
-          if (a == null || b == null) expect(container.querySelector('#debt-gdp')).toBeNull();
+          // not solved: no card under a rule not solved for the scenario; a
+          // card that says so (and prints no figure) for a pending cell
+          if (a == null || b == null) {
+            const card = container.querySelector('#debt-gdp');
+            if (!ruleSolved(rule, sid)) expect(card).toBeNull();
+            else {
+              expect(card.textContent).toMatch(/not solved/);
+              expect(card.querySelector('.card-head h3')?.textContent ?? '').not.toMatch(/\d\.\d/);
+            }
+          }
           else {
             const cls = closure === 'both' ? ['zk0.1', 'zk0'] : [cl];
             const sides = new Set(cls.flatMap((c) => ['tfp', 'tz', 'ss'].map((arm) => dataDir(val(sid, arm, c, 'debt_gdp_pp', rule, L)))));
@@ -141,8 +152,12 @@ describe('Who gains: what drives the result, every claim from the signs', () => 
       for (const arm of ['tfp', 'zfixed', 'stress'])
         it(`${cl}, ${rule}, ${arm}`, () => {
           const x = whySigns(cl, rule, arm);
-          const r = val('uk_central', SARM[arm], cl, 'r_bp', rule);
-          const w = val('uk_central', SARM[arm], cl, 'w', rule);
+          // the surprise file of the cohort's own year (R2-03)
+          const CS = cohortSurprise();
+          const rec = (rule === 'common' ? CS.results : CS.rules[RULE_KEY[rule]].results).uk_central[SARM[arm]][cl];
+          const cv = (v) => (rec?.status === 'done' ? rec.gaps[v][CS.years.indexOf(CS.headline_year)] : null);
+          const r = cv('r_bp');
+          const w = cv('w');
           const c = CO.closures[cl].rules[rule][arm];
           const c0 = c.c_gap[String(CO.shock_year)];
           if (r != null) expect(Math.sign(x.r)).toBe(Math.sign(r));
@@ -179,6 +194,13 @@ describe('Who gains: what drives the result, every claim from the signs', () => 
 describe('the sensitivity card', () => {
   it('each claim’s icon follows the comparison in every scenario', () => {
     const res = S.sensitivity['zk0.5'].results;
+    // the scenarios solved at both closures; none (the partial 2027 export)
+    // means no claim at all
+    const SCEN = S.scenarios.map((s) => s.id).filter((sid) => res[sid]?.tfp?.status === 'done' && S.results[sid].tfp['zk0.1'].status === 'done');
+    if (!SCEN.length) {
+      expect(sensClaims(res)).toEqual([]);
+      return;
+    }
     const claims = Object.fromEntries(sensClaims(res).map((c) => [c.key, c]));
     const diffs = (v) => SCEN.map((sid) => res[sid].tfp.gaps[v][H] - S.results[sid].tfp['zk0.1'].gaps[v][H]);
     for (const v of ['K', 'Y']) {

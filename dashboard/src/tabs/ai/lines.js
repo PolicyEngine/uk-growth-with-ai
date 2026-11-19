@@ -45,6 +45,8 @@ export function boundPending(sid, arms, closure, rule = 'common') {
 export function ruleGapText(rule, sid) {
   if (ruleSolved(rule, sid)) return null;
   const names = solvedUnder(rule).map((s) => s.label);
+  // the partial 2027 export: a rule planned but with no scenario solved yet
+  if (!names.length) return `${ruleLabel(rule)} is not yet solved for any scenario. Choose the common fiscal rule.`;
   return `${ruleLabel(rule)} is solved for ${names.join(' and ')} only. Choose ${names.join(' or ')} under Scenario, or the common fiscal rule.`;
 }
 

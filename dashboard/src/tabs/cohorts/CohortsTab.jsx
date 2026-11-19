@@ -7,17 +7,17 @@ import LineChart from '@/components/LineChart.jsx';
 import Card, { SectionHeading, StatTile } from '@/components/ui/Card.jsx';
 import Finding from '@/components/ui/Finding.jsx';
 import Disclosure from '@/components/ab/Disclosure.jsx';
-import { profileOf, windowIncomeOf, windowIncomeAge } from '@/lib/dataKeys.js';
+import { profileOf, windowIncomeOf, windowIncomeAge, wealthRatioAt } from '@/lib/dataKeys.js';
 import { revealAnchor } from '@/lib/scroll.js';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
-import { gap, HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
+import { cohortGap as gap } from '@/lib/dataKeys.js';
 import { Lead } from '@/tabs/explore/direction.jsx';
 import Pill from '@/components/ui/Pill.jsx';
 import { useNav, WG_GROUPS, NavLink } from '@/lib/nav.jsx';
 import { ruleLabel, rulePlain } from '@/lib/labels.js';
 import { GROUP_RAMP, ALL_GROUPS_COLOUR } from '@/lib/chartTheme.js';
-import D from '@/data/cohorts2028.json';
+import { COHORTS as D } from '@/lib/dataKeys.js';
 import WhoHeatmap, { cohortSources } from '@/tabs/cohorts/WhoHeatmap.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { atRef, COHORTS_SHA, RESULTS_SHA } from '@/tabs/ai/links.js';
@@ -133,7 +133,10 @@ function leastWordsOf(c, xs, shockYear) {
 // { claim, text }, so the probe can read each claim (data-claim).
 export const RETURN_LINE = 'They hold more wealth than younger adults and collect the higher return on it.';
 const capFirst = (t) => t[0].toUpperCase() + t.slice(1);
-export function whoFindingOf(c, { xs, shockYear, arm, T = null }) {
+// `wealthAt(age)`: wealth at that age as a ratio to the adult mean (the
+// cohort file's wealth_by_age), or null. The return line needs it above 1
+// at the age that gains most.
+export function whoFindingOf(c, { xs, shockYear, arm, T = null, wealthAt = () => null }) {
   const lastAlive = shockYear - 20;
   const adults = xs.map((y, i) => i).filter((i) => xs[i] <= lastAlive);
   const peak = adults.reduce((b, i) => (c.cev_all[i] > c.cev_all[b] ? i : b), adults[0]);
@@ -155,7 +158,7 @@ export function whoFindingOf(c, { xs, shockYear, arm, T = null }) {
         : fiscal
           ? 'more adults lose if households bear the later fiscal cost.'
           : null;
-  const ret = c.sources_alive.capital > 0 && c.sources_alive.labour < 0 ? [{ claim: 'return', text: RETURN_LINE }] : null;
+  const ret = c.sources_alive.capital > 0 && c.sources_alive.labour < 0 && wealthAt(peakAge) > 1 ? [{ claim: 'return', text: RETURN_LINE }] : null;
   const least = state !== 'loss' && arm !== 'stress' ? [{ claim: 'least', text: `${leastWordsOf(c, xs, shockYear)}.` }] : null;
   let lines;
   if (state === 'gain') {
@@ -180,7 +183,7 @@ export function whoAnswer(closure, rule, arm) {
   const cl = closure === 'closed' ? 'zk0' : 'zk0.1';
   const c = cell(cl, rule, arm);
   const T = measuresOf(c, rule, cl, arm).find((m) => m.id === 'T')?.losing[0] ?? null;
-  return whoFindingOf(c, { xs: D.closures[cl].birth_year, shockYear: D.shock_year, arm, T });
+  return whoFindingOf(c, { xs: D.closures[cl].birth_year, shockYear: D.shock_year, arm, T, wealthAt: (age) => wealthRatioAt(D.closures[cl], age) });
 }
 
 // The box itself: the Finding, with the hooks the claims probe reads
@@ -248,7 +251,7 @@ export function measuresOf(c, rule, cl, arm) {
           tag: full ? 'solved to the horizon' : 'first order',
           def: full
             ? 'Transfers, not government consumption, hold debt/GDP on the forecast path to the horizon: a model run'
-            : 'The fiscal cost after 2035 charged to households: a first-order estimate, not a model run',
+            : `The fiscal cost after ${Math.max(...flowYears(c))} charged to households: a first-order estimate, not a model run`,
           losing: t.joint_losing_pct,
           avg: t.joint_avg,
           full: !!full,
@@ -376,14 +379,15 @@ export function Headline({ c, rule, cl, arm, measure = 'M' }) {
 }
 
 // The aggregate signs behind the Why cards, from the same OG-UK solves
-// (surprise2028.json, UK central, headline year): the interest rate and the
+// (the surprise file of the cohort's own year, lib/dataKeys.js cohortGap;
+// UK central, headline year): the interest rate and the
 // pay rate for the arm, closure and rule in view, and aggregate consumption
 // in the shock year (cohorts2028.json). Every direction word and arrow on
 // the cards is computed from these signs.
 const SURPRISE_ARM = { tfp: 'tfp', zfixed: 'tz', stress: 'ss' };
 export function whySigns(cl, rule, arm) {
   const c = cell(cl, rule, arm);
-  const g = (a, v) => gap('uk_central', SURPRISE_ARM[a], cl, v, HEADLINE_YEAR, rule);
+  const g = (a, v) => gap('uk_central', SURPRISE_ARM[a], cl, v, rule);
   return {
     r: g(arm, 'r_bp'),
     w: g(arm, 'w'),
@@ -413,7 +417,7 @@ export function consumptionWords(cl, rule, arm) {
   const c = cell(cl, rule, arm);
   const x = whySigns(cl, rule, arm);
   const t = whyTokens(cl, rule, arm);
-  const inv = gap('uk_central', SURPRISE_ARM[arm], cl, 'I', t.shockYear, rule);
+  const inv = gap('uk_central', SURPRISE_ARM[arm], cl, 'I', rule, t.shockYear);
   const below = x.c0 < 0;
   const lead = below ? (t.cAboveYear ? 'Consumption falls below the forecast path first, then rises above it.' : 'Consumption stays below the forecast path.') : 'Consumption starts above the forecast path.';
   const s1 = below ? (x.r > 0 && inv > 0 ? 'Households save more as the return on capital rises, so they spend less at first.' : 'Households spend less at first.') : `Households spend more from ${t.shockYear}.`;
@@ -466,7 +470,7 @@ export function payWords(cl, rule, arm) {
           ],
         };
   }
-  const debt = gap('uk_central', SURPRISE_ARM[arm], cl, 'debt_gdp_pp', t.debtRuleYear);
+  const debt = gap('uk_central', SURPRISE_ARM[arm], cl, 'debt_gdp_pp', 'common', t.debtRuleYear);
   const cost = debt != null && debt > 0;
   return {
     lead: cost ? 'No household pays the fiscal cost: public debt takes it, then government consumption.' : 'No household is charged: public debt takes the fiscal effect, then government consumption.',

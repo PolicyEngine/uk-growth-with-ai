@@ -16,9 +16,12 @@ from collections import Counter
 #     small-tile counts follow the data (shock_counts, as shock.js).
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+import sys as _sys
+_sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+import active_data  # noqa: E402
 DATA = os.path.join(HERE, '..', '..', 'src', 'data')
-OUT = os.path.join(HERE, '..', '..', '..', 'analysis', 'surprise', 'output')
-S = json.load(open(os.path.join(DATA, 'surprise2028.json')))
+OUT = active_data.OUT
+S = active_data.load_surprise()
 SPLIT = S['output_split']
 YEARS = S['years']
 PARTS = ['labour', 'domestic', 'foreign', 'depreciation']
@@ -152,6 +155,9 @@ def shock(sid, mode, cl, t):
 def raw():
     """Every value in output_split against the raw solves."""
     bad = 0
+    if not active_data.HAVE_OUT:
+        print('part 2 split: raw check NOT RUN, no solve outputs at', OUT, '(set UGAI_OUT)')
+        return 0
     i = YEARS.index(SPLIT['year'])
     for cl, base in SPLIT['baseline'].items():
         if base is None:
@@ -208,7 +214,9 @@ def links():
                 ok = ('arm-' if a.startswith('arm-') else 'scen-') in ids
             if not ok:
                 bad += 1; print('part 2 links: no Method anchor', a, 'in', f)
-    for sid, by_arm in S['results'].items():
+    if not active_data.HAVE_OUT:
+        print('part 2 links: result files NOT CHECKED, no solve outputs at', OUT, '(set UGAI_OUT)')
+    for sid, by_arm in (S['results'].items() if active_data.HAVE_OUT else []):
         for arm, by_cl in by_arm.items():
             for cl, r in by_cl.items():
                 if r.get('label') and not os.path.exists(f"{OUT}/{cl}/{r['label']}.json"):

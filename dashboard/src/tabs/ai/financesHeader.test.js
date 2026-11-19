@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import S from '@/data/surprise2028.json';
+import S from '@/lib/activeData.js';
 import { financesFinding } from '@/tabs/ai/financesInfo.js';
 import { taxSized, taxSizing } from '@/tabs/ai/FinancesSection.jsx';
 

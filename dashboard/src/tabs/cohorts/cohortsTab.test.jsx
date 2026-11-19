@@ -1,11 +1,12 @@
 // Who gains prints what cohorts2028.json holds and follows its control bar
 // and the header's closure.
 import { afterEach, describe, expect, it } from 'vitest';
+import { cohortSurprise } from '@/lib/dataTestUtils.js';
 import { cleanup, render } from '@testing-library/react';
 import D from '@/data/cohorts2028.json';
 import WhoGainsTab, { cell, pct, tileRange, dnfullFor, whoAnswer, whoFindingOf, RETURN_LINE, byFormLead, whyTokens, consumptionWords, earningsWords, payWords, stressWords, HORIZON_YEAR } from '@/tabs/cohorts/CohortsTab.jsx';
 import { NavProvider } from '@/lib/nav.jsx';
-import S from '@/data/surprise2028.json';
+import S from '@/lib/activeData.js';
 
 afterEach(cleanup);
 
@@ -152,7 +153,8 @@ describe('Who gains finding box', () => {
     });
     return { cev_all, sources_alive: { capital: 1.5, labour: -0.7 }, alive_losing_pct: 0.05, no_bequest_losing_pct: 15, ...over };
   };
-  const run = (c, o = {}) => whoFindingOf(c, { xs, shockYear: sy, arm: 'tfp', T: 16, ...o });
+  // wealth above the adult mean at every age unless a case says otherwise
+  const run = (c, o = {}) => whoFindingOf(c, { xs, shockYear: sy, arm: 'tfp', T: 16, wealthAt: () => 1.73, ...o });
   const text = (f) => f.lines.map((l) => l.map((p) => p.text).join(''));
 
   it('gain state: three lines, line 3 joined by "; "', () => {
@@ -276,9 +278,11 @@ describe('the welfare breakdown lead', () => {
 describe('What drives the result', () => {
   const SARM = { tfp: 'tfp', zfixed: 'tz', stress: 'ss' };
   const RK = { dn: 'debt_neutral' };
+  // the surprise file of the cohort's own year (R2-03)
   const sgap = (cl, rule, arm, v, year) => {
-    const r = (rule === 'common' ? S.results : S.rules[RK[rule]].results).uk_central[SARM[arm]][cl];
-    return r.gaps[v][S.years.indexOf(year)];
+    const CS = cohortSurprise();
+    const r = (rule === 'common' ? CS.results : CS.rules[RK[rule]].results).uk_central[SARM[arm]][cl];
+    return r.gaps[v][CS.years.indexOf(year === S.headline_year ? CS.headline_year : year)];
   };
   for (const cl of ['zk0.1', 'zk0'])
     for (const rule of ['dn', 'common'])

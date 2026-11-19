@@ -20,18 +20,22 @@ import glob, importlib.util, json, os, statistics, sys
 #     I_FLAG_PCT) equals analysis/surprise/expectations.json i_jump_flag_pct.
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+import sys as _sys
+_sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+import active_data  # noqa: E402
 ROOT = os.path.join(HERE, '..', '..', '..')
 DATA = os.path.join(HERE, '..', '..', 'src', 'data')
-OUT = os.path.join(ROOT, 'analysis', 'surprise', 'output')
-S = json.load(open(os.path.join(DATA, 'surprise2028.json')))
+OUT = active_data.OUT
+S = active_data.load_surprise()
 MF = json.load(open(os.path.join(DATA, 'methodFacts.json')))
-CO = json.load(open(os.path.join(DATA, 'cohorts2028.json')))
+CO = active_data.load_cohorts()
 
 
 def builder():
-    sys.path.insert(0, os.path.abspath(ROOT))
+    root = active_data.BUILDER_ROOT
+    sys.path.insert(0, os.path.abspath(root))
     spec = importlib.util.spec_from_file_location(
-        'bdd', os.path.join(ROOT, 'analysis', 'surprise', 'build_dashboard_data.py'))
+        'bdd', os.path.join(root, 'analysis', 'surprise', 'build_dashboard_data.py'))
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
     return m
@@ -48,6 +52,9 @@ def share_range(lo, hi):
 
 def check(dump):
     bad = 0
+    if not active_data.HAVE_OUT:
+        print('cross review: NOT RUN, no solve outputs at', OUT, '(set UGAI_OUT)')
+        return 0
     # repricing
     b = builder()
     late = S['years'].index(S['late_year'])

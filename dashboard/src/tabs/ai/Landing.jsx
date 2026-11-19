@@ -8,7 +8,7 @@ import CountUp from '@/components/story/CountUp.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
 import { METHOD } from '@/lib/labels.js';
 import {
-  HEADLINE_YEAR, SURPRISE_YEAR, FIRST_YEAR, LATE_YEAR, CENTRAL, BOUND, ARMS, SCEN_NAME as NAME, gap, fmt, payLine, result, DONE, TOTAL,
+  HEADLINE_YEAR, SURPRISE_YEAR, FIRST_YEAR, LATE_YEAR, CENTRAL, BOUND, ARMS, SCEN_NAME as NAME, gap, fmt, payLine, result, DONE, TOTAL, foreignShareOf, PENDING,
 } from '@/tabs/ai/surprise.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import { Items } from '@/components/story/Items.jsx';
@@ -126,7 +126,7 @@ export function SummaryQuestion({ sid, titleId = 'summary-q' }) {
 
 export function HeadlineTiles({ sid }) {
   const { cl, both, sidPending } = useSummary(sid);
-  const fs = result(sid, 'tfp', CENTRAL).foreign_share_dK_2031;
+  const fs = foreignShareOf(result(sid, 'tfp', CENTRAL));
   const g = gap(sid, 'tfp', cl, 'GNI');
   const y = gap(sid, 'tfp', cl, 'Y');
   const flips = paySigns(sid) === 'flips';
@@ -179,7 +179,7 @@ export function HeadlineTiles({ sid }) {
       </div>
       {DONE < TOTAL && sidPending ? (
         <Notice>
-          {DONE} of {TOTAL} solves are done. For this scenario the no-foreign-capital results are not solved yet and show “pending”.
+          {DONE} of {TOTAL} solves are done. {result(sid, 'tfp', CENTRAL).status === 'done' ? `For this scenario the no-foreign-capital results are ${PENDING}.` : `This scenario is ${PENDING}.`}
         </Notice>
       ) : null}
     </>

@@ -4,8 +4,11 @@
 // closure. A combination that has not been solved yet returns null, and
 // every cell and series goes through gap()/fmt() so a pending one cannot
 // break the page.
-import S from '@/data/surprise2028.json';
+import S from '@/lib/activeData.js';
 import { VERSION_COLOR, VERSION_TEXT_COLOR, VERSION_LIGHT } from '@/lib/versionColors.js';
+import { foreignShareOf } from '@/lib/dataKeys.js';
+
+export { foreignShareOf };
 
 export { S };
 
@@ -15,6 +18,15 @@ export const LATE_YEAR = S.late_year; // 2036
 export const SURPRISE_YEAR = S.surprise_year; // 2028
 export const WINDOW_YEARS = YEARS.filter((y) => y >= S.window[0] && y <= S.window[1]); // 2027-2031
 export const FIRST_YEAR = WINDOW_YEARS[0];
+// The ramp, one step a year from the surprise to the headline year
+// (four steps in both data sets), as a count and a word.
+export const RAMP_STEPS = HEADLINE_YEAR - SURPRISE_YEAR + 1;
+const COUNT_WORD = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+export const RAMP_WORD = COUNT_WORD[RAMP_STEPS] ?? String(RAMP_STEPS);
+// The years before the surprise (2026-2027 in the 2028 set, 2026 in the
+// 2027 set), and a list of years in words: "2026 and 2027".
+export const PRE_SHOCK_YEARS = YEARS.filter((y) => y < SURPRISE_YEAR);
+export const yearList = (ys) => (ys.length < 2 ? String(ys[0] ?? '') : `${ys.slice(0, -1).join(', ')} and ${ys.at(-1)}`);
 export const CLOSURES = ['zk0.1', 'zk0']; // central, no-foreign-capital bound
 export const CENTRAL = 'zk0.1';
 export const BOUND = 'zk0';
@@ -54,7 +66,13 @@ export const isDone = (sid, arm, closure) => result(sid, arm, closure).status ==
 // scenarios listed in S.rules[rule].scenarios have solves.
 export const ruleResult = (rule, sid, arm, closure) =>
   S.rules?.[rule]?.results?.[sid]?.[arm]?.[closure] ?? { status: 'pending' };
-export const ruleScenarios = (rule) => S.rules?.[rule]?.scenarios ?? [];
+// A scenario counts as solved under a rule only when at least one of its
+// cells there is done: the partial 2027 export lists the scenarios a rule
+// is planned for, with every cell still pending.
+const anyDone = (byArm) => Object.values(byArm ?? {}).some((byCl) => Object.values(byCl ?? {}).some((r) => r?.status === 'done'));
+export const ruleScenarios = (rule) => (S.rules?.[rule]?.scenarios ?? []).filter((sid) => anyDone(S.rules[rule].results?.[sid]));
+// Is the scenario solved under the common rule (any arm or closure)?
+export const scenarioSolved = (sid) => anyDone(S.results?.[sid]);
 
 // The fiscal-rule ids of the pickers (labels.js RULES) against the data
 // file's keys. 'common' is the default of every solve (S.results).
@@ -103,7 +121,9 @@ export function payLine(sid, closure, w = gap(sid, 'tfp', closure, 'w')) {
   return 'pay for the same work';
 }
 
-export const fmt = (x, dp = 2, unit = '%') => (x == null ? 'pending' : `${signed(x, dp)}${unit}`);
+// What a cell not solved yet prints in place of a figure: never a zero.
+export const PENDING = 'not yet solved';
+export const fmt = (x, dp = 2, unit = '%') => (x == null ? PENDING : `${signed(x, dp)}${unit}`);
 
 export const DONE = S.solves_done;
 export const TOTAL = S.solves_total;

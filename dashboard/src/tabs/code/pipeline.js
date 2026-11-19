@@ -1,15 +1,18 @@
-// The 2028-surprise pipeline, step by step. Every command is copied from the
+// The surprise pipeline (the active data set's), step by step. Every command is copied from the
 // scripts and CLI it names (analysis/surprise/driver.sh, run_locked.sh,
 // sanity.py, build_dashboard_data.py; uk_growth_with_ai/cli.py `surprise`).
 // The commands assume the repository root as the working directory, PY and
 // WORK set, and the `sp` helper from "Before you start", which runs the CLI
 // exactly as driver.sh does.
 
+import { SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR } from '@/tabs/ai/surprise.js';
+import { SET, DATA_FILE } from '@/lib/dataKeys.js';
+
 export const REF = 'dashboard/ab2026-redesign';
 
 export const SP_HELPER = `export PY=/path/to/og-uk/.venv/bin/python   # Python 3.13, OG-Core 0.17.0 + the γ patch
 export WORK=~/ugai-rerun-work                    # holds <closure>/baseline_p1 from the R1–R4 rerun
-export PYTHONPATH=$PWD OUT=$PWD/analysis/surprise/output RERUN=$PWD/analysis/rerun/output
+export PYTHONPATH=$PWD OUT=$PWD/${SET.outputDir} RERUN=$PWD/analysis/rerun/output
 # Run the surprise CLI as driver.sh does: from $WORK, with the repo's output folders
 sp() { ( cd "$WORK" && "$PY" -m uk_growth_with_ai surprise "$@" --outdir "$OUT" --rerun-dir "$RERUN" ); }`;
 
@@ -40,7 +43,7 @@ DEADLINE_AT=23:00 analysis/surprise/run_locked.sh zk0.1:arms:uk_central`,
     file: 'analysis/surprise/driver.sh',
     line: 'Runs each item in order, skips what is done, commits and pushes each output.',
     more: [
-      'It refuses to run on any branch but rerun/surprise-2028.',
+      `It refuses to run on any branch but ${SET.branch}.`,
       'For a fork, edit BRANCH and progress().',
       'Items: check, nics, <closure>:continuation, <closure>:gate, <closure>:<arms|arms_dn|arms_fs>:<scenario>.',
     ],
@@ -55,7 +58,7 @@ analysis/surprise/driver.sh check nics \\
     short: 'Check specs',
     title: 'Check the specification',
     file: 'uk_growth_with_ai/surprise.py',
-    line: 'One specification build, no solve. It checks the 2028 restart before anything runs.',
+    line: `One specification build, no solve. It checks the ${SURPRISE_YEAR} restart before anything runs.`,
     more: [
       'It tests inherited wealth and bequests, and the population law of motion.',
       'It also checks the list of shifted inputs.',
@@ -68,10 +71,10 @@ analysis/surprise/driver.sh check nics \\
     icon: 'start', // concept
     short: 'Continuation gate',
     title: 'The continuation gate',
-    file: 'analysis/surprise/output/zk0.1/GATE_continuation.json',
+    file: `${SET.outputDir}/zk0.1/GATE_continuation.json`,
     line: 'A restart without the extra AI must reproduce the OBR’s central forecast path: every gap’s zero.',
     more: [
-      'GDP, capital and debt/GDP must match within 10⁻⁴, 2028–2036.',
+      `GDP, capital and debt/GDP must match within 10⁻⁴, ${SURPRISE_YEAR}–${LATE_YEAR}.`,
       'The rest must match within 10⁻³.',
       'If it fails, the driver stops and nothing else runs.',
       'The tolerance is never loosened silently.',
@@ -97,10 +100,10 @@ sp step --closure zk0.1 --stage arms --scenario uk_central --work "$WORK"`,
   {
     id: 'p-r4',
     icon: 'breakEven', // concept
-    short: 'R4 on 2031 GDP',
-    title: 'R4: hold 2031 GDP for the stress test',
+    short: `R4 on ${HEADLINE_YEAR} GDP`,
+    title: `R4: hold ${HEADLINE_YEAR} GDP for the stress test`,
     file: 'uk_growth_with_ai/surprise.py',
-    line: 'A secant on Z until the stress test’s 2031 GDP gap is within 0.01pp of zero.',
+    line: `A secant on Z until the stress test’s ${HEADLINE_YEAR} GDP gap is within 0.01pp of zero.`,
     more: [
       'The first step takes its slope from the committed 2026-start secant.',
       'Each iteration is a full solve; next hands them out in turn.',
@@ -127,12 +130,12 @@ sp status --closure zk0.1                   # minutes and convergence per solve`
     icon: 'data', // concept
     short: 'Outputs',
     title: 'Per-solve records and results files',
-    file: 'analysis/surprise/output/zk0.1',
+    file: `${SET.outputDir}/zk0.1`,
     line: 'One JSON record, log and sanity report per solve, per closure.',
     more: ['assemble collects one scenario’s solves into a results file under uk_growth_with_ai/data/.'],
-    code: `ls analysis/surprise/output/zk0.1/
+    code: `ls ${SET.outputDir}/zk0.1/
 sp assemble --closure zk0.1 --scenario uk_central
-# writes uk_growth_with_ai/data/scenarios_surprise2028_uk_central.json`,
+# writes ${SET.scenarioFile('uk_central')}`,
   },
   {
     id: 'p-dash',
@@ -140,9 +143,9 @@ sp assemble --closure zk0.1 --scenario uk_central
     short: 'Dashboard data',
     title: 'Build the dashboard data',
     file: 'analysis/surprise/build_dashboard_data.py',
-    line: 'Writes surprise2028.json from whatever solves exist. Missing ones are marked pending.',
+    line: `Writes ${DATA_FILE} from whatever solves exist. Missing ones are marked pending.`,
     more: ['Every gap is against the continuation of the same closure.', 'No solve is run.'],
-    code: `python3 analysis/surprise/build_dashboard_data.py   # dashboard/src/data/surprise2028.json
+    code: `python3 analysis/surprise/build_dashboard_data.py   # dashboard/src/data/${DATA_FILE}
 cd dashboard && bun install --frozen-lockfile && bun run build`,
   },
 ];

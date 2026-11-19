@@ -8,9 +8,21 @@ import AllScenarios, { AcrossDebt } from '@/tabs/explore/AllScenarios.jsx';
 import { NavProvider } from '@/lib/nav.jsx';
 import { fmt } from '@/tabs/ai/surprise.js';
 import { cellsTable, cellValue, drivers, spreads, gate } from '@/tabs/explore/cells.js';
-import { gap, HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
+import { gap, HEADLINE_YEAR, foreignShareOf } from '@/tabs/ai/surprise.js';
+import { DATA_SET } from '@/lib/dataFlag.js';
 
 afterEach(cleanup);
+
+// Counts and figures pinned to the 2028 file (the data these items were
+// written against); on another file the counts come from its own data.
+const PINNED = DATA_SET === 2028;
+const SIDS = ['uk_low', 'uk_central', 'uk_high', 'korinek'];
+const RULES = ['common', 'fixed', 'dn'];
+const solved = (sid, cl, rule, v = 'Y', arm = 'tfp') => cellValue(sid, arm, cl, rule, v) != null;
+const holes = (v = 'Y') => SIDS.flatMap((sid) => RULES.flatMap((rule) => ['zk0.1', 'zk0'].filter((cl) => !solved(sid, cl, rule, v)))).length;
+// a rule solved for Korinek et al. at both closures: debt-neutral where it
+// is (the 2028 file), else the common rule
+const KR = solved('korinek', 'zk0', 'dn') && solved('korinek', 'zk0.1', 'dn') ? 'dn' : 'common';
 
 const at = (query) => {
   window.history.replaceState(null, '', `/?${query}`);
@@ -27,8 +39,10 @@ describe('All scenarios', () => {
     const cells = container.querySelectorAll('#all-scenarios .ex-mx-cell');
     // 4 scenarios x 3 rules x 2 closures
     expect(cells).toHaveLength(4 * 6);
-    // debt-neutral and fixed spending: UK low and UK high not solved, both foreign-capital cases
-    expect(container.querySelectorAll('#all-scenarios .ex-mx-cell.is-hole')).toHaveLength(2 * 2 * 2);
+    // the cells not solved are holes (2028: debt-neutral and fixed
+    // spending for UK low and UK high, both foreign-capital cases)
+    expect(container.querySelectorAll('#all-scenarios .ex-mx-cell.is-hole')).toHaveLength(holes());
+    if (PINNED) expect(holes()).toBe(2 * 2 * 2);
     // the cell in view (UK central, some foreign capital, common rule) prints its
     // figure as a muted reference (its home: the story's headline) and a marker
     const cur = container.querySelectorAll('#all-scenarios .ex-mx-cell.is-current');
@@ -41,24 +55,26 @@ describe('All scenarios', () => {
     for (const sid of ['uk_low', 'uk_high', 'korinek'])
       for (const cl of ['zk0.1', 'zk0']) {
         const x = cellValue(sid, 'tfp', cl, 'common', 'Y');
-        expect(txt).toContain(fmt(x, 2, '%'));
+        if (x == null) expect(container.querySelector(`[data-cell="${sid}|common|${cl}"]`).className).toContain('is-hole');
+        else expect(txt).toContain(fmt(x, 2, '%'));
       }
     // the sensitivity, as dot rows, moved here from Method
     expect(container.querySelector('#closure-sensitivity .ex-sd')).not.toBeNull();
   });
 
   it('with Closure = Both, both foreign-capital cases of the scenario in view are in view', () => {
-    const { container } = at('tab=explore&s=korinek&closure=both&rule=dn');
+    const { container } = at(`tab=explore&s=korinek&closure=both&rule=${KR}`);
     const cur = [...container.querySelectorAll('#all-scenarios .ex-mx-cell.is-current')].map((e) => e.dataset.cell);
-    expect(cur.sort()).toEqual(['korinek|dn|zk0', 'korinek|dn|zk0.1']);
+    expect(cur.sort()).toEqual([`korinek|${KR}|zk0`, `korinek|${KR}|zk0.1`]);
   });
 
   it('a cell sets the pickers', () => {
     const { container } = at('tab=explore');
-    fireEvent.click(screen.getByRole('button', { name: /^Korinek et al\..*debt-neutral transfers, no foreign capital, GDP/ }));
+    const name = { dn: 'debt-neutral transfers', common: 'common fiscal rule' }[KR];
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(`^Korinek et al\\..*${name}, no foreign capital, GDP`) }));
     const p = new URLSearchParams(window.location.search);
-    expect([p.get('s'), p.get('closure'), p.get('rule')]).toEqual(['korinek', 'closed', 'dn']);
-    expect(container.querySelector('[data-cell="korinek|dn|zk0"]').className).toContain('is-current');
+    expect([p.get('s'), p.get('closure'), p.get('rule')]).toEqual(['korinek', 'closed', KR]);
+    expect(container.querySelector(`[data-cell="korinek|${KR}|zk0"]`).className).toContain('is-current');
   });
 
   it('the cell direction icons follow the signs', () => {
@@ -80,13 +96,16 @@ describe('All scenarios', () => {
     const txt = container.querySelector('#debt-cells .ex-mx').textContent;
     expect(container.querySelector('#fin-across')).not.toBeNull();
     expect(txt).toContain(fmt(cellValue('uk_central', 'tfp', 'zk0.1', 'common', 'debt_gdp_pp'), 2, 'pp'));
-    expect(container.querySelectorAll('#debt-cells .ex-mx-cell.is-hole')).toHaveLength(8);
+    expect(container.querySelectorAll('#debt-cells .ex-mx-cell.is-hole')).toHaveLength(holes('debt_gdp_pp'));
+    if (PINNED) expect(holes('debt_gdp_pp')).toBe(8);
   });
 
   it('the download table covers every cell, with pending ones marked', () => {
     const t = cellsTable('tfp', 'Automation + productivity');
     expect(t.rows).toHaveLength(4 * 6 * 4);
-    expect(t.rows.filter((r) => r[7] === 'pending')).toHaveLength(4 * 4 * 2);
+    // every measure's row for each cell not solved (2028: 4 measures x 4 holes x 2 closures)
+    expect(t.rows.filter((r) => r[7] === 'not yet solved')).toHaveLength(4 * holes());
+    if (PINNED) expect(holes()).toBe(4 * 2);
     expect(cellValue('uk_low', 'tfp', 'zk0.1', 'dn', 'Y')).toBeNull();
     expect(cellValue('uk_central', 'tfp', 'zk0.1', 'common', 'Y')).toBe(gap('uk_central', 'tfp', 'zk0.1', 'Y', HEADLINE_YEAR));
   });
@@ -95,6 +114,7 @@ describe('All scenarios', () => {
   // a factor top on max and mean by 1.25x or more
   it('ranges are like for like: max and mean over the rows solved for every level', () => {
     const s = spreads('tfp', 'w');
+    if (!PINNED) return;
     expect(s.scenario.rows).toBe(2);
     expect(s.closure.rows).toBe(8);
     expect(s.rule.rows).toBe(4);
@@ -118,6 +138,7 @@ describe('All scenarios', () => {
   });
   it('prints the fable’s lines for each version on today’s data', () => {
     const t = (arm) => drivers(arm).map((d) => d.text);
+    if (!PINNED) return;
     expect(t('tfp')).toEqual(['The scenario moves GDP and GNI most', 'The scenario and the foreign-capital case move the pay rate by similar amounts']);
     expect(t('tz')).toEqual(['The foreign-capital case moves GDP and GNI most', 'The scenario moves the pay rate most']);
     expect(drivers('ss', ['w', 'GNI', 'Y']).map((d) => d.text)).toEqual(['The scenario moves the pay rate most', 'The scenario and the foreign-capital case move GNI by similar amounts', 'GDP barely moves with any choice']);
@@ -139,6 +160,12 @@ describe('Across scenarios: each fact once', () => {
     // the cells in view print their figure with the marker, not muted
     for (const k of ['uk_central|fixed|zk0.1', 'uk_central|fixed|zk0']) {
       const td = container.querySelector(`[data-cell="${k}"]`);
+      // not solved: a hole, no figure
+      if (!solved('uk_central', k.split('|')[2], 'fixed')) {
+        expect(td.className).toContain('is-hole');
+        expect(td.textContent).not.toMatch(/\d\.\d/);
+        continue;
+      }
       expect(td.textContent).toMatch(/\d\.\d\d%In view/);
       expect(td.querySelector('.is-ref')).toBeNull();
     }
@@ -190,7 +217,7 @@ describe('Across scenarios: direction icons for every measure and arm', () => {
 // in it is read from the data (headline year, surprise year, the flag).
 describe('the zeta_K 0.5 card’s More info fold', () => {
   it('is closed by default, opens on click, and words the foreign share and the flag from the data', async () => {
-    const S = (await import('@/data/surprise2028.json')).default;
+    const S = (await import('@/lib/activeData.js')).default;
     const { I_FLAG_PCT, investmentFlags } = await import('@/tabs/explore/caveats.js');
     const { container } = at('tab=explore');
     const card = container.querySelector('#closure-sensitivity');
@@ -199,6 +226,13 @@ describe('the zeta_K 0.5 card’s More info fold', () => {
     expect(btn.getAttribute('aria-expanded')).toBe('false');
     const body = card.querySelector('#sens-more .disclosure-content');
     expect(body.hidden).toBe(true);
+    // nothing solved at zeta_K 0.5 (the partial 2027 export): the card says
+    // so and prints no figure
+    if (S.sensitivity['zk0.5'].results.uk_central.tfp.status !== 'done') {
+      expect(card.textContent).toMatch(/not solved/);
+      expect(card.querySelector('.ex-sg')?.textContent ?? '').not.toMatch(/\d\.\d\d/);
+      return;
+    }
     // the grid reads alone, above the fold
     expect(card.querySelector('.ex-sg')).not.toBeNull();
     fireEvent.click(btn);
@@ -208,7 +242,7 @@ describe('the zeta_K 0.5 card’s More info fold', () => {
     // the definition and the value are two lines, never run together
     const defs = [...body.querySelectorAll('.ex-sg-def')].map((p) => p.textContent);
     expect(defs[0]).toBe(`ζK = ${S.sensitivity['zk0.5'].zeta_K}: foreign investors supply half of the extra capital firms want, not half of added capital.`);
-    const x = S.sensitivity['zk0.5'].results.uk_central.tfp.foreign_share_dK_2031;
+    const x = foreignShareOf(S.sensitivity['zk0.5'].results.uk_central.tfp);
     expect(defs[1]).toBe(`In ${HEADLINE_YEAR} about all of the added capital (${Math.round(x)}%) ends up foreign-owned.`);
     expect(t).not.toMatch(/new capital|further above the forecast path/);
     const fl = investmentFlags().filter((f) => f.cl === 'zk0.5');
