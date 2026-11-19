@@ -7,8 +7,10 @@
 //   3 data: every tooltip value that names its source (data-path, a dotted
 //     path into the active surprise file) prints that value as the chart's
 //     formatter does (the sign, the digits; the unit is not compared).
-// A chart is found as check_axes finds it: an svg with role="img", a
-// .story-svg, or one inside .chart-plot / .ch-plot, at least 80x40, not in
+// A chart is found as check_axes finds it (an svg with role="img", a
+// .story-svg, or one inside .chart-plot / .ch-plot), plus the story figures
+// drawn as rows or tiles and the value grids (table.ex-mx, table.ex-sg); at
+// least 80x40, not in
 // [aria-hidden] / [hidden] / [inert]. data-hover-exempt="<reason>" on a
 // chart box skips it, listed with the reason (a diagram, a table).
 //
@@ -68,6 +70,14 @@ const FIND = () => {
     if (b.width < 80 || b.height < 40) continue;
     if (!f.querySelector('[data-mark], svg rect, svg path, svg circle')) continue;
     cands.push([f, f]);
+  }
+  // the grids (Across scenarios, debt across scenarios, the ζK grid): a
+  // table of values, each cell a hover target
+  for (const t of panel.querySelectorAll('table.ex-mx, table.ex-sg')) {
+    if (!shown(t)) continue;
+    const b = t.getBoundingClientRect();
+    if (b.width < 80 || b.height < 40) continue;
+    cands.push([t, t.closest('.card, section, figure') ?? t.parentElement]);
   }
   for (const [s, box] of cands) {
     if (box.dataset.hoverIdx || s.dataset.hoverSvg) continue;
