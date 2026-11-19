@@ -39,7 +39,12 @@ const SECTIONS = [
 ];
 const SITE_URL = 'https://uk-growth-with-ai.vercel.app';
 // one date format in both changelogs, "12 Nov 2026" (review round 2, R2-31)
-const longDate = (d) => new Date(`${d}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+// (three-letter months by hand: en-GB's "short" month is "Sept" in newer ICU)
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const longDate = (d) => {
+  const [y, m, day] = d.slice(0, 10).split('-').map(Number);
+  return `${day} ${MON[m - 1]} ${y}`;
+};
 
 const firstCommand = (code) => code.split('\n').find((l) => l.trim() && !l.trim().startsWith('#')).replace(/\s+#.*$/, '').replace(/\s*\\$/, '');
 const blob = (p) => `${REPO}/blob/${REF}/${p}`;
