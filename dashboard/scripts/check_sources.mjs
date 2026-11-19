@@ -16,7 +16,8 @@
 //     Esc, aria-expanded).
 // Explore and Method (1280x800) get the per-figure checks too: a figure is a
 // <figure> or a chart card (.card with a .chart-plot); reference tables and
-// ledgers that ARE lists of sources are not figures.
+// ledgers that ARE lists of sources are not figures. The rule is one button
+// per card: a figure inside a card or a Finding box counts the card's.
 // Prints the visible underlined links on the Story at each size.
 //
 //   bun scripts/check_sources.mjs http://localhost:4360   (needs Playwright;
@@ -69,9 +70,10 @@ function audit({ story }) {
     ? [...panel.querySelectorAll('figure'), ...panel.querySelectorAll('#p1-vitals')].filter(visible)
     : [...panel.querySelectorAll('figure, .card')].filter((f) => visible(f) && (f.matches('figure') || f.querySelector('.chart-plot')) && !f.parentElement.closest('figure, .card'));
   for (const f of figs) {
-    // a figure alone in a card may carry its button in the card's title
-    const card = f.parentElement?.closest('.card, .info-card');
-    const host = card && card.querySelectorAll('figure').length === 1 ? card : f;
+    // one sources button per card: a figure inside a card or a Finding box
+    // inherits the card-level button (coordinator ruling, 19 Nov)
+    const card = f.parentElement?.closest('.card, .info-card, .finding');
+    const host = card ?? f;
     const n = [...host.querySelectorAll('[data-source-line]')].filter(visible).length;
     if (n !== 1) out.push(`${where(f)}: ${n} sources buttons (must be 1)`);
   }

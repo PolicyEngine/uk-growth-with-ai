@@ -19,6 +19,7 @@ import { ruleLabel, rulePlain } from '@/lib/labels.js';
 import { GROUP_RAMP, ALL_GROUPS_COLOUR } from '@/lib/chartTheme.js';
 import { COHORTS as D } from '@/lib/dataKeys.js';
 import WhoHeatmap, { cohortSources } from '@/tabs/cohorts/WhoHeatmap.jsx';
+import SourceLine from '@/components/ui/SourceLine.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { atRef, COHORTS_SHA, RESULTS_SHA } from '@/tabs/ai/links.js';
 
@@ -703,6 +704,12 @@ function PartBars({ c }) {
   );
 }
 
+// A Finding box that draws a figure carries the card-level Sources and
+// notes button its figure reads from (one per card: check_sources.mjs).
+function WhoSources() {
+  return <SourceLine items={cohortSources()} record={false} />;
+}
+
 function ByForm({ c, both }) {
   return (
     <Finding
@@ -738,10 +745,10 @@ function Why({ cl, rule, arm }) {
   return (
     <>
       <div className="ex-why2">
-        <Finding icon="consumption" lead={A.lead} lines={A.lines} note={A.link ? <JumpLink to="welfare-breakdown">See the average, split by what changes</JumpLink> : null}>
+        <Finding actions={<WhoSources />} icon="consumption" lead={A.lead} lines={A.lines} note={A.link ? <JumpLink to="welfare-breakdown">See the average, split by what changes</JumpLink> : null}>
           <ConsLine c={c} />
         </Finding>
-        <Finding icon="lifetimeEarnings" lead={B.lead} lines={B.lines} note={<JumpLink to="who-model-households">More info: how the model’s households compare with the UK</JumpLink>}>
+        <Finding actions={<WhoSources />} icon="lifetimeEarnings" lead={B.lead} lines={B.lines} note={<JumpLink to="who-model-households">More info: how the model’s households compare with the UK</JumpLink>}>
           <Bars
             signed
             caption="% of remaining-lifetime consumption and bequests"
@@ -761,7 +768,7 @@ function Why({ cl, rule, arm }) {
             </button>
           }
         />
-        <Finding icon="young" lead={Dw.lead} lines={Dw.lines}>
+        <Finding actions={<WhoSources />} icon="young" lead={Dw.lead} lines={Dw.lines}>
           <Bars
             signed
             caption="% of remaining-lifetime consumption and bequests"
