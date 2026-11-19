@@ -8,7 +8,7 @@ import CountUp from '@/components/story/CountUp.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
 import { METHOD } from '@/lib/labels.js';
 import {
-  HEADLINE_YEAR, SURPRISE_YEAR, FIRST_YEAR, LATE_YEAR, CENTRAL, BOUND, ARMS, SCEN_NAME as NAME, gap, fmt, payLine, result, DONE, TOTAL, foreignShareOf,
+  HEADLINE_YEAR, SURPRISE_YEAR, FIRST_YEAR, LATE_YEAR, CENTRAL, BOUND, ARMS, SCEN_NAME as NAME, gap, fmt, payLine, result, DONE, TOTAL, foreignShareOf, PENDING,
 } from '@/tabs/ai/surprise.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import { Items } from '@/components/story/Items.jsx';
@@ -179,7 +179,7 @@ export function HeadlineTiles({ sid }) {
       </div>
       {DONE < TOTAL && sidPending ? (
         <Notice>
-          {DONE} of {TOTAL} solves are done. For this scenario the no-foreign-capital results are not solved yet and show “pending”.
+          {DONE} of {TOTAL} solves are done. {result(sid, 'tfp', CENTRAL).status === 'done' ? `For this scenario the no-foreign-capital results are ${PENDING}.` : `This scenario is ${PENDING}.`}
         </Notice>
       ) : null}
     </>

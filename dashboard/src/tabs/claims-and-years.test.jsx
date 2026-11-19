@@ -206,6 +206,21 @@ for (const [name, D] of Object.entries(FILES)) {
         expect(tiles.container.textContent).not.toMatch(/\d+\.\d+%/);
         expect(tiles.container.textContent).toMatch(/not (?:yet )?solved/);
         tiles.unmount();
+        // the Story at that scenario: the headline ledger and the output split
+        const { default: Story } = await import('@/tabs/story/StoryTab.jsx');
+        const st = render(
+          <NP>
+            <Story />
+          </NP>,
+        );
+        for (const sel of ['#story-headline', '#story-output']) {
+          const el = st.container.querySelector(sel);
+          if (!el) continue;
+          const t = noAxis(el);
+          expect(t.match(/.{0,60}(?:[+−-]\d+\.\d+|(?<![\d.])0\.0+)(?:%|pp).{0,20}/)?.[0] ?? null, `${sid} story ${sel}`).toBeNull();
+          expect(t, `${sid} story ${sel}`).toMatch(/not (?:yet )?solved|pending/);
+        }
+        st.unmount();
       }
     });
   });
