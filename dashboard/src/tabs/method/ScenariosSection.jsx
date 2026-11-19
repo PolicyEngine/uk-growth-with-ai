@@ -8,9 +8,8 @@ import { iconFor } from '@/lib/concepts.js';
 import IconText from './IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, FIRST_YEAR, LATE_YEAR, YEARS, ARMS, fixedInputVsTz, gap, signed, PENDING, PRE_SHOCK_YEARS, yearList, RAMP_WORD } from '@/tabs/ai/surprise.js';
-import { SET } from '@/lib/dataKeys.js';
 import { investHighTo } from '@/tabs/explore/caveats.js';
-import { REPO } from '@/tabs/ai/links.js';
+import { OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import { ext } from '../shared/ui.jsx';
 import Timeline, { timelineTable, timelineSvg } from './Timeline.jsx';
 import { SRC } from './sources.js';
@@ -24,7 +23,6 @@ import ScenarioMap, { scenarioTable } from './ScenarioMap.jsx';
 // scenario-map, scen-*, arm-*, timing, m-jump), so old links land. ScenariosTab.jsx wraps the same
 // section while the Scenarios sub-tab is still in the nav.
 
-const DOC = (p) => `${REPO}/blob/${SET.branch}/${p}`;
 
 // The stress test's technology change, from the solves (UK central), per
 // closure: a cut under some foreign capital, a slight rise with closed
@@ -279,7 +277,7 @@ export default function ScenariosSection({ uses = null }) {
                 { icon: 'model', text: 'OG-Core always starts a run in the forecast path’s first year.' },
                 { icon: 'timing', text: `So inputs are shifted ${['', 'one year', 'two years', 'three years'][PRE_SHOCK_YEARS.length] ?? `${PRE_SHOCK_YEARS.length} years`}.` },
                 { icon: 'generations', text: <>The run inherits the {FIRST_YEAR} wealth, debt and population.</> },
-                { icon: 'source', text: <>Details: {ext(DOC(SET.designDoc), 'design note')}.</> },
+                { icon: 'source', text: <>Details: {ext(OG_RESULT_URLS.doc, 'design note')}.</> },
               ]}
             />
           }

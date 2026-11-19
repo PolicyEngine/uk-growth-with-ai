@@ -77,7 +77,7 @@ export const OG_RESULT_URLS = {
   // the gilt rate is the private return less about 2pp: one for one with r
   giltRate: atRef(RESULTS_SHA, 'docs/rerun_r1_r4.md'),
   // the real-world plausibility review: investment rows rated implausible
-  plausibility: atRef('bf9b55f706f965c6d29d5070bc3a7dd409d9a5eb', 'docs/redesign/real-world-plausibility.md'),
+  plausibility: atRef('59139aa', 'docs/redesign/real-world-plausibility.md'),
 };
 // uk-ai-study PR #18: a file at the PR's commit (GitHub's blob view renders a
 // CSV as a table).
