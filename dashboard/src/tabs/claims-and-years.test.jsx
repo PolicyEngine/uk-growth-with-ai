@@ -53,6 +53,7 @@ const ALLOW = [
   ['tabs/method/sources.js', 'The Pink Book: 2026', 'a publication'],
   ['tabs/method/ScenarioMap.jsx', '(FRS 2026, Box 4.1)', 'a publication'],
   ['tabs/story/TwoLenses.jsx', 'Doorley et al. (2026)', 'a citation'],
+  ['lib/obrOverlap.js', 'export const OBR_YEAR_ONE = 2026;', 'the OBR’s year 1 in BP9 Chart B.4: a property of the source (M1, overlap)'],
 ];
 
 const unallowed = () =>
