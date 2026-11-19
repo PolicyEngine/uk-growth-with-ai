@@ -6,17 +6,17 @@ import { Items } from '@/components/story/Items.jsx';
 
 // A card's one "More info" (consolidated-design-fable.md §2, slot 8;
 // item-36-fable.md §1.1): closed, its button text exactly "More info".
-// Consolidated §2 asks for a muted preview of the sub-heads while closed;
-// item 36 §1.1 and its probe (5b) ask for none. No preview until that is
-// ruled (`preview` turns it on; checks-c0.md). It holds every word about a card
+// No preview: item 36 §1.1 and probe 5b; c0-rulings-opus.md ruling 2. It holds every word about a card
 // that is not its title, unit, legend or lead: how to read it, how it is
 // calculated, its caveats and any source text. The card's book icon
 // (SourceLine) keeps the links only.
 //
 //   <MoreInfo id groups={[{ key, title, items: [{ key, head?, text }] }]} />
 //
-// The sub-heads come in a fixed order (HEADS); a caller's own groups (item
-// 17's Public finances sentences) keep their titles and come first. An
+// The sub-heads come in a fixed order (HEADS); a caller's groups are keyed
+// to them (item 17's titles are bold heads on their lines, c0-rulings-opus.md
+// ruling 3). Source words are not here: they stay behind the book icon
+// with the links (ruling 4). An
 // item's `head` is a short bold label before its text ("Measure",
 // "Compared with", "Settings", "Period", "Sample", "How it is drawn":
 // item 36's rows). The content is marked data-more-info, so the page dumps
@@ -25,7 +25,6 @@ export const HEADS = [
   ['read', 'How to read'],
   ['how', 'How it’s calculated'],
   ['caveats', 'Caveats'],
-  ['sources', 'Sources'],
 ];
 
 // item 36's row labels, in their fixed order within "How to read"
@@ -60,12 +59,12 @@ function Line({ g, it }) {
   );
 }
 
-export default function MoreInfo({ id, groups = [], preview = false, className = '', children }) {
+export default function MoreInfo({ id, groups = [], className = '', children }) {
   const shown = groups.filter((g) => g && g.items?.length);
   if (!shown.length && !children) return null;
   return (
     <div className={`ex-fin-more more-info ${className}`.trim()}>
-      <Disclosure inCard id={id} title="More info" preview={preview ? shown.map((g) => g.title).join(' · ') : undefined}>
+      <Disclosure inCard id={id} title="More info">
         <div data-more-info="">
           {shown.map((g) => (
             <div key={g.key} className="ex-fin-more-group" data-group={g.key}>

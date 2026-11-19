@@ -183,14 +183,15 @@ function Matrix() {
       className="mx-matrix-card"
       finding={<IconText icon="coverage">Whether each source models each channel.</IconText>}
       logo={false}
+      // references behind the book icon, the method sentence in More info
+      // (c0-rulings-opus.md ruling 4)
       about={{
+        how: 'Each cell is read from the primary text or inferred from the model’s set-up.',
         sources: (
           <Items
             items={[
               { icon: 'forecast', text: 'OBR: March 2026 displacement scenario; July 2026 FRS labour-share box.' },
               { icon: 'foreign', text: 'IMF UK: SIP/2026/072 and its model, Rockall et al. (IMF WP/25/68).' },
-              { icon: 'check', text: 'Each cell is read from the primary text or inferred from the model’s set-up.' },
-              { icon: 'link', text: 'Each source is listed under Sources.' },
             ]}
           />
         ),

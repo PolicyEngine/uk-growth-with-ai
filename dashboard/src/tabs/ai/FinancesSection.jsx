@@ -8,7 +8,7 @@ import Finding from '@/components/ui/Finding.jsx';
 import SourceLine from '@/components/ui/SourceLine.jsx';
 import DownloadMenu from '@/components/ui/DownloadMenu.jsx';
 import { useNav, NavLink } from '@/lib/nav.jsx';
-import { ruleLabel } from '@/lib/labels.js';
+import { ruleLabel, closureLabel } from '@/lib/labels.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { esc } from '@/lib/download.js';
 import {
@@ -324,6 +324,8 @@ function TaxGapCard({ sid, closure, rule }) {
   return (
     <Card
       id="tax-gap"
+      model={closure !== 'central' ? 'oguk' : undefined}
+      modelSettings={closure !== 'central' ? [closureLabel('central'), 'main version'] : undefined}
       icon={iconFor('limit')}
       title={TAX_TITLE}
       lead={
@@ -415,8 +417,9 @@ function TaxGapCard({ sid, closure, rule }) {
       }}
     >
       {/* the card is fixed at some foreign capital, main version: said in
-          its axis title when the page shows another case (review round 1, R1-09) */}
-      <AxisTitles y={`${closure !== 'central' ? 'Some foreign capital, main version · ' : ''}Tax/GDP gap in ${HEADLINE_YEAR}, pp of GDP`} />
+          its model row when the page shows another case (R1-09;
+          c0-rulings-opus.md ruling 5) */}
+      <AxisTitles y={`Tax/GDP gap in ${HEADLINE_YEAR}, pp of GDP`} />
       <TaxStrip model={model} uk={uk} onChart={onChart} />
       <div className="cause-rows">
         {CAUSES.map((c, i) => (

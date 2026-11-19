@@ -236,22 +236,25 @@ function units(chart, sid, closure) {
   return items;
 }
 
+// The cards' More info, keyed to the shell's fixed heads (Card.jsx
+// cardMore; c0-rulings-opus.md ruling 3): the old group titles are bold
+// heads on each part's first line, "Units" renamed "Measure" (item 36's
+// label). The sentences are unchanged.
+const headed = (items, head) => items.map((it, i) => (i || !head ? it : { ...it, head }));
+
 export function debtMoreInfo(sid, closure, rule) {
   const why = debtWhy(sid, closure, rule);
   return [
-    { key: 'lines', title: 'The reference lines', items: refLines(sid, closure, rule, 'debt') },
-    { key: 'year', title: 'The debt rule’s start year', items: ruleYear() },
-    why.length ? { key: 'why', title: 'Why the lines move as they do', items: why } : null,
-    { key: 'units', title: 'Units', items: units('debt', sid, closure) },
-  ].filter(Boolean);
+    { key: 'read', items: [...headed(units('debt', sid, closure), 'Measure'), ...refLines(sid, closure, rule, 'debt')] },
+    { key: 'how', items: [...headed(ruleYear(), 'The debt rule’s start year.'), ...headed(why, 'Why the lines move as they do.')] },
+  ];
 }
 
 export function taxMoreInfo(sid, closure, rule) {
   const why = taxWhy(sid, closure, rule);
   return [
-    { key: 'lines', title: 'The reference line', items: refLines(sid, closure, rule, 'tax') },
-    why.length ? { key: 'why', title: why.some((k) => k.key === 't1') ? 'Why tax/GDP is below the path' : 'Why tax/GDP moves as it does', items: why } : null,
-    { key: 'units', title: 'Units', items: units('tax', sid, closure) },
+    { key: 'read', items: [...headed(units('tax', sid, closure), 'Measure'), ...refLines(sid, closure, rule, 'tax')] },
+    why.length ? { key: 'how', items: headed(why, why.some((k) => k.key === 't1') ? 'Why tax/GDP is below the path.' : 'Why tax/GDP moves as it does.') } : null,
   ].filter(Boolean);
 }
 

@@ -376,12 +376,7 @@ export default function EvidenceLanes() {
               { icon: 'ai', text: 'Those baselines mostly have no AI.' },
               { icon: 'timing', text: 'Each at its own horizon; none is converted.' },
               { icon: 'range', text: 'Units differ by measure, so each lane has its own axis.' },
-            ]}
-          />
-        ),
-        sources: (
-          <Items
-            items={[
+              // method sentences, not references (c0-rulings-opus.md ruling 4)
               { icon: 'table', text: 'Each published row is a row of the UK evidence map below.' },
               { icon: 'excluded', text: 'A figure not confirmed in the published text is left out.' },
             ]}

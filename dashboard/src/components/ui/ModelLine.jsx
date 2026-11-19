@@ -19,6 +19,8 @@ import { MODEL_YEAR } from '@/tabs/story/part3/shared.jsx';
 //                                   that the OG-UK settings do not apply
 //   <ModelLine model="oguk" />      a model badge's name (ModelBadge.jsx's
 //                                   MODELS), as one plain segment
+//   <ModelLine model="oguk" settings={['Some foreign capital', 'main version']} />
+//                                   and the card's own settings after it
 //
 // Segments are separated by a middle dot drawn in CSS, and the text keeps a
 // space between them, so copied text and screen readers never join two
@@ -40,8 +42,10 @@ export function modelSegments(model = 'aistudy', link = false) {
   ].filter(Boolean);
 }
 
-export default function ModelLine({ model = 'aistudy', link = false, className = '' }) {
-  const segs = modelSegments(model, link);
+export default function ModelLine({ model = 'aistudy', link = false, settings = [], className = '' }) {
+  // a card's settings where they differ from the page's, after the model
+  // (c0-rulings-opus.md ruling 5)
+  const segs = [...modelSegments(model, link), ...settings.filter(Boolean)];
   const ref = useRef(null);
   useLayoutEffect(() => {
     const el = ref.current;

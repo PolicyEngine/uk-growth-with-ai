@@ -128,9 +128,9 @@ export function PathCard({
   // item 36's rows (Card.jsx cardMore); a tidy card's own groups (item 17's
   // Units) already say them
   const rows = tidy ? [] : [
+    unit === '%' ? null : { label: 'Measure', text: `pp is percentage points${ofGdp ? ' of GDP' : ''}.` },
     { label: 'Compared with', text: 'The OBR’s central forecast path; the zero line is the path.' },
     { label: 'Period', text: `${years[0]}–${last}.` },
-    unit === '%' ? null : { label: 'Measure', text: `pp is percentage points${ofGdp ? ' of GDP' : ''}.` },
   ];
   // In the small-multiple wall (tile) the card is compact: title, download
   // and chart; the wall carries the arms control and the legend once. Opened
@@ -340,8 +340,8 @@ function IncomePanel({ sid }) {
             ) : null
           }
           more={[
-            { label: 'Compared with', text: 'Each version’s gap against the OBR’s central forecast path; the centre line, 0, is the path.' },
             { label: 'Measure', text: 'The pay rate is pay per unit of labour, not average earnings; national income (GNI) is the income UK residents keep.' },
+            { label: 'Compared with', text: 'Each version’s gap against the OBR’s central forecast path; the centre line, 0, is the path.' },
             { label: 'Settings', text: `${cl[0].toUpperCase()}${cl.slice(1)}; ${rulePlain(st.rule)}.` },
           ]}
           about={{
@@ -462,9 +462,9 @@ function EconomyPanel({ sid }) {
             key: 'read',
             title: 'How to read',
             items: [
+              { key: 'mea', head: 'Measure', text: 'pp is percentage points, for the interest rate and the labour share; every other tile is a % gap.' },
               { key: 'cmp', head: 'Compared with', text: 'The OBR’s central forecast path; each tile’s zero line is the path.' },
               { key: 'per', head: 'Period', text: `${WINDOW_YEARS[0]}–${WINDOW_YEARS[WINDOW_YEARS.length - 1]}.` },
-              { key: 'mea', head: 'Measure', text: 'pp is percentage points, for the interest rate and the labour share; every other tile is a % gap.' },
             ],
           },
         ]}

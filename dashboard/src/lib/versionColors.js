@@ -12,7 +12,9 @@
 // (CIELAB delta >= 38; checks-panels.md). The gold is NOT apart from the
 // loss amber (--c-loss) for a deuteranope or a protanope (delta about 5
 // and 2; versionColors.test.js, checks-c0.md): no chart may tell a
-// technology-unchanged line from a loss mark by colour alone. No version
+// technology-unchanged line from a loss mark by colour alone.
+// Where they share a card, a name or a signed number carries the meaning
+// (pushB-signoff ruling 8); dash and marker shape are taken by the closures. No version
 // is drawn lighter now: a lighter indigo moves toward the blue for a
 // deuteranope.
 // Names are never typed here: they come from the data's arms list (short

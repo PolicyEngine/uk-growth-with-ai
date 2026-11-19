@@ -34,6 +34,7 @@ const SLOT = [
   ['more-info', 8],
   ['story-link', 9],
 ];
+const FIXED = ['How to read', 'How it’s calculated', 'Caveats'];
 const slotOf = (el) => SLOT.find(([c]) => el.classList.contains(c))?.[1] ?? null;
 const outsideFold = (card, sel) => [...card.querySelectorAll(sel)].filter((e) => !e.closest('[data-more-info]'));
 const flat = (el) => el.textContent.replace(/\s+/g, ' ').trim();
@@ -59,7 +60,13 @@ function audit(container) {
       const t = f.querySelector('.disclosure-title > span');
       if (flat(t) !== 'More info') why.push(`fold titled "${flat(t)}"`);
       if (f.querySelector('.disclosure-toggle').getAttribute('aria-expanded') !== 'false') why.push('fold open on load');
+      // no preview: the button reads exactly "More info" (ruling 2)
+      if (f.querySelector('.disclosure-preview') || f.querySelector('button.disclosure-toggle').textContent.trim() !== 'More info') why.push('fold button is not exactly "More info"');
     }
+    // the fixed heads only, in order, none twice (ruling 3)
+    const heads = [...card.querySelectorAll('[data-more-info] .ex-fin-more-head')].map(flat);
+    const order = heads.map((h) => FIXED.indexOf(h));
+    if (order.some((k, i) => k < 0 || (i && k <= order[i - 1]))) why.push(`More info heads ${heads.join(' / ')}`);
     const unit = card.querySelector(':scope > .card-unit');
     if (unit && flat(unit).length > 60) why.push(`unit ${flat(unit).length} characters: ${flat(unit)}`);
     // check_sources.mjs: a chart card has one Sources and notes button
@@ -122,7 +129,7 @@ describe('the card shell', () => {
     expect(fold.querySelector('.disclosure-toggle').textContent.trim()).toBe('More info');
     expect(fold.querySelector('.disclosure-content').hidden).toBe(true);
     const more = fold.querySelector('[data-more-info]');
-    expect([...more.querySelectorAll('.ex-fin-more-head')].map(flat)).toEqual(['How to read', 'How it’s calculated', 'Caveats']);
+    expect([...more.querySelectorAll('.ex-fin-more-head')].map(flat)).toEqual(FIXED);
     // item 36's rows first under How to read, each head and text with a space
     expect(flat(more.querySelector('[data-group="read"] .ex-fin-more-line'))).toBe('Measure M.');
     for (const t of ['Read.', 'How.', 'Caveat.', 'Note.', 'Essential.']) expect(more.textContent).toContain(t);
@@ -185,6 +192,36 @@ describe('the card shell', () => {
     expect(lis).toHaveLength(2);
     expect(lis[0].getAttribute('aria-current')).toBe('true');
     expect(lis[1].querySelector('.ch-swatch.is-dashed')).not.toBeNull();
+  });
+});
+
+describe('Public finances on the shell (c0-rulings-opus.md rulings 3 and 5)', () => {
+  const heads = (card) => [...card.querySelectorAll('[data-more-info] .ex-fin-more-head')].map(flat);
+  it('Debt/GDP and Tax/GDP: item 17 under the fixed heads, its titles as bold heads', () => {
+    for (const rule of ['common', 'dn']) {
+      const { container, unmount } = page(<ResultsTab sub="finances" />, `tab=explore&sub=finances&s=uk_central&rule=${rule}`);
+      const debt = container.querySelector('#debt-gdp');
+      // its about.caveats and notes add Caveats after them
+      expect(heads(debt).slice(0, 2), rule).toEqual(['How to read', 'How it’s calculated']);
+      expect(flat(debt.querySelector('[data-group="read"] .ex-fin-more-line b'))).toBe('Measure');
+      expect([...debt.querySelectorAll('[data-group="how"] b')].map(flat)).toContain('The debt rule’s start year.');
+      expect(heads(container.querySelector('#tax-gdp'))[0]).toBe('How to read');
+      unmount();
+    }
+  });
+  it('the tax-gap card names its fixed case in its model row, not in the axis title', () => {
+    const { container, unmount } = page(<ResultsTab sub="finances" />, 'tab=explore&sub=finances&closure=both');
+    const card = container.querySelector('#tax-gap');
+    const lines = card.querySelectorAll('.model-line');
+    expect(lines).toHaveLength(1);
+    expect(flat(lines[0])).toContain('Some foreign capital');
+    expect(flat(lines[0])).toContain('main version');
+    const y = flat(card.querySelector('[data-axis-title="y"]'));
+    expect(y.length).toBeLessThanOrEqual(60);
+    expect(y).not.toMatch(/foreign capital|Both/i);
+    unmount();
+    const { container: c2 } = page(<ResultsTab sub="finances" />, 'tab=explore&sub=finances&closure=central');
+    expect(c2.querySelector('#tax-gap .model-line')).toBeNull();
   });
 });
 

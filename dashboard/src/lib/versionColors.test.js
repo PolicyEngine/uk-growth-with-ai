@@ -61,4 +61,23 @@ describe('version colours', () => {
     expect(loss).toBe('#d97706');
     expect(deltaE(VERSION_HEX.tz, loss)).toBeGreaterThan(20);
   });
+
+  // c0-rulings-opus.md ruling 1: a file that draws version colours and the
+  // loss amber must be on this list, with the reason a reader can tell them
+  // apart without colour
+  it('no chart pairs a version colour with the loss amber unless named here', () => {
+    const ALLOW = { 'tabs/explore/SensitivityTable.jsx': 'rows named, cells signed (pushB ruling 8)' };
+    const root = path.join(__dirname, '..');
+    const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
+    const files = walk(root).filter((f) => /\.(js|jsx)$/.test(f) && !/\.test\./.test(f) && !f.includes(`${path.sep}lib${path.sep}versionColors.js`) && !f.includes(`${path.sep}lib${path.sep}chartTheme.js`));
+    const bad = [];
+    for (const f of files) {
+      const t = fs.readFileSync(f, 'utf8');
+      if (!/\b(ARM_COLOR|ARM_TEXT_COLOR|VERSION_COLOR|VERSION_TOKEN|VERSION_TEXT_COLOR)\b/.test(t)) continue;
+      if (!/is-loss|is-lose|c-loss|CHART_COLOURS\.loss|lossText/.test(t)) continue;
+      const rel = path.relative(root, f).split(path.sep).join('/');
+      if (!ALLOW[rel]) bad.push(rel);
+    }
+    expect(bad).toEqual([]);
+  });
 });

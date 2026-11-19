@@ -89,10 +89,11 @@ export default function GrowthCheck() {
             items={[
               { icon: 'source', text: <>{ext(OBR_GROWTH.url, src.short)}, {OBR_GROWTH.loc}.</> },
               { icon: 'data', text: <>OG-UK: {ext(code('analysis/rerun/output/zk0.1/baseline_p1.json'), 'baseline_p1.json')}, the committed baseline solve.</> },
-              { icon: 'measure', text: 'The OBR publishes one decimal place.' },
             ]}
           />
         ),
+        // a reading note, in More info (c0-rulings-opus.md ruling 4)
+        read: 'The OBR publishes one decimal place.',
       }}
       download={{
         title: 'OG-UK’s forecast path against the OBR’s growth forecast',

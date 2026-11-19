@@ -167,17 +167,19 @@ export default function EvidenceMap({ map = MAP }) {
               { icon: 'measure', text: 'Adoption and exposure rows are levels or shares, not effects.' },
               { icon: 'model', text: `OG-UK rows: automation + productivity, ${HEADLINE_YEAR} gap.` },
               { icon: 'link', text: 'That gap is against the OBR’s central forecast path; figures on Explore, download.' },
-            ]}
-          />
-        ),
-        sources: (
-          <Items
-            items={[
               { icon: 'check', text: 'Read in the primary text, at the page or table given.' },
               { icon: 'period', text: 'Read on the date given.' },
               { icon: 'check', text: 'Or confirmed in the 15 November 2026 UK-studies review (marked “review”).' },
               { icon: 'excluded', text: 'A figure not yet confirmed in a primary text is left out.' },
-              { icon: 'caveat', text: 'Bodies with no AI-specific estimate show their nearest output.' },
+            ]}
+          />
+        ),
+        // how each figure was read: More info; the data file: the book
+        // icon (c0-rulings-opus.md ruling 4)
+        caveats: 'Bodies with no AI-specific estimate show their nearest output.',
+        sources: (
+          <Items
+            items={[
               { icon: 'data', text: 'The table is data/site-evidence-map.json.' },
             ]}
           />

@@ -22,7 +22,6 @@ const ABOUT = [
   ['how', 'How it’s calculated'],
   ['definitions', 'Definitions'],
   ['caveats', 'Caveats'],
-  ['sources', 'Sources'],
 ];
 
 export function MethodLink({ section }) {
@@ -109,29 +108,30 @@ export function cardLinks({ method, replication, sources = [] }) {
 }
 
 // A card's More info groups (components/ui/MoreInfo.jsx), in the fixed
-// order How to read · How it's calculated · Caveats · Sources:
+// order How to read · How it's calculated · Caveats:
 //   `more`: item 36's rows ({ label, text }: Measure, Compared with,
 //     Settings, Period, Sample, How it is drawn) go first under How to read;
-//     whole groups ({ key, title, items }, item 17's) keep their own titles
-//     and come before the fixed four;
+//     keyed groups ({ key: 'read' | 'how' | 'caveats', items }, item 17's)
+//     go first under their head (c0-rulings-opus.md ruling 3);
 //   `read`, `about.read`, `about.shows`, `about.definitions`: How to read;
 //   `about.how`: How it's calculated;
 //   `about.caveats`, `notes`, `essential` (the old caveat line): Caveats.
-// `about.sources` (source words: file names, a cited release) stays behind
-// the book icon with the links (cardBook), so every chart card keeps its
-// one Sources and notes button (check_sources.mjs) and sources have one
-// home; the fixed Sources sub-head is for a caller's own group.
+// `about.sources` is references only (c0-rulings-opus.md ruling 4): it stays
+// behind the book icon with the links (Card), so every chart card keeps its
+// one Sources and notes button; method sentences go to More info.
 export function cardMore({ more, about, read, notes, essential }) {
   const list = Array.isArray(more) ? more.filter(Boolean) : more ? [more] : [];
-  const own = list.filter((g) => g.title && g.items);
-  const rows = list.filter((r) => !(r.title && r.items));
+  const keyed = list.filter((g) => g.key && Array.isArray(g.items));
+  const rows = list.filter((r) => !(r.key && Array.isArray(r.items)));
+  const heads = HEADS.map(([k]) => k);
+  for (const g of keyed) if (!heads.includes(g.key) || g.title) throw new Error(`More info: a group must be keyed to a fixed head (${heads.join(', ')}) with no title of its own: ${g.key}`);
+  const own = (k) => keyed.filter((g) => g.key === k).flatMap((g) => g.items);
   const fixed = {
-    read: [...asLines(rows, 'r'), ...asLines(read, 'h'), ...asLines(about?.read, 'a'), ...asLines(about?.shows, 's'), ...asLines(about?.definitions, 'd')],
-    how: asLines(about?.how, 'c'),
-    caveats: [...asLines(about?.caveats, 'v'), ...asLines(notes, 'n'), ...asLines(essential, 'e')],
-    sources: [],
+    read: [...own('read'), ...asLines(rows, 'r'), ...asLines(read, 'h'), ...asLines(about?.read, 'a'), ...asLines(about?.shows, 's'), ...asLines(about?.definitions, 'd')],
+    how: [...own('how'), ...asLines(about?.how, 'c')],
+    caveats: [...own('caveats'), ...asLines(about?.caveats, 'v'), ...asLines(notes, 'n'), ...asLines(essential, 'e')],
   };
-  return [...own, ...HEADS.map(([k, t]) => ({ key: k, title: t, items: fixed[k] }))].filter((g) => g.items?.length);
+  return HEADS.map(([k, t]) => ({ key: k, title: t, items: fixed[k] })).filter((g) => g.items?.length);
 }
 
 // The one card (consolidated-design-fable.md §2). Its slots, in order:
@@ -139,8 +139,9 @@ export function cardMore({ more, about, read, notes, essential }) {
 //     book icon (the links and any source words) and the download icon at
 //     the end of the line;
 //   2 the model row: the model line (`model`, only where the card's model
-//     or settings differ from the page's) and the card's own chooser, the
-//     pill (`controls`);
+//     or settings differ from the page's), with the card's settings where
+//     they differ (`modelSettings`), and the card's own chooser, the pill
+//     (`controls`);
 //   3 the lead (`lead`; `finding` is its older name): one sentence;
 //   4 the unit line (`unit`): what is plotted, its unit and span;
 //   5 the legend (`legend`): one shared row (components/ui/Legend.jsx);
@@ -151,7 +152,7 @@ export function cardMore({ more, about, read, notes, essential }) {
 // reader has the key before the marks. `foot` (a node after the chart) is
 // kept for the Households flags until item 24 rebuilds them.
 export default function Card({
-  id, icon, title, model, lead, finding, unit, controls, legend, about, method, replication, download, logo = false, className = '', children, foot, sources, notes, read, essential, more, moreId, story,
+  id, icon, title, model, modelSettings, lead, finding, unit, controls, legend, about, method, replication, download, logo = false, className = '', children, foot, sources, notes, read, essential, more, moreId, story,
 }) {
   const ref = useRef(null);
   const links = cardLinks({ method, replication, sources });
@@ -170,7 +171,7 @@ export default function Card({
       </header>
       {model || controls ? (
         <div className="card-model-row">
-          {model ? <ModelLine model={model} /> : null}
+          {model ? <ModelLine model={model} settings={modelSettings} /> : null}
           {controls}
         </div>
       ) : null}

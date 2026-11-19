@@ -2,6 +2,8 @@
 // its colours, type and strokes from here, and the stylesheet's --c-* and
 // --series-* tokens carry the same values for HTML charts. The literals are
 // needed in JS so an exported SVG or PNG is self-contained.
+import { VERSION_HEX, VERSION_TEXT_HEX } from '@/lib/versionColors.js';
+
 export const CHART_FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
 export const CHART_COLOURS = {
@@ -24,14 +26,10 @@ export const CHART_COLOURS = {
   reference: '#6B7280',
 };
 
-// The three arms, as on the page (--series-2, -3, -5): blue (main), light
-// blue, slate (the stress test, drawn lighter). Teal is kept for gains.
-// Text variants meet 4.5:1 on white.
-export const SERIES = {
-  tfp: { line: '#026AA2', text: '#026AA2' },
-  tz: { line: '#0EA5E9', text: '#0369A1' },
-  ss: { line: '#64748B', text: '#475569' },
-};
+// The three arms: the version colours (lib/versionColors.js, --version-*),
+// so an export cannot pick up a fourth version colour (c0-rulings-opus.md,
+// ruling 1). Nothing imports this today.
+export const SERIES = Object.fromEntries(Object.keys(VERSION_HEX).map((k) => [k, { line: VERSION_HEX[k], text: VERSION_TEXT_HEX[k] }]));
 
 // Earnings groups, bottom to top: a neutral sequential slate-blue ramp, light
 // to dark, so order reads without a legend and no group borrows the gain
