@@ -171,7 +171,7 @@ export default function GrowthCheck() {
           <div className="mx-kpi-years ev-kpi-vals">
             {pairs.map((p) => (
               <span key={p.yr}>
-                <b className="ev-kpi-ours">{p.ours.toFixed(2)}%</b>
+                <b className="ev-kpi-ours">{p.ours.toFixed(2)}%</b>{' '}
                 <span>OBR {p.obr.toFixed(1)}%</span>
               </span>
             ))}

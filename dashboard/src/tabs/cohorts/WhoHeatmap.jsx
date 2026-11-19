@@ -117,6 +117,9 @@ export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms
   return (
     <Card
       id="who-heatmap"
+      // slot 9 (review round 3, R3-12): the generations scene's case, the
+      // main version under debt-neutral transfers with some foreign capital
+      story={rule === 'dn' && arm === 'tfp' && cl === 'zk0.1' ? { anchor: 'p2-who-0', name: 'the generations scene' } : null}
       sources={cohortSources()}
       icon={iconFor('lifetimeEarnings')}
       title="By age and earnings group"
@@ -136,8 +139,8 @@ export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms
           {any ? (
           <li>
             <span className="ex-hm-ramp" aria-hidden="true" data-icon="" />
-            <span data-axis="">{pct(-lim)}</span>
-            <span className="ex-hm-ramp-mid">loss · gain</span>
+            <span data-axis="">{pct(-lim)}</span>{' '}
+            <span className="ex-hm-ramp-mid">loss · gain</span>{' '}
             <span data-axis="">{pct(lim)}</span>
           </li>
           ) : null}

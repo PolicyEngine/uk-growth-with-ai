@@ -225,6 +225,7 @@ export default function EvidenceMap({ map = MAP }) {
                   ) : (
                     r.study
                   )}
+                  {r.url2 ? ' ' : null}
                   {r.url2 ? (
                     <span className="ev-loc">
                       Also:{' '}
@@ -232,14 +233,14 @@ export default function EvidenceMap({ map = MAP }) {
                         {r.url2Label}
                       </a>
                     </span>
-                  ) : null}
+                  ) : null}{' '}
                   <span className="ev-loc">
                     {r.year}
                     {r.ours ? '' : ` · ${r.loc}`}
                   </span>
                 </td>
                 <td data-label="Measure">
-                  <span className="ev-metric">{METRIC_LABEL[r.metric]}</span>
+                  <span className="ev-metric">{METRIC_LABEL[r.metric]}</span>{' '}
                   <span className="ev-measure">{r.measure}</span>
                 </td>
                 <td data-label="Value" className="ev-value">
@@ -259,12 +260,13 @@ export default function EvidenceMap({ map = MAP }) {
                 </td>
                 <td data-label="Horizon">
                   {r.horizon}
+                  {r.baseline !== '—' ? ' ' : null}
                   {r.baseline !== '—' ? <span className="ev-loc">Against: {r.baseline}</span> : null}
                 </td>
                 <td data-label="Country">{r.country}</td>
                 <td data-label="Checked" className="ev-checked">
                   {day(r.checked)}
-                  {r.how === 'review' ? <span className="ev-how">review</span> : null}
+                  {r.how === 'review' ? <span className="ev-how"> · review</span> : null}
                 </td>
               </tr>
             ))}

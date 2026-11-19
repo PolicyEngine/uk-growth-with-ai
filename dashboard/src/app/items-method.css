@@ -489,3 +489,18 @@ p.mx-axis-title.is-x {
     break-inside: avoid;
   }
 }
+
+/* Evidence takeaways: two cards a row, the third full width (≤2 panels per
+   row; review round 2, R2-23) */
+.cards-grid > .mx-take-wide {
+  grid-column: 1 / -1;
+}
+
+/* Data and code › Before you start: one More info, four parts with bold
+   row heads (review round 3, R3-13) */
+.mx-before-part + .mx-before-part {
+  margin-top: 16px;
+}
+.mx-before-head {
+  margin: 0 0 8px;
+}

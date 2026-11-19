@@ -14,7 +14,9 @@ import EV from '@/data/site-evidence-map.json';
 import { VERSIONS as V, setHas } from '@/lib/dataKeys.js';
 import { SOURCES } from '@/data/literature.js';
 import { valueHref } from '@/tabs/literature/pages.js';
-import CHECKS from './checksHook.js';
+// the official-figure checks, each figure read from its primary file a
+// second way (review round 2, R2-16: the file is in data/, imported directly)
+import CHECKS from '@/data/ukContextChecks.json';
 
 // The versions behind the results. While the active set has no versions
 // file of its own, its solves are the data file's commit, never the 2028
@@ -115,7 +117,8 @@ export function ledger(checks = CHECKS) {
   rows.push({ figure: 'Who gains: welfare by birth year and earnings group', source: CO.generated_by, vintage: COHORT_SOURCE, checked: null, group: 'OG-UK results' });
   rows.push({ figure: aiLabel('Household study results'), source: `Household study PR #${AI.source.pr}`, url: AI_STUDY.prUrl, vintage: `${aiWhere}, ${AI.source.dataset}`, checked: AI.source.fetched, group: 'Household study results' });
   for (const s of Object.values(SOURCES)) rows.push({ figure: s.title, source: s.short, url: s.url, vintage: s.loc, checked: null, note: s.read ?? null, group: 'Published studies' });
-  for (const it of REL.items) rows.push({ figure: it.title, source: `PolicyEngine, ${it.model}`, url: it.url, vintage: it.country, checked: REL.read, group: 'Related PolicyEngine work' });
+  // the package with its version by its package name (R1-16), as above
+  for (const it of REL.items) rows.push({ figure: it.title, source: `PolicyEngine, ${it.model.replace(/PolicyEngine-UK (?=\d)/g, 'policyengine-uk ')}`, url: it.url, vintage: it.country, checked: REL.read, group: 'Related PolicyEngine work' });
   // the UK evidence map: one row per published figure (its value is printed
   // on Evidence, its home, so the ledger names it without the value)
   for (const r of EV.rows) rows.push({ figure: `${r.institution}: ${r.measure}`, source: r.study, url: valueHref(r), vintage: [r.horizon, r.loc].filter(Boolean).join('; '), checked: r.checked ?? null, how: r.how ?? null, group: 'UK evidence map' });
@@ -129,4 +132,3 @@ export const ledgerTable = () => ({
 
 // The date of the latest data build or read across the files
 export const LAST_UPDATED = [day(S.generated_utc), AI.source.fetched, REL.read, ...Object.values(UK.sources).map((s) => s.fetched)].filter(Boolean).sort().at(-1);
-export const HAS_CHECKS = Boolean(CHECKS);

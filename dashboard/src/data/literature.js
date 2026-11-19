@@ -139,7 +139,7 @@ export const SOURCES = {
     group: 'model',
     url: 'https://doi.org/10.1093/epolic/eiae042',
     use: 'Hulten’s-theorem bound on AI’s TFP and GDP effects over ten years (US).',
-    loc: 'TFP bound: published summary; GDP and wage numbers from NBER w32487, p.4 and Table 1, p.41',
+    loc: 'TFP bound: published summary; GDP 0.93–1.16%: NBER w32487, p.4 (also pp.34, 43); wages: Table 1, p.39',
   },
   cerutti: {
     short: 'Cerutti et al. 2025 (IMF)',

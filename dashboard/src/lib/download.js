@@ -104,6 +104,8 @@ function framedSvg(plots, { title, context, caption, legend = [] }) {
         const y = legendTop + ri * 22;
         const mark = k.shape === 'ring'
           ? `<circle cx="${k.x + 9}" cy="${y}" r="5" fill="${CHART_COLOURS.surface}" stroke="${k.color}" stroke-width="2.5"/>`
+          : k.shape === 'half'
+            ? `<circle cx="${k.x + 9}" cy="${y}" r="5" fill="${CHART_COLOURS.surface}" stroke="${k.color}" stroke-width="1.5"/><path d="M${k.x + 9} ${y - 5} A5 5 0 0 1 ${k.x + 9} ${y + 5} Z" fill="${k.color}"/>`
           : k.shape === 'tick'
             ? `<rect x="${k.x + 7.5}" y="${y - 8}" width="3" height="16" rx="1" fill="${k.color}"/>`
             : k.shape === 'dot'

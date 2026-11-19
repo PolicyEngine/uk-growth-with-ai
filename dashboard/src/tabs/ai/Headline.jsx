@@ -8,7 +8,7 @@ import { iconFor } from '@/lib/concepts.js';
 import { MEASURE } from '@/lib/labels.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
-import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result, PENDING, fmtHeld } from '@/tabs/ai/surprise.js';
+import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result, PENDING, fmtHeld, ZETA } from '@/tabs/ai/surprise.js';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 
@@ -180,11 +180,11 @@ export function HeadlineNote({ rule = 'common' }) {
   if (rule !== 'common') return null;
   return (
     <p className="db-headline-note">
-      Grey values: the main version&rsquo;s headline figures, at home in the{' '}
+      Grey values: the{' '}
       <NavLink tab="story" anchor="story-part-2">
-        story
+        Story
       </NavLink>
-      .
+      &rsquo;s headline figures (main version).
     </p>
   );
 }
@@ -212,7 +212,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
           <div className="db-label">
             <Icon name={m.icon} size={16} />
             <span>
-              <span className="db-label-main">{m.label}</span>
+              <span className="db-label-main">{m.label}</span>{' '}
               <span className="db-label-sub">{m.sub}</span>
               {m.v === 'Y' && ssHeld ? (
                 <span className="db-label-held">
@@ -268,7 +268,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                             className="db-dot"
                             style={{ left: pct(c), background: color, borderColor: color }}
                             label={`${a.label}, some foreign capital, ${name}: ${fmt(c)}`}
-                            tip={<DotTip arm={a.label} closure="Some foreign capital (closure ζK = 0.1: some new capital foreign-owned)" measure={name} value={c} />}
+                            tip={<DotTip arm={a.label} closure={`Some foreign capital (closure ζK = ${ZETA[CENTRAL]}: foreign investors supply ${Math.round(ZETA[CENTRAL] * 100)}% of the extra capital firms want)`} measure={name} value={c} />}
                           />
                         ) : null}
                         {/* the main arm's GDP, wage and GNI: a muted reference
@@ -281,7 +281,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                         </span>
                       </>
                     )}
-                    {showC && showB ? <span className="visually-hidden">no foreign capital {fmtHeld(a.id, m.v, b)}</span> : null}
+                    {showC && showB ? <span className="visually-hidden">{` no foreign capital ${fmtHeld(a.id, m.v, b)}`}</span> : null}
                   </div>
                 </div>
               );

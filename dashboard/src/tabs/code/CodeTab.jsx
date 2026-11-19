@@ -11,7 +11,7 @@ import Card, { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
 import PageIntro from '@/components/ui/PageIntro.jsx';
 import CHANGELOG from '@/data/site-changelog.json';
 import { METHOD_FACTS as MF, setHas } from '@/lib/dataKeys.js';
-import { MODEL_VERSIONS, VINTAGES, AI_FULL_RERUN, AI_STUDY, RELEASES, ledger, ledgerTable, LAST_UPDATED, HAS_CHECKS, version } from './ledger.js';
+import { MODEL_VERSIONS, VINTAGES, AI_FULL_RERUN, AI_STUDY, RELEASES, ledger, ledgerTable, LAST_UPDATED, version } from './ledger.js';
 import { HISTORY } from './history.js';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
 import { Items, WhyChain } from '@/components/story/Items.jsx';
@@ -38,7 +38,13 @@ const SECTIONS = [
   { id: 'use-oguk', title: 'Use OG-UK yourself', icon: iconFor('code') },
 ];
 const SITE_URL = 'https://uk-growth-with-ai.vercel.app';
-const longDate = (d) => new Date(`${d}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+// one date format in both changelogs, "12 Nov 2026" (review round 2, R2-31)
+// (three-letter months by hand: en-GB's "short" month is "Sept" in newer ICU)
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const longDate = (d) => {
+  const [y, m, day] = d.slice(0, 10).split('-').map(Number);
+  return `${day} ${MON[m - 1]} ${y}`;
+};
 
 const firstCommand = (code) => code.split('\n').find((l) => l.trim() && !l.trim().startsWith('#')).replace(/\s+#.*$/, '').replace(/\s*\\$/, '');
 const blob = (p) => `${REPO}/blob/${REF}/${p}`;
@@ -68,23 +74,39 @@ function BeforeYouStart() {
       className="mx-before"
       foot={
         <>
-          <Disclosure inCard title={<IconText icon="install">Install the model</IconText>} preview="Clone, OG-Core 0.17.0, OG-UK d0e6ae5">
-            <CopyBlock code={INSTALL} />
-          </Disclosure>
-          <Disclosure inCard title={<IconText icon="code">Patch OG-Core for a time-varying γ</IconText>} preview="Runs refuse to start without it">
-            <Items
-              items={[
-                { icon: 'model', text: <>Stock OG-Core holds &gamma; fixed over time.</> },
-                { icon: 'code', text: <>The {ext(URLS.patch, 'patch')} adds a time dimension ({ext(URLS.patchDoc, 'design')}).</> },
-              ]}
-            />
-            <CopyBlock code={PATCH} />
-          </Disclosure>
-          <Disclosure inCard title={<IconText icon="prerequisite">Environment</IconText>} preview="Tokens, Hugging Face cache, Dask">
-            <CopyBlock code={ENV} />
-          </Disclosure>
-          <Disclosure inCard title={<IconText icon="code">The sp helper used below</IconText>} preview="Runs the CLI as the driver does">
-            <CopyBlock code={SP_HELPER} />
+          {/* one More info, its four parts as bold row heads (review round 3,
+              R3-13; preview allowed, C0 ruling 2) */}
+          <Disclosure inCard title="More info" preview="Install, patch, environment and the sp helper">
+            <div className="mx-before-part">
+              <p className="mx-before-head">
+                <b>Install the model.</b> Clone, OG-Core 0.17.0, OG-UK d0e6ae5.
+              </p>
+              <CopyBlock code={INSTALL} />
+            </div>
+            <div className="mx-before-part">
+              <p className="mx-before-head">
+                <b>Patch OG-Core for a time-varying γ.</b> Runs refuse to start without it.
+              </p>
+              <Items
+                items={[
+                  { icon: 'model', text: <>Stock OG-Core holds &gamma; fixed over time.</> },
+                  { icon: 'code', text: <>The {ext(URLS.patch, 'patch')} adds a time dimension ({ext(URLS.patchDoc, 'design')}).</> },
+                ]}
+              />
+              <CopyBlock code={PATCH} />
+            </div>
+            <div className="mx-before-part">
+              <p className="mx-before-head">
+                <b>Environment.</b> Tokens, Hugging Face cache, Dask.
+              </p>
+              <CopyBlock code={ENV} />
+            </div>
+            <div className="mx-before-part">
+              <p className="mx-before-head">
+                <b>The sp helper used below.</b> Runs the CLI as the driver does.
+              </p>
+              <CopyBlock code={SP_HELPER} />
+            </div>
           </Disclosure>
         </>
       }
@@ -319,7 +341,7 @@ function UseOguk() {
 
 const MODEL_ICON = { 'OG-UK': 'model', 'Household study': 'households' };
 function ModelCell({ m }) {
-  if (!MODEL_ICON[m]) return <span className="ledger-where">Neither</span>;
+  if (!MODEL_ICON[m]) return <span className="ledger-where">No model</span>;
   return (
     <span className="mx-model-cell">
       {m}
@@ -398,7 +420,7 @@ function Vintages() {
                   </td>
                   <th scope="row">{e.label}</th>
                   <td>
-                    {e.url ? ext(e.url, e.value) : e.value}
+                    {e.url ? ext(e.url, e.value) : e.value}{' '}
                     <span className="ledger-where">{e.where}</span>
                   </td>
                 </tr>
@@ -413,10 +435,12 @@ function Vintages() {
             <li key={r.id}>
               <span className="ledger-date">
                 Released {r.released}
+                {r.fetched ? ' ' : null}
                 {r.fetched ? <span className="ledger-where">Read {r.fetched}</span> : null}
-              </span>
+              </span>{' '}
               <span>
                 {ext(r.url, `${r.publisher}: ${r.title}`)}
+                {r.series ? ' ' : null}
                 {r.series ? <span className="ledger-where">{r.series}</span> : null}
               </span>
             </li>
@@ -426,6 +450,15 @@ function Vintages() {
       </div>
     </div>
   );
+}
+
+// How a figure was checked a second time, in words (review round 2, R2-14):
+// the evidence map's "read" and "review" marks, or the official figure's
+// own description of its second read.
+function howChecked(how) {
+  if (how === 'review') return 'Confirmed in the 15 Nov 2026 review';
+  if (how === 'read') return 'Re-read in the primary text';
+  return `Second read: ${how}`;
 }
 
 function Ledger() {
@@ -445,18 +478,11 @@ function Ledger() {
       about={{
         how: (
           <Items
-            items={
-              HAS_CHECKS
-                ? [
-                    { icon: 'period', text: 'Each official figure the story prints is listed with its release.' },
-                    { icon: 'check', text: 'And the second, independent read of its primary file (ukContextChecks.json).' },
-                    { icon: 'data', text: 'The rest come from each data file.' },
-                  ]
-                : [
-                    { icon: 'data', text: 'Built from each data file’s own source fields.' },
-                    { icon: 'check', text: 'Official figures will also carry the checks in ukContextChecks.json.' },
-                  ]
-            }
+            items={[
+              { icon: 'period', text: 'Each official figure the story prints is listed with its release.' },
+              { icon: 'check', text: 'And the second, independent read of its primary file (ukContextChecks.json).' },
+              { icon: 'data', text: 'The rest come from each data file.' },
+            ]}
           />
         ),
         caveats: (
@@ -497,7 +523,12 @@ function Ledger() {
                     <td>{r.vintage}</td>
                     <td>
                       {r.checked ?? '—'}
-                      {r.how ? <span className="ledger-where">Second read: {r.how}</span> : null}
+                      {r.how ? (
+                        <>
+                          {' '}
+                          <span className="ledger-where">{howChecked(r.how)}</span>
+                        </>
+                      ) : null}
                     </td>
                   </tr>
                 ))}
@@ -565,7 +596,7 @@ function Cite() {
 
 const Entry = ({ e }) => (
   <li>
-    <span className="mx-history-date">{longDate(e.date)}</span>
+    <span className="mx-history-date">{longDate(e.date)}</span>{' '}
     <span>
       {e.text} {ext(`${REPO}/commit/${e.commit}`, e.commit)}
     </span>
@@ -585,7 +616,7 @@ function Revisions() {
       <ol className="mx-history-list" data-reference="">
         {HISTORY.map(([d, , t, n], i) => (
           <li key={i}>
-            <span className="mx-history-date">{d}</span>
+            <span className="mx-history-date">{d}</span>{' '}
             <span className="mx-history-text">
               <span>
                 {t} {ext(issue(n), `#${n}`)}

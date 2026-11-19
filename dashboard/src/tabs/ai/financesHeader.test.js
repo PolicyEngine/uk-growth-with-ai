@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import S from '@/lib/activeData.js';
-import { financesFinding } from '@/tabs/ai/financesInfo.js';
+import { financesFinding, debtTitle, taxTitle } from '@/tabs/ai/financesInfo.js';
 import { taxSized, taxSizing } from '@/tabs/ai/FinancesSection.jsx';
 
 const Y = S.years;
@@ -29,6 +29,17 @@ describe('item 38: Public finances Finding', () => {
           }
         });
       }
+  // R2-20 / R3-10: no Finding line repeats a card title
+  it('no line repeats the debt or tax card title', () => {
+    for (const sid of S.scenarios.map((s) => s.id))
+      for (const rule of ['common', 'fixed', 'dn'])
+        for (const closure of ['central', 'closed', 'both']) {
+          const f = financesFinding(sid, closure, rule);
+          if (!f) continue;
+          const titles = [debtTitle(sid, closure, rule), taxTitle(sid, closure, rule)].filter(Boolean).map((t) => `${t}.`);
+          for (const l of f.lines) expect(titles).not.toContain(l);
+        }
+  });
   it('today, UK central: below the path only for Automation + productivity', () => {
     expect(financesFinding('uk_central', 'central', 'common').lead).toBe(`In ${H}, debt/GDP is below the path only in Automation + productivity; Technology unchanged and the Stress test are above the path.`);
   });

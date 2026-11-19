@@ -283,5 +283,9 @@ export function financesFinding(sid, closure, rule) {
     lines.push(`${late}.`);
   }
   if (tax) lines.push(`${tax}.`);
-  return { lead, lines };
+  // A line that only repeats a card title says the fact twice on one
+  // screen: drop it (review round 2, R2-20; round 3, R3-10). The lead and
+  // the tax-gap link line stay.
+  const titles = new Set([late, tax].filter(Boolean).map((t) => `${t}.`));
+  return { lead, lines: lines.filter((l) => !titles.has(l)) };
 }

@@ -191,12 +191,13 @@ function Tile({ v, drawn, instant }) {
           {v.key === 'gdp' ? (
             <>
               {qFirst(f.period)}, {v.label}
+              {FIRST ? ' ' : null}
               {FIRST ? <span className="p1-vital-flag">first estimate</span> : null}
             </>
           ) : (
             `${v.label} · ${shortPeriod(f.period)}`
           )}
-        </span>
+        </span>{' '}
         <span className="p1-vital-sub-hot">
           {src.released ? `Released ${fmtDate(src.released)}` : null}
           {/* no "· next …" date (review round 1, R1-07): a prerendered page

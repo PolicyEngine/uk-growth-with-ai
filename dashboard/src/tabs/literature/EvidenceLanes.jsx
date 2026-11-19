@@ -174,7 +174,7 @@ function SharesLane({ metric, hi, bind }) {
       {shareRows(metric).map((r) => (
         <div key={r.id} className="mx-share">
           <span className="mx-rb-label">
-            <b>{r.plotLabel}</b>
+            <b>{r.plotLabel}</b>{' '}
             <span>
               {r.horizon} ·{' '}
               <a className="ev-rb-home" href={`#ev-row-${r.id}`}>
@@ -238,7 +238,7 @@ function Lane({ metric, hi, bind }) {
           return (
             <div key={key} className={`mx-rb-row is-ours${hi === key ? ' is-hi' : ''}`} {...bind(key, `${o.label}: ${CLOSURE_LABEL[CENTRAL]} ${fmt(o.c)}, ${CLOSURE_LABEL[BOUND]} ${fmt(o.b)}`)}>
               <span className="mx-rb-label">
-                <b>{o.label}</b>
+                <b>{o.label}</b>{' '}
                 <span>
                   OG-UK, year 4 of adoption ·{' '}
                   <NavLink tab="explore" sub="economy" anchor="economy-wall" patch={{ s: o.sid }} className="nav-link ev-rb-home">
@@ -279,7 +279,7 @@ function Lane({ metric, hi, bind }) {
           return (
             <div key={key} className={`mx-rb-row${hi === key ? ' is-hi' : ''}`} {...bind(key, `${r.label}, ${r.horizon}: ${fig}${r.unverified ? ', unverified' : ''}. ${r.note}`)}>
               <span className="mx-rb-label">
-                <b>{r.label}</b>
+                <b>{r.label}</b>{' '}
                 <span>
                   {r.horizon}
                   {r.unverified ? <em className="ev-unverified"> · unverified</em> : null} ·{' '}

@@ -42,7 +42,7 @@ export const INPUTS = [
   { group: 'Baseline', input: 'Demographics', value: '—', kind: 'external', how: 'UN World Population Prospects, read by OG-Core through a GitHub mirror; not an OBR or ONS projection.', src: ['unWpp', 'popData'] },
   { group: 'Baseline', input: 'Tax functions', value: '—', kind: 'external', how: 'Fitted to PolicyEngine UK.', src: ['peUk'] },
   // OG-UK defaults
-  { group: 'Model parameters', input: 'ζK: share of excess capital demand foreigners supply', value: '0.1', kind: 'default', how: 'OG-Core’s US default, chosen by the study as central, which OG-UK keeps: its baseline is closest to UK income paid abroad; it misses the current account. It is the share of excess capital demand met from abroad, so most of the added capital ends up foreign-owned.', src: ['ogukParams', 'ogCoreParams', 'pinkBook', 'closureMemo'] },
+  { group: 'Model parameters', input: 'ζK: share of the extra capital firms want that foreigners supply', value: '0.1', kind: 'default', how: 'OG-Core’s US default, chosen by the study as central, which OG-UK keeps: its baseline is closest to UK income paid abroad; it misses the current account. It is the share of the extra capital firms want that is met from abroad, so most of the added capital ends up foreign-owned.', src: ['ogukParams', 'ogCoreParams', 'pinkBook', 'closureMemo'] },
   { group: 'Model parameters', input: 'ζK bound (no foreign capital)', value: '0', kind: 'choice', how: 'A bound, not an estimate.', src: ['closureMemo'] },
   { group: 'Model parameters', input: 'ζD: foreign share of new government debt', value: '0.4', kind: 'default', how: 'No UK estimate is used.', src: ['ogukParams'] },
   { group: 'Model parameters', input: 'World interest rate', value: '2%', kind: 'default', how: 'Not calibrated; OG-Core’s own default is 4%.', src: ['ogukParams', 'ogCoreParams'] },
@@ -82,7 +82,7 @@ const SHORT = {
   '2030 debt/GDP target': ['Spending set so 2030 debt/GDP matches the OBR’s forecast', null],
   Vintage: ['March 2026 EFO; the growth check uses October 2026', null],
   Demographics: ['UN World Population Prospects, via OG-Core; not OBR or ONS', null],
-  'ζK: share of excess capital demand foreigners supply': ['Kept from OG-Core’s default. That it is the central case is the study’s choice', null],
+  'ζK: share of the extra capital firms want that foreigners supply': ['Kept from OG-Core’s default. That it is the central case is the study’s choice', null],
   'World interest rate': ['Not calibrated; OG-Core’s own default is 4%', null],
   'Depreciation δ': ['From ONS capital stocks and fixed capital consumption, 2022', null],
   [`Common rule; debt rule from ${LATE_YEAR}`]: ['OG-UK’s default is 4; not an OBR rule', null],

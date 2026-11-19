@@ -90,14 +90,9 @@
   color: var(--pe-gray-600);
 }
 
+/* "· review": muted text, not a pill (review round 2, R2-24) */
 .ev-how {
-  display: inline-block;
-  margin-left: 6px;
-  padding: 0 6px;
-  font-size: var(--fs-micro);
   color: var(--pe-gray-600);
-  border: 1px solid var(--pe-gray-300);
-  border-radius: 999px;
 }
 
 /* OG-UK's rows: the main arm's colour as a rule on the left */

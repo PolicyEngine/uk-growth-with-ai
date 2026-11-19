@@ -29,6 +29,8 @@ const { default: ResultsTab } = await import('@/tabs/ai/ResultsTab.jsx');
 const { default: LineChart } = await import('@/components/LineChart.jsx');
 const { NavProvider } = await import('@/lib/nav.jsx');
 const { path, CENTRAL } = await import('@/tabs/ai/surprise.js');
+const { ruleFinding } = await import('@/tabs/ai/FinancesSection.jsx');
+const { ruleGapText } = await import('@/tabs/ai/lines.js');
 
 // Render Results at an address: the tab reads every choice from the URL.
 const at = (query) => {
@@ -61,8 +63,8 @@ describe('Results follows the data file', () => {
       const { container, unmount } = at('sub=income&closure=both');
       const fold = container.querySelector('#measures [data-more-info]');
       expect(fold.closest('.disclosure-content').hidden).toBe(true);
-      expect(fold.textContent.match(/headline figures, at home in the story/g)).toHaveLength(1);
-      expect(income.match(/headline figures, at home in the story/g)).toHaveLength(1);
+      expect(fold.textContent.match(/Story’s headline figures \(main version\)/g)).toHaveLength(1);
+      expect(income.match(/Story’s headline figures \(main version\)/g)).toHaveLength(1);
       unmount();
     }
     {
@@ -73,7 +75,7 @@ describe('Results follows the data file', () => {
       // the book icon holds links only; the words are in More info
       expect(pop).not.toContain('How to read');
       expect(pop).toContain('Method: Closures and income measures');
-      expect(pop.match(/headline figures, at home in the story/g)).toBeNull();
+      expect(pop.match(/Story’s headline figures \(main version\)/g)).toBeNull();
       unmount();
     }
     expect(income).toContain('no foreign capital not yet solved');
@@ -145,7 +147,10 @@ describe('tooltips', () => {
     expect(dn.match(/[+−]?\d+\.\d\dpp/g)).toHaveLength(12);
     expect(page('sub=finances&s=korinek&closure=both&rule=fixed').card.match(/[+−]?\d+\.\d\dpp/g)).toHaveLength(24);
     const other = page('sub=finances&s=uk_high&rule=dn');
-    expect(other.card).toContain('solved for UK central and Korinek et al., substantial (US) only');
+    // the reason is the page answer's (ExploreTab), once; the box keeps
+    // only its lead
+    // (review round 2, R2-12)
+    expect(other.card).not.toContain('solved for UK central and Korinek et al., substantial (US) only');
     expect(other.card).not.toMatch(/\d\.\d\d/);
     // every chart on the page says so too, and none prints a figure
     expect(other.all).not.toMatch(/[+−]\d+\.\d+(%|pp)/);
@@ -153,9 +158,13 @@ describe('tooltips', () => {
     // the lead is title-level: no full stop (Vahid, 18 Nov)
     expect(low).toContain('UK low is not yet solved under fixed spending');
     expect(low).not.toContain('UK low is not yet solved under fixed spending.');
-    expect(low).toContain('Fixed spending is solved for UK central and Korinek et al., substantial (US) only');
+    // R2-12: the reason is the page answer's (ruleGapText), once; the box
+    // keeps only its lead
+    expect(low).not.toContain('Fixed spending is solved for UK central and Korinek et al., substantial (US) only');
+    expect(ruleFinding('fixed', 'uk_low', 'central').lines).toEqual([]);
     // R3-02: the advice points at a solved view only (here the common rule)
-    expect(low).toContain('Choose the common fiscal rule.');
+    expect(ruleGapText('fixed', 'uk_low')).toContain('Fixed spending is solved for UK central and Korinek et al., substantial (US) only');
+    expect(ruleGapText('fixed', 'uk_low')).toContain('Choose the common fiscal rule.');
     // the common rule has nothing to compare: no box
     expect(page('sub=finances&s=uk_central').card).toBeNull();
     // the box prints no figures outside its dumbbells and table
