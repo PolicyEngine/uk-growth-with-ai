@@ -18,6 +18,8 @@ import S from '@/lib/activeData.js';
 import { DATA_SET, DATA_FILE } from '@/lib/dataFlag.js';
 import NICS2028 from '@/tabs/explore/nics2028.json';
 import CO2028 from '@/data/cohorts2028.json';
+import S2028 from '@/data/surprise2028.json';
+import S2027 from '@/data/surprise2027.json';
 
 const keyOf = (obj, prefix) => Object.keys(obj ?? {}).find((k) => k.startsWith(prefix)) ?? null;
 
@@ -36,6 +38,23 @@ export const foreignShareOf = (rec, D = S) => {
 // are its own (COHORT_YEAR is 2028 under either flag), never SURPRISE_YEAR.
 export const COHORTS = CO2028;
 export const COHORT_YEAR = COHORTS.shock_year;
+// Never mix years (review round 2, R2-03): any aggregate a cohort sentence
+// cites comes from the surprise file of the cohort's own shock year, and
+// while the two years differ each cohort view says so in one line.
+const SURPRISE_BY_YEAR = { 2028: S2028, 2027: S2027 };
+const COHORT_SURPRISE = () => (COHORT_YEAR === S.surprise_year ? S : SURPRISE_BY_YEAR[COHORT_YEAR]);
+export const COHORTS_MATCH = () => COHORT_YEAR === S.surprise_year;
+const RULE_FILE_KEY = { dn: 'debt_neutral', fixed: 'fixed_spending' };
+// The gap of one cell in a year (default: its headline year) in the
+// cohort's surprise file, or null.
+export function cohortGap(sid, arm, cl, v, rule = 'common', year = null) {
+  const D = COHORT_SURPRISE();
+  const r = (RULE_FILE_KEY[rule] ? D.rules?.[RULE_FILE_KEY[rule]]?.results : D.results)?.[sid]?.[arm]?.[cl];
+  const x = r?.status === 'done' ? r.gaps[v]?.[D.years.indexOf(year ?? D.headline_year)] : null;
+  return typeof x === 'number' ? x : null;
+}
+export const cohortNotice = () =>
+  COHORTS_MATCH() ? null : `Results by birth year are from the runs with the shock in ${COHORT_YEAR}; the ${S.surprise_year} runs are not exported yet.`;
 
 // The earnings-group profile of one closure: { labour, capital, transfers,
 // wealth_share, earnings_share, bequests }, each by group.
@@ -64,8 +83,6 @@ const SETS = {
     nicsRef: 'bf5de33',
     outputDir: 'analysis/surprise/output',
     scenarioFile: (sid) => `uk_growth_with_ai/data/scenarios_surprise2028_${sid}.json`,
-    // the debt rule's first year in run periods (OG-UK tG1, from the shock year)
-    tg1: 10,
   },
   2027: {
     results: 'surprise2027.json',
@@ -85,7 +102,6 @@ const SETS = {
     outputDir: 'analysis/surprise2027/output',
     // no scenarios_surprise2027_*.json at 816a87e
     scenarioFile: null,
-    tg1: 9,
   },
 };
 // The active set's entry, each null field filled from the 2028 set.

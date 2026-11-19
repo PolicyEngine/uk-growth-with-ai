@@ -4,6 +4,13 @@
 // the full 2028 file every cell is done, so a filter that drops them all is
 // a broken test, not a pending one.
 import S from '@/lib/activeData.js';
+import S2028 from '@/data/surprise2028.json';
+import S2027 from '@/data/surprise2027.json';
+import { COHORT_YEAR } from '@/lib/dataKeys.js';
+
+// The surprise file of the cohort file's own shock year (R2-03: cohort
+// sentences never cite another year's aggregates).
+export const cohortSurprise = () => (COHORT_YEAR === S.surprise_year ? S : { 2028: S2028, 2027: S2027 }[COHORT_YEAR]);
 
 const RK = { dn: 'debt_neutral', fixed: 'fixed_spending', debt_neutral: 'debt_neutral', fixed_spending: 'fixed_spending' };
 // The record of one cell under a rule ('common', 'dn', 'fixed' or the data

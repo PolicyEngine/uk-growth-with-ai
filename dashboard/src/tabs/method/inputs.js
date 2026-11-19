@@ -6,7 +6,6 @@
 // default parameter, no UK estimate behind it), choice (a modelling choice,
 // not from a published source), external (an external source, linked).
 import { scenarioById, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, RAMP_WORD } from '@/tabs/ai/surprise.js';
-import { SET } from '@/lib/dataKeys.js';
 
 const sc = (id) => scenarioById(id);
 const pp = (id) => `−${sc(id).labour_share_fall_pp.toFixed(1)}pp`;
@@ -52,7 +51,9 @@ export const INPUTS = [
   { group: 'Model parameters', input: 'Households: 80 ages, seven earnings groups', value: '20–99', kind: 'default', how: 'OG-UK’s defaults.', src: ['ogukParams'] },
   { group: 'Model parameters', input: 'Employer NICs as a payroll tax', value: '15%', kind: 'default', how: 'OG-UK’s default payroll tax.', src: ['ogukParams'] },
   // fiscal rules and solver
-  { group: 'Fiscal rules and solver', input: `Common rule; debt rule from ${LATE_YEAR}`, value: `tG1 = ${SET.tg1}`, kind: 'choice', how: 'OG-UK’s default is 4. Not an OBR rule.', src: ['tg1', 'rerunNote'] },
+  // tG1 = 10: periods from the 2026 baseline start, so 2036, in both data
+  // sets (review round 2, R2-02); never the 2027 run's internal 9
+  { group: 'Fiscal rules and solver', input: `Common rule; debt rule from ${LATE_YEAR}`, value: 'tG1 = 10', kind: 'choice', how: 'OG-UK’s default is 4. Not an OBR rule.', src: ['tg1', 'rerunNote'] },
   { group: 'Fiscal rules and solver', input: 'Fixed spending', value: '—', kind: 'choice', how: 'A choice on Explore; no OBR source is cited for it.', src: ['fiscalRules'] },
   { group: 'Fiscal rules and solver', input: 'Debt-neutral transfers', value: `Debt on path ${SURPRISE_YEAR + 1}–${LATE_YEAR}`, kind: 'choice', how: 'Households receive or pay the fiscal effect through transfers.', src: ['fiscalRules'] },
   { group: 'Fiscal rules and solver', input: 'Debt repricing speed (sensitivity)', value: '—', kind: 'external', how: 'The OBR’s October 2026 debt interest ready reckoner: 26% in year one, 50% by year six.', src: ['efoOct', 'pr43'] },

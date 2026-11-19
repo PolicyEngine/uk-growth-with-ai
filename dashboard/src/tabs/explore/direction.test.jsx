@@ -15,6 +15,7 @@ import { whySigns } from '@/tabs/cohorts/CohortsTab.jsx';
 import WhoGainsTab from '@/tabs/cohorts/CohortsTab.jsx';
 import { sensClaims } from '@/tabs/explore/SensitivityTable.jsx';
 import { ruleSolved } from '@/tabs/ai/surprise.js';
+import { cohortSurprise } from '@/lib/dataTestUtils.js';
 
 afterEach(cleanup);
 
@@ -151,8 +152,12 @@ describe('Who gains: what drives the result, every claim from the signs', () => 
       for (const arm of ['tfp', 'zfixed', 'stress'])
         it(`${cl}, ${rule}, ${arm}`, () => {
           const x = whySigns(cl, rule, arm);
-          const r = val('uk_central', SARM[arm], cl, 'r_bp', rule);
-          const w = val('uk_central', SARM[arm], cl, 'w', rule);
+          // the surprise file of the cohort's own year (R2-03)
+          const CS = cohortSurprise();
+          const rec = (rule === 'common' ? CS.results : CS.rules[RULE_KEY[rule]].results).uk_central[SARM[arm]][cl];
+          const cv = (v) => (rec?.status === 'done' ? rec.gaps[v][CS.years.indexOf(CS.headline_year)] : null);
+          const r = cv('r_bp');
+          const w = cv('w');
           const c = CO.closures[cl].rules[rule][arm];
           const c0 = c.c_gap[String(CO.shock_year)];
           if (r != null) expect(Math.sign(x.r)).toBe(Math.sign(r));

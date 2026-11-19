@@ -39,6 +39,7 @@ const ALLOW = [
   ['lib/dataKeys.js', '2028: {', 'the per-set table'],
   ['lib/dataKeys.js', '2027: {', 'the per-set table'],
   ['lib/dataKeys.js', 'SETS[2028]', 'the 2028 set is the fallback'],
+  ['lib/dataKeys.js', 'const SURPRISE_BY_YEAR = { 2028: S2028, 2027: S2027 };', 'the surprise file of each cohort year (R2-03)'],
   ['components/ab/SiteFooter.jsx', '&copy; 2026 PolicyEngine', 'the copyright year'],
   ['tabs/ai/financesInfo.js', 'export const OGUK_TG1_YEAR = 2030;', 'a fixed model default (R1-23: stays)'],
   ['tabs/code/history.js', "'AI becomes an unanticipated 2028 shock from one 2027 start. Headline year 2031.'", 'a dated history entry: the 12 Nov design'],

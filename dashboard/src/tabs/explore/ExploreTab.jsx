@@ -11,6 +11,7 @@ import { PagePill } from '@/components/ui/SettingsBar.jsx';
 import { useNav, subOf, NavLink } from '@/lib/nav.jsx';
 import { pickersFor } from '@/lib/labels.js';
 import { HEADLINE_YEAR, SURPRISE_YEAR } from '@/tabs/ai/surprise.js';
+import { cohortNotice } from '@/lib/dataKeys.js';
 import { economyAnswer } from '@/tabs/explore/answers.js';
 import Finding from '@/components/ui/Finding.jsx';
 import { financesFinding } from '@/tabs/ai/financesInfo.js';
@@ -91,7 +92,7 @@ export default function ExploreTab() {
   else if (sub === 'who')
     body = (
       <>
-        <PageIntro row={<Row sub="who" />} notes={[DATE_NOTE]} question="Who gains and who loses, by birth year and lifetime earnings?" answer={<WhoFinding closure={st.closure} rule={st.wrule} arm={st.arm} />} />
+        <PageIntro row={<Row sub="who" />} notes={[cohortNotice() ?? DATE_NOTE]} question="Who gains and who loses, by birth year and lifetime earnings?" answer={<WhoFinding closure={st.closure} rule={st.wrule} arm={st.arm} />} />
         <div id="explore-sub-who-inner">
           <WhoGainsTab />
         </div>

@@ -109,7 +109,13 @@ const cap = (t) => `${t.charAt(0).toUpperCase()}${t.slice(1)}`;
 // three this card shows; debt/GDP's line is the AcrossDebt card's), the
 // first measure's line first. Measures with the same case and factors
 // merge with "and".
+// A factor with no like-for-like rows (a block not solved yet, as on the
+// partial 2027 file) has spread 0 and would lose every comparison: no
+// "moves X most" line is drawn then (review round 2, R2-04).
+export const DRIVERS_PENDING = 'Not every choice is solved yet, so no comparison is drawn';
 export function drivers(arm, vs = ['Y', 'GNI', 'w']) {
+  if (vs.some((v) => Object.values(spreads(arm, v)).some((f) => f.rows === 0)))
+    return [{ choice: 'pending', kind: 'pending', measures: vs, text: DRIVERS_PENDING }];
   const groups = [];
   for (const v of vs) {
     const g = gate(spreads(arm, v));

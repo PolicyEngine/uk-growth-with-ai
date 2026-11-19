@@ -351,7 +351,7 @@ export function AcrossDebt() {
         icon={iconFor('debt')}
         title={`Debt/GDP gap in ${HEADLINE_YEAR}, every case`}
         // item 37: debt/GDP's "moves most" line, from the Economy card, gated the same way
-        finding={drivers(arm, ['debt_gdp_pp'])[0]?.text ? `${drivers(arm, ['debt_gdp_pp'])[0].text}.` : null}
+        finding={drivers(arm, ['debt_gdp_pp'])[0]?.kind !== 'pending' && drivers(arm, ['debt_gdp_pp'])[0]?.text ? `${drivers(arm, ['debt_gdp_pp'])[0].text}.` : null}
         controls={<Pill className="is-card" title="Options for this table" name={`Debt/GDP gap in ${HEADLINE_YEAR}, every case`} sections={[versionSection(st, set, true)]} />}
         unit={<span data-axis-title="y">{`Gap against the OBR’s central forecast path, percentage points of GDP. The debt chart above runs to ${LATE_YEAR}.`}</span>}
         legend={<MatrixKey story={false} note={solvedNote(arm, m.v)} />}

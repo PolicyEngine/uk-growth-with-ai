@@ -1,6 +1,7 @@
 // Who gains prints what cohorts2028.json holds and follows its control bar
 // and the header's closure.
 import { afterEach, describe, expect, it } from 'vitest';
+import { cohortSurprise } from '@/lib/dataTestUtils.js';
 import { cleanup, render } from '@testing-library/react';
 import D from '@/data/cohorts2028.json';
 import WhoGainsTab, { cell, pct, tileRange, dnfullFor, whoAnswer, whoFindingOf, RETURN_LINE, byFormLead, whyTokens, consumptionWords, earningsWords, payWords, stressWords, HORIZON_YEAR } from '@/tabs/cohorts/CohortsTab.jsx';
@@ -275,9 +276,11 @@ describe('the welfare breakdown lead', () => {
 describe('What drives the result', () => {
   const SARM = { tfp: 'tfp', zfixed: 'tz', stress: 'ss' };
   const RK = { dn: 'debt_neutral' };
+  // the surprise file of the cohort's own year (R2-03)
   const sgap = (cl, rule, arm, v, year) => {
-    const r = (rule === 'common' ? S.results : S.rules[RK[rule]].results).uk_central[SARM[arm]][cl];
-    return r.gaps[v][S.years.indexOf(year)];
+    const CS = cohortSurprise();
+    const r = (rule === 'common' ? CS.results : CS.rules[RK[rule]].results).uk_central[SARM[arm]][cl];
+    return r.gaps[v][CS.years.indexOf(year === S.headline_year ? CS.headline_year : year)];
   };
   for (const cl of ['zk0.1', 'zk0'])
     for (const rule of ['dn', 'common'])

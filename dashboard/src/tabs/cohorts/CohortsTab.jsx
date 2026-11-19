@@ -11,7 +11,7 @@ import { profileOf, windowIncomeOf, windowIncomeAge } from '@/lib/dataKeys.js';
 import { revealAnchor } from '@/lib/scroll.js';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
-import { gap, HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
+import { cohortGap as gap } from '@/lib/dataKeys.js';
 import { Lead } from '@/tabs/explore/direction.jsx';
 import Pill from '@/components/ui/Pill.jsx';
 import { useNav, WG_GROUPS, NavLink } from '@/lib/nav.jsx';
@@ -371,14 +371,15 @@ export function Headline({ c, rule, cl, arm, measure = 'M' }) {
 }
 
 // The aggregate signs behind the Why cards, from the same OG-UK solves
-// (surprise2028.json, UK central, headline year): the interest rate and the
+// (the surprise file of the cohort's own year, lib/dataKeys.js cohortGap;
+// UK central, headline year): the interest rate and the
 // pay rate for the arm, closure and rule in view, and aggregate consumption
 // in the shock year (cohorts2028.json). Every direction word and arrow on
 // the cards is computed from these signs.
 const SURPRISE_ARM = { tfp: 'tfp', zfixed: 'tz', stress: 'ss' };
 export function whySigns(cl, rule, arm) {
   const c = cell(cl, rule, arm);
-  const g = (a, v) => gap('uk_central', SURPRISE_ARM[a], cl, v, HEADLINE_YEAR, rule);
+  const g = (a, v) => gap('uk_central', SURPRISE_ARM[a], cl, v, rule);
   return {
     r: g(arm, 'r_bp'),
     w: g(arm, 'w'),
@@ -408,7 +409,7 @@ export function consumptionWords(cl, rule, arm) {
   const c = cell(cl, rule, arm);
   const x = whySigns(cl, rule, arm);
   const t = whyTokens(cl, rule, arm);
-  const inv = gap('uk_central', SURPRISE_ARM[arm], cl, 'I', t.shockYear, rule);
+  const inv = gap('uk_central', SURPRISE_ARM[arm], cl, 'I', rule, t.shockYear);
   const below = x.c0 < 0;
   const lead = below ? (t.cAboveYear ? 'Consumption falls below the forecast path first, then rises above it.' : 'Consumption stays below the forecast path.') : 'Consumption starts above the forecast path.';
   const s1 = below ? (x.r > 0 && inv > 0 ? 'Households save more as the return on capital rises, so they spend less at first.' : 'Households spend less at first.') : `Households spend more from ${t.shockYear}.`;
@@ -461,7 +462,7 @@ export function payWords(cl, rule, arm) {
           ],
         };
   }
-  const debt = gap('uk_central', SURPRISE_ARM[arm], cl, 'debt_gdp_pp', t.debtRuleYear);
+  const debt = gap('uk_central', SURPRISE_ARM[arm], cl, 'debt_gdp_pp', 'common', t.debtRuleYear);
   const cost = debt != null && debt > 0;
   return {
     lead: cost ? 'No household pays the fiscal cost: public debt takes it, then government consumption.' : 'No household is charged: public debt takes the fiscal effect, then government consumption.',
