@@ -12,7 +12,8 @@ import { Items, WhyChain } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from './IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
-import { METHOD, RULES as RULE_NAMES } from '@/lib/labels.js';
+import { METHOD, MEASURE, RULES as RULE_NAMES } from '@/lib/labels.js';
+import { ADOPTION, ADOPTION_YEAR, CALENDAR, overlapShares, pctRange, tfpInput } from '@/lib/obrOverlap.js';
 import { S, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, foreignShareOf } from '@/tabs/ai/surprise.js';
 import { SET } from '@/lib/dataKeys.js';
 import { REPO, URLS, issue, pr } from '@/tabs/ai/links.js';
@@ -26,6 +27,16 @@ import UsedBy from './UsedBy.jsx';
 import { SRC } from './sources.js';
 
 const cite = (k) => ext(SRC[k].url, SRC[k].label);
+
+// The OBR overlap, sized (issue #27; obr-overlap-fable.md, "keep and
+// disclose"): every figure from lib/obrOverlap.js and the data. The upper
+// case goes by its role, so the list reads as one sentence.
+const OVERLAP_NAME = { korinek: 'the upper case' };
+const overlapList = () => {
+  const xs = overlapShares().map((x) => `${x.words} of ${OVERLAP_NAME[x.sid] ?? x.name}’s`);
+  return xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}` : (xs[0] ?? '');
+};
+const CENTRAL_TFP = tfpInput('uk_central');
 
 // OG-UK method, one page: the model, the shock, the scenarios (inputs, arms
 // and timing), closures and income measures, fiscal rules and public
@@ -80,7 +91,7 @@ function ClosureCards() {
         <Items
           items={[
             { icon: 'foreign', text: 'Share of excess capital demand met from abroad, not of added capital.' },
-            { icon: 'gni', text: `${FOREIGN_DK != null && FOREIGN_DK < 50 ? 'Some' : 'Most'} added capital is foreign-owned: national income (GNI) trails GDP.` },
+            { icon: 'gni', text: `${FOREIGN_DK != null && FOREIGN_DK < 50 ? 'Some' : 'Most'} added capital is foreign-owned: ${MEASURE.GNI.name.toLowerCase()} (${MEASURE.GNI.abbr}) trails GDP.` },
             { icon: 'rule', text: <>OG-Core&rsquo;s US default, chosen by the study ({cite('closureMemo')}).</> },
           ]}
         />
@@ -129,8 +140,8 @@ const FOREIGN_DK = (() => {
 
 const MEASURES = [
   { k: 'GDP', icon: 'gdp', t: 'Output produced in the UK', d: `The stress test holds it at the OBR’s central forecast path in ${HEADLINE_YEAR}.` },
-  { k: 'GNI', icon: 'gni', t: 'Income UK residents keep', d: 'GDP less the return paid on foreign-owned capital and gilts.' },
-  { k: 'NNI', icon: 'depreciation', t: 'Net national income: GNI after depreciation', d: 'GNI − δK, with δ = 0.065 a year (OG-UK default parameters).', href: SRC.ogukParams.url },
+  { k: 'NNI', icon: 'gni', t: MEASURE.NNI.title, d: 'The income UK residents keep: GNI − δK, with δ = 0.065 a year (OG-UK default parameters). It leads the headline figures.', href: SRC.ogukParams.url },
+  { k: 'GNI', icon: 'depreciation', t: MEASURE.GNI.title, d: 'GDP less the return paid on foreign-owned capital and gilts, before depreciation.' },
 ];
 
 // The three fiscal rules: name and one-line meaning from lib/labels.js (the
@@ -201,7 +212,15 @@ function Limitations() {
         </>
       ),
     },
-    { title: 'Possible double counting', text: <>the forecast path has the {ext(SRC.bp9B14.url, 'OBR’s AI')} ({ext(issue(27), 'issue #27')}).</> },
+    {
+      title: 'Productivity overlaps the OBR’s',
+      text: (
+        <>
+          the forecast path already has the {ext(SRC.bp9B14.url, 'OBR’s AI productivity')}, about {pctRange(ADOPTION)} by year {ADOPTION_YEAR}
+          {CENTRAL_TFP != null ? `, against +${CENTRAL_TFP.toFixed(1)}% in UK central` : ''}. Inputs are not net of it, so adding a gap to the OBR&rsquo;s forecast counts that part twice ({ext(issue(27), 'issue #27')}).
+        </>
+      ),
+    },
     { title: 'Perfect foresight', text: `from ${SURPRISE_YEAR} everyone knows the path; no precautionary saving.` },
     { title: 'Substitution fixed at one', text: 'the labour share follows γ exactly.' },
     { title: 'No markups', text: 'wages and rents equal marginal products.' },
@@ -388,9 +407,19 @@ export default function MethodTab() {
                   items={[
                     { icon: 'forecast', text: <>Forecast path: OG-UK&rsquo;s path, set to the OBR&rsquo;s central forecast, which already includes the OBR&rsquo;s own assumption about AI ({cite('bp9B14')}; {cite('efoOct127')}).</> },
                     { icon: 'ai', text: <>Its trend productivity growth is 1% a year, from the March 2026 EFO ({cite('efoMarPath')}).</> },
-                    { icon: 'path', text: 'So every result is AI beyond that path, not against no AI.' },
+                    { icon: 'scenario', text: 'Each scenario’s sizes are published estimates of AI’s whole effect, against no AI. They are not net of the OBR’s own.' },
+                    {
+                      icon: 'path',
+                      text: (
+                        <>
+                          The OBR&rsquo;s path already has about {pctRange(ADOPTION)} of AI productivity by year {ADOPTION_YEAR} of adoption ({cite('bp9B14')}, Chart B.4), and no labour-share shift ({cite('frs87')}). Over the calendar years {SURPRISE_YEAR}–{HEADLINE_YEAR} its curves add {pctRange(CALENDAR)}.
+                        </>
+                      ),
+                    },
+                    { icon: 'compare', text: `So the labour-share shift is all extra to the OBR’s path. The productivity gain is only partly extra: on the adoption clock the path already has ${overlapList()}.` },
                     { icon: 'debt', text: <>Spending is set so 2030 debt/GDP matches the OBR&rsquo;s March 2026 forecast ({cite('efoMarDebt')}; {cite('debtTarget')}).</> },
-                    { icon: 'compare', text: 'Every gap is against that path, restarted without the extra AI.' },
+                    { icon: 'compare', text: 'Every gap is against that path, restarted without the scenario’s inputs.' },
+                    { icon: 'range', text: `For the gap against the OBR’s own forecast, read between the main version and “technology unchanged”, which has the share shift and no productivity gain${CENTRAL_TFP != null ? `: for UK central that equals netting all of its +${CENTRAL_TFP.toFixed(1)}%` : ''}.` },
                   ]}
                 />
               }
@@ -519,7 +548,7 @@ export default function MethodTab() {
                       icon: 'start',
                       text: (
                         <>
-                          Restarted without the extra AI, the model must reproduce the OBR’s central forecast path, {SURPRISE_YEAR}–{LATE_YEAR}: within 10<sup>−4</sup> for GDP, capital and debt/GDP, 10<sup>−3</sup> for the rest.
+                          Restarted without the scenario’s inputs, the model must reproduce the OBR’s central forecast path, {SURPRISE_YEAR}–{LATE_YEAR}: within 10<sup>−4</sup> for GDP, capital and debt/GDP, 10<sup>−3</sup> for the rest.
                         </>
                       ),
                     },

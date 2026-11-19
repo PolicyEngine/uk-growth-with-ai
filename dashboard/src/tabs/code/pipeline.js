@@ -72,7 +72,7 @@ analysis/surprise/driver.sh check nics \\
     short: 'Continuation gate',
     title: 'The continuation gate',
     file: `${SET.outputDir}/zk0.1/GATE_continuation.json`,
-    line: 'A restart without the extra AI must reproduce the OBR’s central forecast path: every gap’s zero.',
+    line: 'A restart without the scenario’s inputs must reproduce the OBR’s central forecast path: every gap’s zero.',
     more: [
       `GDP, capital and debt/GDP must match within 10⁻⁴, ${SURPRISE_YEAR}–${LATE_YEAR}.`,
       'The rest must match within 10⁻³.',

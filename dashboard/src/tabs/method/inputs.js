@@ -6,6 +6,7 @@
 // default parameter, no UK estimate behind it), choice (a modelling choice,
 // not from a published source), external (an external source, linked).
 import { scenarioById, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, RAMP_WORD } from '@/tabs/ai/surprise.js';
+import { ADOPTION, ADOPTION_YEAR, pctRange } from '@/lib/obrOverlap.js';
 
 const sc = (id) => scenarioById(id);
 const pp = (id) => `−${sc(id).labour_share_fall_pp.toFixed(1)}pp`;
@@ -31,11 +32,11 @@ export const INPUTS = [
   { group: 'Scenarios', input: 'Stress test: GDP held at the OBR’s central forecast path', value: `GDP gap 0 in ${HEADLINE_YEAR}`, kind: 'choice', how: 'After the OBR’s displacement scenario, GDP unchanged. The 0.01pp tolerance is a modelling choice.', src: ['efoMarBox22'] },
   { group: 'Scenarios', input: 'Which pairs, the three arms, the headline', value: '—', kind: 'choice', how: 'The study’s design.', src: ['calibNote', 'fiscalRules'] },
   // timing
-  { group: 'Timing', input: 'Extra AI starts as a surprise; one starting point', value: `${SURPRISE_YEAR}; ${FIRST_YEAR}`, kind: 'choice', how: `No published source sets ${SURPRISE_YEAR}.`, src: ['surpriseYear'] },
+  { group: 'Timing', input: 'The scenario’s AI starts as a surprise; one starting point', value: `${SURPRISE_YEAR}; ${FIRST_YEAR}`, kind: 'choice', how: `No published source sets ${SURPRISE_YEAR}.`, src: ['surpriseYear'] },
   { group: 'Timing', input: `Linear ${RAMP_WORD}-year ramp to full weight`, value: `${SURPRISE_YEAR}–${HEADLINE_YEAR}`, kind: 'choice', how: 'No published source; the IMF’s adoption path is convex.', src: ['rampWeights'] },
   { group: 'Timing', input: 'Perfect foresight after the surprise', value: '—', kind: 'choice', how: 'OG-Core’s time path iteration.', src: ['fiscalRules'] },
   // the baseline
-  { group: 'Baseline', input: 'Trend productivity growth', value: '1% a year', kind: 'published', how: 'The forecast path uses the March 2026 EFO’s trend. It includes the OBR’s central AI effect.', src: ['efoMarPath', 'bp9B14'] },
+  { group: 'Baseline', input: 'Trend productivity growth', value: '1% a year', kind: 'published', how: `The forecast path uses the March 2026 EFO’s trend. It includes the OBR’s central AI effect: about ${pctRange(ADOPTION)} on productivity by year ${ADOPTION_YEAR}; scenario inputs are not net of it.`, src: ['efoMarPath', 'bp9B14'] },
   { group: 'Baseline', input: '2030 debt/GDP target', value: 'OBR March 2026', kind: 'published', how: 'Government consumption is set so 2030 debt/GDP equals the OBR’s forecast; only that point is matched.', src: ['efoMarDebt', 'debtTarget'] },
   { group: 'Baseline', input: 'Vintage', value: 'March 2026', kind: 'external', how: 'The forecast path uses the March 2026 EFO; the growth check on Evidence uses October 2026.', src: ['efoMarPath', 'efoOctA1'] },
   { group: 'Baseline', input: 'Demographics', value: '—', kind: 'external', how: 'UN World Population Prospects, read by OG-Core through a GitHub mirror; not an OBR or ONS projection.', src: ['unWpp', 'popData'] },
@@ -77,7 +78,7 @@ const SHORT = {
   'UK high: labour-share fall': ['OBR upper-end path 1.78pp, rescaled × 65/40 = 2.89pp', ['uk_high', 'labour_share']],
   'Korinek et al., substantial (US): labour share and TFP': ['The ‘substantial’ scenario, a US case for 2030; the upper case', ['korinek', 'both']],
   'Stress test: GDP held at the OBR’s central forecast path': ['Named after the OBR’s displacement scenario, GDP unchanged; it matches the OBR on GDP only', null],
-  'Trend productivity growth': ['OBR March 2026 EFO; includes the OBR’s central AI effect', null],
+  'Trend productivity growth': [`OBR March 2026 EFO; includes the OBR’s central AI effect, about ${pctRange(ADOPTION)} on productivity by year ${ADOPTION_YEAR}; scenario inputs are not net of it`, null],
   '2030 debt/GDP target': ['Spending set so 2030 debt/GDP matches the OBR’s forecast', null],
   Vintage: ['March 2026 EFO; the growth check uses October 2026', null],
   Demographics: ['UN World Population Prospects, via OG-Core; not OBR or ONS', null],
