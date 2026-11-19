@@ -81,6 +81,12 @@
   line-height: 1.35;
   color: var(--pe-gray-700);
 }
+/* the assumed rise behind a waterfall row, under its budget effect (Maria M2) */
+.p3-row-sub {
+  display: block;
+  font-size: var(--t-label);
+  color: var(--pe-gray-600);
+}
 .p3-row-value {
   font-size: var(--t-ui);
   font-weight: 600;
@@ -2963,4 +2969,10 @@ a.lens-pay-num:hover {
   .p3-close-card.is-snap .p3-out tbody {
     transition: none !important;
   }
+}
+
+/* the waterfall's budget key (Maria M2): at the story's label size, not
+   the shared legend's meta size, which is under the 13px floor here */
+#p3-channels .ch-legend {
+  font-size: var(--t-label);
 }

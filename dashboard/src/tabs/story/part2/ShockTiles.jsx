@@ -78,7 +78,7 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
   const capDelay = (st) => (forward && s === st ? settleMs(st, shock, lead) + 100 : 0);
   const line2 =
     ch == null
-      ? 'This solve is pending for the foreign-capital case chosen above.'
+      ? 'This scenario is not yet solved for the foreign-capital case chosen above.'
       : N === 0
         ? `No new small tiles: GDP is ${dirWord(ch.gdp)} the forecast path.`
         : (
@@ -93,7 +93,12 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
     ? [
         `Magnified strip before the shock: ${RL * WIN} small tiles of labour income, 10 of capital income.`,
         `${M} small tiles have crossed from labour income to capital income.`,
-        ch ? `After the shift, ${N} new small tiles: ${NL} on labour income, ${NK} on capital income.` : `${M} small tiles have crossed from labour income to capital income; the added output is pending.`,
+        // under 5 new tiles the split is not drawn as one (R1-18): no split in the label either
+        ch
+          ? N < 5
+            ? `After the shift, ${N} new small ${N === 1 ? 'tile' : 'tiles'}.`
+            : `After the shift, ${N} new small tiles: ${NL} on labour income, ${NK} on capital income.`
+          : `${M} small tiles have crossed from labour income to capital income; the added output is not yet solved.`,
       ][Math.min(s, 2)]
     : '';
   return (
@@ -177,7 +182,7 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
         </>
       ) : (
         <p className="p2-pending">
-          <Tx icon="provisional">The forecast path for this foreign-capital case is pending.</Tx>
+          <Tx icon="provisional">The forecast path for this foreign-capital case is not yet solved.</Tx>
         </p>
       )}
     </figure>

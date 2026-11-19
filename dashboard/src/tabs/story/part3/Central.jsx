@@ -49,7 +49,10 @@ const FACTS = [
     key: 'cost',
     value: fmtBn(H.central_cost.value),
     label: 'cost to government, a year',
-    sub: `varies across runs by about ${fmtBn(H.central_cost.sd)}`,
+    // the spread is across random draws of who loses their job, not across
+    // assumptions (Maria M2; the SD of the draws in the data): said in full
+    // in the figure's notes, the fact keeps to 12 words
+    sub: `varies by about ${fmtBn(H.central_cost.sd)} across draws`,
   },
   {
     key: 'poverty',
@@ -247,6 +250,10 @@ function CentralSource() {
         {
           title: 'How it’s counted',
           notes: [
+            {
+              icon: 'draws',
+              text: 'The cost’s spread is across random draws of who loses their job, not across assumptions.',
+            },
             { icon: 'poverty', text: <>After housing costs, absolute poverty {fmtPp(H.central_poverty_ahc.value)}.</> },
             {
               icon: 'takeUp',

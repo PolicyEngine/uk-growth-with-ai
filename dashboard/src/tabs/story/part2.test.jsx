@@ -275,7 +275,7 @@ describe('each state of each graphic', () => {
     expect(st[2].strip).toBe(st[0].strip);
     const input = real.scenarios.find((x) => x.id === 'uk_central').labour_share_fall_pp.toFixed(1);
     expect(st[1].caps).toEqual([`AI moves ${input} of every 100 tiles of output from labour to capital: ${sh.M} small tiles cross. Its size is an assumption for each scenario.`]);
-    expect(st[2].caps[1]).toBe('This solve is pending for the foreign-capital case chosen above.');
+    expect(st[2].caps[1]).toBe('This scenario is not yet solved for the foreign-capital case chosen above.');
   });
 });
 

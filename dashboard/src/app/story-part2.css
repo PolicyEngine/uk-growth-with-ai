@@ -1035,6 +1035,11 @@
 .p2-end-label.is-zero {
   font-weight: 400;
 }
+/* a scenario's inputs under its name (Maria M2): same size, plain, grey */
+.p2-end-sub {
+  font-weight: 400;
+  fill: var(--pe-gray-600);
+}
 
 /* 2A, the GDP canvas */
 .p2-canvas-box {
