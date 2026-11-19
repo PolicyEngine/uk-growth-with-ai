@@ -83,7 +83,7 @@ def test_cohorts2027_carries_2027_dates():
     assert d["shock_year"] == 2027 and "2027 surprise" in d["what"]
     keys = _keys(d)
     assert not [k for k in keys if re.search(r"2028", k)], "2028 in a key name"
-    assert "profile_2027" in keys and "income_2027_35_age45" in keys
+    assert "profile_2027" in keys and "income_2027_35_age45" in keys and "wealth_by_age_2027" in keys
     for cl in d["closures"].values():
         for rule in cl["rules"].values():
             for arm in rule.values():

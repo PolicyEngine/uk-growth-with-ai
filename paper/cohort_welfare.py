@@ -438,6 +438,36 @@ def wealth_concentration(closure: str, year: int = SHOCK_YEAR) -> dict:
     return {"top_tenth_pct": (1 - share(0.9)) * 100, "bottom_half_pct": share(0.5) * 100}
 
 
+def wealth_by_age(closure: str) -> dict:
+    """Average household assets by age (all lifetime-earnings groups, weighted by
+    their population shares): at the start of the shock year (b_s, predetermined,
+    so the same in every arm: checked), at its end (b_sp1) and in the headline
+    year, for the no-shock reference and each arm.  Model units (detrended);
+    `ratio_to_adult_mean` is assets at each age over the population-weighted mean
+    over all adults at the start of the shock year, so the age profile can be read
+    without units."""
+    par, runs = load(closure)
+    gw = group_weights(par)
+    t0, th = T0, sp.window(SHOCK_YEAR)["headline_year"] - START_YEAR
+    by_age = lambda x: x @ gw
+    ref = runs[None]
+    start = by_age(ref["b_s"][t0])
+    for key in labels(closure):
+        if not np.array_equal(runs[key]["b_s"][t0], ref["b_s"][t0]):
+            raise WelfareError(f"{closure} {key}: start-of-{SHOCK_YEAR} assets differ from the reference")
+    om = par["omega"][t0]
+    mean = float(om @ start / om.sum())
+    arms = {key_str(k): k for k in labels(closure)}
+    return {"age": (np.arange(len(start)) + FIRST_AGE).tolist(), "units": "model units, detrended",
+            "start_of_shock_year": start.tolist(),
+            "ratio_to_adult_mean": (start / mean).tolist(),
+            "end_of_shock_year": {"reference": by_age(ref["b_sp1"][t0]).tolist(),
+                                  **{n: by_age(runs[k]["b_sp1"][t0]).tolist() for n, k in arms.items()}},
+            "headline_year": sp.window(SHOCK_YEAR)["headline_year"],
+            "at_headline_year": {"reference": by_age(ref["b_s"][th]).tolist(),
+                                 **{n: by_age(runs[k]["b_s"][th]).tolist() for n, k in arms.items()}}}
+
+
 def fill_sensitivity(closure: str, scenario: str = SCENARIO) -> dict:
     """max |hold - ss| over groups, by birth year, per key; and the first birth year above 0.01pp."""
     par, _ = load(closure, scenario)
@@ -919,6 +949,12 @@ def dashboard(source: str = "") -> dict:
         C = {"birth_year": b[m].tolist(), "group_weights": gw.tolist(),
              "wealth_concentration": {k: r3(v) for k, v in wealth_concentration(cl).items()},
              f"profile_{SHOCK_YEAR}": {k: [r3(x) for x in v] for k, v in group_profile(cl).items()},
+             f"wealth_by_age_{SHOCK_YEAR}": (lambda wa: {
+                 **wa, "start_of_shock_year": [r4(x) for x in wa["start_of_shock_year"]],
+                 "ratio_to_adult_mean": [r3(x) for x in wa["ratio_to_adult_mean"]],
+                 "end_of_shock_year": {k: [r4(x) for x in v] for k, v in wa["end_of_shock_year"].items()},
+                 "at_headline_year": {k: [r4(x) for x in v] for k, v in wa["at_headline_year"].items()}}
+             )(wealth_by_age(cl)),
              "reconcile_c_max_pp": float(max(reconcile(cl).values())),
              "rules": {}}
         for v in VARIANTS:
