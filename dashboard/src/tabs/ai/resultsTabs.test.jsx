@@ -55,15 +55,25 @@ describe('Results follows the data file', () => {
     // named once in a line linked there
     const income = text('sub=income&closure=both');
     expect(income.match(/\+1\.23%/g)).toHaveLength(1);
-    // that line sits behind the card's "Sources and notes", under "How to read"
-    expect(income.match(/headline figures, at home in the story/g)).toBeNull();
+    // that line sits in the card's closed More info, under "How to read"
+    // (the shell, push C: every word in More info, links behind the book)
+    {
+      const { container, unmount } = at('sub=income&closure=both');
+      const fold = container.querySelector('#measures [data-more-info]');
+      expect(fold.closest('.disclosure-content').hidden).toBe(true);
+      expect(fold.textContent.match(/headline figures, at home in the story/g)).toHaveLength(1);
+      expect(income.match(/headline figures, at home in the story/g)).toHaveLength(1);
+      unmount();
+    }
     {
       const { container, unmount } = at('sub=income&closure=both');
       const b = container.querySelector('#measures button.src-line-btn');
       fireEvent.click(b);
       const pop = document.getElementById(b.getAttribute('aria-controls')).textContent;
-      expect(pop).toContain('How to read');
-      expect(pop.match(/headline figures, at home in the story/g)).toHaveLength(1);
+      // the book icon holds links only; the words are in More info
+      expect(pop).not.toContain('How to read');
+      expect(pop).toContain('Method: Closures and income measures');
+      expect(pop.match(/headline figures, at home in the story/g)).toBeNull();
       unmount();
     }
     expect(income).toContain('no foreign capital pending');
@@ -140,7 +150,9 @@ describe('tooltips', () => {
     // every chart on the page says so too, and none prints a figure
     expect(other.all).not.toMatch(/[+−]\d+\.\d+(%|pp)/);
     const low = page('sub=finances&s=uk_low&rule=fixed').card;
-    expect(low).toContain('UK low is not solved under fixed spending.');
+    // the lead is title-level: no full stop (Vahid, 18 Nov)
+    expect(low).toContain('UK low is not solved under fixed spending');
+    expect(low).not.toContain('UK low is not solved under fixed spending.');
     expect(low).toContain('Fixed spending is solved for UK central and Korinek et al., substantial (US) only');
     // the common rule has nothing to compare: no box
     expect(page('sub=finances&s=uk_central').card).toBeNull();
@@ -149,7 +161,11 @@ describe('tooltips', () => {
     const words = [...c2.querySelectorAll('#fiscal-rule .finding-lead, #fiscal-rule .finding-lines li')].map((e) => e.textContent);
     u2();
     expect(words[0]).toMatch(/^Under fixed spending, debt\/GDP ends (higher|lower|where)/);
-    expect(words.every((w) => /\.$/.test(w) && !/\d\.\d/.test(w))).toBe(true);
+    // the lead is title-level, with no full stop (Vahid, 18 Nov); every line
+    // under it is a sentence that ends in one
+    expect(/\.$/.test(words[0])).toBe(false);
+    expect(words.slice(1).every((w) => /\.$/.test(w))).toBe(true);
+    expect(words.every((w) => !/\d\.\d/.test(w))).toBe(true);
   });
 
   it('the rule and the arms are in the address', async () => {

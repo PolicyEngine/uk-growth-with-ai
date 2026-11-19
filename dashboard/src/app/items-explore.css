@@ -156,14 +156,12 @@
   gap: 12px;
 }
 .ex-chip {
+  /* text, not a box (review round 1, R1-19): no border, fill or radius */
   display: flex;
   flex-wrap: wrap;
   gap: 4px 8px;
   align-items: center;
-  padding: 12px 14px;
-  border: 1px solid var(--card-border);
-  border-radius: 10px;
-  background: var(--pe-surface);
+  padding: 0;
   font-size: var(--fs-body);
   line-height: 1.35;
   color: var(--pe-gray-800);
@@ -229,7 +227,6 @@
     gap: 8px;
   }
   .ex-chip {
-    padding: 10px;
     font-size: var(--fs-small);
   }
 }
@@ -499,6 +496,12 @@
   font-size: var(--fs-micro);
   color: var(--pe-gray-500);
 }
+/* Who gains' four tiles, each with its own small chart: two a row at every
+   width (review round 1, R1-24; at most two panels a row). Three classes,
+   so it wins over .stat-row.cols-4 in every media query. */
+.stat-row.cols-4.ex-who-tiles {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
 .ex-who-tiles .stat-tile {
   display: flex;
   flex-direction: column;
@@ -634,10 +637,9 @@
   flex-wrap: wrap;
   gap: 4px 16px;
 }
+/* a link as text, not a pill (R1-19) */
 .ex-linkchip {
-  padding: 2px 8px;
-  border: 1px solid var(--card-border);
-  border-radius: 999px;
+  padding: 0;
 }
 /* visuals grow in once drawn (not under reduced motion) */
 @media (prefers-reduced-motion: no-preference) {
@@ -708,7 +710,7 @@
   }
   .db-arm-short {
     max-width: 54px;
-    font-size: 11px;
+    font-size: var(--chart-fs-tick);
   }
   .db-side-long {
     display: none;
@@ -747,9 +749,6 @@
   gap: 8px 20px;
   margin: 4px 0 12px;
 }
-.ex-wall-head .control-bar {
-  margin: 0;
-}
 .ex-wall-key {
   display: flex;
   flex-wrap: wrap;
@@ -771,28 +770,6 @@
   margin: 0 0 6px;
   font-size: var(--chart-fs-sub);
   color: var(--pe-gray-700, #374151);
-}
-.ex-wall-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 20px;
-  margin: 0 0 12px;
-  padding: 0;
-  list-style: none;
-  font-size: var(--chart-fs-label);
-  font-weight: 600;
-  color: var(--pe-gray-800, #1f2937);
-}
-.ex-wall-legend li {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-.ex-wall-swatch {
-  display: inline-block;
-  width: 22px;
-  height: 2.5px;
-  border-radius: 2px;
 }
 .ex-wall {
   display: grid;
@@ -921,6 +898,8 @@
 .ex-slope-legend line { stroke-width: 2.5; stroke-linecap: round; }
 .ex-slope-legend li.is-sel { font-weight: 600; color: var(--pe-gray-900, #111); }
 .ex-slope-legend li.is-sel line { stroke-width: 4; }
+.ex-slope-legend li.is-sel .ch-swatch { border-top-width: 4px; }
+.card-legend > .ex-slope-legend { margin: 0; }
 .ex-slope-panel {
   margin: 0;
   min-width: 0;
@@ -1020,7 +999,7 @@
   table-layout: fixed;
 }
 .ex-mx th {
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   color: var(--pe-gray-600, #4b5563);
   text-align: center;
@@ -1069,7 +1048,7 @@
   border-radius: 6px;
   background: var(--pe-surface, #fff);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   color: var(--pe-gray-800, #1f2937);
   cursor: pointer;
@@ -1101,7 +1080,7 @@
   animation: ex-fade 250ms var(--story-ease, ease-out) both;
 }
 .ex-mx-val.is-home {
-  font-size: 11px;
+  font-size: var(--chart-fs-tick);
   font-weight: 500;
   color: var(--pe-gray-600, #4b5563);
   gap: 3px;
@@ -1111,7 +1090,7 @@
 }
 .ex-mx-solved {
   font-weight: 400;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-500, #6b7280);
 }
 .ex-mx-key {
@@ -1121,7 +1100,7 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-600, #4b5563);
 }
 .ex-mx-key li {
@@ -1140,10 +1119,10 @@
 @media (max-width: 560px) {
   .ex-mx { border-spacing: 2px; }
   .ex-mx-corner { width: 25%; }
-  .ex-mx-btn { padding: 3px 4px; font-size: 11px; flex-direction: column; justify-content: center; gap: 1px; }
+  .ex-mx-btn { padding: 3px 4px; font-size: var(--chart-fs-tick); flex-direction: column; justify-content: center; gap: 1px; }
   .ex-mx-cell { height: 48px; }
   .ex-mx-val .ex-dir { display: none; }
-  .ex-mx th { font-size: 11px; }
+  .ex-mx th { font-size: var(--chart-fs-tick); }
 }
 
 /* More foreign capital: dot rows */
@@ -1160,13 +1139,13 @@
   min-height: 24px;
 }
 .ex-sd-colhead {
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   color: var(--pe-gray-700, #374151);
 }
 .ex-sd-scen {
   margin: 8px 0 2px;
-  font-size: 13px;
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   color: var(--pe-gray-800, #1f2937);
 }
@@ -1180,7 +1159,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-600, #4b5563);
 }
 .ex-sd-cell {
@@ -1197,7 +1176,7 @@
   background: linear-gradient(var(--c-grid), var(--c-grid)) center / 100% 1px no-repeat;
 }
 .ex-sd-cell.is-pending {
-  font-size: 11px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-500, #6b7280);
   border: 0;
 }
@@ -1218,7 +1197,7 @@
 }
 .ex-sd-val {
   text-align: right;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   color: var(--pe-gray-800, #1f2937);
   white-space: nowrap;
@@ -1232,13 +1211,13 @@
 .ex-sd-tick {
   position: absolute;
   transform: translateX(0);
-  font-size: 11px;
+  font-size: var(--chart-fs-tick);
   color: var(--c-tick, #6b7280);
 }
 @media (max-width: 700px) {
   .ex-sd-row { grid-template-columns: 72px repeat(4, minmax(0, 1fr)); gap: 0 8px; }
-  .ex-sd-arm { font-size: 11px; line-height: 1.15; }
-  .ex-sd-val { font-size: 11px; }
+  .ex-sd-arm { font-size: var(--chart-fs-tick); line-height: 1.15; }
+  .ex-sd-val { font-size: var(--chart-fs-tick); }
   .ex-sd-cell { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .ex-sd-val { text-align: left; }
   .ex-sd-cell .ex-sd-track { height: 12px; }
@@ -1301,7 +1280,7 @@
   align-items: center;
   gap: 6px;
   margin-bottom: 8px;
-  font-size: 13px;
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   color: var(--pe-gray-800, #1f2937);
 }
@@ -1347,7 +1326,7 @@
   table-layout: fixed;
 }
 .ex-hm th {
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   color: var(--pe-gray-600, #4b5563);
   text-align: center;
@@ -1395,7 +1374,7 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-600, #4b5563);
   font-variant-numeric: tabular-nums;
 }
@@ -1429,7 +1408,7 @@
   align-items: center;
   gap: 5px;
   margin: 4px 0;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-700, #374151);
   font-variant-numeric: tabular-nums;
 }
@@ -1440,7 +1419,7 @@
   margin-top: 20px;
 }
 @media (max-width: 560px) {
-  .ex-hm th { font-size: 10px; }
+  .ex-hm th { font-size: var(--chart-fs-tick); }
   .ex-hm { border-spacing: 2px; }
   .ex-hm-cell { height: 24px; }
   .ex-hm-corner { width: 30px; }
@@ -1458,7 +1437,7 @@
 @media (max-width: 560px) {
   .ex-mx-long { display: none; }
   .ex-mx-short { display: inline; }
-  .ex-mx-rowhead { padding-left: 2px !important; font-size: 11px !important; }
+  .ex-mx-rowhead { padding-left: 2px !important; font-size: var(--chart-fs-tick) !important; }
   .ex-mx-corner { width: 21%; }
 }
 @media (max-width: 700px) {
@@ -1533,7 +1512,7 @@
   gap: 4px;
   align-items: center;
   padding: 1px 8px;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   font-weight: 500;
   white-space: nowrap;
   color: var(--pe-gray-700);
@@ -1571,7 +1550,7 @@
   display: inline-flex;
   gap: 4px;
   align-items: center;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   font-weight: 500;
   white-space: nowrap;
   color: var(--c-gain-text);
@@ -1673,7 +1652,7 @@
 }
 .hh-ticks-ov span {
   position: absolute;
-  font-size: 11px;
+  font-size: var(--chart-fs-tick);
   line-height: 1;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -1753,7 +1732,7 @@
 .hh-off-val {
   position: absolute;
   transform: translateY(-100%);
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   white-space: nowrap;
   color: var(--pe-gray-900);
@@ -1771,7 +1750,7 @@
   align-items: center;
 }
 .hh-list-head {
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   text-align: right;
   color: var(--pe-gray-500);
 }
@@ -1816,7 +1795,7 @@
 .hh-list-group {
   margin-top: 8px;
   padding-top: 8px;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-600);
   border-top: 1px solid var(--card-border);
 }
@@ -1840,7 +1819,7 @@
   min-height: 28px;
   padding: 2px 4px;
   font: inherit;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-600);
   background: none;
   border: 0;
@@ -1885,7 +1864,7 @@
   display: grid;
   grid-template-columns: repeat(2, 5.4em);
   column-gap: 10px;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   text-align: right;
   color: var(--pe-gray-500);
 }
@@ -1931,7 +1910,7 @@
   gap: 6px;
   align-items: center;
   margin: 6px 0 0;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-600);
 }
 
@@ -1987,7 +1966,7 @@
   display: grid;
   gap: 2px;
   padding: 10px;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-600);
   border: 1px solid var(--card-border);
   border-radius: 8px;
@@ -2099,7 +2078,7 @@
 .hh-db-ticks span {
   position: absolute;
   transform: translateX(-50%);
-  font-size: 11px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-500);
 }
 .hh-db-label {
@@ -2228,10 +2207,10 @@
 .hh-pol-sub li {
   display: grid;
   gap: 2px;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
 }
 .hh-pol-sub .hh-pol-nums {
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   font-weight: 500;
 }
 .hh-pol-sub-label {
@@ -2304,7 +2283,7 @@
 /* round 2: plain dots with direct labels (C13) */
 .hh-pt-lab {
   position: absolute;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   line-height: 1.2;
   white-space: nowrap;
   color: var(--pe-gray-700);
@@ -2332,7 +2311,7 @@
 }
 .hh-pp-basis,
 .hh-group-name {
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   color: var(--pe-gray-600);
 }
@@ -2363,12 +2342,12 @@
 .linechart .zero-note { font-size: 10.5px; fill: var(--pe-color-gray-600); paint-order: stroke; stroke: var(--pe-color-bg-primary, #fff); stroke-width: 3px; stroke-linejoin: round; }
 
 /* Axis titles for HTML charts (AxisTitles) */
-.ex-axis-titles { display: flex; align-items: flex-start; gap: 6px; margin: 0 0 8px; font-size: 12px; line-height: 1.4; color: var(--pe-color-gray-600); }
+.ex-axis-titles { display: flex; align-items: flex-start; gap: 6px; margin: 0 0 8px; font-size: var(--chart-fs-tick); line-height: 1.4; color: var(--pe-color-gray-600); }
 .ex-axis-titles > svg { flex: none; margin-top: 2px; }
 .ex-axis-titles [data-axis-title] { font-weight: 600; color: var(--pe-color-gray-700, #344054); }
 
 /* Households plane axis titles (SVG) */
-.hh-axis-title { font-size: 11px; fill: var(--pe-color-gray-600); }
+.hh-axis-title { font-size: var(--chart-fs-tick); fill: var(--pe-color-gray-600); }
 
 /* More foreign capital (zeta_K 0.5): the heatmap grid */
 .ex-sg-wrap { max-height: 70vh; overflow: auto; }
@@ -2391,8 +2370,8 @@
   border-bottom: 1px solid var(--pe-gray-300, #d1d5db);
   vertical-align: bottom;
 }
-.ex-sg thead th.ex-sg-corner { text-align: left; font-weight: 400; color: var(--pe-gray-500); font-size: 12px; }
-.ex-sg-unit { display: block; font-size: 12px; font-weight: 400; color: var(--pe-gray-500); }
+.ex-sg thead th.ex-sg-corner { text-align: left; font-weight: 400; color: var(--pe-gray-500); font-size: var(--chart-fs-tick); }
+.ex-sg-unit { display: block; font-size: var(--chart-fs-tick); font-weight: 400; color: var(--pe-gray-500); }
 .ex-sg-group th {
   text-align: left;
   padding: 12px 6px 4px;
@@ -2403,7 +2382,7 @@
 .ex-sg tbody:first-of-type .ex-sg-group th { border-top: 0; }
 .ex-sg-implaus {
   margin-left: 8px;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   font-weight: 400;
   color: var(--pe-teal-700, #0f766e);
   text-decoration: underline;
@@ -2431,6 +2410,8 @@
 .ex-sg-cell .ex-sd-val { font-size: 14px; font-weight: 600; }
 .ex-sg-dir { display: inline-flex; margin-left: 2px; color: var(--pe-gray-500); vertical-align: -1px; }
 .ex-sg-flagnote, .ex-sg-lead, .ex-sg-def { margin: 4px 0; font-size: 14px; }
+/* in More info the definition lines are spans in one row: each on its own line */
+.ex-sg-def { display: block; }
 /* the More info fold (item 14): the units line last, as the card's unit line */
 .ex-sg-more-unit { margin-top: 12px; }
 .ex-sg-flagnote { display: flex; gap: 8px; align-items: flex-start; }
@@ -2439,13 +2420,13 @@
 @media (max-width: 560px) {
   .ex-sg-wrap { max-height: none; overflow: visible; }
   .ex-sg-held { display: none; }
-  .ex-sg { font-size: 12px; }
+  .ex-sg { font-size: var(--chart-fs-tick); }
   .ex-sg-arm .ex-sd-flag { margin-left: 1px; }
   .ex-sg thead th, .ex-sg-cell, .ex-sg-arm { padding: 4px 2px; }
-  .ex-sg thead th.ex-sg-corner { font-size: 11px; }
-  .ex-sg-cell .ex-sd-val { font-size: 11px; }
+  .ex-sg thead th.ex-sg-corner { font-size: var(--chart-fs-tick); }
+  .ex-sg-cell .ex-sd-val { font-size: var(--chart-fs-tick); }
   .ex-sg-cell { border-width: 1.5px; }
-  .ex-sg-arm { white-space: nowrap; font-size: 11px; }
+  .ex-sg-arm { white-space: nowrap; font-size: var(--chart-fs-tick); }
   .ex-sg-arm .swatch { width: 8px; margin-right: 3px; }
   .ex-sg-dir { margin-left: 0; }
   .ex-sg-implaus { display: block; margin: 2px 0 0; }
@@ -2574,7 +2555,7 @@
   right: 0;
   bottom: -16px;
   left: 0;
-  font-size: 11px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-500);
   text-align: center;
 }
@@ -3000,7 +2981,7 @@
   .ex-cl-zero-label,
   .ex-mi-note,
   .ex-mi-src {
-    font-size: 13px;
+    font-size: var(--chart-fs-tick);
   }
   .ex-mi-lead,
   .ex-mi-text,
@@ -3032,7 +3013,6 @@
   color: var(--pe-gray-700, #374151);
 }
 .ex-fin-more-line b { font-weight: 600; color: var(--pe-gray-800, #1f2937); }
-.card .card-legend .ex-wall-legend { margin: 4px 0 0; }
 /* an open More info lengthens its own card only: the other chart keeps its
    height, so its legend stays under its chart */
 .cards-grid > #debt-gdp, .cards-grid > #tax-gdp { align-self: start; }

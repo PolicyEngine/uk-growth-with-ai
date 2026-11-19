@@ -33,17 +33,25 @@ const tabs = [
 // A tab's text: its innerText with `hide` set aside, then the figures'
 // notes kept behind their "Sources and notes" buttons (SourceLine.jsx
 // renders them hidden, [data-source-notes]): a caveat may be a number's
-// one home, so it is read as present though collapsed.
-function readTab([id, hide]) {
+// one home, so it is read as present though collapsed. Then, after a
+// MORE_MARK line, the text of every closed "More info" fold
+// ([data-more-info], components/ui/MoreInfo.jsx; item-36-fable.md §1.3): a
+// definition, a draw count or a period may have its one home there. An
+// open fold is already in innerText and is not read twice.
+// check_numbers.py counts the printed figures before the mark.
+const MORE_MARK = '[[more info]]';
+function readTab([id, hide, mark]) {
   document.querySelectorAll(hide).forEach((e) => { e.style.display = 'none'; });
   const el = document.getElementById(id);
   if (!el) return '';
-  const notes = [...el.querySelectorAll('[data-source-notes]')].map((n) => {
+  const flat = (n) => {
     const c = n.cloneNode(true);
     c.querySelectorAll(hide).forEach((x) => x.remove());
     return c.textContent.replace(/\s+/g, ' ').trim();
-  });
-  return [el.innerText, ...notes].join('\n');
+  };
+  const notes = [...el.querySelectorAll('[data-source-notes]')].map(flat);
+  const more = [...el.querySelectorAll('[data-more-info]')].filter((n) => n.closest('[hidden]')).map(flat).filter(Boolean);
+  return [el.innerText, ...notes, ...(more.length ? [mark, ...more] : [])].join('\n');
 }
 const res = {};
 for (const s of ['uk_low', 'uk_central', 'uk_high', 'korinek']) {
@@ -72,16 +80,16 @@ for (const s of ['uk_low', 'uk_central', 'uk_high', 'korinek']) {
       continue;
     }
     // Axis ticks are scale, not data: hidden before reading the text.
-    res[s][t] = await page.evaluate(readTab, [elId, '[data-axis]']);
+    res[s][t] = await page.evaluate(readTab, [elId, '[data-axis]', MORE_MARK]);
     if (hh) {
       // as the story: quoted inputs (data-input) are not results
-      res[s][t] = await page.evaluate(readTab, [elId, '[data-axis], [data-input]']);
+      res[s][t] = await page.evaluate(readTab, [elId, '[data-axis], [data-input]', MORE_MARK]);
     }
     if (story) {
       const el = sub === 'summary' ? 'story-part-2' : `story-${sub.replace('part', 'part-')}`;
       // Story: axis ticks and inputs quoted from the data's text (data-input:
       // a rate or limit printed inside a definition) are not results.
-      res[s][t] = await page.evaluate(readTab, [el, '[data-axis], [data-input]']);
+      res[s][t] = await page.evaluate(readTab, [el, '[data-axis], [data-input]', MORE_MARK]);
     }
   }
 }

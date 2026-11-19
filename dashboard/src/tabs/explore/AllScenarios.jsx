@@ -16,7 +16,6 @@ import { Lead } from './direction.jsx';
 import { side } from '@/tabs/ai/lines.js';
 import { MEASURES, ROWS, cellsTable, cellValue, drivers } from './cells.js';
 import SensitivityTable from './SensitivityTable.jsx';
-import Disclosure from '@/components/ab/Disclosure.jsx';
 import { sourcesItems } from './sources.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS } from '@/tabs/ai/links.js';
@@ -221,25 +220,17 @@ function MatrixKey({ story = true, note }) {
 // The key's sentences, in More info: how to read the cells first, then
 // `children` (the card's other lines), then the caveat on which rules are
 // solved where, one paragraph per rule (each under 25 words).
-function MatrixMore({ story = true, note, children }) {
-  return (
-    <>
-      <h4 className="ex-more-head">How to read</h4>
-      <p className="ex-more-p">The outlined cell is the case the charts show; click another to show it.{story ? ' Grey values are the story’s headline.' : ''}</p>
-      {children}
-      {note ? (
-        <>
-          <h4 className="ex-more-head">Caveats</h4>
-          {note.split('; ').map((t) => (
-            <p key={t} className="ex-more-p">
-              {t}.
-            </p>
-          ))}
-        </>
-      ) : null}
-    </>
-  );
+// The matrix cards' More info (item 36): how to read the grid, what each
+// cell is against, then the solved-cells note as caveats (Card.jsx
+// cardMore puts the rows under How to read and `notes` under Caveats).
+function matrixRows({ story = true, extra = [] }) {
+  return [
+    { label: 'How it is drawn', text: `The outlined cell is the case the charts show; click another to show it.${story ? ' Grey values are the story’s headline.' : ''}` },
+    ...extra,
+    { label: 'Compared with', text: 'Each cell against the OBR’s central forecast path for its own foreign-capital case.' },
+  ];
 }
+const noteLines = (note) => (note ? note.split('; ').map((t) => `${t}.`) : null);
 
 export default function AllScenarios() {
   // the arm is the one store's (&arm=, lib/nav.jsx), shared with the page pill
@@ -278,21 +269,16 @@ export default function AllScenarios() {
             ]}
           />
         }
-        unit={<span data-axis-title="y">{`% gap against the OBR’s forecast path, ${HEADLINE_YEAR}`}</span>}
+        unit={<span data-axis-title="y">{`${m.label}: % gap vs forecast path, ${HEADLINE_YEAR}`}</span>}
         legend={<MatrixKey note={solvedNote(arm, m.v)} />}
-        foot={
-          // item 37: which choice moves each measure (gated in cells.js,
-          // item-37-fable.md) and the full caption, behind one closed fold
-          // (the item 14 component); the chosen measure's line first
-          <div className="ex-sg-more">
-            <Disclosure inCard id="across-more" title="More info">
-              <MatrixMore note={solvedNote(arm, m.v)}>
-                <Items className="ex-notes" items={drivers(arm, [v, ...ECON.map((x) => x.v).filter((x) => x !== v)]).map((d) => ({ key: `${d.kind}-${d.measures.join('')}`, icon: d.kind === 'still' ? 'onPath' : d.kind === 'lead' ? d.choice : 'compare', text: d.text }))} />
-                <p className="card-unit ex-sg-more-unit">{`${m.label} gap in ${HEADLINE_YEAR} against the OBR’s central forecast path for the same foreign-capital case, %`}</p>
-              </MatrixMore>
-            </Disclosure>
-          </div>
-        }
+        // item 37: which choice moves each measure (gated in cells.js,
+        // item-37-fable.md), the chosen measure's line first, in the card's
+        // one closed More info
+        moreId="across-more"
+        more={matrixRows({
+          extra: [{ label: 'What moves it', text: <Items className="ex-notes" items={drivers(arm, [v, ...ECON.map((x) => x.v).filter((x) => x !== v)]).map((d) => ({ key: `${d.kind}-${d.measures.join('')}`, icon: d.kind === 'still' ? 'onPath' : d.kind === 'lead' ? d.choice : 'compare', text: d.text }))} /> }],
+        })}
+        notes={noteLines(solvedNote(arm, m.v))}
         about={{
           caveats: (
             <Items
@@ -353,15 +339,11 @@ export function AcrossDebt() {
         // item 37: debt/GDP's "moves most" line, from the Economy card, gated the same way
         finding={drivers(arm, ['debt_gdp_pp'])[0]?.text ? `${drivers(arm, ['debt_gdp_pp'])[0].text}.` : null}
         controls={<Pill className="is-card" title="Options for this table" name={`Debt/GDP gap in ${HEADLINE_YEAR}, every case`} sections={[versionSection(st, set, true)]} />}
-        unit={<span data-axis-title="y">{`Gap against the OBR’s central forecast path, percentage points of GDP. The debt chart above runs to ${LATE_YEAR}.`}</span>}
+        unit={<span data-axis-title="y">{`Debt/GDP: pp gap vs forecast path, ${HEADLINE_YEAR}`}</span>}
         legend={<MatrixKey story={false} note={solvedNote(arm, m.v)} />}
-        foot={
-          <div className="ex-sg-more">
-            <Disclosure inCard id="debt-cells-more" title="More info">
-              <MatrixMore story={false} note={solvedNote(arm, m.v)} />
-            </Disclosure>
-          </div>
-        }
+        moreId="debt-cells-more"
+        more={matrixRows({ story: false, extra: [{ label: 'Period', text: `This table is ${HEADLINE_YEAR}; the debt chart above runs to ${LATE_YEAR}.` }] })}
+        notes={noteLines(solvedNote(arm, m.v))}
         sources={sourcesItems({ method: 'rules' })}
         download={{
           title: `Debt/GDP, every scenario, foreign-capital case and budget assumption, ${HEADLINE_YEAR}`,

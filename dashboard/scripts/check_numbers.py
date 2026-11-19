@@ -19,6 +19,12 @@ import json, os, re, sys
 from collections import Counter
 
 dump = json.load(open(sys.argv[1]))
+# dumptabs.mjs appends each closed "More info" fold's text after this mark
+# (item-36-fable.md §1.3). The counts below are of the printed figures, so
+# they read the text before it; the fold's text stays in the dump for the
+# checks that only need a figure to be present.
+MORE_MARK = '[[more info]]'
+dump = {sid: {k: (v.split(MORE_MARK)[0] if isinstance(v, str) else v) for k, v in tabs.items()} for sid, tabs in dump.items()}
 D = json.load(open(sys.argv[2] if len(sys.argv) > 2 else 'src/data/surprise2028.json'))
 Y = D['years']; H = D['headline_year']; LATE = D['late_year']
 ARMS = [a['id'] for a in D['arms']]

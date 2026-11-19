@@ -132,6 +132,8 @@ for (const [name, path] of Object.entries(PAGES)) {
       for (const el of panel.querySelectorAll('.finding-lead')) {
         const n = iconsIn(el).length;
         if (n > 1) out.push(`${where(el)} .finding-lead: ${n} icons (at most 1): ${text(el).slice(0, 60)}`);
+        // and, title-level, no full stop at the end (Vahid, 18 Nov)
+        if (/\.$/.test(text(el))) out.push(`${where(el)} .finding-lead ends in a full stop: ${text(el).slice(0, 60)}`);
       }
       // No non-breaking hyphen (U+2011) anywhere in rendered text, svg
       // included: Inter's subset lacks it, so it falls back to another font.
@@ -279,14 +281,16 @@ const TITLES = () => {
     const units = [...fig.querySelectorAll('.story-figure-unit, .ch-unit')].filter((u) => el.compareDocumentPosition(u) & Node.DOCUMENT_POSITION_FOLLOWING);
     // a panel head's own unit line: the next one after it, before the next head
     const unit = units.find((u) => shown(u)) ?? null;
-    const figUnit = [...fig.querySelectorAll('.story-figure-unit, .ch-unit')].map((u) => u.textContent).join(' ');
     out.push({
       where: el.closest('[id]')?.id ?? '',
       texts: read(el),
       fallback: el.hasAttribute('data-title-fallback'),
       group,
       unit: unit ? unit.textContent.replace(/\s+/g, ' ').trim() : '',
-      source: /ONS|OBR|OG-UK|IMF|DSIT|household study/.test(group ? figUnit : unit?.textContent ?? ''),
+      // the figure names its source by its model badge or its Sources and
+      // notes button, not in the unit line (item-36-fable.md §1.3: short
+      // units carry no source name)
+      source: !!fig.querySelector('.ch-badge, .model-line, [data-source-line], .src-line-btn'),
     });
   }
   return out;
@@ -333,7 +337,7 @@ const TITLES = () => {
     if (/\.$/.test(t)) why.push('a full stop at the end');
     if (/:/.test(t)) why.push('a colon');
     if (!r.unit) why.push('no data line after it');
-    else if (!r.source) why.push(`its data line names no source (${r.unit.slice(0, 50)})`);
+    else if (!r.source) why.push('its figure has no model badge and no Sources and notes button');
     if (why.length) bad.push(`${r.where}: "${t}": ${why.join('; ')}`);
   }
   total += bad.length;

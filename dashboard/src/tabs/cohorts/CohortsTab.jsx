@@ -274,6 +274,10 @@ function MeasureDots({ ms, measure }) {
           <span className="ex-mtoggle-name">
             {x.short}
             {x.tag ? <span className="ex-mtag"> ({x.tag})</span> : null}
+            {/* a no-break space ends the label, so the row's text never runs
+                the name into its figure (R1-21); a plain space would be
+                dropped at the end of a grid cell */}
+            {'\u00a0'}
           </span>
           <span className="ex-dd">{shareOf(x.losing)}</span>
         </li>
@@ -332,6 +336,7 @@ export function Headline({ c, rule, cl, arm, measure = 'M' }) {
             <li key={m.id} data-dnfull={m.id === 'BT' && m.full ? '' : undefined} className={m.id === measure ? 'is-on' : undefined}>
               <span className="ex-bar-code" title={m.def}>
                 {m.short}
+                {'\u00a0'}
               </span>
               <span className="ex-bar-track is-axis">
                 <span className="ex-axis-zero" style={{ left: apos(0) }} aria-hidden="true" />
@@ -502,7 +507,10 @@ function Bars({ rows, caption, signed = false }) {
       <ul className="ex-bars2-list" role="list" aria-labelledby={id}>
         {rows.map((r) => (
           <li key={r.key}>
-            <span className="ex-bars2-label">{r.label}</span>
+            <span className="ex-bars2-label">
+              {r.label}
+              {'\u00a0'}
+            </span>
             <span className="ex-bars2-track" aria-hidden="true">
               {lo < 0 ? <span className="ex-bars2-zero" style={{ left: at(0) }} /> : null}
               <span className="ex-bars2-fill" style={{ left: at(Math.min(0, r.value)), width: `${((Math.abs(r.value) / span) * 100).toFixed(2)}%` }} />
@@ -568,7 +576,7 @@ function ConsLine({ c }) {
         </div>
         {end('end', last)}
       </div>
-      <figcaption className="ex-bars2-cap" data-axis-title="y">{`Consumption against the forecast path, %, ${first[0]}–${last[0]}`}</figcaption>
+      <figcaption className="ex-bars2-cap" data-axis-title="y">Consumption gap vs forecast path, %</figcaption>
     </figure>
   );
 }
@@ -732,7 +740,7 @@ function Why({ cl, rule, arm }) {
         <Finding icon="lifetimeEarnings" lead={B.lead} lines={B.lines} note={<JumpLink to="who-model-households">More info: how the model’s households compare with the UK</JumpLink>}>
           <Bars
             signed
-            caption={`Welfare change, % of remaining-lifetime consumption and bequests, adults alive in ${t.shockYear}`}
+            caption="% of remaining-lifetime consumption and bequests"
             rows={[
               { key: 'bot', label: bot, value: B.bot, text: pct(B.bot) },
               { key: 'top', label: top, value: B.top, text: pct(B.top) },
@@ -752,7 +760,7 @@ function Why({ cl, rule, arm }) {
         <Finding icon="young" lead={Dw.lead} lines={Dw.lines}>
           <Bars
             signed
-            caption="Welfare change in the stress test, % of remaining-lifetime consumption and bequests"
+            caption="% of remaining-lifetime consumption and bequests"
             rows={[
               { key: 'young', label: `Age ${FIRST_AGE} in ${t.shockYear}`, value: Dw.young, text: pct(Dw.young) },
               { key: 'old', label: `Age ${RULER_AGE} in ${t.shockYear}`, value: Dw.old, text: pct(Dw.old) },
@@ -917,10 +925,12 @@ export default function WhoGainsTab() {
           id="welfare-chart"
           icon={iconFor('path')}
           title="Welfare change by birth year"
-          finding={
-            <Lead c="scenario">{`${armLabel} · ${clWords} · ${rulePlain(rule)}`}</Lead>
-          }
-          unit={<Lead c="measure">Consumption-equivalent change, % of remaining-lifetime consumption and bequests</Lead>}
+          // item 36 (E9): the settings are the pill's and the page's; the
+          // chart's own y title is the one unit line
+          more={[
+            { label: 'Measure', text: 'Consumption-equivalent welfare change: the change in remaining-lifetime consumption and bequests that is worth the same to each household.' },
+            { label: 'Settings', text: `${armLabel}; ${clWords}; ${rulePlain(rule)}.` },
+          ]}
           controls={
             <Pill
               className="is-card"

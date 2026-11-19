@@ -32,7 +32,6 @@ import { sourcesItems } from '@/tabs/explore/sources.jsx';
 import { docItem, navItem } from '@/lib/sourceItems.js';
 import NICS from '@/tabs/explore/nics2028.json';
 import { AxisTitles } from '@/tabs/explore/axes.jsx';
-import Disclosure from '@/components/ab/Disclosure.jsx';
 import { OGUK_TG1_YEAR, debtTitle, taxTitle, debtMoreInfo, taxMoreInfo } from '@/tabs/ai/financesInfo.js';
 
 // Results > Public finances: debt/GDP to the debt rule's first year,
@@ -327,7 +326,7 @@ function TaxGapCard({ sid, closure, rule }) {
       id="tax-gap"
       icon={iconFor('limit')}
       title={TAX_TITLE}
-      controls={
+      lead={
         <Items
           className="ex-notes"
           items={[
@@ -339,30 +338,27 @@ function TaxGapCard({ sid, closure, rule }) {
           ]}
         />
       }
-      foot={
-        // item 40: the sized comparison, the legend sentence and the zero
-        // line's note, behind one closed fold (the item 14 component)
-        <div className="ex-fin-more">
-          <Disclosure inCard id="tax-gap-more" title="More info">
-            {sized ? (
-              <p className="ex-fin-more-line" data-claim="sized">
-                {sized.text}.{sized.kind === 'more' ? ' The scaling is the rate gap times the labour-share fall, with GDP, returns and consumption held fixed; it is an approximation, not a model run.' : ''}
-              </p>
-            ) : null}
-            {fall != null ? (
-              <p className="ex-fin-more-line" data-claim="legend">
-                <b>Model (OG-UK):</b> OG-UK’s tax/GDP gap, all AI effects included. <b>Scaled with OBR effective rates:</b> {OBR_PER_PP[0]}–{OBR_PER_PP[1]}pp of revenue per point of income shifted from labour to capital, times this scenario’s {HEADLINE_YEAR} labour-share fall of {Math.abs(ls).toFixed(1)} points (
-                <NavLink tab="explore" sub="economy" anchor="economy-prices">
-                  Economy
-                </NavLink>
-                ).
-              </p>
-            ) : null}
-            <p className="ex-fin-more-line" data-claim="zero">0 = the forecast path: the OBR’s central forecast, its own AI included.</p>
-          </Disclosure>
-        </div>
-      }
-      aboutTitle="About this estimate"
+      // item 40: the sized comparison, the legend sentence and the zero
+      // line's note, first in the card's one closed More info
+      moreId="tax-gap-more"
+      more={[
+        sized ? { key: 'sized', text: `${sized.text}.${sized.kind === 'more' ? ' The scaling is the rate gap times the labour-share fall, with GDP, returns and consumption held fixed; it is an approximation, not a model run.' : ''}` } : null,
+        fall != null
+          ? {
+              key: 'legend',
+              text: (
+                <>
+                  <b>Model (OG-UK):</b> OG-UK’s tax/GDP gap, all AI effects included. <b>Scaled with OBR effective rates:</b> {OBR_PER_PP[0]}–{OBR_PER_PP[1]}pp of revenue per point of income shifted from labour to capital, times this scenario’s {HEADLINE_YEAR} labour-share fall of {Math.abs(ls).toFixed(1)} points (
+                  <NavLink tab="explore" sub="economy" anchor="economy-prices">
+                    Economy
+                  </NavLink>
+                  ).
+                </>
+              ),
+            }
+          : null,
+        { key: 'zero', text: '0 = the forecast path: the OBR’s central forecast, its own AI included.' },
+      ]}
       about={{
         how:
           fall == null ? (
@@ -650,32 +646,9 @@ function FiscalRuleCard({ sid }) {
   );
 }
 
-// A chart's closed "More info" (item 17), the same fold as the zeta_K 0.5
-// card's (item 14): each group a short heading and its sentences, every
-// sentence gated in financesInfo.js; data-claim names each one for the
-// probe.
-function MoreInfo({ id, groups }) {
-  return (
-    <div className="ex-fin-more">
-      <Disclosure inCard id={id} title="More info">
-        {groups.map((g) => (
-          <div key={g.key} className="ex-fin-more-group" data-group={g.key}>
-            <p className="ex-fin-more-head">{g.title}</p>
-            {g.items.map((it) => (
-              <p key={it.key} className="ex-fin-more-line" data-claim={`${g.key}-${it.key}`}>
-                {it.head ? <b>{it.head}</b> : null}
-                {it.head ? ' ' : null}
-                {it.text}
-              </p>
-            ))}
-          </div>
-        ))}
-      </Disclosure>
-    </div>
-  );
-}
-
-const FIN_UNIT = 'pp of GDP, gap against the OBR’s central forecast path';
+// The debt and tax charts' one unit line (item 36: what the gap is against
+// in full, and the span, are in More info).
+const FIN_UNIT = 'Gap vs forecast path, pp of GDP';
 
 export default function FinancesSection({ sid }) {
   const { st } = useNav();
@@ -708,7 +681,8 @@ export default function FinancesSection({ sid }) {
           notes={debtNotes(debt)}
           markers={[{ year: SURPRISE_YEAR, label: 'AI starts' }, { year: LATE_YEAR, label: 'Debt rule' }]}
           bands={[]}
-          foot={<MoreInfo id="debt-more" groups={debtMoreInfo(sid, st.closure, st.rule)} />}
+          moreId="debt-more"
+          more={debtMoreInfo(sid, st.closure, st.rule)}
           about={{
             caveats: (
               <Items
@@ -739,7 +713,8 @@ export default function FinancesSection({ sid }) {
           unitLine={FIN_UNIT}
           markers={[{ year: SURPRISE_YEAR, label: 'AI starts' }]}
           bands={[]}
-          foot={<MoreInfo id="tax-more" groups={taxMoreInfo(sid, st.closure, st.rule)} />}
+          moreId="tax-more"
+          more={taxMoreInfo(sid, st.closure, st.rule)}
           sources={false}
           method="rules"
         />

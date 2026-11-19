@@ -70,7 +70,7 @@ export default function Timeline({ caption = true }) {
       {caption ? (
         <figcaption className="mx-fig-cap">
           <span className="mx-fig-title">The timing, {YEARS[0]}–{LATE_YEAR}</span>
-          <span className="mx-fig-sub">Bars: weight of the change in &gamma; and Z, from 0 (the forecast path) to 1 (full scenario)</span>
+          <span className="mx-fig-sub">Ramp weight of &gamma; and Z, 0 to 1</span>
         </figcaption>
       ) : null}
       <div className="mx-tl-phases" aria-hidden="true">
@@ -80,7 +80,7 @@ export default function Timeline({ caption = true }) {
       </div>
       <p className="mx-axis-title mx-tl-axis">
         <IconText icon="measure">
-          <span data-axis-title="y">Ramp weight of &gamma; and Z: 0 = the OBR&rsquo;s central forecast path, 1 = full scenario</span>
+          <span data-axis-title="y">Ramp weight of &gamma; and Z, 0 to 1</span>
         </IconText>
       </p>
       <ol className="mx-tl-cols">

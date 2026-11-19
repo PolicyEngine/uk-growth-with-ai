@@ -169,7 +169,7 @@ export default function InputsTable() {
           );
         })}
       </table>
-      <p className="mx-sub mx-inputs-foot">Derived: computed by this study from OBR or IMF figures, by a rule they do not publish. Open a row for its arithmetic.</p>
+      <p className="mx-sub mx-inputs-foot">Open a row for its arithmetic</p>
     </div>
   );
 }

@@ -728,9 +728,8 @@
   color: var(--t-muted);
 }
 .p1-vitals-chip {
+  /* text, not a pill (R1-19): no border, fill or radius */
   padding: 0 8px;
-  border: 1px solid var(--pe-gray-300, #d1d5db);
-  border-radius: 999px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--t-text);

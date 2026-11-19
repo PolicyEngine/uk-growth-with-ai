@@ -2,6 +2,7 @@ import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import ModelBadge from './ModelBadge.jsx';
 import { Essential } from '@/components/ui/SourceLine.jsx';
+import Legend from '@/components/ui/Legend.jsx';
 
 // The frame round a chart: model badge (and any head actions, e.g. Replay),
 // title (with the figure's one "Sources and notes" button after it,
@@ -30,19 +31,9 @@ import { Essential } from '@/components/ui/SourceLine.jsx';
 //     source={<SourceLine items={[…]} />}>
 //     <svg … />
 //   </Frame>
-export function Legend({ items, className = '' }) {
-  if (!items?.length) return null;
-  return (
-    <ul className={`ch-legend ${className}`.trim()}>
-      {items.map((l) => (
-        <li key={l.key} className={l.off ? 'is-off' : undefined}>
-          <span className={`ch-swatch${l.dashed ? ' is-dashed' : ''}${l.block ? ' is-block' : ''}`} style={{ '--sw': l.color }} aria-hidden="true" />
-          {l.label}
-        </li>
-      ))}
-    </ul>
-  );
-}
+// The legend is the shared one (components/ui/Legend.jsx); re-exported so
+// the story's imports do not change.
+export { Legend };
 
 function Foot({ legend, essential, sources }) {
   return (

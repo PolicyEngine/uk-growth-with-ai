@@ -189,7 +189,13 @@ function CostByTax() {
       icon="landmark"
       title="Cost by tax and benefit"
       finding={costWords(C.rows)}
-      unit={`Change in each line, £bn a year; positive is a cost. ${C.draws} draws`}
+      unit="Change in each line, £bn a year"
+      // item 36 (E11): the sign, the drawing and the draws in More info
+      more={[
+        { label: 'Measure', text: 'Positive is a cost.' },
+        { label: 'How it is drawn', text: 'Stacked from zero.' },
+        { label: 'Sample', text: `${C.draws} draws.` },
+      ]}
       download={{ context: CTX, table: { columns: ['line', 'cost_bn_mean', 'cost_bn_sd'], rows: C.rows.map((r) => [r.label, r.cost_bn, r.sd_bn]) } }}
       about={about({
         how: ['Each line: that item of the government balance, baseline to shocked', 'Averaged over the draws; the lines sum to the main-case cost'],
@@ -271,7 +277,12 @@ function Variants() {
       icon="layers"
       title="Every variant of the shock"
       finding={takeupWords().long}
-      unit="Cost, £bn a year, against absolute poverty, change. 20 paired draws each"
+      unit="Cost, £bn a year, against poverty change, pp"
+      more={[
+        { label: 'Measure', text: 'Absolute poverty before housing costs.' },
+        // the count from the variants drawn, not a literal (item 36, E12)
+        { label: 'Sample', text: `${[...new Set(xs.map((r) => r.draws))].join(' or ')} paired draws each.` },
+      ]}
       download={{
         context: CTX,
         table: { columns: ['variant', 'draws', 'cost_bn', 'poverty_bhc_pp', 'gini_pp'], rows: D.ladder.map((r) => [r.label, r.draws, r.cost_bn, r.poverty_pp, r.gini_pp]) },
@@ -342,7 +353,11 @@ function Rules() {
       icon="users"
       title="Five rules for who loses the job"
       finding={rulesWords(D.rules)}
-      unit={`Cost, £bn a year, against absolute poverty, change. ${rule('uniform').draws} paired draws each`}
+      unit="Cost, £bn a year, against poverty change, pp"
+      more={[
+        { label: 'Measure', text: 'Absolute poverty before housing costs.' },
+        { label: 'Sample', text: `${rule('uniform').draws} paired draws each.` },
+      ]}
       download={{
         context: CTX,
         table: { columns: ['rule', 'draws', 'cost_bn', 'cost_sd_bn', 'poverty_bhc_pp', 'gini_pp'], rows: D.rules.map((r) => [r.label, r.draws, r.cost_bn, r.cost_sd_bn, r.poverty_pp, r.gini_pp]) },
@@ -665,7 +680,12 @@ function Rankings() {
       icon="bars"
       title="Deciles under three rankings"
       finding={rankingsWords(R)}
-      unit={`Change in disposable income before housing costs, %, main case. ${D.deciles.draws} draws`}
+      unit="% change in disposable income, by decile"
+      more={[
+        { label: 'Measure', text: 'Disposable income before housing costs.' },
+        { label: 'Settings', text: 'The main case.' },
+        { label: 'Sample', text: `${D.deciles.draws} draws.` },
+      ]}
       download={{
         context: CTX,
         table: { columns: ['decile', ...R.map((r) => r.id)], rows: Array.from({ length: 10 }, (_, i) => [i + 1, ...R.map((r) => r.values[i])]) },
@@ -788,7 +808,11 @@ function Policy() {
       icon="handshake"
       title="Policy responses"
       finding={policyWords(main)}
-      unit={`Cost £bn a year; poverty and Gini changes, against the shocked world. ${P.rows[0].draws} draws`}
+      unit="Cost, £bn a year; poverty and Gini changes"
+      more={[
+        { label: 'Compared with', text: 'The shocked world, not today.' },
+        { label: 'Sample', text: `${P.rows[0].draws} draws.` },
+      ]}
       download={{
         context: CTX,
         table: {

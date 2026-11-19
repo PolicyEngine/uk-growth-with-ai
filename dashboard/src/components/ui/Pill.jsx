@@ -176,7 +176,7 @@ export default function Pill({ title, name, sections, className = '', align = 'l
       while (k < drop.length && el.scrollWidth > el.clientWidth + 1) {
         parts[drop[k]].setAttribute('hidden', '');
         k += 1;
-        moreEl.textContent = `${k} more`;
+        moreEl.textContent = ` ${k} more`;
         moreEl.removeAttribute('hidden');
       }
       setShown(parts.length - k);
@@ -320,13 +320,16 @@ export default function Pill({ title, name, sections, className = '', align = 'l
       >
         <Icon name="sliders" size={16} className="settings-chip-icon" />
         <span className="settings-chip-text" ref={text} aria-hidden="true">
-          {segs.map((x) => (
+          {/* a space before each later segment (the dot is CSS), so the
+              pill's text never runs two segments together (R1-21) */}
+          {segs.map((x, i) => (
             <span key={x.key} className="settings-chip-seg">
+              {i ? ' ' : null}
               {x.text}
             </span>
           ))}
           <span className="settings-chip-seg settings-chip-more" hidden>
-            {more ? `${more} more` : ''}
+            {more ? ` ${more} more` : ''}
           </span>
         </span>
         <Icon name="chevronDown" size={14} strokeWidth={2} className="settings-chip-chevron" />

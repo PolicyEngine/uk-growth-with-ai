@@ -3,6 +3,7 @@
 import { TipBox } from '@/components/ab/Tip.jsx';
 import { useHover } from '../shared/ui.jsx';
 import IconText from './IconText.jsx';
+import MoreInfo from '@/components/ui/MoreInfo.jsx';
 
 // The overlapping-generations idea: at any date many cohorts coexist, each at
 // a different stage of life. A schematic (bar heights are illustrative, not
@@ -45,8 +46,11 @@ export default function Cohorts() {
         ))}
       </div>
       <figcaption className="mx-fig-note">
-        <IconText icon="caveat">Earnings by age at one date; heights are illustrative. Cohorts and ability types: the Households block above.</IconText>
+        <IconText icon="caveat">Earnings by age at one date; heights illustrative</IconText>
       </figcaption>
+      {/* item 36 (M3): the pointer to the cohorts and ability types, in the
+          figure's one closed More info */}
+      <MoreInfo id="m-generations-more" groups={[{ key: 'read', title: 'How to read', items: [{ key: 'types', head: 'Cohorts and ability types', text: 'The Households block above.' }] }]} />
     </figure>
   );
 }

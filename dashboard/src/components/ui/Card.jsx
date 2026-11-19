@@ -7,17 +7,15 @@ import DownloadMenu from '@/components/ui/DownloadMenu.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { METHOD } from '@/lib/labels.js';
 import { iconFor } from '@/lib/concepts.js';
-import SourceLine, { Essential } from '@/components/ui/SourceLine.jsx';
+import SourceLine from '@/components/ui/SourceLine.jsx';
+import MoreInfo, { HEADS, asLines } from '@/components/ui/MoreInfo.jsx';
+import ModelLine from '@/components/ui/ModelLine.jsx';
+import StoryLink from '@/components/ui/StoryLink.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { fileItem, navItem } from '@/lib/sourceItems.js';
 
-// The one card. In fixed order: icon + title, with the card's one quiet
-// "Sources and notes" button after it (+ download), one sentence stating
-// the finding, the control bar, the plot, the legend, an optional essential
-// caveat line, the logo. Behind the button (components/ui/SourceLine.jsx):
-// the card's notes, then what was the "About this chart" fold, its
-// sections in a fixed order, then the sources (`sources`: items), the
-// Method section that explains the chart and the replication files.
+// The "About this chart" sections (AboutFold, and the Finding boxes'
+// sources popover, cardSources), in their fixed order.
 const ABOUT = [
   ['read', 'How to read'],
   ['shows', 'What it shows'],
@@ -86,52 +84,103 @@ export function AboutFold({ about, method, replication, title = 'About this char
 const asItems = (node) =>
   isValidElement(node) && node.type === Items ? (node.props.items ?? []).filter(Boolean).map((it) => ({ icon: it.icon, text: it.text })) : [node];
 
-// Everything secondary about a card, for its "Sources and notes" button.
+// Everything secondary about a card, for a "Sources and notes" button that
+// carries words as well as links (the Finding boxes; a Card's own button
+// carries links only, its words are in More info, cardMore).
 export function cardSources({ about, method, replication, sources = [], notes, read }) {
   const groups = [
     read?.length ? { title: 'How to read', notes: read.filter(Boolean).map((it) => ({ icon: it.icon, text: it.text })) } : null,
     notes?.length ? { title: 'Notes', notes: notes.filter(Boolean).map((it) => ({ icon: it.icon, text: it.text })) } : null,
     ...ABOUT.filter(([k]) => about?.[k]).map(([k, t]) => ({ title: t, notes: asItems(about[k]) })),
   ].filter(Boolean);
+  return { groups, items: cardLinks({ method, replication, sources }) };
+}
+
+// A card's links, for its book icon: the sources, the Method section that
+// explains the chart and the replication files.
+export function cardLinks({ method, replication, sources = [] }) {
   const m = METHOD[method];
-  const items = [
+  return [
     ...(sources ?? []),
     m && !(sources ?? []).some((it) => it?.nav?.anchor === m.id) ? navItem(`Method: ${m.label}`, 'method', m.id, 'how') : null,
     replication?.code ? fileItem('Replicate: code', replication.code, 'PolicyEngine') : null,
     replication?.result ? fileItem('Replicate: result file', replication.result, 'PolicyEngine') : null,
   ].filter(Boolean);
-  return { groups, items };
 }
 
+// A card's More info groups (components/ui/MoreInfo.jsx), in the fixed
+// order How to read · How it's calculated · Caveats · Sources:
+//   `more`: item 36's rows ({ label, text }: Measure, Compared with,
+//     Settings, Period, Sample, How it is drawn) go first under How to read;
+//     whole groups ({ key, title, items }, item 17's) keep their own titles
+//     and come before the fixed four;
+//   `read`, `about.read`, `about.shows`, `about.definitions`: How to read;
+//   `about.how`: How it's calculated;
+//   `about.caveats`, `notes`, `essential` (the old caveat line): Caveats.
+// `about.sources` (source words: file names, a cited release) stays behind
+// the book icon with the links (cardBook), so every chart card keeps its
+// one Sources and notes button (check_sources.mjs) and sources have one
+// home; the fixed Sources sub-head is for a caller's own group.
+export function cardMore({ more, about, read, notes, essential }) {
+  const list = Array.isArray(more) ? more.filter(Boolean) : more ? [more] : [];
+  const own = list.filter((g) => g.title && g.items);
+  const rows = list.filter((r) => !(r.title && r.items));
+  const fixed = {
+    read: [...asLines(rows, 'r'), ...asLines(read, 'h'), ...asLines(about?.read, 'a'), ...asLines(about?.shows, 's'), ...asLines(about?.definitions, 'd')],
+    how: asLines(about?.how, 'c'),
+    caveats: [...asLines(about?.caveats, 'v'), ...asLines(notes, 'n'), ...asLines(essential, 'e')],
+    sources: [],
+  };
+  return [...own, ...HEADS.map(([k, t]) => ({ key: k, title: t, items: fixed[k] }))].filter((g) => g.items?.length);
+}
+
+// The one card (consolidated-design-fable.md §2). Its slots, in order:
+//   1 the title: one plain icon, the title (a finding, no full stop), the
+//     book icon (the links and any source words) and the download icon at
+//     the end of the line;
+//   2 the model row: the model line (`model`, only where the card's model
+//     or settings differ from the page's) and the card's own chooser, the
+//     pill (`controls`);
+//   3 the lead (`lead`; `finding` is its older name): one sentence;
+//   4 the unit line (`unit`): what is plotted, its unit and span;
+//   5 the legend (`legend`): one shared row (components/ui/Legend.jsx);
+//   6 the chart (children);
+//   7 More info (`more`, `about`, `read`, `notes`, `essential`): closed;
+//   8 the story link (`story`: { anchor, name }), Explore and Method only.
+// The unit line and legend sit above the chart (Vahid, 18 Nov), so the
+// reader has the key before the marks. `foot` (a node after the chart) is
+// kept for the Households flags until item 24 rebuilds them.
 export default function Card({
-  id, icon, title, finding, unit, controls, legend, about, method, replication, download, logo = false, className = '', children, foot, sources, notes, read, essential,
+  id, icon, title, model, lead, finding, unit, controls, legend, about, method, replication, download, logo = false, className = '', children, foot, sources, notes, read, essential, more, moreId, story,
 }) {
   const ref = useRef(null);
-  const src = cardSources({ about, method, replication, sources, notes, read });
+  const links = cardLinks({ method, replication, sources });
+  const words = about?.sources ? [{ title: 'Sources', notes: asItems(about.sources) }] : [];
+  const groups = cardMore({ more, about, read, notes, essential });
+  const said = lead ?? finding;
   return (
     <article className={`card ${className}`} id={id} ref={ref}>
       <header className="card-head">
         <h3>
           {icon ? <Icon name={icon} size={18} className="card-icon" /> : null}
           <span>{title}</span>
-          {src.items.length || src.groups.length ? <SourceLine items={src.items} groups={src.groups} record={false} /> : null}
+          {links.length || words.length ? <SourceLine items={links} groups={words} record={false} /> : null}
         </h3>
         {download ? <DownloadMenu title={download.title ?? (typeof title === 'string' ? title : '')} cardRef={ref} {...download} /> : null}
       </header>
-      {controls}
-      {finding ? <div className="card-finding">{finding}</div> : null}
-      {unit ? <p className="card-unit">{unit}</p> : null}
-      {children ? <div className="chart-plot">{children}</div> : null}
-      {legend ? <div className="card-legend">{legend}</div> : null}
-      <Essential>{essential}</Essential>
-      {foot}
-      {/* the notes, hidden, for the page's number checks (a note may be a
-          number's one home); they show behind the button */}
-      {notes?.length || read?.length ? (
-        <div hidden data-source-notes="">
-          <Items items={[...(read ?? []), ...(notes ?? [])]} />
+      {model || controls ? (
+        <div className="card-model-row">
+          {model ? <ModelLine model={model} /> : null}
+          {controls}
         </div>
       ) : null}
+      {said ? <div className="card-finding card-lead">{said}</div> : null}
+      {unit ? <p className="card-unit">{unit}</p> : null}
+      {legend ? <div className="card-legend">{legend}</div> : null}
+      {children ? <div className="chart-plot">{children}</div> : null}
+      {foot}
+      <MoreInfo id={moreId ?? (id ? `${id}-more` : undefined)} groups={groups} />
+      <StoryLink {...(story ?? {})} />
       {logo ? (
         <div className="card-logo">
           {/* eslint-disable-next-line @next/next/no-img-element */}
