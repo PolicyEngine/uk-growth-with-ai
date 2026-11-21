@@ -10,6 +10,8 @@ import { YEARS, HEADLINE_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, gap, payLine, resu
 import { EPS2 } from './dir.js';
 
 const H = YEARS.indexOf(HEADLINE_YEAR);
+// the model's first adult age (cohort_welfare.py FIRST_AGE)
+const FIRST_ADULT_AGE = 20;
 
 // A ratio as words, or null outside the range a phrase fits.
 // The nearest of five fractions: "about" within 0.03 of it, otherwise
@@ -107,7 +109,13 @@ export function welfareWords() {
   const young = ages.length && Object.values(full.by_fill).every((f) => f.by_age?.[ages[0]]?.[0] < 0) ? ages[0] : null;
   const lose = full ? Math.min(...full.range.joint_losing_pct) : null;
   const loseNb = full ? Math.min(...full.range.no_bequest_losing_pct) : null;
-  return { bequests, consumption, young, lose: peopleWord(lose), loseNb: peopleWord(loseNb) };
+  // the age under which adults lose on average when transfers bear the
+  // cost (Fable round 7, S3): one more than the youngest fill's
+  // oldest_losing_on_average, so it holds for every fill (as the Explore
+  // tile's "Up to age" range starts); null unless every fill has one
+  const olds = full ? Object.values(full.by_fill ?? {}).map((f) => f.oldest_losing_on_average) : [];
+  const under = olds.length && olds.every((x) => Number.isInteger(x) && x >= FIRST_ADULT_AGE) ? Math.min(...olds) + 1 : null;
+  return { bequests, consumption, young, lose: peopleWord(lose), loseNb: peopleWord(loseNb), under };
 }
 
 // The share of adults alive in 2028 who lose, as a range over the measures

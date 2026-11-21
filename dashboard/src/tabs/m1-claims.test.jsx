@@ -223,9 +223,24 @@ describe('what the gain is made of (Maria’s point 4; item-18 “All 12 cells�
     // "from 2036", the year after the last charged year (item 21, row 4)
     const yr = Math.max(...Object.keys(c.c_gap).map(Number)) + 1;
     expect(debtRuleYear()).toBe(yr);
-    expect(whoNote().startsWith(`From ${yr} the cost falls on government consumption, which model households do not value`)).toBe(true);
-    // "about one in six" (Maria's point 4), from dnfull's lower losing share
-    if (CO.dnfull?.ready && CO.dnfull.closure === 'zk0.1') expect(whoNote()).toMatch(/; if transfers bear it, about one in \w+ adults lose\.$/);
+    const note = whoNote();
+    expect(note[0]).toBe(`From ${yr} the cost falls on government consumption, which model households do not value.`);
+    // each block at most 25 words (check_text)
+    for (const b of note) expect(b.split(/\s+/).length, b).toBeLessThanOrEqual(25);
+    // "about one in six" (Maria's point 4), from dnfull's lower losing share;
+    // then the age under which adults lose on average (Fable round 7, S3):
+    // one more than the youngest fill's oldest_losing_on_average, true of
+    // every fill, as the Explore tile's range starts
+    // (the cohort file the page module sees: an earlier block may have
+    // mocked the other data set)
+    const { COHORTS: CX } = await import('@/lib/dataKeys.js');
+    if (CX.dnfull?.ready && CX.dnfull.closure === 'zk0.1') {
+      const under = Math.min(...Object.values(CX.dnfull.by_fill).map((f) => f.oldest_losing_on_average)) + 1;
+      expect(note).toHaveLength(2);
+      expect(note[1]).toMatch(new RegExp(`^If transfers bear it, about one in \\w+ adults lose, and adults under ${under} in ${CX.shock_year} lose on average\\.$`));
+      // true of every fill: every age under it loses on average in each
+      for (const f of Object.values(CX.dnfull.by_fill)) expect(f.oldest_losing_on_average).toBeGreaterThanOrEqual(under - 1);
+    } else expect(note).toHaveLength(1);
     expect(whoAnswer().split(/\s+/).length).toBeLessThanOrEqual(25);
     expect(whoAnswer()).not.toMatch(/fewer hours|after \d{4}/);
   });

@@ -748,9 +748,17 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   // reserved (always in the DOM, opacity only; in the sizers too). An
   // inline block (no shared figure) prints it after its cards.
   // `sub.answerNote`: one 12px line under the caption, in the frame (the
-  // GDP scene's debt line and its one "More on Explore" link)
+  // GDP scene's debt line and its one "More on Explore" link); an array
+  // gives one line each (the generations scene: check_text caps each
+  // block at 25 words)
   const answerNote = subObj?.answerNote;
-  const noteEl = (on) => (answerNote != null ? <p className={`scrolly-takeaway-note${on ? ' is-shown' : ''}`} data-closing="note">{answerNote}</p> : null);
+  const notes = answerNote == null ? [] : Array.isArray(answerNote) ? answerNote.filter((x) => x != null) : [answerNote];
+  const noteEl = (on) =>
+    notes.map((n, i) => (
+      <p key={i} className={`scrolly-takeaway-note${on ? ' is-shown' : ''}`} data-closing="note">
+        {n}
+      </p>
+    ));
   // Where the caption goes: in the frame where the figure is drawn once
   // (phones: the figure, complete, then its cards); with a pinned figure
   // (desktop, sticky phone scenes) it ends the last card, so the pinned

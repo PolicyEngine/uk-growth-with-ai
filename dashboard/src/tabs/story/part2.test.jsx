@@ -147,6 +147,15 @@ describe('story part 2', () => {
     expect(container.querySelector('#story-part-2 .p2-result-links, #story-part-2 details.p2-fold')).toBeNull();
   });
 
+  it('the generations scene says who loses when transfers bear the cost, each note block at most 25 words (Fable round 7, S3)', async () => {
+    const { container } = at('tab=story&s=uk_central');
+    const { whoNote } = await import('@/tabs/story/part2/steps.jsx');
+    const notes = [...container.querySelectorAll('#p2-who .scrolly-takeaway-note')].map((n) => n.textContent);
+    // the scene is drawn once per layout (sizers too): the distinct lines
+    expect([...new Set(notes)]).toEqual(whoNote());
+    for (const t of notes) expect(t.split(/\s+/).length, t).toBeLessThanOrEqual(25);
+  });
+
   it('the headline figures are the GDP scene’s last step, and the arms leave the Story for Explore', async () => {
     const { container } = at('tab=story&s=uk_low&closure=both');
     const head = container.querySelector('#p2-morph #story-headline');

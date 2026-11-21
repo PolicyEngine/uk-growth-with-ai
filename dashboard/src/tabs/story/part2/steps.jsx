@@ -337,13 +337,17 @@ export function gainWords() {
 export function whoAnswer() {
   return gainWords()?.text ?? null;
 }
-// The scene's note (check_text: one block at most 25 words): where the
-// cost falls from the debt rule's year, and who loses if transfers carry
-// it on (dnfull, "about one in six").
+// The scene's note, one or two blocks (check_text: each at most 25
+// words): where the cost falls from the debt rule's year; then who loses
+// if transfers carry it on (dnfull, "about one in six"), and, the answer
+// to the scene's own question, the age under which adults lose on average
+// then (Fable round 7, S3; the cohort file's oldest_losing_on_average).
 export function whoNote() {
   const yr = debtRuleYear();
   if (!yr) return null;
   const w = welfareWords();
-  const lose = w?.lose ? `; if transfers bear it, ${w.lose} adults lose` : '';
-  return `From ${yr} the cost falls on government consumption, which model households do not value${lose}.`;
+  const first = `From ${yr} the cost falls on government consumption, which model households do not value.`;
+  if (!w?.lose) return [first];
+  const young = w.under ? `, and adults under ${w.under} in ${COHORT_YEAR} lose on average` : '';
+  return [first, `If transfers bear it, ${w.lose} adults lose${young}.`];
 }
