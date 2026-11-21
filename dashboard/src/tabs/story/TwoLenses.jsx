@@ -48,18 +48,39 @@ export const CLOSE_SUB = {
   title: 'Two lenses',
   icon: 'compare',
   question: 'What can each model say?',
-  hint: 'The two models, side by side',
+  hint: 'The macro model for the whole economy over years; the household study for one year',
 };
 
 export const CLOSE_KICKER = 'Part 4 · Both models';
 const LAST_YEAR = YEARS[YEARS.length - 1];
 
-// (a) The recap: one line per model, led by its lens icon. No pay figure
-// and no sign: the pay cards are that fact's home.
+// (a) The recap: one line per model, led by its lens icon: its method and
+// years, then why the story needs it (push D, Q2; Vahid: "say which model
+// or method, say why we need each"), within the close's 25-word cap. Each
+// claim is Method's or Household method's (the macro model's output, pay
+// and public finances over the years; the study's tax-benefit model,
+// deciles and poverty). No pay figure and no sign: the pay cards are that
+// fact's home.
 export const CLOSE_RECAP = [
   // `when` is kept on one line (a year range never splits at its dash)
-  { id: 'oguk', icon: 'gdp', name: 'The macro model', rest: 'models the whole economy over decades,', when: `${SURPRISE_YEAR} to ${LAST_YEAR}`, end: ' and beyond.' },
-  { id: 'study', icon: 'households', name: 'The household study (PolicyEngine UK)', rest: 'models UK households in one year,', when: MODEL_YEAR, end: '.' },
+  {
+    id: 'oguk',
+    icon: 'gdp',
+    name: 'The macro model',
+    rest: 'an overlapping-generations model of the UK economy,',
+    when: `${SURPRISE_YEAR} to ${LAST_YEAR}`,
+    end: ' and beyond.',
+    why: 'Needed for output, pay and public finances over the years.',
+  },
+  {
+    id: 'study',
+    icon: 'households',
+    name: 'The household study (PolicyEngine UK)',
+    rest: 'a tax-benefit microsimulation of UK households in one year,',
+    when: MODEL_YEAR,
+    end: '.',
+    why: 'Needed for income losses by decile, and poverty.',
+  },
 ];
 
 // The lenses' content (B2, B3, B6). `to`: the scene a chip links to.
@@ -246,8 +267,8 @@ export default function TwoLenses() {
             <li key={r.id}>
               <Icon name={iconFor(r.icon)} size={16} strokeWidth={1.8} className="close-ic" />
               <span>
-                <strong>{r.name}</strong> {r.rest} <span className="close-when">{r.when}</span>
-                {r.end}
+                <strong>{r.name}</strong>: {r.rest} <span className="close-when">{r.when}</span>
+                {r.end} {r.why}
               </span>
             </li>
           ))}

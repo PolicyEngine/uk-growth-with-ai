@@ -413,13 +413,17 @@ describe('Part3', () => {
     const head = sec.querySelector('header.part-opener.close-opener');
     expect([...head.children].map((c) => c.tagName + (c.className ? '.' + c.className : ''))).toEqual(['P.part-opener-meta', 'H2', 'UL.close-recap', 'P.close-why']);
     expect(head.querySelector('.part-opener-meta').textContent).toBe('Part 4 · Both models');
-    expect(CLOSE_SUB.hint).toBe('The two models, side by side');
+    expect(CLOSE_SUB.hint).toBe('The macro model for the whole economy over years; the household study for one year');
     const lines = [...head.querySelectorAll('.close-recap li')];
     expect(lines).toHaveLength(2);
     for (const li of lines) expect(li.querySelectorAll('svg')).toHaveLength(1);
     expect(lines.map((li) => li.querySelector('strong').textContent)).toEqual(['The macro model', 'The household study (PolicyEngine UK)']);
     expect(lines[0].textContent).toContain(`${SURPRISE_YEAR} to ${YEARS[YEARS.length - 1]} and beyond`);
     expect(lines[1].textContent).toContain(`one year, ${MODEL_YEAR}`);
+    // each line names its method, then why the story needs it (push D, Q2)
+    expect(lines[0].textContent).toContain('The macro model: an overlapping-generations model of the UK economy,');
+    expect(lines[1].textContent).toContain('(PolicyEngine UK): a tax-benefit microsimulation of UK households');
+    for (const li of lines) expect(li.textContent).toMatch(/\. Needed for [^.]+\.$/);
     // the scope and time lines left the circles; the old foot line and Go deeper are gone
     expect(sec.querySelector('.lens-close, .lens-scope, .lens-time, .go-deeper, .lens-deeper')).toBeNull();
     // no four-digit year typed into the close's strings (a citation's year in JSX text aside)
