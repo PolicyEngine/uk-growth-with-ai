@@ -20,7 +20,9 @@ import { Items } from '@/components/story/Items.jsx';
 // item's `head` is a short bold label before its text ("Measure",
 // "Compared with", "Settings", "Period", "Sample", "How it is drawn":
 // item 36's rows). The content is marked data-more-info, so the page dumps
-// (scripts/dumptabs.mjs) read it while the fold is closed.
+// (scripts/dumptabs.mjs) read it while the fold is closed. `foot`: a last
+// line after the groups (push D, Q5a: a card's "See this in the story"
+// link, Card.jsx).
 export const HEADS = [
   ['read', 'How to read'],
   ['how', 'How it’s calculated'],
@@ -59,7 +61,7 @@ function Line({ g, it }) {
   );
 }
 
-export default function MoreInfo({ id, groups = [], className = '', children }) {
+export default function MoreInfo({ id, groups = [], className = '', children, foot = null }) {
   const shown = groups.filter((g) => g && g.items?.length);
   if (!shown.length && !children) return null;
   return (
@@ -75,6 +77,7 @@ export default function MoreInfo({ id, groups = [], className = '', children }) 
             </div>
           ))}
           {children}
+          {foot}
         </div>
       </Disclosure>
     </div>

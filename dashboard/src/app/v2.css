@@ -777,8 +777,10 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 .ch-swatch.is-diamond {
   transform: rotate(45deg) scale(0.85);
 }
-/* the story link (Card.jsx slot 9): last, one quiet line */
-.card > .story-link {
+/* the story link (Card.jsx slot 9): last, one quiet line; inside More
+   info where the card has one, as its last line (push D, Q5a) */
+.card > .story-link,
+.more-info [data-more-info] > .story-link {
   margin: 12px 0 0;
   font-size: var(--chart-fs-tick);
 }

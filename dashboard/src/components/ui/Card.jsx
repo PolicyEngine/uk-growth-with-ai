@@ -147,7 +147,10 @@ export function cardMore({ more, about, read, notes, essential }) {
 //   5 the legend (`legend`): one shared row (components/ui/Legend.jsx);
 //   6 the chart (children);
 //   7 More info (`more`, `about`, `read`, `notes`, `essential`): closed;
-//   8 the story link (`story`: { anchor, name }), Explore and Method only.
+//   8 the story link (`story`: { anchor, name }), Explore and Method only:
+//     the last line inside More info where the card has one (push D, Q5a;
+//     Vahid: "integrate More info / See this in the story"), else last in
+//     the card.
 // The unit line and legend sit above the chart (Vahid, 18 Nov), so the
 // reader has the key before the marks. `foot` (a node after the chart) is
 // kept for the Households flags until item 24 rebuilds them.
@@ -159,6 +162,7 @@ export default function Card({
   const words = about?.sources ? [{ title: 'Sources', notes: asItems(about.sources) }] : [];
   const groups = cardMore({ more, about, read, notes, essential });
   const said = lead ?? finding;
+  const storyIn = Boolean(story?.anchor) && groups.some((g) => g.items?.length);
   return (
     <article className={`card ${className}`} id={id} ref={ref}>
       <header className="card-head">
@@ -180,8 +184,8 @@ export default function Card({
       {legend ? <div className="card-legend">{legend}</div> : null}
       {children ? <div className="chart-plot">{children}</div> : null}
       {foot}
-      <MoreInfo id={moreId ?? (id ? `${id}-more` : undefined)} groups={groups} />
-      <StoryLink {...(story ?? {})} />
+      <MoreInfo id={moreId ?? (id ? `${id}-more` : undefined)} groups={groups} foot={storyIn ? <StoryLink {...story} /> : null} />
+      {storyIn ? null : <StoryLink {...(story ?? {})} />}
       {logo ? (
         <div className="card-logo">
           {/* eslint-disable-next-line @next/next/no-img-element */}

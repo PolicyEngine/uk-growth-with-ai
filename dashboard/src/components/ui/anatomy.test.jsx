@@ -107,9 +107,28 @@ describe('the card shell', () => {
       </Card>,
     );
     const card = container.querySelector('#x');
-    expect([...card.children].map(slotOf)).toEqual([1, 2, 3, 4, 5, 6, 8, 9]);
+    // the story link is More info's last line where the card has one (push D, Q5a)
+    expect([...card.children].map(slotOf)).toEqual([1, 2, 3, 4, 5, 6, 8]);
+    const more = card.querySelector(':scope > .more-info [data-more-info]');
+    expect(more.lastElementChild.matches('.story-link')).toBe(true);
+    const a = more.lastElementChild.querySelector('a.story-link-a');
+    expect(a.textContent.trim()).toBe('See this in the story');
+    expect(a.getAttribute('href').endsWith('#p2-shock')).toBe(true);
+    expect(card.querySelectorAll('.story-link')).toHaveLength(1);
     expect(card.querySelector('.card-model-row .model-line').textContent).toContain('Macro model');
     expect(audit(container)).toEqual([]);
+  });
+
+  it('keeps the story link last in a card with no More info', () => {
+    const { container } = page(
+      <Card id="z" title="T" story={{ anchor: 'p2-shock', name: 'the shock' }}>
+        <svg />
+      </Card>,
+    );
+    const card = container.querySelector('#z');
+    expect(card.querySelector('.more-info')).toBeNull();
+    expect(card.lastElementChild.matches('.story-link')).toBe(true);
+    expect(card.querySelector('.story-link a').getAttribute('href').endsWith('#p2-shock')).toBe(true);
   });
 
   it('routes every word into one closed More info, in the fixed sub-head order; the book icon keeps the sources', () => {
