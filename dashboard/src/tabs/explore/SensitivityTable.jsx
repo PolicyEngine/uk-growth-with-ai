@@ -4,7 +4,7 @@ import { MEASURE } from '@/lib/labels.js';
 import Card from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
-import { S, ARMS, ARM_COLOR, SCENARIOS, YEARS, HEADLINE_YEAR, CENTRAL, fmt, resultAt, foreignShareOf, holeText, storedAt } from '@/tabs/ai/surprise.js';
+import { S, ARMS, ARM_COLOR, SCENARIOS, YEARS, HEADLINE_YEAR, CENTRAL, ZETA, fmt, resultAt, foreignShareOf, holeText, storedAt } from '@/tabs/ai/surprise.js';
 import Icon from '@/components/ab/Icon.jsx';
 import { side } from '@/tabs/ai/lines.js';
 import { dirConcept } from '@/tabs/explore/direction.jsx';
@@ -295,25 +295,30 @@ function SensGrid({ res }) {
   );
 }
 
+// The comparison every key item is against, named once (push D, Q6d):
+// some foreign capital, with its zeta_K from the data.
+export const CMP_NAME = `some foreign capital (ζK ${ZETA[CENTRAL]})`;
+
 // Item 39 (wording for Fable): the grid's always-visible key line, right
-// under it: the dashed outline and the two arrows, in a few words. The
-// longer key (counts, the held stress-test GDP, why the flips) stays in More
-// info.
+// under it, centred (push D, Q6d): a lead-in naming the comparison once,
+// then two evenly spaced items, the dashed outline with "sign differs" and
+// the two arrows with "higher / lower" (icons at the text size, no bare "/"
+// between them). The longer key (counts, the held stress-test GDP, why the
+// flips) stays in More info, in the same words.
 function GridKeyLine({ res }) {
   // no key while every cell of the grid is pending (R3-14)
   if (!SCENARIOS.some((sc) => ARMS.some((a) => res?.[sc.id]?.[a.id]?.status === 'done'))) return null;
   const flips = gridKey(res).some((k) => k.key === 'flip');
   return (
     <p className="ex-sg-keyline" data-fable="item 39 wording">
+      <span className="ex-sg-keylead">Compared with {CMP_NAME}:</span>
       {flips ? (
         <span className="ex-sg-keyitem">
-          <span className="ex-sg-keyswatch" aria-hidden="true" data-icon="" /> sign differs from some foreign capital (ζK 0.1)
+          <span className="ex-sg-keyswatch" aria-hidden="true" data-icon="" /> sign differs
         </span>
       ) : null}
       <span className="ex-sg-keyitem">
-        <Icon name={iconFor('gapUp')} size={12} />
-        <span aria-hidden="true">/</span>
-        <Icon name={iconFor('gapDown')} size={12} /> higher / lower than with some foreign capital
+        <Icon name={iconFor('gapUp')} size={14} /> higher / <Icon name={iconFor('gapDown')} size={14} /> lower
       </span>
     </p>
   );
@@ -326,9 +331,9 @@ export function gridKey(res) {
   const flips = cells.filter((k) => flipOf(k.x, k.c));
   const up = flips.length && flips.every((k) => k.x > 0);
   return [
-    { key: 'arrow', icon: 'compare', text: 'Arrow: higher or lower than with some foreign capital (ζK 0.1)' },
+    { key: 'arrow', icon: 'compare', text: `Arrows: higher or lower than with ${CMP_NAME}` },
     { key: 'held', icon: 'shock', text: 'Held: the stress test holds GDP on the forecast path by design' },
-    flips.length ? { key: 'flip', icon: 'closure', text: `Dashed outline: the sign flips against ζK 0.1 (${flips.length} cells)` } : null,
+    flips.length ? { key: 'flip', icon: 'closure', text: `Dashed outline: the sign differs from ${CMP_NAME} (${flips.length} cells)` } : null,
     up ? { key: 'why', icon: 'capital', text: 'Each flip turns a fall into a rise: more capital per worker' } : null,
   ].filter(Boolean);
 }

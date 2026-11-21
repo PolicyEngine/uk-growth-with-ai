@@ -263,9 +263,21 @@ describe('the zeta_K 0.5 card’s More info fold', () => {
     expect(card.querySelector('.card-head h3').textContent).toBe('More foreign capital puts the main version’s pay rate above the path');
     expect(t).not.toMatch(/The pay rate is/);
     // item 39: the key line under the grid, visible with the fold closed
+    // push D, Q6d: the comparison named once, as a lead-in, with ζK from
+    // the data; then the outline and the arrows, no bare "/" between icons
     const key = card.querySelector('.ex-sg-keyline');
-    expect(key.textContent).toContain('sign differs from some foreign capital (ζK 0.1)');
-    expect(key.textContent).toContain('higher / lower than with some foreign capital');
+    const zk = S.closures['zk0.1'].zeta_K;
+    expect(key.querySelector('.ex-sg-keylead').textContent).toBe(`Compared with some foreign capital (ζK ${zk}):`);
+    expect(key.textContent.match(/some foreign capital/g)).toHaveLength(1);
+    const items = [...key.querySelectorAll('.ex-sg-keyitem')].map((i) => i.textContent.replace(/\s+/g, ' ').trim());
+    expect(items.at(-1)).toBe('higher / lower');
+    if (items.length > 1) expect(items[0]).toBe('sign differs');
+    const arrows = key.querySelector('.ex-sg-keyitem:last-child');
+    expect(arrows.querySelectorAll('svg')).toHaveLength(2);
+    expect([...arrows.childNodes].map((n) => n.textContent.trim()).filter(Boolean)).toEqual(['higher /', 'lower']);
+    // the More info key, in the same words
+    expect(t).toContain(`Arrows: higher or lower than with some foreign capital (ζK ${zk})`);
+    if (items.length > 1) expect(t).toMatch(new RegExp(`Dashed outline: the sign differs from some foreign capital \\(ζK ${zk}\\) \\(\\d+ cells\\)`));
   });
 
   it('fracWord says "about all" within 0.02 of one, only when asked', async () => {

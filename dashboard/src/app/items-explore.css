@@ -2441,14 +2441,19 @@
 .cards-grid > #debt-gdp, .cards-grid > #tax-gdp { align-self: start; }
 /* item 39 (wording for Fable): the zeta_K 0.5 grid's key line, always
    visible under the grid */
+/* push D, Q6d: centred; the lead-in, then two evenly spaced items */
 .ex-sg-keyline {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 18px;
+  justify-content: center;
+  align-items: center;
+  gap: 4px 24px;
   margin: 8px 0 0;
+  text-align: center;
   font-size: var(--fs-small);
   color: var(--pe-gray-700, #374151);
 }
+.ex-sg-keylead { color: var(--pe-gray-600); }
 .ex-sg-keyitem { display: inline-flex; align-items: center; gap: 4px; }
 .ex-sg-keyswatch {
   display: inline-block;
