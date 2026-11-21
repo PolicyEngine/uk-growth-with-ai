@@ -211,19 +211,19 @@
    "labour_share_fall_pp": 0.7,
    "tfp_gain": 0.002,
    "label": "uk low",
-   "source": "/Users/vahid/ugai-surprise/analysis/surprise/uk_targets.json"
+   "source": "analysis/surprise/uk_targets.json"
   },
   "uk_central": {
    "labour_share_fall_pp": 1.6,
    "tfp_gain": 0.004,
    "label": "uk central",
-   "source": "/Users/vahid/ugai-surprise/analysis/surprise/uk_targets.json"
+   "source": "analysis/surprise/uk_targets.json"
   },
   "uk_high": {
    "labour_share_fall_pp": 2.9,
    "tfp_gain": 0.016,
    "label": "uk high",
-   "source": "/Users/vahid/ugai-surprise/analysis/surprise/uk_targets.json"
+   "source": "analysis/surprise/uk_targets.json"
   }
  },
  "signs_apply_to": "every scenario (uk_low, uk_central, uk_high, korinek)",
