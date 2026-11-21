@@ -69,6 +69,25 @@ export function sourceHits() {
   return hits;
 }
 
+// Past entries keep their words (Vahid, 21 Nov: "Keep past entries"): the
+// site changelog and the versions file are a historical record, so the
+// entries written before push D keep "OG-UK" as they were. Listed one by
+// one; any other entry, and every new one, says "the macro model".
+//   site-changelog.json: by date and commit
+const PAST_CHANGELOG = [
+  ['2026-11-19', 'e57ab37'],
+  ['2026-11-12', '55a929e'],
+];
+//   site-versions.json: by id ("oguk" is the package itself, its link)
+const PAST_VERSIONS = ['solves', 'oguk'];
+const pastCommit = new Set(PAST_CHANGELOG.map(([, c]) => c));
+// a text node inside a listed changelog entry, as the Code tab renders it
+// (Entry: one li per entry, its commit as the link text)
+const inPastEntry = (el) => {
+  const li = el?.closest('.mx-history-list > li');
+  return !!li && pastCommit.has(li.querySelector('a')?.textContent.trim());
+};
+
 // Layer B: rendered text outside a link to the OG-UK code, code and pre.
 const OK_LINK = 'a[href*="PSLmodels/OG-UK"], a[href*="pslmodels.github.io/OG-UK"], code, pre, [data-package]';
 export function renderedHits(root, page) {
@@ -77,6 +96,7 @@ export function renderedHits(root, page) {
   for (let n = walker.nextNode(); n; n = walker.nextNode()) {
     if (!n.nodeValue.includes(NAME)) continue;
     if (n.parentElement?.closest(OK_LINK)) continue;
+    if (inPastEntry(n.parentElement)) continue;
     out.push(`${page}: "${n.nodeValue.trim().slice(0, 120)}"`);
   }
   for (const el of root.querySelectorAll('[aria-label], [title]')) {
@@ -97,6 +117,16 @@ describe('the macro model is not called OG-UK', () => {
   it('no source string names OG-UK outside the allow-list', () => {
     const hits = sourceHits();
     expect(hits, hits.join('\n')).toEqual([]);
+  });
+
+  it('past changelog and versions entries keep OG-UK; only the listed ones, and no new entry', () => {
+    const changelog = JSON.parse(fs.readFileSync(path.join(SRC, 'data/site-changelog.json'), 'utf8'));
+    const versions = JSON.parse(fs.readFileSync(path.join(SRC, 'data/site-versions.json'), 'utf8'));
+    const named = changelog.entries.filter((e) => JSON.stringify(e).includes(NAME)).map((e) => [e.date, e.commit]);
+    expect(named).toEqual(PAST_CHANGELOG);
+    expect(versions.entries.filter((e) => JSON.stringify(e).includes(NAME)).map((e) => e.id)).toEqual(PAST_VERSIONS);
+    // the listed entries are past ones: older than push D's first day on the name
+    for (const [d] of PAST_CHANGELOG) expect(d < '2026-11-21', d).toBe(true);
   });
 
   it('no rendered text names OG-UK outside links to its code', () => {
