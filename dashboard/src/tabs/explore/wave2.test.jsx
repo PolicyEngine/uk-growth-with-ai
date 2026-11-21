@@ -8,7 +8,7 @@ import S from '@/lib/activeData.js';
 import { COHORTS as CO } from '@/lib/dataKeys.js';
 import { NavProvider } from '@/lib/nav.jsx';
 import ClosureSlope, { slopeNote, slopeRows, SLOPE_MEASURES } from '@/tabs/explore/ClosureSlope.jsx';
-import ResultsTab, { WALL_HINTS, shownInvestFlags } from '@/tabs/ai/ResultsTab.jsx';
+import ResultsTab, { WALL_HINTS, shownInvestFlags, I_RECORD_PCT } from '@/tabs/ai/ResultsTab.jsx';
 import { I_FLAG_PCT } from '@/tabs/explore/caveats.js';
 import { ARM_COLOR } from '@/tabs/ai/surprise.js';
 import WhoGainsTab, { dotCounts } from '@/tabs/cohorts/CohortsTab.jsx';
@@ -134,9 +134,9 @@ describe('the investment caveat names the cell on screen', () => {
         const cls = closure === 'both' ? ['zk0', 'zk0.1'] : closure === 'closed' ? ['zk0'] : ['zk0.1'];
         const want = cls
           .map((cl) => ({ cl, r: S.results[s.id].tfp[cl] }))
-          .filter(({ r }) => r.status === 'done' && r.gaps.I[i] > I_FLAG_PCT)
-          .map(({ cl, r }) => `This scenario, main version, ζK ${S.closures[cl].zeta_K}: +${Math.round(r.gaps.I[i])}% in ${S.surprise_year}`);
-        const got = shownInvestFlags(s.id, closure, 'common').map((f) => `This scenario, main version, ζK ${f.zeta}: +${Math.round(f.x)}% in ${S.surprise_year}`);
+          .filter(({ r }) => r.status === 'done' && r.gaps.I[i] >= I_RECORD_PCT)
+          .map(({ cl, r }) => `This scenario, main version, ζK ${S.closures[cl].zeta_K}: +${Math.round(r.gaps.I[i])}% in ${S.surprise_year}${r.gaps.I[i] > I_FLAG_PCT ? '' : ', larger than any year on record'}`);
+        const got = shownInvestFlags(s.id, closure, 'common').map((f) => `This scenario, main version, ζK ${f.zeta}: +${Math.round(f.x)}% in ${S.surprise_year}${f.record ? ', larger than any year on record' : ''}`);
         expect(got.sort()).toEqual(want.sort());
         expect(shownInvestFlags(s.id, closure, 'dn')).toEqual([]);
         const { container, unmount } = wrap(<ResultsTab sub="economy" />, `tab=explore&s=${s.id}&closure=${closure}`);
@@ -145,8 +145,22 @@ describe('the investment caveat names the cell on screen', () => {
         const t = container.querySelector('#tile-I').textContent;
         for (const w of want) expect(t).toContain(w);
         if (!want.length) expect(t).not.toContain('This scenario, main version');
+        // a record-only line links the plausibility note, never the +17% flag
+        for (const a of container.querySelectorAll('#tile-I a')) if (a.textContent === 'larger than any year on record') expect(a.closest('li, p').textContent).not.toMatch(/flag/);
         unmount();
       });
+  // the Fable 5.2 ruling for Vahid (R1): the 15% line adds exactly one
+  // cell in both data sets: UK high, some foreign capital (2027 set 15.14%,
+  // 2028 set 15.07%)
+  it('the record threshold adds exactly UK high, some foreign capital', () => {
+    const added = [];
+    for (const s2 of S.scenarios) for (const f of shownInvestFlags(s2.id, 'both', 'common')) if (f.record) added.push(`${s2.id} ${f.cl}`);
+    expect(added).toEqual(['uk_high zk0.1']);
+    const x = S.results.uk_high.tfp['zk0.1'].gaps.I[i];
+    expect(x).toBeGreaterThanOrEqual(I_RECORD_PCT);
+    expect(x).toBeLessThanOrEqual(I_FLAG_PCT);
+    expect(Math.round(x)).toBe(15);
+  });
 });
 
 describe('who gains: heatmap and dots', () => {

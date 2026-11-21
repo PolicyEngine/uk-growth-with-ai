@@ -10,7 +10,7 @@ import Pill from '@/components/ui/Pill.jsx';
 import { versionsShownSection } from '@/components/ui/SettingsBar.jsx';
 import { useNav, subOf, NavLink } from '@/lib/nav.jsx';
 import {
-  HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, path, gap, fmt, signed, SCEN_NAME, ruleSolved, solvedUnder, PENDING, heldAtHeadline,
+  S as SUR, YEARS, HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, resultAt, path, gap, fmt, signed, SCEN_NAME, ruleSolved, solvedUnder, PENDING, heldAtHeadline,
 } from '@/tabs/ai/surprise.js';
 import { seriesFor, closuresFor, boundPending, emptyText, primaryClosure, closureWords, contextLine, seriesTable, legendOf, side, ruleGapText } from '@/tabs/ai/lines.js';
 import { MEASURE, ruleLabel, rulePlain } from '@/lib/labels.js';
@@ -263,10 +263,25 @@ const TOP_FLAG = investmentFlags()[0] ?? null;
 // first. The caveat then speaks to the cell on screen before the
 // sensitivity's. A sanity-gate flag, not a finding (surprise2027-runs.md,
 // ruling 8). [] where none.
+// A cell on screen at or above I_RECORD_PCT but not above the flag is
+// listed too, marked `record` (the Fable 5.2 ruling for Vahid, R1): the
+// plausibility note rates a first-year rise of +15% or more as larger than
+// any year since 1948. Its line says that and never names the +17% flag.
+// The flag itself (I_FLAG_PCT, investmentFlags) is unchanged.
+export const I_RECORD_PCT = 15;
 export function shownInvestFlags(sid, closure, rule) {
   if (rule !== 'common') return [];
   const cls = closuresFor(closure);
-  return investmentFlags().filter((f) => f.sid === sid && f.arm === 'tfp' && cls.includes(f.cl));
+  const flagged = investmentFlags().filter((f) => f.sid === sid && f.arm === 'tfp' && cls.includes(f.cl));
+  const record = cls
+    .filter((cl) => !flagged.some((f) => f.cl === cl))
+    .map((cl) => {
+      const r = resultAt(sid, 'tfp', cl, 'common');
+      const x = r?.status === 'done' ? r.gaps.I?.[YEARS.indexOf(SURPRISE_YEAR)] ?? null : null;
+      return x != null && x >= I_RECORD_PCT ? { sid, arm: 'tfp', cl, zeta: SUR.closures[cl].zeta_K, x, record: true } : null;
+    })
+    .filter(Boolean);
+  return [...flagged, ...record].sort((p, q) => q.x - p.x);
 }
 
 // The Investment tile's "stays high, then drops" caveat, per cell (review
@@ -299,7 +314,17 @@ const ECONOMY = [
         investHighLine(sid, closure, rule) ? { key: 'year1', icon: 'capital', text: investHighLine(sid, closure, rule) } : null,
         { key: 'size', icon: 'limit', text: 'That jump is a model property, not a forecast of a boom' },
         { key: 'grows', icon: 'scenario', text: 'It grows with the scenario' },
-        ...shownInvestFlags(sid, closure, rule).map((f) => ({ key: `here-${f.cl}`, icon: 'caveat', text: `This scenario, main version, ζK ${f.zeta}: +${Math.round(f.x)}% in ${SURPRISE_YEAR}` })),
+        ...shownInvestFlags(sid, closure, rule).map((f) => ({
+          key: `here-${f.cl}`,
+          icon: 'caveat',
+          text: f.record ? (
+            <>
+              This scenario, main version, ζK {f.zeta}: +{Math.round(f.x)}% in {SURPRISE_YEAR}, {ext(OG_RESULT_URLS.plausibility, 'larger than any year on record')}
+            </>
+          ) : (
+            `This scenario, main version, ζK ${f.zeta}: +${Math.round(f.x)}% in ${SURPRISE_YEAR}`
+          ),
+        })),
         TOP_FLAG && !shownInvestFlags(sid, closure, rule).includes(TOP_FLAG) ? { key: 'flag', icon: 'caveat', text: <>{SN[TOP_FLAG.sid]}{TOP_FLAG.arm === 'tfp' ? ', main version' : ''}, ζK {TOP_FLAG.zeta}: +{Math.round(TOP_FLAG.x)}% in {SURPRISE_YEAR}</> } : null,
         TOP_FLAG ? { key: 'flag2', icon: 'limit', text: <>Implausible: above the +{I_FLAG_PCT}% {ext(OG_RESULT_URLS.sanity, 'investment flag')}, {ext(OG_RESULT_URLS.plausibility, 'beyond any year on record')}</> } : null,
       ]} />,
