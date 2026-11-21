@@ -28,7 +28,7 @@ const SIGNED = /[+−-]\d+(\.\d+)?\s?(%|pp)/;
 describe('story beats', () => {
   it('prints the four beats once each, in story order, numerals from the data', () => {
     const el = story();
-    const beats = [...el.querySelectorAll('aside.story-beat:not(.is-compact)')];
+    const beats = [...el.querySelectorAll('aside.story-beat:not(.has-icon)')];
     expect(beats.map((b) => b.id)).toEqual([`beat-${AI_SINCE}`, `beat-${S.surprise_year}`, `beat-${S.headline_year}`, 'beat-7pct']);
     expect(AI_SINCE).toBe(Number(U.series.business_ai_use.x[0].match(/\d{4}/)[0]));
     expect(beats[0].querySelector('.beat-num').textContent).toBe(String(AI_SINCE));
@@ -67,6 +67,22 @@ describe('story beats', () => {
       expect(b.querySelector('.beat-line').textContent.split(/\s+/).length).toBeLessThanOrEqual(25);
       expect(b.textContent).not.toMatch(SIGNED);
     }
+  });
+
+  // push D, Q3: the OBR-sized run's beat is a full-size beat with no
+  // numeral: its headline leads with one icon, no empty numeral slot
+  it('prints the OBR-sized run as a full-size beat led by an icon, not a compact marker', () => {
+    const el = story();
+    const b = el.querySelector('#beat-obr-run');
+    expect(b.classList.contains('has-icon')).toBe(true);
+    expect(b.classList.contains('is-compact')).toBe(false);
+    expect(b.querySelector('.beat-num')).toBeNull();
+    const head = b.querySelector('.beat-head');
+    expect(head.textContent).toBe('A smaller shock');
+    // the icon comes first, before the words
+    expect(head.firstElementChild.matches('svg') || head.firstElementChild.querySelector('svg') != null).toBe(true);
+    expect(b.querySelectorAll('svg')).toHaveLength(1);
+    expect(b.closest('#story-part-3')).not.toBeNull();
   });
 
   it('builds B3 from the signs for every scenario and closure, never from pay', () => {

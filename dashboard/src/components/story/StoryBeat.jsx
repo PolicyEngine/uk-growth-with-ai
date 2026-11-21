@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from 'react';
 import { setStyle, subscribe } from '@/lib/scrollLoop.js';
+import Icon from '@/components/ab/Icon.jsx';
+import { iconFor } from '@/lib/concepts.js';
 
 // A story beat (story-beats-fable.md): the big statement between two scenes
 // that says what just happened. Not a question and not a heading: a left-
@@ -32,9 +34,10 @@ export function beatPhase({ top, bottom, V }) {
   return { ba, bh };
 }
 
-// `compact`: a run-switch marker in the same family, no numeral (part 3's
-// OBR-sized run).
-export default function StoryBeat({ id, num, head, line, cite = null, from = 'below', numProps = {}, compact = false }) {
+// `icon`: a beat with no numeral (part 3's OBR-sized run, push D Q3) leads
+// its headline with this concept's icon instead, at the full beat size, so
+// no empty numeral slot is left.
+export default function StoryBeat({ id, num, head, line, cite = null, from = 'below', numProps = {}, icon = null }) {
   const ref = useRef(null);
   useEffect(() => {
     const el = ref.current;
@@ -53,7 +56,7 @@ export default function StoryBeat({ id, num, head, line, cite = null, from = 'be
     });
   }, []);
   return (
-    <aside ref={ref} className={`story-beat is-from-${from}${compact ? ' is-compact' : ''}`} id={`beat-${id}`} aria-label={num != null ? `${num}: ${head}` : head} data-gap-exempt="">
+    <aside ref={ref} className={`story-beat is-from-${from}${num == null && icon ? ' has-icon' : ''}`} id={`beat-${id}`} aria-label={num != null ? `${num}: ${head}` : head} data-gap-exempt="">
       <div className="story-beat-card">
         <span className="beat-rule" aria-hidden="true" />
         {num != null ? (
@@ -62,7 +65,10 @@ export default function StoryBeat({ id, num, head, line, cite = null, from = 'be
           </p>
         ) : null}
         <div className="beat-text">
-          <p className="beat-head">{head}</p>
+          <p className="beat-head">
+            {num == null && icon ? <Icon name={iconFor(icon)} size={20} className="p2-tx-icon" /> : null}
+            {head}
+          </p>
           <p className="beat-line">{line}</p>
           {cite ? (
             <p className="beat-cite" data-cite="">

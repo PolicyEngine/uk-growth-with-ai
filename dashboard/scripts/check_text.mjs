@@ -12,9 +12,10 @@
 //   (a) must have exactly one icon: a chart title, a figure title, a step
 //       card (its closing line's icon not counted), a takeaway caption, an
 //       essential caveat line, a tile caption (Vahid, 21 Nov: "all text
-//       should have icon");
-//   (b) must have none: the part opener's h2, a topic header, the
-//       story beat, source
+//       should have icon"), a beat with no numeral (push D, Q3: the
+//       OBR-sized run's "A smaller shock");
+//   (b) must have none: the part opener's h2, a topic header, a
+//       numbered story beat, source
 //       lines, unit lines, axis titles, the model tag, fold summaries and
 //       fold bodies, chart notes, legend entries;
 //   (c) no leaf text block has more than one icon;
@@ -179,7 +180,7 @@ for (const [name, path] of Object.entries(PAGES)) {
       }
       if (!story) return { out };
       // (a) exactly one icon
-      for (const sel of ['.ch-title', '.scrolly-card', '.story-figure-title', '.scrolly-takeaway', '.src-essential', '.p2-shock-cap']) {
+      for (const sel of ['.ch-title', '.scrolly-card', '.story-figure-title', '.scrolly-takeaway', '.src-essential', '.p2-shock-cap', '.story-beat.has-icon']) {
         for (const el of panel.querySelectorAll(sel)) {
           if (el.closest(skip) || !visible(el)) continue;
           // a step card's closing line counts as its own block
@@ -188,7 +189,7 @@ for (const [name, path] of Object.entries(PAGES)) {
         }
       }
       // (b) none
-      for (const sel of ['.part-opener h2', '.scene-head', '.story-beat', '.story-source', '.ch-source', '.ch-unit', '[data-axis-title]', '.ch-badge', 'details > summary', 'details > :not(summary)', '.ch-note', '.ch-legend li']) {
+      for (const sel of ['.part-opener h2', '.scene-head', '.story-beat:not(.has-icon)', '.story-source', '.ch-source', '.ch-unit', '[data-axis-title]', '.ch-badge', 'details > summary', 'details > :not(summary)', '.ch-note', '.ch-legend li']) {
         for (const el of panel.querySelectorAll(sel)) {
           if (el.closest(skip) || !visible(el)) continue;
           const n = iconsIn(el).length;

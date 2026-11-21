@@ -143,8 +143,8 @@ export default function Pound() {
     <>
       <StoryBeat
         id="obr-run"
-        compact
         num={null}
+        icon="jobLoss"
         head="A smaller shock"
         line={
           <>

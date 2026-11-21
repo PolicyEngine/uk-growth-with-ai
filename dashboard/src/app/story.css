@@ -2939,20 +2939,7 @@
     min-height: max(calc(clamp(400px, calc(100vh - var(--story-graphic-top) - 200px), 620px) + (0.6 + 0.4 * (var(--n, 1) - 1)) * 100vh + 40px * var(--n, 1)), var(--col-min, 0px));
   }
 }
-/* the run-switch marker (StoryBeat compact) and the OBR-run figure's chip */
-.story-beat.is-compact .story-beat-card {
-  padding-block: 8px 16px;
-}
-.story-beat.is-compact .beat-head {
-  font-size: var(--t-label);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: none;
-  color: var(--t-muted);
-}
-.story-part > .story-beat.is-compact {
-  margin-top: var(--gap-topic);
-}
+/* the OBR-run figure's chip */
 .p3-pound-caveat {
   margin: 10px 0 0;
   font-size: var(--t-meta);
