@@ -129,14 +129,32 @@ export function rulesWords(rules, central = 'exposure') {
   // by at least RULE_MARGIN_PP more (Fable round 6, S4: no paired interval
   // is exported, and the headline's spread across draws is about 0.2pp)
   if (others.every((r) => r.poverty_pp - c.poverty_pp >= RULE_MARGIN_PP)) return `${lead}, least under the main rule`;
-  // the main rule lowest, but others within the margin: name them and the gap
+  // the main rule lowest, but others within the margin: a tie, named when
+  // the names fit the 14-word title limit, else counted; the gap itself is
+  // in the card's More info (rulesTieWords)
   if (atLeast === others.length) {
-    const near = others.filter((r) => r.poverty_pp - c.poverty_pp < RULE_MARGIN_PP);
+    const near = nearRules(rules, central);
     const names = ['main', ...near.map((r) => ruleName(r.id).toLowerCase())];
-    const list = `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
-    return `${lead}, lowest under the ${list} rules, which are within ${rulesGap(rules, central)}`;
+    const named = `${lead}; ${names.slice(0, -1).join(', ')} and ${names[names.length - 1]} tie lowest`;
+    return named.split(/\s+/).length <= TITLE_WORDS ? named : `${lead}; the main and ${near.length} other rules tie lowest`;
   }
   return `${lead}; ${atLeast} of the other ${others.length} raise it at least as much as the main rule`;
+}
+const TITLE_WORDS = 14;
+// the other rules at or above the main rule but within RULE_MARGIN_PP of it
+const nearRules = (rules, central) => {
+  const c = rules.find((r) => r.id === central);
+  return rules.filter((r) => r.id !== central && r.poverty_pp - c.poverty_pp >= 0 && r.poverty_pp - c.poverty_pp < RULE_MARGIN_PP);
+};
+// Card 4's tie, a sentence for its lead: the rules the title ties with the
+// main one and the largest gap (rulesGap); null when the title names no tie.
+export function rulesTieWords(rules, central = 'exposure') {
+  const c = rules.find((r) => r.id === central);
+  const others = rules.filter((r) => r.id !== central);
+  if (others.every((r) => r.poverty_pp - c.poverty_pp >= RULE_MARGIN_PP) || others.some((r) => r.poverty_pp < c.poverty_pp)) return null;
+  const near = nearRules(rules, central).map((r) => ruleName(r.id));
+  const list = near.length > 1 ? `${near.slice(0, -1).join(', ')} and ${near[near.length - 1]}` : near[0];
+  return `${list} ${near.length > 1 ? 'are' : 'is'} within ${rulesGap(rules, central)} of the main rule on poverty.`;
 }
 // The runs outside the study's rebuild: a caveat line while the data file
 // lists any (method.outside_rebuild).
@@ -507,7 +525,8 @@ const RULES = [
   { id: 'klein_top_loaded', n: 5, own: true, pos: 'l', npos: 'l' },
 ];
 // Card 4's lead: the cheapest and dearest of the four stylised rules, then
-// the extreme case (its cost has its home in this card's table).
+// the extreme case (its cost has its home in this card's table), then the
+// title's tie, if any (rulesTieWords).
 function rulesLead() {
   const four = RULES.filter((r) => !r.own).map((r) => rule(r.id));
   const lo = four.reduce((a, b) => (b.cost_bn < a.cost_bn ? b : a));
@@ -520,6 +539,8 @@ function rulesLead() {
     <>
       The top-loaded extreme case costs <Ax>{fmtBn(K.cost_bn)}</Ax>.
     </>,
+    // the title's tie, with its gap (rulesGap)
+    rulesTieWords(D.rules),
   ];
 }
 function Rules() {
@@ -538,6 +559,7 @@ function Rules() {
       more={[
         { label: 'Measure', text: 'Absolute poverty before housing costs; the Gini on its 0 to 100 scale.' },
         { label: 'Sample', text: `${rule('uniform').draws} draws, the same seeds for every rule.` },
+        { label: 'Tie', text: `The title calls the main rule the least only when every other rule’s poverty rise is at least ${RULE_MARGIN_PP}pp higher; closer rules tie.` },
       ]}
       download={{
         title: 'Five rules for who loses the job',

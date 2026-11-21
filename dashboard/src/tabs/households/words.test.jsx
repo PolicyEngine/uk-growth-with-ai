@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import D from '@/data/aiStudy2425.json';
-import { rulesWords, rankingsWords, rankingsLead, costWords, takeupWords, perPoundWords, policyWords } from './HouseholdsExplore.jsx';
+import { rulesWords, rulesTieWords, rankingsWords, rankingsLead, costWords, takeupWords, perPoundWords, policyWords } from './HouseholdsExplore.jsx';
 import { linkAiFiles } from '@/tabs/explore/sources.jsx';
 import { RULE_MARGIN_PP, ruleName, rulesGap } from './figures.js';
 
@@ -18,20 +18,37 @@ describe('households wording follows the data', () => {
     expect(rulesWords(D.rules).includes('least under the main rule')).toBe(clear);
     if (!clear && others.every((r) => r.poverty_pp >= c.poverty_pp)) {
       const near = others.filter((r) => r.poverty_pp - c.poverty_pp < RULE_MARGIN_PP);
-      for (const r of near) expect(rulesWords(D.rules)).toContain(ruleName(r.id).toLowerCase());
-      expect(rulesWords(D.rules)).toContain(`which are within ${rulesGap(D.rules)}`);
+      expect(rulesWords(D.rules)).toContain('tie lowest');
+      expect(rulesTieWords(D.rules)).toContain(`within ${rulesGap(D.rules)} of the main rule`);
+      for (const r of near) expect(rulesTieWords(D.rules)).toContain(ruleName(r.id));
+    } else {
+      expect(rulesTieWords(D.rules)).toBeNull();
     }
     expect(rulesWords(D.rules).startsWith('Poverty rises under every displacement rule')).toBe(D.rules.every((r) => r.poverty_pp > 0));
   });
-  it('rules: the current data names the main and ages 16 to 24 rules, 0.03pp apart', () => {
+  it('rules: the current data ties the main and ages 16 to 24 rules, 0.03pp apart', () => {
     // pins aiStudy2425.json as committed: main 2.4016pp, ages 16 to 24 2.4317pp
-    expect(rulesWords(D.rules)).toBe('Poverty rises under every displacement rule, lowest under the main and ages 16 to 24 rules, which are within 0.03pp');
+    expect(rulesWords(D.rules)).toBe('Poverty rises under every displacement rule; main and ages 16 to 24 tie lowest');
+    expect(rulesTieWords(D.rules)).toBe('Ages 16 to 24 is within 0.03pp of the main rule on poverty.');
   });
   it('rules: a clear margin keeps "least under the main rule"; a lower rule is counted', () => {
     const r = (id, poverty_pp) => ({ id, poverty_pp });
     expect(rulesWords([r('exposure', 2), r('junior', 2.1), r('uniform', 2.5)])).toBe('Poverty rises under every displacement rule, least under the main rule');
-    expect(rulesWords([r('exposure', 2), r('junior', 2.04), r('uniform', 2.08), r('compression', 3)])).toBe('Poverty rises under every displacement rule, lowest under the main, ages 16 to 24 and uniform rules, which are within 0.08pp');
+    expect(rulesTieWords([r('exposure', 2), r('junior', 2.1), r('uniform', 2.5)])).toBeNull();
+    // two rules tied with the main one: too long to name in 14 words, counted
+    expect(rulesWords([r('exposure', 2), r('junior', 2.04), r('uniform', 2.08), r('compression', 3)])).toBe('Poverty rises under every displacement rule; the main and 2 other rules tie lowest');
+    expect(rulesTieWords([r('exposure', 2), r('junior', 2.04), r('uniform', 2.08), r('compression', 3)])).toBe('Ages 16 to 24 and Uniform are within 0.08pp of the main rule on poverty.');
     expect(rulesWords([r('exposure', 2), r('junior', 1.9), r('uniform', 2.5)])).toBe('Poverty rises under every displacement rule; 1 of the other 2 raise it at least as much as the main rule');
+    expect(rulesTieWords([r('exposure', 2), r('junior', 1.9), r('uniform', 2.5)])).toBeNull();
+  });
+  it('rules: the title stays within the 14-word card-title limit in every tie', () => {
+    const r = (id, poverty_pp) => ({ id, poverty_pp });
+    const n = (t) => t.trim().split(/\s+/).length;
+    for (const near of [['junior'], ['uniform'], ['compression'], ['klein_top_loaded'], ['junior', 'uniform'], ['junior', 'uniform', 'compression', 'klein_top_loaded']]) {
+      const rules = [r('exposure', 2), ...near.map((id) => r(id, 2.05)), ...['junior', 'uniform', 'compression'].filter((id) => !near.includes(id)).map((id) => r(id, 3))];
+      expect(n(rulesWords(rules)), near.join()).toBeLessThanOrEqual(14);
+    }
+    expect(n(rulesWords(D.rules))).toBeLessThanOrEqual(14);
   });
   it('rankings: deciles named as losing and changing sign are exactly those that do', () => {
     const at = (d) => D.rankings.map((r) => r.values[d - 1]);
