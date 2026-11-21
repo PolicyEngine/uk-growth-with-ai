@@ -2189,6 +2189,89 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+/* push D, Q7a: the four cards' one anatomy (CohortsTab.jsx WhyCard): the
+   title, two bullets with icons, the stat pair, the unit line, the link
+   row at the foot (so a row of cards lines up, stat or not) */
+.why-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.why-bullets {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.why-bullets li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: var(--chart-fs-label, 15px);
+  line-height: 1.45;
+  color: var(--pe-gray-800);
+}
+.why-bullet-icon {
+  display: inline-flex;
+  flex: none;
+  margin-top: 3px;
+  color: var(--pe-gray-500);
+}
+.why-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+}
+/* the number above its label (the label first in the DOM, as dl needs) */
+.why-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.why-stat-value {
+  order: -1;
+}
+.why-stat dd,
+.why-stat dt {
+  margin: 0;
+}
+.why-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-900);
+}
+.why-stat-value.is-gain {
+  color: var(--c-gain-text, var(--c-gain));
+}
+.why-stat-value.is-loss {
+  color: var(--c-loss-text, var(--c-loss));
+}
+.why-stat-label {
+  font-size: var(--fs-caption);
+  line-height: 1.35;
+  color: var(--pe-gray-600);
+}
+.why-unit {
+  margin: 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-500);
+}
+.why-link {
+  margin: auto 0 0;
+  padding-top: 4px;
+  font-size: var(--fs-small);
+}
+.why-link .ex-jump {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
 .ex-mi-box {
   margin-top: 16px;
   padding: var(--card-padding, 20px);

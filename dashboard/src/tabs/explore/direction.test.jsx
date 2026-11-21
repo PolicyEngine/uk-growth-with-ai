@@ -13,7 +13,7 @@ import { financesFinding } from '@/tabs/ai/financesInfo.js';
 import { CALENDAR } from '@/lib/obrOverlap.js';
 import { debtParts } from '@/tabs/ai/FinancesSection.jsx';
 import { stressItems } from '@/tabs/ai/Headline.jsx';
-import { whySigns } from '@/tabs/cohorts/CohortsTab.jsx';
+import { whySigns, pct } from '@/tabs/cohorts/CohortsTab.jsx';
 import WhoGainsTab from '@/tabs/cohorts/CohortsTab.jsx';
 import { sensClaims } from '@/tabs/explore/SensitivityTable.jsx';
 import { ruleSolved } from '@/tabs/ai/surprise.js';
@@ -211,16 +211,28 @@ describe('Who gains: what drives the result, every claim from the signs', () => 
           const lead = A.querySelector('.finding-lead').textContent;
           if (c0 < 0) expect(lead).toMatch(c.first_year_c_above ? /falls below the forecast path first, then rises above it/ : /stays below the forecast path/);
           else expect(lead).toContain('starts above the forecast path');
-          if (c.first_year_c_above) expect(A.textContent).toContain(`above the forecast path from ${c.first_year_c_above}`);
-          // the line's two ends: the first and last years of c_gap
+          // the year it first rises above the path is the card's second stat (push D, Q7a), below
+          // the stat pair (push D, Q7a): the shock year's gap, then the year
+          // consumption first rises above the path (from the data, which can
+          // fall after the years c_gap covers), or the last year's gap
           const ys = Object.keys(c.c_gap).map(Number);
-          expect([...A.querySelectorAll('.ex-cl-year')].map((e) => Number(e.textContent))).toEqual([Math.min(...ys), Math.max(...ys)]);
+          const labels = [...A.querySelectorAll('.why-stat-label')].map((e) => e.textContent);
+          const values = [...A.querySelectorAll('.why-stat-value')].map((e) => e.textContent);
+          expect(labels[0]).toBe(`${CO.shock_year}, the shock year`);
+          expect(values[0]).toBe(pct(c0));
+          if (c.first_year_c_above) {
+            expect(labels[1]).toBe('First year above the path');
+            expect(values[1]).toBe(String(c.first_year_c_above));
+          } else {
+            expect(labels[1]).toBe(`${Math.max(...ys)}, the last year shown`);
+            expect(values[1]).toBe(pct(c.c_gap[String(Math.max(...ys))]));
+          }
           // block D: the youngest adult and age 65 in the stress test
           const xs = CO.closures[cl].birth_year;
           const s = CO.closures[cl].rules[rule].stress;
           const young = s.cev_all[xs.indexOf(CO.shock_year - 20)];
-          const vals = [...Dbox.querySelectorAll('.ex-bars2-val')];
-          expect(vals[0].className).toContain(dataDir(young) === 'above' ? 'is-gain' : dataDir(young) === 'below' ? 'is-loss' : 'ex-bars2-val');
+          const vals = [...Dbox.querySelectorAll('.why-stat-value')];
+          expect(vals[0].className).toContain(dataDir(young) === 'above' ? 'is-gain' : dataDir(young) === 'below' ? 'is-loss' : 'why-stat-value');
           expect(Dbox.querySelector('.finding-lead').textContent).toContain(young < 0 ? 'the youngest adults lose' : 'gain least');
           unmount();
         });

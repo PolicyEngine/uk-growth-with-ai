@@ -3,10 +3,9 @@
 import { useId, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
-import ChartHover from '@/components/story/chart/ChartHover.jsx';
 import LineChart from '@/components/LineChart.jsx';
 import Card, { SectionHeading, StatTile } from '@/components/ui/Card.jsx';
-import Finding from '@/components/ui/Finding.jsx';
+import Finding, { noStop } from '@/components/ui/Finding.jsx';
 import Disclosure from '@/components/ab/Disclosure.jsx';
 import { profileOf, windowIncomeOf, windowIncomeAge, wealthRatioAt } from '@/lib/dataKeys.js';
 import { revealAnchor } from '@/lib/scroll.js';
@@ -444,6 +443,20 @@ export function consumptionWords(cl, rule, arm) {
   return { lead, lines: [s1, s2, s3].filter(Boolean), link: !!s3 };
 }
 
+// A's stat pair (push D, Q7a): the shock year's gap, then the year
+// consumption first rises above the path (first_year_c_above), so the
+// pair matches the lead's "then rises above it". That year can fall after
+// the years c_gap covers, so it is shown as the year itself, not a gap.
+// With no such year, the last year's gap. Every year from the data.
+export function consumptionStats(cl, rule, arm) {
+  const c = cell(cl, rule, arm);
+  const t = whyTokens(cl, rule, arm);
+  const at = (y) => c.c_gap[String(y)];
+  const first = { key: 'start', label: `${t.shockYear}, the shock year`, value: at(t.shockYear) };
+  const second = t.cAboveYear != null ? { key: 'cross', label: 'First year above the path', text: String(t.cAboveYear), value: null } : { key: 'last', label: `${t.lastFlowYear}, the last year shown`, value: at(t.lastFlowYear) };
+  return [first, second].filter((x) => x.value != null || x.text != null);
+}
+
 // B. Who gains, by earnings: the bottom 25% against the top 1%.
 export function earningsWords(cl, rule, arm) {
   const c = cell(cl, rule, arm);
@@ -543,55 +556,6 @@ function Bars({ rows, caption, signed = false }) {
       <figcaption id={id} className="ex-bars2-cap">
         {caption}
       </figcaption>
-    </figure>
-  );
-}
-
-// A's figure: consumption against the forecast path, one point a year from
-// the shock year to the last flow year, a zero line named "Forecast path",
-// the two ends labelled (year and value, separate elements). Labels are
-// HTML beside the line, so they keep their size at any width.
-function ConsLine({ c }) {
-  const ys = Object.entries(c.c_gap)
-    .map(([y, v]) => [Number(y), v])
-    .sort((a, b) => a[0] - b[0]);
-  const lo = Math.min(0, ...ys.map(([, v]) => v));
-  const hi = Math.max(0, ...ys.map(([, v]) => v));
-  const H = 72;
-  const pad = 10;
-  const Y = (v) => pad + ((hi - v) / (hi - lo || 1)) * (H - 2 * pad);
-  const X = (i) => (i / Math.max(1, ys.length - 1)) * 100;
-  const [first, last] = [ys[0], ys[ys.length - 1]];
-  const end = (side, [y, v]) => (
-    <span className={`ex-cl-end is-${side}`} style={{ top: `${Y(v)}px` }}>
-      <span className="ex-cl-year">{y}</span>
-      <span className="ex-cl-val">{pct(v)}</span>
-    </span>
-  );
-  return (
-    <figure className="ex-cl">
-      <div className="ex-cl-plot" style={{ height: `${H}px` }}>
-        {end('start', first)}
-        <ChartHover
-          className="ex-cl-area"
-          label="Consumption against the forecast path, by year"
-          items={ys.map(([y, v]) => ({ head: String(y), rows: [{ name: 'Consumption gap', value: pct(v), icon: 'consumption' }], unit: 'Against the forecast path, %. The macro model works it out.' }))}
-        >
-          <svg viewBox={`0 0 100 ${H}`} preserveAspectRatio="none" role="img" aria-label={`Consumption against the forecast path, ${first[0]} to ${last[0]}: ${pct(first[1])} to ${pct(last[1])}`}>
-            <line x1="0" x2="100" y1={Y(0)} y2={Y(0)} className="ex-cl-zero" vectorEffect="non-scaling-stroke" />
-            <polyline points={ys.map(([, v], i) => `${X(i)},${Y(v)}`).join(' ')} className="ex-cl-line" vectorEffect="non-scaling-stroke" />
-          </svg>
-          <span className="ex-cl-zero-label" style={{ top: `${Y(0)}px` }}>
-            Forecast path
-          </span>
-          {/* hover (M4): one transparent column per year, the one tooltip */}
-          {ys.map(([y], i) => (
-            <span key={y} className="ex-cl-hit" data-tip={i} style={{ left: `${X(i)}%`, width: `${100 / ys.length}%` }} aria-hidden="true" />
-          ))}
-        </ChartHover>
-        {end('end', last)}
-      </div>
-      <figcaption className="ex-bars2-cap" data-axis-title="y">Consumption gap vs forecast path, %</figcaption>
     </figure>
   );
 }
@@ -734,8 +698,77 @@ function ByForm({ c, both }) {
   );
 }
 
-// What drives the result (item-21-fable.md): four Finding boxes, then the
-// closed "More info" disclosure, full width.
+// The measure's plain words (consistent with the Who gains card's
+// Measure row and Method).
+const MEASURE_UNIT = '% of remaining-lifetime consumption and bequests';
+const MEASURE_TIP = 'A consumption-equivalent welfare change: the change in what an adult will still spend, and leave as bequests, over the rest of their life that is worth the same to them as the scenario.';
+function MeasureUnit() {
+  return (
+    <TipTarget className="why-unit-tip" label="What does this measure mean?" tip={<span>{MEASURE_TIP}</span>}>
+      {MEASURE_UNIT}
+    </TipTarget>
+  );
+}
+
+// One "what drives the result" card (push D, Q7a): one anatomy for all
+// four, in the Finding box's card style: the finding title (as modelled,
+// no full stop), at most two short bullets each led by an icon, a stat row
+// of two big numbers with small labels (none where the data have none),
+// one unit line, and one link row ending in an arrow. The link row sits at
+// the card's foot, so cards in a row line up.
+function WhyCard({ icon, lead, bullets = [], stats = [], unit, link, actions }) {
+  return (
+    <section className="finding why-card">
+      <div className="finding-head">
+        <p className="finding-lead">
+          <Icon name={iconFor(icon)} size={18} className="finding-icon" />
+          <span>{noStop(lead)}</span>
+        </p>
+        {actions ? <div className="finding-actions">{actions}</div> : null}
+      </div>
+      <ul className="why-bullets">
+        {bullets.slice(0, 2).map((b) => (
+          <li key={b.key}>
+            <Icon name={iconFor(b.icon)} size={16} className="why-bullet-icon" />
+            <span>{b.text}</span>
+          </li>
+        ))}
+      </ul>
+      {stats.length ? (
+        <dl className="why-stats">
+          {stats.map((x) => (
+            <div key={x.key} className="why-stat">
+              <dt className="why-stat-label">{x.label}</dt>
+              <dd className={`why-stat-value${x.value != null && tone(x.value) ? ` is-${tone(x.value)}` : ''}`}>{x.text ?? pct(x.value)}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+      {unit ? (
+        <p className="why-unit" data-axis-title="y">
+          {unit}
+        </p>
+      ) : null}
+      {link ? <p className="why-link">{link}</p> : null}
+    </section>
+  );
+}
+const Arrow = () => <Icon name="arrowRight" size={14} className="why-link-arrow" />;
+// A's bullets: the why, then the average's make-up where it holds; the
+// year consumption rises above the path is the second stat, so its line
+// shows only where there is no such year (still below at the horizon).
+const aBullets = (A, cl, rule, arm) => {
+  const above = whyTokens(cl, rule, arm).cAboveYear != null;
+  const [why, when, avg] = [A.lines[0], A.lines.find((l) => /forecast path (from|in)/.test(l)), A.lines.find((l) => l.startsWith('The average gain'))];
+  return [why, avg ?? (above ? null : when)].filter(Boolean);
+};
+// bullets from a block's lines (at most two), each with the icon of its
+// kind of statement (`iconOf(line)`)
+const bulletsOf = (lines, iconOf) => lines.slice(0, 2).map((text, i) => ({ key: `b${i}`, icon: iconOf(text), text }));
+
+// What drives the result (item-21-fable.md): four cards of one anatomy
+// (WhyCard, push D, Q7a), then the closed "More info" disclosure, full
+// width.
 function Why({ cl, rule, arm }) {
   const C = D.closures[cl];
   const c = cell(cl, rule, arm);
@@ -755,39 +788,62 @@ function Why({ cl, rule, arm }) {
   return (
     <>
       <div className="ex-why2">
-        <Finding actions={<WhoSources />} icon="consumption" lead={A.lead} lines={A.lines} note={A.link ? <JumpLink to="welfare-breakdown">See the average, split by what changes</JumpLink> : null}>
-          <ConsLine c={c} />
-        </Finding>
-        <Finding actions={<WhoSources />} icon="lifetimeEarnings" lead={B.lead} lines={B.lines} note={<JumpLink to="who-model-households">More info: how the model’s households compare with the UK</JumpLink>}>
-          <Bars
-            signed
-            caption="% of remaining-lifetime consumption and bequests"
-            rows={[
-              { key: 'bot', label: bot, value: B.bot, text: pct(B.bot) },
-              { key: 'top', label: top, value: B.top, text: pct(B.top) },
-            ]}
-          />
-        </Finding>
-        <Finding
+        {/* A: the year consumption is above the path is in the stat pair,
+            so the bullets are the why and, where it holds, the average */}
+        <WhyCard
+          actions={<WhoSources />}
+          icon="consumption"
+          lead={A.lead}
+          bullets={bulletsOf(aBullets(A, cl, rule, arm), (l) => (l.startsWith('The average gain') ? 'bequests' : l.startsWith('Households') ? 'savings' : 'timing'))}
+          stats={consumptionStats(cl, rule, arm)}
+          unit="Consumption gap vs forecast path, %; 0 is the path"
+          link={
+            A.link ? (
+              <JumpLink to="welfare-breakdown">
+                See the average, split by what changes <Arrow />
+              </JumpLink>
+            ) : null
+          }
+        />
+        <WhyCard
+          actions={<WhoSources />}
+          icon="lifetimeEarnings"
+          lead={B.lead}
+          bullets={bulletsOf(B.lines, (l) => (l.startsWith('This ranking') ? 'caveat' : 'capital'))}
+          stats={[
+            { key: 'bot', label: bot, value: B.bot },
+            { key: 'top', label: top, value: B.top },
+          ]}
+          unit={<MeasureUnit />}
+          link={
+            <JumpLink to="who-model-households">
+              How the model’s households compare with the UK <Arrow />
+            </JumpLink>
+          }
+        />
+        {/* C: no stat (the data carry no pair for it); the grid keeps the
+            row even (align-items stretch, the link row at the foot) */}
+        <WhyCard
           icon="finances"
           lead={Cw.lead}
-          lines={Cw.lines}
-          note={
+          bullets={bulletsOf(Cw.lines, (l) => (l.startsWith('From ') ? 'timing' : 'rule'))}
+          link={
             <button type="button" className="ex-jump" onClick={openBudget}>
-              Change this under Budget assumption
+              Change under Budget assumption <Arrow />
             </button>
           }
         />
-        <Finding actions={<WhoSources />} icon="young" lead={Dw.lead} lines={Dw.lines}>
-          <Bars
-            signed
-            caption="% of remaining-lifetime consumption and bequests"
-            rows={[
-              { key: 'young', label: `Age ${FIRST_AGE} in ${t.shockYear}`, value: Dw.young, text: pct(Dw.young) },
-              { key: 'old', label: `Age ${RULER_AGE} in ${t.shockYear}`, value: Dw.old, text: pct(Dw.old) },
-            ]}
-          />
-        </Finding>
+        <WhyCard
+          actions={<WhoSources />}
+          icon="young"
+          lead={Dw.lead}
+          bullets={bulletsOf(Dw.lines, (l) => (l.startsWith('With no output gain') ? 'pay' : 'young'))}
+          stats={[
+            { key: 'young', label: `Age ${FIRST_AGE} in ${t.shockYear}`, value: Dw.young },
+            { key: 'old', label: `Age ${RULER_AGE} in ${t.shockYear}`, value: Dw.old },
+          ]}
+          unit={<MeasureUnit />}
+        />
       </div>
       <div className="ex-mi-box">
         <Disclosure id="who-model-households" title="More info" preview="How the model’s households compare with the UK: pay, transfers and wealth by earnings group">

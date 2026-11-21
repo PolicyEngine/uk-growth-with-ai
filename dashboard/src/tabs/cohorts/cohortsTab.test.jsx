@@ -347,6 +347,30 @@ describe('What drives the result', () => {
     );
     expect(container.querySelectorAll('.ex-why2 > .finding')).toHaveLength(4);
     expect(container.querySelector('.ex-caveat-chip, .ex-timeline, .ex-chain')).toBeNull();
+    // push D, Q7a: one anatomy: a title, at most two bullets each led by an
+    // icon, a stat pair where the data have one (cards 1, 2 and 4), one unit
+    // line, one link row ending in an arrow (card 4 has no link target)
+    const cards = [...container.querySelectorAll('.ex-why2 > .why-card')];
+    expect(cards).toHaveLength(4);
+    cards.forEach((card, k) => {
+      expect(card.querySelector('.finding-lead svg')).not.toBeNull();
+      const bullets = [...card.querySelectorAll('.why-bullets > li')];
+      expect(bullets.length).toBeGreaterThanOrEqual(1);
+      expect(bullets.length).toBeLessThanOrEqual(2);
+      for (const b of bullets) expect(b.firstElementChild.querySelector('svg') ?? b.querySelector(':scope > svg')).not.toBeNull();
+      expect(card.querySelectorAll('.why-stat')).toHaveLength(k === 2 ? 0 : 2);
+      expect(card.querySelectorAll('.why-unit')).toHaveLength(k === 2 ? 0 : 1);
+      const link = card.querySelector('.why-link');
+      if (k === 3) expect(link).toBeNull();
+      else expect(link.querySelectorAll('svg')).toHaveLength(1);
+    });
+    expect(cards[2].querySelector('.why-link').textContent).toBe('Change under Budget assumption ');
+    // the welfare unit explains itself in plain words
+    const tip = cards[1].querySelector('.why-unit .tip-target');
+    expect(tip.textContent).toBe('% of remaining-lifetime consumption and bequests');
+    expect(tip.getAttribute('aria-label')).toBe('What does this measure mean?');
+    // "as modelled" hedges stay
+    expect(cards[1].querySelector('.finding-lead').textContent).toMatch(/^(As modelled|By lifetime earnings)/);
     const more = container.querySelector('#who-model-households');
     expect(more.querySelector('.disclosure-content').hidden).toBe(true);
     // E3's transfer pair, debt-neutral only
