@@ -207,7 +207,9 @@ for (const [W, H] of process.env.OPENERS === '0' || JUMP === 'only' || process.e
       // (opacity follows on a 400ms timer; the state is what counts)
       const head = document.getElementById(`q-${id}`);
       const h = head?.getBoundingClientRect();
-      const headOn = Boolean(h && h.bottom > R && h.top < V && !head.closest('.scrolly.is-asking'));
+      // (hidden visually while the stage plays the question: not shown)
+      const hq = head?.querySelector('.scene-head-q');
+      const headOn = Boolean(h && h.bottom > R && h.top < V && !head.closest('.scrolly.is-asking') && hq && hq.getBoundingClientRect().width > 1);
       const v = s.querySelector('.q-visual').getBoundingClientRect();
       // the rendered scale of the card (its box against its layout height)
       const sc = card.offsetHeight ? c.height / card.offsetHeight : 0;
@@ -369,7 +371,8 @@ if (process.env.STICKY !== '0' && JUMP !== 'only' && process.env.SANKEY !== 'onl
 // while the chart was held). Motion on, at HEADER_SIZES (1280,800
 // 1024,768 390,844): for every card of every sticky scene, go to the card
 // (scrolly-go, instant), let it settle (700ms), then the scene's header
-// (its own .scene-head, or its host's for the output scene) must have
+// (its own .scene-head, or its host's for the output scene), unless it is
+// hidden visually because its stage plays the question, must have
 // effective opacity >= 0.95, be visible, lie inside the screen below the
 // rail, and be the element at its centre (or contain it). Then through
 // each scene's tail its text may meet no other text (below). HEADERS=0 skips.
@@ -397,7 +400,8 @@ for (const [W, H] of process.env.HEADERS === '0' || JUMP === 'only' || process.e
     const two = document.getElementById('story-close-h');
     if (two) items.push(['story-close-h', two, document.querySelector('.story')]);
     for (const [id, q, col] of items) {
-      if (!q.getClientRects().length) continue;
+      // hidden visually (its question is on the stage): nothing to centre
+      if (!q.getClientRects().length || q.getBoundingClientRect().width <= 1) continue;
       const c = ink(q);
       const r = col.getBoundingClientRect();
       if (c == null) continue;
@@ -483,6 +487,9 @@ for (const [W, H] of process.env.HEADERS === '0' || JUMP === 'only' || process.e
           op *= Number(cs.opacity);
         }
         const q = h.querySelector('.scene-head-q') ?? h;
+        // hidden visually where the stage plays the question (story-bands.css
+        // section 5): the question is shown once, on the stage
+        if (q.getBoundingClientRect().width <= 1) return { none: true };
         for (let e = q; e && e !== h; e = e.parentElement) op *= Number(getComputedStyle(e).opacity);
         const R = document.querySelector('.story-rail')?.getBoundingClientRect().bottom ?? 0;
         const a = q.getBoundingClientRect();
@@ -517,6 +524,7 @@ for (const [W, H] of process.env.HEADERS === '0' || JUMP === 'only' || process.e
         if (!h) return null;
         const q = h.querySelector('.scene-head-q') ?? h;
         const a = q.getBoundingClientRect();
+        if (a.width <= 1) return null; // hidden visually: no text to meet
         const R = document.querySelector('.story-rail')?.getBoundingClientRect().bottom ?? 0;
         // on screen and clear of the rail (as it lets go it slides under
         // the rail, which is meant to cover it)

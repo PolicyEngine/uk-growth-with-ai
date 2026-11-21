@@ -134,7 +134,8 @@ const lineGap = (room) => Math.min(0.4 * Math.max(0, room), 72);
 //                then become h4 (visually hidden: the step's accessible
 //                name).
 //                `question` (about a dozen words, neutral, answered by the
-//                block): printed in the header, and played big (QStage.jsx):
+//                block): printed in the header (hidden visually where the
+//                stage plays it, so it shows once), and played big (QStage.jsx):
 //                always as a question moment on its navy section, one
 //                pinned screen above the header (item 16; the in-frame QFrame
 //                is no longer used), the icon, the words and the hint centred,
@@ -540,8 +541,10 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       return undefined;
     }
     // its room: its box (opaque, padded: story-bands.css) and a gap under
-    // it (8px desktop, 12px phones, where the chart's backing fills it)
-    const put = () => setStyle(blk, '--scene-head-h', `${Math.ceil(h.offsetHeight + (window.innerWidth > 900 ? 8 : 12))}px`);
+    // it (8px desktop, 12px phones, where the chart's backing fills it);
+    // none when the header is hidden (its question is on the stage:
+    // story-bands.css section 5), so no strip is left under the rail
+    const put = () => setStyle(blk, '--scene-head-h', h.offsetHeight ? `${Math.ceil(h.offsetHeight + (window.innerWidth > 900 ? 8 : 12))}px` : '0px');
     // It lets go with its chart (sign-off r3: it stayed stuck while the
     // chart scrolled up under it): both are stuck within the same block, so
     // the higher one would let go later by the distance between their
@@ -790,7 +793,8 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       {sub ? (
         // the topic's one header: its question, an h3 (typography spec,
         // 17 Nov: no icon, kicker, topic name or hairline; the topic name
-        // stays as data-scene, for the rail)
+        // stays as data-scene, for the rail). Hidden visually while the
+        // stage above it plays the question (story-bands.css section 5)
         <header ref={headRef} className={`scene-head${question ? ' has-q' : ''}`} data-scene={subTitle} id={question ? `q-${id}` : undefined}>
           <h3 className="scene-head-q">{question ?? subTitle}</h3>
         </header>
