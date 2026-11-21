@@ -441,13 +441,13 @@ for (const [W, H] of process.env.HEADERS === '0' || JUMP === 'only' || process.e
       if (!a?.getClientRects().length) continue;
       const c = textInk(a);
       if (c == null) continue;
-      out.push({ id: `bridge "${a.querySelector('.part-links-kicker')?.textContent ?? '?'}"`, d: Math.round((c - mid(nav.closest('.story-part'))) * 10) / 10, h: Math.round(a.getBoundingClientRect().height) });
+      out.push({ id: `bridge "${a.querySelector('.part-links-kicker')?.textContent ?? '?'}"`, d: Math.round((c - mid(nav.closest('.story-part, .story-leaves'))) * 10) / 10, h: Math.round(a.getBoundingClientRect().height) });
     }
     // item dc-B: the Part 3 "leaves out" block (box and its lead's and
     // foot's words) on the same column centre
     const card = document.querySelector('.p3-close-card');
     if (card?.getClientRects().length) {
-      const col = mid(card.closest('.story-part'));
+      const col = mid(card.closest('.story-part, .story-leaves'));
       out.push({ id: 'leaves-out block', d: Math.round((mid(card) - col) * 10) / 10 });
       for (const sel of ['.p3-close-lead', '.p3-close-foot']) {
         const c = textInk(card.querySelector(sel));

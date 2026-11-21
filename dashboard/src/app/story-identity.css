@@ -15,6 +15,7 @@
    by its number and name in the rail and one thin rule above its opener;
    no tints. */
 .story-part[data-part],
+.story-leaves,
 .story-rail li[data-part],
 #story-close {
   --part-accent: var(--pe-gray-900);
@@ -32,6 +33,8 @@
 /* B2's 16px above the close is the close sheet's own padding, not a margin,
    so it is white, not a strip of page grey between two sheets (go-live note) */
 .story > .story-part[data-part]:has(.part-links) + .story-close { margin-top: 0; padding-top: 32px; }
+/* push D, Q4: part 4's bridge now ends the leaves-out section after part 3 */
+.story > .story-leaves + .story-close { margin-top: 0; padding-top: 32px; }
 
 /* ---------- The chapter opener: a kicker and the question (h2) under one
    thin rule, at the full content width (item 6) ---------- */
@@ -287,6 +290,7 @@
 
 /* ---------- Anchors land below the stuck bars and the rail ---------- */
 .story > .story-part[data-part],
+.story > .story-leaves,
 .story > .story-close {
   scroll-margin-top: calc(var(--sticky-offset) + 40px);
 }
@@ -300,7 +304,8 @@
   .story > .story-part[data-part]:has(.part-links) + .story-close {
     padding-top: 8px;
   }
-  .story > .story-part[data-part]:has(.part-links) + .story-close {
+  .story > .story-part[data-part]:has(.part-links) + .story-close,
+  .story > .story-leaves + .story-close {
     padding-top: 24px;
   }
   .part-opener {
