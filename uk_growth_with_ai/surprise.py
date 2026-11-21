@@ -45,6 +45,7 @@ import json
 import math
 import os
 import time
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -543,6 +544,16 @@ KORINEK = {"labour_share_fall_pp": 3.9, "tfp_gain": 0.031,
                      "Institute WP 2026-02, Table 3, 'substantial' column"}
 
 
+def _source_of(f) -> str:
+    """The targets file as a repo-relative posix path; a file outside the
+    repo gives its bare name, with a warning, so no machine path is written."""
+    root, f = UK_TARGETS.parents[2], Path(f).resolve()
+    if f.is_relative_to(root):
+        return f.relative_to(root).as_posix()
+    warnings.warn(f"uk targets file outside the repo; source recorded as {f.name!r}")
+    return f.name
+
+
 def scenario_grid(path=None) -> dict:
     """{id: {labour_share_fall_pp, tfp_gain, label, source}}; korinek always,
     the UK ids when uk_targets.json exists."""
@@ -564,7 +575,7 @@ def scenario_grid(path=None) -> dict:
                 raise ValueError(f"{sid}: gamma_terminal {gt} != {G_BASE} + {fall}/100")
             grid[sid] = {"labour_share_fall_pp": fall, "tfp_gain": float(g),
                          "label": x.get("label", sid.replace("_", " ")),
-                         "source": x.get("source", f.resolve().relative_to(UK_TARGETS.parents[2]).as_posix() if f.resolve().is_relative_to(UK_TARGETS.parents[2]) else str(f))}
+                         "source": x.get("source", _source_of(f))}
     return grid
 
 
