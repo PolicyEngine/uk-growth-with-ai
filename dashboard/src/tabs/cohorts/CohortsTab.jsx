@@ -666,9 +666,10 @@ function ByForm({ c, both }) {
 }
 
 // The measure's plain words (consistent with the Who gains card's
-// Measure row and Method).
+// Measure row and its "Consumption-equivalent" definition; Method has no
+// separate account of it).
 const MEASURE_UNIT = '% of remaining-lifetime consumption and bequests';
-const MEASURE_TIP = 'A consumption-equivalent welfare change: the change in what an adult will still spend, and leave as bequests, over the rest of their life that is worth the same to them as the scenario.';
+const MEASURE_TIP = 'A consumption-equivalent welfare change: the constant % change in an adult’s spending and bequests, in every remaining year of their life, that leaves them as well off as the scenario does.';
 function MeasureUnit() {
   return (
     <TipTarget className="why-unit-tip" label="What does this measure mean?" tip={<span>{MEASURE_TIP}</span>}>

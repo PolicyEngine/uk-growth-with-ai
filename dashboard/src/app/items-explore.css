@@ -117,8 +117,8 @@
 }
 /* the strip is a summary box (SummaryBox.jsx, push D, Q6a); its note rows
    in the caption type */
-.ex-caveat-line,
-.ex-closed {
+.summary-row.ex-caveat-line,
+.summary-row.ex-closed {
   font-size: var(--fs-caption);
   color: var(--pe-gray-600);
 }
@@ -170,7 +170,7 @@
   font-size: var(--fs-small);
   color: var(--pe-gray-700);
 }
-.ex-why-line {
+.summary-row.ex-why-line {
   font-size: var(--fs-small);
   font-weight: 600;
   color: var(--pe-gray-800);
