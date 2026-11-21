@@ -18,7 +18,9 @@ import { BREAKS, CHANGES_STEPS, PANEL_OF, changesSub, marginClaims, rulesClaims 
 import { CHANNEL_STEPS, effectWords, fillFor } from './part3/Channels.jsx';
 import { stepsWithoutHighlight } from '@/components/story/highlight.jsx';
 import { DECILES_SUB, bottomDecileRankings, decileShape } from './part3/Deciles.jsx';
-import { CLOSING_SUB, LEFT_OUT, OUT_GROUPS } from './part3/Closing.jsx';
+import Closing, { CLOSING_SUB, LEFT_OUT, OUT_GROUPS } from './part3/Closing.jsx';
+import StoryTab from './StoryTab.jsx';
+import { NavProvider } from '@/lib/nav.jsx';
 import { MODEL_YEAR, PROVISIONAL, ladder, rule } from './part3/shared.jsx';
 import TwoLenses, { CLOSE_NEXT, CLOSE_SUB, CLOSE_WHY, LENSES, PAY_RESULT, closeWhy } from './TwoLenses.jsx';
 import { TABS } from '@/lib/labels.js';
@@ -134,11 +136,12 @@ describe('Part3', () => {
     expect(text).toContain(fmtBn(D.sankey.total.earnings_lost_bn));
   });
 
-  it('runs four Scrolly scenes in the paper order, then the leaves-out list; one step, one sentence, one highlight', () => {
+  it('runs four Scrolly scenes in the paper order; one step, one sentence, one highlight', () => {
     const { container } = renderPart();
     const topics = [...container.querySelectorAll('.scrolly > .scene-head[data-scene]')].map((h) => h.dataset.scene);
     expect(topics).toEqual(['The main case', 'Three channels', 'Where the loss falls', 'Where a lost pound goes', 'What changes the answer']);
-    expect(container.querySelector('#p3-close-h').textContent.trim()).toBe('What this one-year test leaves out');
+    // the leaves-out list is its own section after the part (push D, Q4)
+    expect(container.querySelector('#p3-close-h, .p3-close')).toBeNull();
     // at most two steps a scene, four in the merged one; the step ids links point at are kept
     for (const s of container.querySelectorAll('.scrolly')) expect(s.querySelectorAll('.scrolly-step').length, s.id).toBeLessThanOrEqual(s.id === 'p3-changes' ? 4 : 2);
     for (const id of ['p3-central-step', 'p3-channels-step', 'p3-deciles-step', 'p3-rules-step', 'p3-margin-step', 'p3-moves-step']) expect(container.querySelector(`#${id}`), id).not.toBeNull();
@@ -286,13 +289,40 @@ describe('Part3', () => {
     expect(text).not.toMatch(/(^|[\s(])-(£|\d)/);
   });
 
+  // push D, Q4 (Vahid: "it should have its separate section"): after part
+  // 3's section, its own section on a full-width band, a section-level h2,
+  // the anchors kept, then the bridge to part 4, centred, as its last child
+  it('puts what the study leaves out in its own section between part 3 and the bridge to part 4', () => {
+    window.history.replaceState(null, '', '/?tab=story');
+    const { container } = render(
+      <NavProvider>
+        <StoryTab />
+      </NavProvider>,
+    );
+    const p3 = container.querySelector('#story-part-3');
+    const sec = container.querySelector('section#story-leaves-out');
+    expect(p3.querySelector('.p3-close, .story-next')).toBeNull();
+    expect(p3.nextElementSibling).toBe(sec);
+    expect(sec.getAttribute('aria-labelledby')).toBe('p3-close-h');
+    expect([...sec.children].map((c) => c.className.split(' ')[0])).toEqual(['p3-close', 'part-links']);
+    expect(sec.querySelector('header#q-p3-close h2#p3-close-h').textContent.trim()).toBe(CLOSING_SUB.title);
+    expect(sec.lastElementChild.querySelector('a.story-next-link').getAttribute('href')).toBe('#story-close');
+    expect(sec.nextElementSibling.id).toBe('story-close');
+  });
+
   it('ends with what the study leaves out as three labelled groups, and no band: the close carries the links', () => {
-    const { container } = renderPart();
+    const { container } = render(
+      <>
+        <Part3 part={PART} />
+        <Closing />
+      </>,
+    );
     const close = container.querySelector('.p3-close');
     expect(close.closest('.scrolly')).toBeNull();
     // item 33 and dc-B: one h3 (the title said once, no caption), one lead, the two column heads once,
     // three labelled group sections (an h4 with one icon each), a row per item (the item, then its assumption), one foot line
-    expect(close.querySelectorAll('h3')).toHaveLength(1);
+    expect(close.querySelectorAll('h2')).toHaveLength(1);
+    expect(close.querySelectorAll('h3')).toHaveLength(0);
     expect(close.querySelector('caption, table')).toBeNull();
     expect(close.textContent.split(CLOSING_SUB.title).length - 1).toBe(1);
     expect(close.querySelectorAll('.p3-close-lead')).toHaveLength(1);
@@ -317,7 +347,7 @@ describe('Part3', () => {
     const foot = close.querySelectorAll('.p3-close-foot a');
     expect([...foot].map((a) => a.getAttribute('href'))).toEqual([expect.stringMatching(/tab=explore.*sub=households.*hh-ladder|hh-ladder/), expect.stringMatching(/hm-out/)]);
     expect(close.querySelectorAll('.scene-head svg').length).toBe(0);
-    expect(close.querySelector('.scene-head h3#p3-close-h')).not.toBeNull();
+    expect(close.querySelector('.scene-head h2#p3-close-h')).not.toBeNull();
     expect(close.querySelector('.p3-close-chip, .story-panel, button, .p3-chip-frame')).toBeNull();
     expect(container.textContent).not.toContain('None in the main case');
     expect(container.textContent).not.toContain('A one-year test, not a forecast');

@@ -6,7 +6,9 @@ import { useEntry, useSnap } from '@/components/story/motion.js';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
 
-// The end of part 3: not sticky, no figures. What the one-year test leaves
+// After part 3, its own section (StoryTab, push D Q4: a full-width band
+// between part 3 and the bridge to part 4, with a section-level h2): not
+// sticky, no figures. What the one-year test leaves
 // out (paper discussion.tex and results.tex; Method > Household method,
 // #hm-out, has the full list), in three labelled groups, each a small
 // section (an h4 with one plain icon, then a list of what is left out and
@@ -47,11 +49,11 @@ export default function Closing() {
   const [ref, entry] = useEntry({ line: 0.85 });
   const snap = useSnap(ref, entry);
   return (
-    <aside className="p3-close" aria-labelledby="p3-close-h">
+    <div className="p3-close">
       <header className="scene-head topic-head p3-close-head" data-scene={CLOSING_SUB.title} id="q-p3-close">
-        <h3 className="scene-head-q" id="p3-close-h">
+        <h2 className="scene-head-q" id="p3-close-h">
           {hy(CLOSING_SUB.title)}
-        </h3>
+        </h2>
       </header>
       <div ref={ref} className={`p3-close-card${entry.entered ? ' is-in' : ''}${snap ? ' is-snap' : ''}`}>
         <p className="p3-close-lead">
@@ -91,6 +93,6 @@ export default function Closing() {
           , for every limit.
         </p>
       </div>
-    </aside>
+    </div>
   );
 }

@@ -42,6 +42,26 @@
 @media (max-width: 900px) {
   .story > .story-close::before { bottom: -24px; }
 }
+/* what the one-year test leaves out (push D, Q4): its own section between
+   part 3 and the bridge to part 4, on its own full-width band in the
+   hero's grey (--page-bg; no new colour), the same ::before as the parts'
+   sheets. Part 3 keeps its last scene's foot margin on its white sheet. */
+.story > .story-part[data-part='3'] { display: flow-root; }
+.story > .story-leaves {
+  --band-bg: var(--page-bg);
+  position: relative;
+  padding-block: var(--gap-topic);
+}
+.story > .story-leaves::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  inset: 0 -100vmax;
+  background: var(--page-bg);
+}
+.story > .story-leaves > .part-links { margin-top: var(--gap-topic); }
+
 /* frames off, boxes kept (padding and a transparent 1px border) */
 .scrolly-graphic-inner,
 .p2-output-static .p2-output-fig,

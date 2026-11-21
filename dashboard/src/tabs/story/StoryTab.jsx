@@ -4,6 +4,7 @@ import Hero from './Hero.jsx';
 import Part1 from './Part1.jsx';
 import Part2 from './Part2.jsx';
 import Part3 from './Part3.jsx';
+import Closing from './part3/Closing.jsx';
 import StoryRail from './StoryRail.jsx';
 import TwoLenses, { CLOSE_SUB } from './TwoLenses.jsx';
 import NextPart from '@/components/story/NextPart.jsx';
@@ -124,6 +125,14 @@ export default function StoryTab() {
       </section>
       <section className="story-part" data-part="3" id={PARTS[2].id} aria-labelledby={`${PARTS[2].id}-h`}>
         <Part3 part={PARTS[2]} />
+      </section>
+      {/* what the one-year test leaves out: its own section after part 3, on
+          its own full-width band (the hero's grey, story-bands.css), then
+          the bridge to part 4 (push D, Q4; Vahid: "it should have its
+          separate section"). The rail lists parts, not topics, so it has
+          no rail entry. */}
+      <section className="story-leaves" id="story-leaves-out" aria-labelledby="p3-close-h">
+        <Closing />
         <NextPart show n={4} title={CLOSE_SUB.title} to="story-close" />
       </section>
       <TwoLenses />

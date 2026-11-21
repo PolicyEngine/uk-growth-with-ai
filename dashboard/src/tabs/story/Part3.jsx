@@ -9,7 +9,6 @@ import Channels from './part3/Channels.jsx';
 import Deciles from './part3/Deciles.jsx';
 import Pound from './part3/Pound.jsx';
 import Changes from './part3/Changes.jsx';
-import Closing from './part3/Closing.jsx';
 import { MODEL_YEAR, PAPER_URL } from './part3/shared.jsx';
 import { REFS, Ref } from './part3/sources.jsx';
 
@@ -19,7 +18,8 @@ import { REFS, Ref } from './part3/sources.jsx';
 // Four Scrolly scenes in the paper's order (results.tex): the main case,
 // its three channels, where the loss falls, and what changes the answer (who
 // loses the job, job loss against wage cuts, the break-evens: one scene,
-// round 2); then what the study leaves out, a plain list. Where a lost pound
+// round 2). What the study leaves out is its own section after the part
+// (StoryTab, part3/Closing.jsx; push D, Q4). Where a lost pound
 // goes (a smaller, OBR-sized run) is on Explore > Households, linked from
 // the deciles scene. The change of model is said once, in the opener's
 // handover line; the links onward are on the close (TwoLenses). Each figure
@@ -54,7 +54,6 @@ export default function Part3({ part }) {
       <Deciles />
       <Pound />
       <Changes />
-      <Closing />
     </>
   );
 }

@@ -127,7 +127,8 @@ describe('part openers', () => {
     const el = story();
     const bridges = [...el.querySelectorAll('nav.part-links.story-next')];
     expect(bridges.map((b) => b.querySelector('.part-links-kicker').textContent)).toEqual(['Next: part 2', 'Next: part 3', 'Next: part 4']);
-    expect(bridges.map((b) => b.closest('section').id)).toEqual(['story-part-1', 'story-part-2', 'story-part-3']);
+    // part 4's bridge follows the leaves-out section after part 3 (push D, Q4)
+    expect(bridges.map((b) => b.closest('section').id)).toEqual(['story-part-1', 'story-part-2', 'story-leaves-out']);
     expect(bridges.map((b) => b.querySelector('a').getAttribute('href'))).toEqual(['#story-part-2', '#story-part-3', '#story-close']);
     for (const b of bridges) expect(b.querySelector('.part-links-row')).toBeNull();
     for (const b of bridges) expect(b.querySelector('.part-links-lead')).toBeNull();
