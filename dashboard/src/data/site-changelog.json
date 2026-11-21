@@ -4,6 +4,11 @@
  "at": "ea2cc1c",
  "entries": [
   {
+   "date": "2026-11-21",
+   "commit": "3d1a718",
+   "text": "Every chart shows its values on hover, tap or arrow keys; the opening question is now ‘How could AI affect the UK economy?’; the foreign-capital slope chart names its axes; the household study’s ‘leaves out’ block is regrouped."
+  },
+  {
    "date": "2026-11-19",
    "commit": "e57ab37",
    "text": "The AI shock now starts in 2027 and is in full by 2030; every OG-UK figure is from the 2027 runs."
