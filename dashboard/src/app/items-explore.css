@@ -115,32 +115,12 @@
 .page-a.is-items {
   max-width: none;
 }
-.ex-strip {
-  display: grid;
-  gap: 12px;
-}
+/* the strip is a summary box (SummaryBox.jsx, push D, Q6a); its note rows
+   in the caption type */
 .ex-caveat-line,
 .ex-closed {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 20px;
-  align-items: center;
-  margin: 0;
   font-size: var(--fs-caption);
   color: var(--pe-gray-600);
-}
-.ex-closed,
-.ex-caveat-line > span {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-}
-.ex-closed .plain-icon {
-  display: inline-flex;
-  color: var(--pe-gray-500);
-}
-.ex-caveat-line a {
-  color: var(--pe-teal-700);
 }
 .ex-chips {
   display: flex;
@@ -191,14 +171,15 @@
   color: var(--pe-gray-700);
 }
 .ex-why-line {
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-800);
+}
+.ex-why-line > .summary-row-body {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 8px;
   align-items: center;
-  margin: 0;
-  font-size: var(--fs-small);
-  font-weight: 600;
-  color: var(--pe-gray-800);
 }
 .ex-why-label {
   font-weight: 400;
@@ -2071,15 +2052,6 @@
     font-weight: 500;
     letter-spacing: -0.01em;
   }
-}
-
-/* The answer strip's lead label (item 22): the version and year it answers
-   for, where the strip does not follow the Version picker */
-.ex-strip-label {
-  margin: 0 0 8px;
-  font-size: var(--chart-fs-tick, 14px);
-  font-weight: 600;
-  color: var(--pe-gray-600);
 }
 
 /* Who gains: the welfare breakdown card (item-19-fable.md), a Finding with

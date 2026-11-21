@@ -22,7 +22,9 @@ import { ruleGapText } from '@/tabs/ai/lines.js';
 
 // An answer is a strip of chips, or a sentence when the view is not solved.
 // `label` leads the strip where it does not follow the Version picker.
-const answerOf = (a, label) => <AnswerStrip a={typeof a === 'string' ? { drivers: sentenceItems(a) } : a} label={label} />;
+// The box opens with the scope line (push D, Q6a): the model's name, whose
+// tip says what it is, and what the figures are.
+const answerOf = (a, label) => <AnswerStrip a={typeof a === 'string' ? { drivers: sentenceItems(a) } : a} label={label} scope={<Scope />} />;
 // The model row's scope note, after the pill (item-22-fable.md): what the
 // page's numbers are. It opens with the model's name, whose tip says in
 // plain words what the macro model is (push D, Q1: the tab's first mention;
@@ -51,14 +53,25 @@ function FinancesAnswer({ st }) {
   );
 }
 
-function Row({ sub }) {
+function Scope() {
+  return (
+    <>
+      <ModelTip model="oguk" />
+      {SCOPE}
+    </>
+  );
+}
+// The model row: the settings pill, then the scope note where the page has
+// no summary box to carry it (Who gains).
+function Row({ sub, scope = false }) {
   return (
     <>
       <PagePill pick={pickersFor('explore', sub)} sub={sub} />
-      <span className="model-scope">
-        <ModelTip model="oguk" />
-        {SCOPE}
-      </span>
+      {scope ? (
+        <span className="model-scope">
+          <Scope />
+        </span>
+      ) : null}
     </>
   );
 }
@@ -90,7 +103,7 @@ export default function ExploreTab() {
   else if (sub === 'finances')
     body = (
       <>
-        <PageIntro row={<Row sub="finances" />} notes={[DATE_NOTE]} question="What happens to public debt and tax under each fiscal rule?" answer={<FinancesAnswer st={st} />} />
+        <PageIntro row={<Row sub="finances" scope />} notes={[DATE_NOTE]} question="What happens to public debt and tax under each fiscal rule?" answer={<FinancesAnswer st={st} />} />
         <ResultsTab sub="finances" />
         <AcrossDebt />
       </>
@@ -98,7 +111,7 @@ export default function ExploreTab() {
   else if (sub === 'who')
     body = (
       <>
-        <PageIntro row={<Row sub="who" />} notes={[cohortNotice() ?? DATE_NOTE]} question="Who gains and who loses, by birth year and lifetime earnings?" answer={<WhoFinding closure={st.closure} rule={st.wrule} arm={st.arm} />} />
+        <PageIntro row={<Row sub="who" scope />} notes={[cohortNotice() ?? DATE_NOTE]} question="Who gains and who loses, by birth year and lifetime earnings?" answer={<WhoFinding closure={st.closure} rule={st.wrule} arm={st.arm} />} />
         <div id="explore-sub-who-inner">
           <WhoGainsTab />
         </div>

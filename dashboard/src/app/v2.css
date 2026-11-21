@@ -2300,6 +2300,67 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 /* phones: the page pickers' options wrap rather than clip; the sliding
    indicator assumes one line, so the chosen option is marked in place */
 
+/* ---------- Summary box (components/ui/SummaryBox.jsx, push D, Q6a) ----------
+   The card that opens an Explore page: the Finding box's surface, border
+   and radius; the scope line first, under a hairline; then the label and
+   rows, each led by one muted icon. */
+.summary-box {
+  display: grid;
+  gap: 12px;
+  padding: var(--card-padding, 20px);
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius, 12px);
+}
+.summary-scope {
+  margin: 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--card-border);
+}
+.summary-rows {
+  display: grid;
+  gap: 12px;
+}
+.summary-label,
+.summary-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0;
+  max-width: 72ch;
+  font-size: var(--chart-fs-tick, 14px);
+  line-height: 1.45;
+  color: var(--pe-gray-700);
+}
+.summary-label {
+  font-weight: 600;
+  color: var(--pe-gray-600);
+}
+.summary-row.is-strong {
+  font-size: var(--chart-fs-head, 16px);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--pe-gray-900);
+}
+.summary-icon {
+  display: inline-flex;
+  flex: none;
+  margin-top: 2px;
+  color: var(--pe-gray-500);
+}
+.summary-row-body {
+  min-width: 0;
+}
+.summary-link a {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  color: var(--pe-teal-700);
+}
+.summary-link-arrow {
+  display: inline-flex;
+}
+
 /* ---------- Finding (components/ui/Finding.jsx, item-18-fable.md) ----------
    One finding in a white box with a hairline border, like .card: a bold
    lead (one optional icon), plain lines, an optional note, then optional

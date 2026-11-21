@@ -2,25 +2,26 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
-import { NavLink } from '@/lib/nav.jsx';
+import SummaryBox, { SummaryLink, SummaryRow } from '@/components/ui/SummaryBox.jsx';
 import { side } from '@/tabs/ai/lines.js';
 
-// The answer that opens an Explore page, on the full content width, left-
-// aligned to the content edge: one row of equal chips, one per measure
+// The answer that opens an Explore page, in one summary card (push D, Q6a;
+// components/ui/SummaryBox.jsx) on the full content width: the scope line
+// (`scope`), the label, then one row of equal chips, one per measure
 // (measure icon, name, then an arrow and a direction word in the gain or
 // loss colour where that applies; data-dir-concept keeps the sign), an
 // optional no-foreign-capital note, the why as one inline chain on one line
-// (icons and arrows, not a list), and one caveat line. No context line:
+// (icons and arrows, not a list), and one caveat line, each row led by an
+// icon. No context line:
 // the settings pill names the settings; `label` (optional) leads the strip
 // where it does not follow the Version picker. The data come from
 // answers.js; every direction from the sign.
 const I = ({ c, size = 16 }) => <Icon name={iconFor(c)} size={size} />;
 export const ARROW = { above: '↑', below: '↓', on: '→' };
 
-export default function AnswerStrip({ a, label }) {
+export default function AnswerStrip({ a, label, scope }) {
   return (
-    <div className="ex-strip">
-      {label ? <p className="ex-strip-label">{label}</p> : null}
+    <SummaryBox className="ex-strip" scope={scope} label={label}>
       {a.chips?.length ? (
         <ul className="ex-chips is-row" aria-label="Direction of each measure against the OBR’s central forecast path" style={{ '--n': a.chips.length }}>
           {a.chips.map((c) => (
@@ -35,13 +36,10 @@ export default function AnswerStrip({ a, label }) {
         </ul>
       ) : null}
       {a.closed ? (
-        <p className="ex-closed" data-chip="closed">
-          <I c="closed" />
-          <span>
-            {a.closed.values.map((x, i) => (x == null ? null : <span key={i} data-dir={side(x)} />))}
-            {a.closed.text}
-          </span>
-        </p>
+        <SummaryRow icon="closed" className="ex-closed" data-chip="closed">
+          {a.closed.values.map((x, i) => (x == null ? null : <span key={i} data-dir={side(x)} />))}
+          {a.closed.text}
+        </SummaryRow>
       ) : null}
       {a.drivers?.length ? (
         <ul className="ex-chips">
@@ -54,7 +52,7 @@ export default function AnswerStrip({ a, label }) {
         </ul>
       ) : null}
       {a.why ? (
-        <p className="ex-why-line">
+        <SummaryRow icon="why" className="ex-why-line">
           <span className="ex-why-label">Why:</span>{' '}
           {a.why.map((l, i) => (
             <span key={l.key} className="ex-why-step">
@@ -68,20 +66,18 @@ export default function AnswerStrip({ a, label }) {
               {l.dir == null ? <span>{l.text}</span> : <span data-dir={side(l.dir)}>{l.text}</span>}
             </span>
           ))}
-        </p>
+        </SummaryRow>
       ) : null}
-      {a.link || a.caveat ? (
-        <p className="ex-caveat-line">
-          {a.link ? (
-            <span>
-              <NavLink tab="explore" sub="finances" anchor={a.link.anchor}>
-                {a.link.text}
-              </NavLink>
-            </span>
-          ) : null}
-          {a.caveat ? <span>{a.caveat}</span> : null}
-        </p>
+      {a.caveat ? (
+        <SummaryRow icon="caveat" className="ex-caveat-line">
+          {a.caveat}
+        </SummaryRow>
       ) : null}
-    </div>
+      {a.link ? (
+        <SummaryLink tab="explore" sub="finances" anchor={a.link.anchor}>
+          {a.link.text}
+        </SummaryLink>
+      ) : null}
+    </SummaryBox>
   );
 }
