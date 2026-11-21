@@ -564,7 +564,7 @@ def scenario_grid(path=None) -> dict:
                 raise ValueError(f"{sid}: gamma_terminal {gt} != {G_BASE} + {fall}/100")
             grid[sid] = {"labour_share_fall_pp": fall, "tfp_gain": float(g),
                          "label": x.get("label", sid.replace("_", " ")),
-                         "source": x.get("source", str(f))}
+                         "source": x.get("source", f.resolve().relative_to(UK_TARGETS.parents[2]).as_posix() if f.resolve().is_relative_to(UK_TARGETS.parents[2]) else str(f))}
     return grid
 
 
