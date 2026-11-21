@@ -8,7 +8,7 @@ import Icon from '@/components/ab/Icon.jsx';
 import { ChartHover, ModelBadge, Replay, Pause } from '@/components/story/chart/index.js';
 import { useIsPhone, useReducedMotion } from '@/components/story/motion.js';
 import { NavLink } from '@/lib/nav.jsx';
-import { SCEN_NAME, CENTRAL, BOUND, scenarioById } from '@/tabs/ai/surprise.js';
+import { SCEN_NAME, CENTRAL, BOUND, NOT_SOLVED, scenarioById } from '@/tabs/ai/surprise.js';
 import { fracWord } from './caveats.js';
 import { Tx } from './frame.jsx';
 import { OutputSource } from './sources.jsx';
@@ -121,7 +121,7 @@ function Waterfall({ rows, on, hl, setHl, path, cells, chips, phase, t }) {
   // hover (M4): each part's change, from the data, with its path
   const tips = rows.map((r) => ({
     head: r.label,
-    rows: [{ name: 'Change against the forecast path', value: r.value == null ? 'not yet solved' : change(r.value), color: PART_COLOR[r.id], path: r.value == null ? undefined : `${path}.${r.id === 'capital' ? 'gross_capital' : r.id}` }],
+    rows: [{ name: 'Change against the forecast path', value: r.value == null ? NOT_SOLVED : change(r.value), color: PART_COLOR[r.id], path: r.value == null ? undefined : `${path}.${r.id === 'capital' ? 'gross_capital' : r.id}` }],
     unit: `Per 100 of the forecast path’s GDP, ${SPLIT_YEAR}.`,
     kind: 'result',
   }));

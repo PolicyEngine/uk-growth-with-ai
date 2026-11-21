@@ -2,20 +2,36 @@ import { describe, it, expect } from 'vitest';
 import D from '@/data/aiStudy2425.json';
 import { rulesWords, rankingsWords, rankingsLead, costWords, takeupWords, perPoundWords, policyWords } from './HouseholdsExplore.jsx';
 import { linkAiFiles } from '@/tabs/explore/sources.jsx';
+import { RULE_MARGIN_PP, ruleName, rulesGap } from './figures.js';
 
 // Every comparison the Households page states is computed from the data
 // file, so these tests check the words against the data, not literal text.
 const L = (id) => D.ladder.find((r) => r.id === id);
 
 describe('households wording follows the data', () => {
-  it('rules: every other rule at least as high as central only when true', () => {
+  it('rules: "least under the main rule" only when every other rule is at least the margin higher', () => {
     const c = D.rules.find((r) => r.id === 'exposure');
     const others = D.rules.filter((r) => r.id !== 'exposure');
-    // T15: "least under the central rule" only when every other rule raises poverty more
-    const more = others.every((r) => r.poverty_pp > c.poverty_pp);
-    expect(rulesWords(D.rules).includes('least under the main rule')).toBe(more);
-    if (!more) expect(rulesWords(D.rules).includes('by at least as much as in the main case')).toBe(others.every((r) => r.poverty_pp >= c.poverty_pp));
+    // T15 and Fable round 6 S4: "least" only when every other rule raises
+    // poverty by at least RULE_MARGIN_PP more than the main rule
+    const clear = others.every((r) => r.poverty_pp - c.poverty_pp >= RULE_MARGIN_PP);
+    expect(rulesWords(D.rules).includes('least under the main rule')).toBe(clear);
+    if (!clear && others.every((r) => r.poverty_pp >= c.poverty_pp)) {
+      const near = others.filter((r) => r.poverty_pp - c.poverty_pp < RULE_MARGIN_PP);
+      for (const r of near) expect(rulesWords(D.rules)).toContain(ruleName(r.id).toLowerCase());
+      expect(rulesWords(D.rules)).toContain(`which are within ${rulesGap(D.rules)}`);
+    }
     expect(rulesWords(D.rules).startsWith('Poverty rises under every displacement rule')).toBe(D.rules.every((r) => r.poverty_pp > 0));
+  });
+  it('rules: the current data names the main and ages 16 to 24 rules, 0.03pp apart', () => {
+    // pins aiStudy2425.json as committed: main 2.4016pp, ages 16 to 24 2.4317pp
+    expect(rulesWords(D.rules)).toBe('Poverty rises under every displacement rule, lowest under the main and ages 16 to 24 rules, which are within 0.03pp');
+  });
+  it('rules: a clear margin keeps "least under the main rule"; a lower rule is counted', () => {
+    const r = (id, poverty_pp) => ({ id, poverty_pp });
+    expect(rulesWords([r('exposure', 2), r('junior', 2.1), r('uniform', 2.5)])).toBe('Poverty rises under every displacement rule, least under the main rule');
+    expect(rulesWords([r('exposure', 2), r('junior', 2.04), r('uniform', 2.08), r('compression', 3)])).toBe('Poverty rises under every displacement rule, lowest under the main, ages 16 to 24 and uniform rules, which are within 0.08pp');
+    expect(rulesWords([r('exposure', 2), r('junior', 1.9), r('uniform', 2.5)])).toBe('Poverty rises under every displacement rule; 1 of the other 2 raise it at least as much as the main rule');
   });
   it('rankings: deciles named as losing and changing sign are exactly those that do', () => {
     const at = (d) => D.rankings.map((r) => r.values[d - 1]);

@@ -402,7 +402,7 @@ function BreakEvenPanel({ on }) {
       <p className="story-figure-unit p3-group-unit">
         <AxisTitle axis="y">Main setting, then break-even setting</AxisTitle>, for each of three assumptions; the other two held at main settings.
       </p>
-      <ChartHover label="The break-even setting of each of three assumptions" items={BREAKS.map((b) => ({ head: b.label, rows: [{ name: 'Main setting', value: b.centralText, icon: 'scenario' }, { name: 'Break-even', value: b.valueText, icon: 'breakEven' }], unit: `The cost to the public finances is zero at the break-even setting, the other two held at main settings. ${MODEL_YEAR}, the household study.`, kind: 'input' }))}>
+      <ChartHover label="The break-even setting of each of three assumptions" items={BREAKS.map((b) => ({ head: b.label, rows: [{ name: 'Main setting (assumed)', value: b.centralText, icon: 'scenario' }, { name: 'Break-even (computed)', value: b.valueText, icon: 'breakEven' }], unit: `The cost to the public finances is zero at the break-even setting, the other two held at main settings. ${MODEL_YEAR}, the household study.` }))}>
       <ol className="p3-ch-be" data-mark="breakeven">
         {BREAKS.map((b, i) => (
           <li key={b.id} className="p3-ch-be-row" data-row={`be-${b.id}`} data-mark={`be-${b.id}`} data-tip={i} style={{ '--beat': `${i * 200}ms` }}>

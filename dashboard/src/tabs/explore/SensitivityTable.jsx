@@ -4,7 +4,7 @@ import { MEASURE } from '@/lib/labels.js';
 import Card from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
-import { S, ARMS, ARM_COLOR, SCENARIOS, YEARS, HEADLINE_YEAR, CENTRAL, fmt, resultAt, foreignShareOf } from '@/tabs/ai/surprise.js';
+import { S, ARMS, ARM_COLOR, SCENARIOS, YEARS, HEADLINE_YEAR, CENTRAL, fmt, resultAt, foreignShareOf, holeText, storedAt } from '@/tabs/ai/surprise.js';
 import Icon from '@/components/ab/Icon.jsx';
 import { side } from '@/tabs/ai/lines.js';
 import { dirConcept } from '@/tabs/explore/direction.jsx';
@@ -177,8 +177,8 @@ function SensGrid({ res }) {
         { name: 'Version', value: a.short || a.label, color: ARM_COLOR[a.id] },
         { name: 'Foreign capital', value: `ζK ${zk}`, icon: 'closure' },
         { name: 'Budget', value: 'Common fiscal rule', icon: 'rule' },
-        { name: 'Gap', value: x == null ? 'not yet solved' : fmt(x, 2), icon: 'gdp', path: x == null ? undefined : `sensitivity.${SENS}.results.${s.id}.${a.id}.gaps.${c.v}.${HEADLINE_YEAR}` },
-        { name: 'With ζK 0.1', value: ce == null ? 'not yet solved' : fmt(ce, 2), icon: 'compare' },
+        { name: 'Gap', value: x == null ? holeText(res[s.id]?.[a.id]) : fmt(x, 2), icon: 'gdp', path: x == null ? undefined : `sensitivity.${SENS}.results.${s.id}.${a.id}.gaps.${c.v}.${HEADLINE_YEAR}` },
+        { name: 'With ζK 0.1', value: ce == null ? holeText(storedAt(s.id, a.id, CENTRAL)) : fmt(ce, 2), icon: 'compare' },
       ],
       unit: `% gap against the forecast path, ${HEADLINE_YEAR}. OG-UK works it out.`,
     };

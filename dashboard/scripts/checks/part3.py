@@ -87,6 +87,11 @@ for k in ('takeup', 'takeup_jsa', 'obr', 'obr_takeup', 'obr_takeup_jsa'):
     hh[bn(LAD[k]['cost_bn'])] += 1; hh[pp(LAD[k]['poverty_pp'])] += 1; hh[pts(LAD[k]['gini_pp'])] += 1
 for k in ('uniform', 'junior', 'compression'): hh[pts(RUL[k]['gini_pp'])] += 1
 hh[bn(RUL['klein_top_loaded']['cost_bn'])] += 1; hh[pp(RUL['klein_top_loaded']['poverty_pp'])] += 1; hh[pts(RUL['klein_top_loaded']['gini_pp'])] += 1
+# card 4's title: the largest gap to the rules within 0.1pp of the main rule (Fable round 6, S4)
+_near = [RUL[k]['poverty_pp'] - RUL['exposure']['poverty_pp'] for k in RUL if k != 'exposure']
+_near = [g for g in _near if 0 <= g < 0.1]
+if _near:
+    hh[f"{max(_near):.2f}pp"] += 1
 for k in ('claim_uc', 'claim_uc_entitled', 'existing_unemployed_claim', 'capital_over_limit', 'other_earner', 'homeowner'):
     hh[share(AI['displaced'][k]['value'])] += 1
 for k in ('uc_per_displaced', 'uc_per_displaced_takeup', 'uc_per_existing_unemployed'): hh[gbp(AI['displaced'][k]['value'])] += 1

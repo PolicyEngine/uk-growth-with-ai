@@ -11,7 +11,7 @@ import { URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import { D, MODEL_YEAR, OBR_SCENARIO, OUTSIDE_REBUILD, PAPER_URL, entryClass, ladder, perPound, rule, useSeenBeat } from '@/tabs/story/part3/shared.jsx';
 import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtInputPct, fmtPence, fmtPp, fmtPpSpread, fmtShare } from '@/tabs/story/part3/format.js';
 import { Bar, Plane, STEP, ValueTable, signedTick } from './charts.jsx';
-import { RULE_NAMES, SMALL_DECILE_PCT, fmtGiniPts, ruleName } from './figures.js';
+import { RULE_MARGIN_PP, RULE_NAMES, SMALL_DECILE_PCT, fmtGiniPts, ruleName, rulesGap } from './figures.js';
 
 // Explore > Households (item-24-fable.md): the household study's detail,
 // apart from story part 3. Seven cards in three sections. Each card's
@@ -125,9 +125,17 @@ export function rulesWords(rules, central = 'exposure') {
   const every = rules.every((r) => r.poverty_pp > 0);
   const atLeast = others.filter((r) => r.poverty_pp >= c.poverty_pp).length;
   const lead = every ? 'Poverty rises under every displacement rule' : 'Poverty does not rise under every displacement rule';
-  // T15: "least under the main rule" only when every other rule raises it more
-  if (others.every((r) => r.poverty_pp > c.poverty_pp)) return `${lead}, least under the main rule`;
-  if (atLeast === others.length) return `${lead}, by at least as much as in the main case under the other ${others.length}`;
+  // T15: "least under the main rule" only when every other rule raises it
+  // by at least RULE_MARGIN_PP more (Fable round 6, S4: no paired interval
+  // is exported, and the headline's spread across draws is about 0.2pp)
+  if (others.every((r) => r.poverty_pp - c.poverty_pp >= RULE_MARGIN_PP)) return `${lead}, least under the main rule`;
+  // the main rule lowest, but others within the margin: name them and the gap
+  if (atLeast === others.length) {
+    const near = others.filter((r) => r.poverty_pp - c.poverty_pp < RULE_MARGIN_PP);
+    const names = ['main', ...near.map((r) => ruleName(r.id).toLowerCase())];
+    const list = `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+    return `${lead}, lowest under the ${list} rules, which are within ${rulesGap(rules, central)}`;
+  }
   return `${lead}; ${atLeast} of the other ${others.length} raise it at least as much as the main rule`;
 }
 // The runs outside the study's rebuild: a caveat line while the data file

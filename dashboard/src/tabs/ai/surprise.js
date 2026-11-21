@@ -83,6 +83,9 @@ export const RULE_KEY = { dn: 'debt_neutral', fixed: 'fixed_spending' };
 // The record for a scenario, arm and closure under a fiscal rule.
 export const resultAt = (sid, arm, closure, rule = 'common') =>
   RULE_KEY[rule] ? ruleResult(RULE_KEY[rule], sid, arm, closure) : result(sid, arm, closure);
+// The record as the data file has it, undefined when it has none.
+export const storedAt = (sid, arm, closure, rule = 'common') =>
+  (RULE_KEY[rule] ? S.rules?.[RULE_KEY[rule]]?.results : S.results)?.[sid]?.[arm]?.[closure];
 // Is the scenario solved under the rule (any arm or closure)?
 export const ruleSolved = (rule, sid) => !RULE_KEY[rule] || ruleScenarios(RULE_KEY[rule]).includes(sid);
 // The scenarios a rule is solved for, in display order.
@@ -151,6 +154,13 @@ export const fmtHeld = (arm, v, x, dp = 2, unit = '%') => (heldAtHeadline(arm, v
 // What a cell not solved yet prints in place of a figure: never a zero.
 export const PENDING = 'not yet solved';
 export const fmt = (x, dp = 2, unit = '%') => (x == null ? PENDING : `${signed(x, dp)}${unit}`);
+// What a tooltip prints for a cell with no figure (Fable round 6, S9): the
+// same "not solved" as the cell, since the solve set is final; PENDING only
+// where the data file itself lists the record as pending (a partial
+// export). `stored` is the record as the file has it (storedAt), never
+// result()'s pending fallback for a missing one.
+export const NOT_SOLVED = 'not solved';
+export const holeText = (stored) => (stored?.status === 'pending' ? PENDING : NOT_SOLVED);
 
 export const DONE = S.solves_done;
 export const TOTAL = S.solves_total;

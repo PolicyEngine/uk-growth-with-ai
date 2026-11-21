@@ -3,7 +3,7 @@ import '@policyengine/ui-kit/styles.css';
 import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
-import { SURPRISE_YEAR, FIRST_YEAR, HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
+import { SURPRISE_YEAR, LATE_YEAR } from '@/tabs/ai/surprise.js';
 import { DATA_FILE } from '@/lib/dataFlag.js';
 import './panels.css';
 // The PolicyEngine tokens, bundled (as the Autumn Budget 2026 dashboard)
@@ -42,7 +42,7 @@ const inter = localFont({
 const SITE_URL = 'https://uk-growth-with-ai.vercel.app';
 const TITLE = PAGE_TITLE;
 const DESCRIPTION =
-  `AI that does more work than the OBR expects, as an unanticipated ${SURPRISE_YEAR} shock to the capital share, with or without a productivity gain, in UK low, central and high scenarios calibrated to the IMF and OBR and an upper case from Korinek et al.’s US “substantial” scenario, run through OG-UK, the UK overlapping-generations model, ${FIRST_YEAR}–${HEADLINE_YEAR}, against the OBR’s central forecast path. National income and GDP, with a no-foreign-capital bound. One sector.`;
+  `Four scenarios of AI doing more work than the OBR expects, from ${SURPRISE_YEAR}: what OG-UK projects for UK output, pay and the public finances to ${LATE_YEAR}, and what a one-year PolicyEngine UK test shows for household incomes and poverty. Gaps against the OBR’s central forecast path, not forecasts.`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

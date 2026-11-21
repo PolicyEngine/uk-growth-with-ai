@@ -7,7 +7,7 @@ import { pickInPill } from '@/components/ui/pillTestUtils.js';
 import S from '@/lib/activeData.js';
 import { COHORTS as CO } from '@/lib/dataKeys.js';
 import { NavProvider } from '@/lib/nav.jsx';
-import ClosureSlope, { slopeRows, SLOPE_MEASURES } from '@/tabs/explore/ClosureSlope.jsx';
+import ClosureSlope, { slopeNote, slopeRows, SLOPE_MEASURES } from '@/tabs/explore/ClosureSlope.jsx';
 import ResultsTab from '@/tabs/ai/ResultsTab.jsx';
 import WhoGainsTab, { dotCounts } from '@/tabs/cohorts/CohortsTab.jsx';
 import { grid, AGES } from '@/tabs/cohorts/WhoHeatmap.jsx';
@@ -38,6 +38,27 @@ describe('some foreign capital to no foreign capital', () => {
             expect(r.flips).toBe(c != null && b != null && sgn(c) * sgn(b) === -1);
           }
       });
+  it('the tooltip says a flip whose smaller end is within 0.05 (as printed) is about on the path, not that it flips (Fable round 6, S10)', () => {
+    let near = 0;
+    for (const s of S.scenarios)
+      for (const rule of ['common', 'fixed', 'dn'])
+        for (const m of SLOPE_MEASURES)
+          for (const r of slopeRows(s.id, S.arms.map((a) => a.id), rule, m.v)) {
+            const note = slopeNote(r);
+            if (!r.flips) {
+              expect(note).toBe('');
+              continue;
+            }
+            const end = Math.abs(r.b) <= Math.abs(r.c) ? 'b' : 'c';
+            const inside = Number(Math.abs(r[end]).toFixed(2)) <= 0.05;
+            if (inside) near += 1;
+            expect(note).toBe(inside ? ` About on the forecast path with ${end === 'b' ? 'no' : 'some'} foreign capital.` : ' Flips sign.');
+          }
+    // the main data: GDP's technology-unchanged flips all land within 0.05 of the path
+    if (S.surprise_year === 2028) expect(near).toBeGreaterThan(0);
+    expect(slopeNote({ flips: true, nearPath: null })).toBe(' Flips sign.');
+    expect(slopeNote({ flips: true, nearPath: 'b' })).toBe(' About on the forecast path with no foreign capital.');
+  });
   it('end labels are the data to one decimal, and a flip is said in words with its direction', () => {
     // one decimal, signed with a true minus; the two-decimal figures stay
     // the four-measure card's

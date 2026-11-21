@@ -8,7 +8,7 @@ import { NavLink, useNav } from '@/lib/nav.jsx';
 import { RULES } from '@/lib/labels.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { esc } from '@/lib/download.js';
-import { HEADLINE_YEAR, LATE_YEAR, SCENARIOS, ARMS, CLOSURE_LABEL, SCEN_NAME, BOUND, fmt } from '@/tabs/ai/surprise.js';
+import { HEADLINE_YEAR, LATE_YEAR, SCENARIOS, ARMS, CLOSURE_LABEL, SCEN_NAME, BOUND, fmt, holeText, storedAt } from '@/tabs/ai/surprise.js';
 import { Items } from '@/components/story/Items.jsx';
 import ChartHover from '@/components/story/chart/ChartHover.jsx';
 import { iconFor } from '@/lib/concepts.js';
@@ -73,8 +73,8 @@ export function cellTip(s, row, arm, m) {
       { name: 'Version', value: armRow?.short || armRow?.label || arm, icon: 'scenario' },
       { name: 'Foreign capital', value: CLOSURE_LABEL[row.cl], icon: 'closure' },
       { name: 'Budget', value: RULES.find((r) => r.id === row.rule)?.label ?? row.rule, icon: 'rule' },
-      { name: 'Gap', value: x == null ? 'not yet solved' : fmt(x, 2, m.unit), icon: 'gdp', path: x == null ? undefined : `${RULE_PATH[row.rule]}.${s.id}.${arm}.${row.cl}.gaps.${m.v}.${HEADLINE_YEAR}` },
-      ...(other != null ? [{ name: CLOSURE_LABEL[other], value: y == null ? 'not yet solved' : fmt(y, 2, m.unit), icon: 'compare' }] : []),
+      { name: 'Gap', value: x == null ? holeText(storedAt(s.id, arm, row.cl, row.rule)) : fmt(x, 2, m.unit), icon: 'gdp', path: x == null ? undefined : `${RULE_PATH[row.rule]}.${s.id}.${arm}.${row.cl}.gaps.${m.v}.${HEADLINE_YEAR}` },
+      ...(other != null ? [{ name: CLOSURE_LABEL[other], value: y == null ? holeText(storedAt(s.id, arm, other, row.rule)) : fmt(y, 2, m.unit), icon: 'compare' }] : []),
     ],
     unit: `Against the forecast path, ${HEADLINE_YEAR}. OG-UK works it out. Click a cell to show it.`,
   };

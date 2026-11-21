@@ -9,7 +9,8 @@ import ChartHover from '@/components/story/chart/ChartHover.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { MEASURE, ruleLabel } from '@/lib/labels.js';
 import { useNav } from '@/lib/nav.jsx';
-import { HEADLINE_YEAR, CENTRAL, BOUND, ZETA, ARMS, SCEN_NAME, gap, fmt, ruleSolved } from '@/tabs/ai/surprise.js';
+import { HEADLINE_YEAR, CENTRAL, BOUND, ZETA, ARMS, SCEN_NAME, gap, fmt, holeText, ruleSolved, storedAt } from '@/tabs/ai/surprise.js';
+import { NEGLIGIBLE } from '@/tabs/explore/cells.js';
 import { VERSION_COLOR as ARM_COLOR, VERSION_TEXT_COLOR as ARM_TEXT_COLOR, VERSION_MAIN, VERSION_TOKEN, versionName } from '@/lib/versionColors.js';
 import Legend from '@/components/ui/Legend.jsx';
 import { placeLabels } from '@/tabs/story/part2/frame.jsx';
@@ -43,9 +44,20 @@ export function slopeRows(sid, arms, rule, v) {
     const c = gap(sid, a.id, CENTRAL, v, HEADLINE_YEAR, rule);
     const b = gap(sid, a.id, BOUND, v, HEADLINE_YEAR, rule);
     const flips = c != null && b != null && side(c) !== 'on' && side(b) !== 'on' && side(c) !== side(b);
-    return { arm: a, c, b, flips };
+    // a flip whose smaller end is within NEGLIGIBLE as printed (two
+    // decimals): that end is about on the path, so the tooltip says so in
+    // place of "Flips sign." (Fable round 6, S10). 'c' or 'b', else null.
+    const small = flips ? (Math.abs(b) <= Math.abs(c) ? 'b' : 'c') : null;
+    const nearPath = small && Number(Math.abs(small === 'b' ? b : c).toFixed(2)) <= NEGLIGIBLE ? small : null;
+    // what the tooltip prints for a missing no-foreign-capital end (S9)
+    const bHole = b == null ? holeText(storedAt(sid, a.id, BOUND, rule)) : null;
+    return { arm: a, c, b, flips, nearPath, bHole };
   });
 }
+
+// The tooltip's last sentence for one version's two ends (S10).
+export const slopeNote = (r) =>
+  r.nearPath ? ` About on the forecast path with ${r.nearPath === 'b' ? 'no' : 'some'} foreign capital.` : r.flips ? ' Flips sign.' : '';
 
 // One y scale for all four panels (so slopes compare), from the data: the
 // smallest round step that spans every end in at most five steps, zero
@@ -124,9 +136,9 @@ function Panel({ m, rows, sc, hot, setHot, sid, sel, phone }) {
     head: `${versionName(r.arm)}, ${m.label}`,
     rows: [
       { name: `Some foreign capital (main case), ζK = ${ZETA[CENTRAL]}`, value: fmt(r.c), color: ARM_COLOR[r.arm.id] },
-      { name: `No foreign capital, ζK = ${ZETA[BOUND]}`, value: r.b == null ? 'not yet solved' : fmt(r.b), color: ARM_COLOR[r.arm.id] },
+      { name: `No foreign capital, ζK = ${ZETA[BOUND]}`, value: r.b == null ? r.bHole : fmt(r.b), color: ARM_COLOR[r.arm.id] },
     ],
-    unit: `Gap against the forecast path, ${HEADLINE_YEAR}; ${SCEN_NAME[sid]}.${r.flips ? ' Flips sign.' : ''}`,
+    unit: `Gap against the forecast path, ${HEADLINE_YEAR}; ${SCEN_NAME[sid]}.${slopeNote(r)}`,
     kind: 'result',
   }));
   const endLabels = (side, set) =>

@@ -17,6 +17,16 @@ export const RULE_NAMES = {
   klein_top_loaded: { plain: 'Top-loaded extreme case', short: 'Top-loaded', study: null },
 };
 export const ruleName = (id) => RULE_NAMES[id]?.plain ?? id;
+// Card 4's title (Explore > Households): the margin a rule's poverty rise
+// must clear above the main rule's before the title calls the main rule the
+// least (Fable round 6, S4), and the largest gap, as printed ("0.03pp"), of
+// the rules within it; null when none is.
+export const RULE_MARGIN_PP = 0.1;
+export function rulesGap(rules, central = 'exposure') {
+  const c = rules.find((r) => r.id === central);
+  const gaps = rules.filter((r) => r.id !== central).map((r) => r.poverty_pp - c.poverty_pp).filter((g) => g >= 0 && g < RULE_MARGIN_PP);
+  return gaps.length ? `${Math.max(...gaps).toFixed(2)}pp` : null;
+}
 export const methodName = (id) => (RULE_NAMES[id]?.study ? `${RULE_NAMES[id].plain} (${RULE_NAMES[id].study})` : ruleName(id));
 
 // What the number check counts: £ amounts, pp, Gini points, pence, per
@@ -96,6 +106,8 @@ export function householdsFigures() {
     // one, and the top-loaded extreme case's three
     ...['uniform', 'junior', 'compression'].map((k) => fmtGiniPts(rule(k).gini_pp)),
     fmtBn(rule('klein_top_loaded').cost_bn), fmtPp(rule('klein_top_loaded').poverty_pp), fmtGiniPts(rule('klein_top_loaded').gini_pp),
+    // the title's gap to the rules within the margin of the main one
+    ...(rulesGap(D.rules) ? [rulesGap(D.rules)] : []),
     // 5 who the displaced are
     ...['claim_uc', 'claim_uc_entitled', 'existing_unemployed_claim', 'capital_over_limit', 'other_earner', 'homeowner'].map((k) => fmtShare(X[k].value)),
     ...['uc_per_displaced', 'uc_per_displaced_takeup', 'uc_per_existing_unemployed'].map((k) => fmtGbp(X[k].value)),
