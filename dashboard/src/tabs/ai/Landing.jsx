@@ -271,6 +271,53 @@ export function consumptionWords(sid, cl) {
   }
   return { head, why: why && end < HEADLINE_YEAR ? `At first, h${why.slice(1)}` : why, end, cH };
 }
+// The late year beside the headline year (Fable round 7, S2): the headline
+// year is national income's best year and pay's worst in the main case,
+// and the hero's fan runs on to the late year, so one line gives the three
+// figures there too. Values only, so it is true in every cell; "still"
+// only where GDP's gap is within 0.05pp of its headline-year value. Each
+// part carries its value and data path (check_numbers). null while any of
+// the three is pending, or when the late year is the headline year.
+export const LATE_STILL_PP = 0.05;
+export function lateWords(sid, cl) {
+  if (LATE_YEAR === HEADLINE_YEAR) return null;
+  const at = (v) => gap(sid, 'tfp', cl, v, LATE_YEAR);
+  const y = at('Y');
+  const n = at('NNI');
+  const w = at('w');
+  const yH = gap(sid, 'tfp', cl, 'Y');
+  if (y == null || n == null || w == null) return null;
+  const still = yH != null && Math.abs(y - yH) < LATE_STILL_PP && Math.abs(y) > 0.005 ? 'still ' : '';
+  const path = (v) => `results.${sid}.tfp.${cl}.gaps.${v}.${LATE_YEAR}`;
+  const parts = [
+    { text: `By ${LATE_YEAR}, GDP is ${still}` },
+    { text: fmt(y), path: path('Y') },
+    { text: '; national income is ' },
+    { text: fmt(n), path: path('NNI') },
+    { text: ' and the pay rate ' },
+    { text: fmt(w), path: path('w') },
+    { text: '.' },
+  ];
+  return { parts, text: parts.map((p) => p.text).join('') };
+}
+export function LateLine({ sid, cl, className }) {
+  const w = lateWords(sid, cl);
+  if (!w) return null;
+  return (
+    <p className={className} data-claim="late-year">
+      <Icon name={iconFor('path')} size={12} className="p2-tx-icon" />
+      {w.parts.map((p, i) =>
+        p.path ? (
+          <span key={i} className="hf-num" data-path={p.path}>
+            {p.text}
+          </span>
+        ) : (
+          p.text
+        ),
+      )}
+    </p>
+  );
+}
 export function ConsumptionLine({ sid }) {
   const { cl } = useSummary(sid);
   const w = consumptionWords(sid, cl);

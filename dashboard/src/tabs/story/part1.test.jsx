@@ -735,6 +735,47 @@ describe('hero', () => {
       cleanup();
     }
   });
+  // Fable round 7, S2: the headline year is national income's best and
+  // pay's worst in the main case, so one line under the stats gives the
+  // three figures in the late year, where the fan ends; true in every cell
+  it('gives the three figures in the late year too, in every scenario and closure', async () => {
+    const S = (await import('@/lib/activeData.js')).default;
+    const { lateWords, LATE_STILL_PP } = await import('@/tabs/ai/Landing.jsx');
+    const i = S.years.indexOf(S.headline_year);
+    const j = S.years.indexOf(S.late_year);
+    expect(j).toBeGreaterThan(i);
+    let n = 0;
+    for (const s of S.scenarios.map((x) => x.id))
+      for (const cl of ['zk0.1', 'zk0']) {
+        const r = S.results[s].tfp[cl];
+        const w = lateWords(s, cl);
+        if (r.status !== 'done') {
+          expect(w).toBeNull();
+          continue;
+        }
+        n += 1;
+        const g = r.gaps;
+        const still = Math.abs(g.Y[j] - g.Y[i]) < LATE_STILL_PP ? 'still ' : '';
+        expect(w.text).toBe(`By ${S.late_year}, GDP is ${still}${sign(g.Y[j])}; national income is ${sign(g.NNI[j])} and the pay rate ${sign(g.w[j])}.`);
+        expect(w.text.split(/\s+/).length).toBeLessThanOrEqual(25);
+        expect(w.parts.filter((p) => p.path).map((p) => p.path)).toEqual(['Y', 'NNI', 'w'].map((v) => `results.${s}.tfp.${cl}.gaps.${v}.${S.late_year}`));
+      }
+    expect(n).toBeGreaterThan(0);
+    // rendered under the stats, one icon, each figure with its data path
+    for (const [s, cl, q] of [['uk_central', 'zk0.1', 's=uk_central'], ['korinek', 'zk0', 's=korinek&closure=closed']]) {
+      const el = await at(q);
+      const line = el.querySelector('.hf-unit > p.hf-late');
+      if (S.results[s].tfp[cl].status !== 'done') {
+        expect(line).toBeNull();
+        cleanup();
+        continue;
+      }
+      expect(line.textContent).toBe(lateWords(s, cl).text);
+      expect(line.querySelectorAll('svg')).toHaveLength(1);
+      expect(line.querySelector(`[data-path="results.${s}.tfp.${cl}.gaps.NNI.${S.late_year}"]`).textContent).toBe(sign(S.results[s].tfp[cl].gaps.NNI[j]));
+      cleanup();
+    }
+  });
   it('titles the hero: the series name above, then the question in two sentences', async () => {
     const S = (await import('@/lib/activeData.js')).default;
     const el = await at('s=uk_central');

@@ -1100,6 +1100,14 @@
   white-space: nowrap;
   color: var(--t-muted);
 }
+/* the late-year line under the three stats (Fable round 7, S2): the
+   kicker's type, muted */
+.hf-late {
+  margin: 10px 0 0;
+  font-size: var(--t-meta);
+  line-height: 1.5;
+  color: var(--t-muted);
+}
 /* national income's GNI line: its own row, never on top of the NNI line
    (check_fontsize, 1024 and 390) */
 .hf-stat-line.hf-stat-beside {

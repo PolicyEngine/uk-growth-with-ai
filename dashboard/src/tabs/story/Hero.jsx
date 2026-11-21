@@ -12,7 +12,7 @@ import { METHOD, MEASURE, PAGE_TITLE } from '@/lib/labels.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import { useSvgScale } from '@/lib/svgScale.js';
 import { payCaveat, payWords } from '@/tabs/story/part2/caveats.js';
-import { incomeNotes, signCaveat } from '@/tabs/ai/Landing.jsx';
+import { LateLine, incomeNotes, signCaveat } from '@/tabs/ai/Landing.jsx';
 import { BOUND, HEADLINE_YEAR, LATE_YEAR, S, SCENARIOS, SCENARIO_COUNT_WORD, SCEN_NAME, SURPRISE_YEAR, YEARS, fmt, gap } from '@/tabs/ai/surprise.js';
 
 // The first screen: the story's first question, then one result unit on
@@ -390,6 +390,10 @@ export default function Hero() {
               ))}
             </dl>
           ) : null}
+          {/* the same three figures in the late year, where the fan ends
+              (Fable round 7, S2: the headline year is national income's
+              best and pay's worst in the main case) */}
+          {stats ? <LateLine sid={sid} cl={cl} className="hf-late" /> : null}
         </div>
         <Fan lines={lines} sid={sid} cl={cl} wide />
         <Fan lines={lines} sid={sid} cl={cl} wide={false} />
