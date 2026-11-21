@@ -26,7 +26,8 @@ import { URLS, efo, EFO_PAGE, OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import { SOURCES as LIT } from '@/data/literature.js';
 import { investmentFlags, I_FLAG_PCT, belowThrough, investHighTo } from '@/tabs/explore/caveats.js';
 import { payCaveat } from '@/tabs/story/part2/caveats.js';
-import { CENTRAL, BOUND, LATE_YEAR, SCEN_NAME as SN } from '@/tabs/ai/surprise.js';
+import { CENTRAL, BOUND, LATE_YEAR, SCEN_NAME as SN, ARM_COLOR } from '@/tabs/ai/surprise.js';
+import { TipTarget } from '@/components/ab/Tip.jsx';
 import { VERSION_TOKEN, versionName } from '@/lib/versionColors.js';
 
 // Results. The answer and the three headline figures are on Story.
@@ -453,6 +454,27 @@ const INCOME_TILES = [
   },
 ];
 
+// The wall's legend items: each version in its line's own stroke colour
+// (ARM_COLOR, the colour seriesFor gives the charts).
+const wallVersionItems = (arms) => ARMS.filter((a) => arms.includes(a.id)).map((a) => ({ key: a.id, label: versionName(a), color: ARM_COLOR[a.id] }));
+// The three reading hints, in the "How to read" popover.
+export const WALL_HINTS = [
+  { key: 'zero', icon: iconFor('onPath'), text: 'Zero line: the OBR’s central forecast path' },
+  { key: 'years', icon: iconFor('shock'), text: `Dotted: ${SURPRISE_YEAR}, extra AI starts; shaded: ${HEADLINE_YEAR}` },
+  { key: 'open', icon: 'arrowUpRight', text: 'Click or tap a title to enlarge' },
+];
+function WallHints() {
+  return (
+    <span className="ex-wall-key" role="list" aria-label="How to read the wall">
+      {WALL_HINTS.map((h) => (
+        <span key={h.key} role="listitem">
+          <Icon name={h.icon} size={14} /> {h.text}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 // The economy as one small-multiple wall: eight path charts (two to a row
 // at desktop widths, one on a phone) on the same years, one arms control,
 // one units line and one legend for them all; each tile's title carries its
@@ -482,27 +504,22 @@ function EconomyPanel({ sid }) {
       {seriesFor(sid, 'Y', WINDOW_YEARS, st.arms, st.closure, 1, st.rule).length || !st.arms.length ? null : (
         <p className="page-a-text ex-wall-notice">{emptyText(st.arms, st.closure, st.rule, sid)}</p>
       )}
+      {/* one toolbar (push D, Q6c): the versions shown (item 37: a
+          section of the wall's pill, no chip toggles), the one legend
+          inline (the versions in the charts' own stroke colours, and the
+          line styles under Both), and the three reading hints in one
+          "How to read" popover (hover, focus or tap); then the unit line */}
       <div className="ex-wall-head">
-        {/* item 37: the versions shown, as a section of the wall's pill (no
-            chip toggles anywhere) */}
         <Pill className="is-card" title="Options for every chart on the wall" name={`The economy, ${FIRST_YEAR}–${HEADLINE_YEAR}`} sections={[versionsShownSection(st, set)]} />
-        <ul className="ex-wall-key" aria-label="How to read the wall">
-          <li>
-            <Icon name={iconFor('onPath')} size={14} /> Zero line: the OBR’s central forecast path
-          </li>
-          <li>
-            <Icon name={iconFor('shock')} size={14} /> {`Dotted: ${SURPRISE_YEAR}, extra AI starts; shaded: ${HEADLINE_YEAR}`}
-          </li>
-          <li>
-            <Icon name="arrowUpRight" size={14} /> Click a title to enlarge
-          </li>
-        </ul>
+        <Legend className="ex-wall-legend" label="Versions" items={[...wallVersionItems(st.arms), ...closureKeyItems(st.closure)]} />
+        <TipTarget className="ex-wall-how" label="How to read the wall" tip={<WallHints />}>
+          <Icon name="info" size={14} />
+          <span>How to read</span>
+        </TipTarget>
       </div>
       <p className="ex-wall-units" data-axis-title="y">
         Gap vs forecast path: % for levels, pp for rates and shares
       </p>
-      {/* the one legend: the versions, and the line styles under Both */}
-      <VersionLegend arms={st.arms} closure={st.closure} />
       {/* one fold for the wall (item 36, E2): a closed tile carries none */}
       <MoreInfo
         id="economy-wall-more"

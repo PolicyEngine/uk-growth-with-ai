@@ -8,7 +8,8 @@ import S from '@/lib/activeData.js';
 import { COHORTS as CO } from '@/lib/dataKeys.js';
 import { NavProvider } from '@/lib/nav.jsx';
 import ClosureSlope, { slopeNote, slopeRows, SLOPE_MEASURES } from '@/tabs/explore/ClosureSlope.jsx';
-import ResultsTab from '@/tabs/ai/ResultsTab.jsx';
+import ResultsTab, { WALL_HINTS } from '@/tabs/ai/ResultsTab.jsx';
+import { ARM_COLOR } from '@/tabs/ai/surprise.js';
 import WhoGainsTab, { dotCounts } from '@/tabs/cohorts/CohortsTab.jsx';
 import { grid, AGES } from '@/tabs/cohorts/WhoHeatmap.jsx';
 
@@ -94,6 +95,21 @@ describe('the economy wall', () => {
     expect(container.querySelectorAll('.ex-wall-head .settings-chip')).toHaveLength(1);
     expect(container.querySelector('.ex-wall-head .settings-chip').getAttribute('aria-label')).toMatch(/versions/i);
     expect(container.querySelectorAll('.ex-wall-section .chips, .ex-wall-section .control-bar')).toHaveLength(0);
+    // push D, Q6c: one toolbar row: the pill, the legend inline (the
+    // versions in the charts' own stroke colours), then "How to read";
+    // the three hints in its popover, nothing dropped; the unit line stays
+    const head = container.querySelector('.ex-wall-head');
+    expect([...head.children].map((c) => c.className.split(' ').find((k) => /^(settings-chip-wrap|ch-legend|tip-target)$/.test(k)))).toEqual(['settings-chip-wrap', 'ch-legend', 'tip-target']);
+    const sw = [...head.querySelectorAll('.ex-wall-legend li')].slice(0, 3).map((li) => li.querySelector('.ch-swatch').style.getPropertyValue('--sw').toLowerCase());
+    expect(sw).toEqual(S.arms.map((a) => ARM_COLOR[a.id].toLowerCase()));
+    expect(container.querySelectorAll('.ex-version-legend')).toHaveLength(0);
+    const how = head.querySelector('.ex-wall-how');
+    expect(how.getAttribute('aria-label')).toBe('How to read the wall');
+    expect(container.querySelector('.ex-wall-key')).toBeNull();
+    fireEvent.focus(how);
+    expect([...container.querySelectorAll('.ex-wall-key > span')].map((x) => x.textContent.trim())).toEqual(WALL_HINTS.map((h) => h.text));
+    fireEvent.blur(how);
+    expect(container.querySelector('.ex-wall-units').textContent).toBe('Gap vs forecast path: % for levels, pp for rates and shares');
     const btn = container.querySelector('#tile-C .ex-tile-open');
     fireEvent.click(btn);
     expect(btn.getAttribute('aria-expanded')).toBe('true');
