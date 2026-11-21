@@ -50,7 +50,7 @@ describe('settings pill panel', () => {
     expect(chip.getAttribute('aria-expanded')).toBe('false');
     expect(chip.getAttribute('title')).toContain('UK central');
     // the accessible name has every setting, the common rule included
-    expect(chip.getAttribute('aria-label')).toBe('OG-UK settings: UK central · some foreign capital · automation + productivity · common rule. Change');
+    expect(chip.getAttribute('aria-label')).toBe('Macro model settings: UK central · some foreign capital · automation + productivity · common rule. Change');
     act(() => fireEvent.click(chip));
     expect(chip.getAttribute('aria-expanded')).toBe('true');
     const pop = document.getElementById(chip.getAttribute('aria-controls'));

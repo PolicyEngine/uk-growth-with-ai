@@ -22,7 +22,7 @@ import CHECKS from '@/data/ukContextChecks.json';
 // file of its own, its solves are the data file's commit, never the 2028
 // solves (R3-04); everything that cites the solves (the table, the ledger,
 // the citation) reads this.
-export const VERSIONS = V.entries.map((e) => (e.id === 'solves' && !setHas('versionsFile') ? { ...e, label: `OG-UK solves (${SURPRISE_YEAR} surprise)`, value: S.source_commit, where: `${DATA_FILE} source_commit; the versions file for this set is not built yet` } : e));
+export const VERSIONS = V.entries.map((e) => (e.id === 'solves' && !setHas('versionsFile') ? { ...e, label: `Macro model solves (${SURPRISE_YEAR} surprise)`, value: S.source_commit, where: `${DATA_FILE} source_commit; the versions file for this set is not built yet` } : e));
 export const version = (id) => VERSIONS.find((e) => e.id === id);
 
 const day = (t) => (t ? String(t).slice(0, 10) : null);
@@ -62,8 +62,8 @@ const aiWhere = AI_MERGED
 const OG = (p) => `https://github.com/PolicyEngine/uk-growth-with-ai/blob/${S.source_commit}/${p}`;
 const UK_LATEST = Object.values(UK.sources).map((s) => s.released).sort().at(-1);
 export const VINTAGES = [
-  { model: 'OG-UK', file: DATA_FILE, what: 'OG-UK results: every Explore chart', vintage: `Built from ${S.source_commit}`, released: day(S.generated_utc), date: day(S.generated_utc), code: { label: SET.builder.split('/').at(-1), url: OG(SET.builder) }, result: { label: 'solve outputs', url: `https://github.com/PolicyEngine/uk-growth-with-ai/tree/${S.source_commit}/${SET.outputDir}` } },
-  { model: 'OG-UK', file: SET.cohorts, what: 'Who gains', vintage: `${CO.generated_by}, ${COHORT_SOURCE}`, released: null, date: null, code: { label: 'export_cohorts.py', url: atRef(COHORT_SOURCE_COMMIT, 'analysis/surprise/export_cohorts.py') }, result: { label: 'cohort files', url: atRef(COHORT_SOURCE_COMMIT, SET.cohortsDir, 'tree') } },
+  { model: 'Macro model', file: DATA_FILE, what: 'Macro model results: every Explore chart', vintage: `Built from ${S.source_commit}`, released: day(S.generated_utc), date: day(S.generated_utc), code: { label: SET.builder.split('/').at(-1), url: OG(SET.builder) }, result: { label: 'solve outputs', url: `https://github.com/PolicyEngine/uk-growth-with-ai/tree/${S.source_commit}/${SET.outputDir}` } },
+  { model: 'Macro model', file: SET.cohorts, what: 'Who gains', vintage: `${CO.generated_by}, ${COHORT_SOURCE}`, released: null, date: null, code: { label: 'export_cohorts.py', url: atRef(COHORT_SOURCE_COMMIT, 'analysis/surprise/export_cohorts.py') }, result: { label: 'cohort files', url: atRef(COHORT_SOURCE_COMMIT, SET.cohortsDir, 'tree') } },
   { model: 'Household study', file: 'aiStudy2425.json', what: aiLabel('Household study'), vintage: `Household study PR #${AI.source.pr} (${aiWhere}), ${AI.source.dataset}`, released: day(AI.source.merged_utc) ?? null, date: AI.source.fetched, url: AI_STUDY.prUrl, code: { label: 'build_ai_study_data.py', url: `https://github.com/PolicyEngine/uk-growth-with-ai/blob/dashboard/story/dashboard/scripts/build_ai_study_data.py` }, result: { label: 'study results', url: `https://github.com/${AI.source.repo}/tree/${AI_COMMIT}/results` } },
   { model: 'Household study', file: 'Results build', what: 'The study’s attested results', vintage: `Per the manifest at ${shortSha(AIM.manifest_commit)}`, released: day(AIM.manifest_finished), date: day(AIM.manifest_finished), code: { label: 'run_all.py', url: AI_STUDY.blob('analysis/run_all.py') }, result: { label: 'BUILD_MANIFEST.json', url: AI_STUDY.blob('results/BUILD_MANIFEST.json') } },
   { model: 'Household study', file: 'Data build', what: 'Microcosm UK 2024–25', vintage: AIM.data_build, released: null, date: null, code: { label: 'download_data.py', url: AI_STUDY.blob('analysis/download_data.py') }, result: null },
@@ -81,7 +81,7 @@ export const MODEL_VERSIONS = [
   // "PolicyEngine UK" in prose, "policyengine-uk" for the package)
   // the 2028 solves' commit is not the active set's: on another set the row
   // names the data file's own commit (R3-04)
-  ...VERSIONS.map((e) => ({ model: 'OG-UK', ...e, label: e.label === 'PolicyEngine-UK' ? 'policyengine-uk' : e.label })),
+  ...VERSIONS.map((e) => ({ model: 'Macro model', ...e, label: e.label === 'PolicyEngine-UK' ? 'policyengine-uk' : e.label })),
   { model: 'Household study', id: 'ai_pe_uk', label: 'policyengine-uk', value: AIM.policyengine_uk, where: 'aiStudy2425.json: the study’s build' },
   { model: 'Household study', id: 'ai_pe', label: 'policyengine', value: AIM.policyengine, where: 'aiStudy2425.json: release bundle' },
 ];
@@ -113,8 +113,8 @@ function officialRows(checks) {
 
 export function ledger(checks = CHECKS) {
   const rows = officialRows(checks);
-  rows.push({ figure: 'Every OG-UK result in Explore (gaps against the OBR’s central forecast path)', source: `OG-UK solves, ${SURPRISE_YEAR} surprise`, vintage: setHas('versionsFile') ? `Solves ${version('solves').value}; data built from ${S.source_commit}` : `Solves and data at ${S.source_commit}`, checked: day(S.generated_utc), group: 'OG-UK results' });
-  rows.push({ figure: 'Who gains: welfare by birth year and earnings group', source: CO.generated_by, vintage: COHORT_SOURCE, checked: null, group: 'OG-UK results' });
+  rows.push({ figure: 'Every macro model result in Explore (gaps against the OBR’s central forecast path)', source: `Macro model solves, ${SURPRISE_YEAR} surprise`, vintage: setHas('versionsFile') ? `Solves ${version('solves').value}; data built from ${S.source_commit}` : `Solves and data at ${S.source_commit}`, checked: day(S.generated_utc), group: 'Macro model results' });
+  rows.push({ figure: 'Who gains: welfare by birth year and earnings group', source: CO.generated_by, vintage: COHORT_SOURCE, checked: null, group: 'Macro model results' });
   rows.push({ figure: aiLabel('Household study results'), source: `Household study PR #${AI.source.pr}`, url: AI_STUDY.prUrl, vintage: `${aiWhere}, ${AI.source.dataset}`, checked: AI.source.fetched, group: 'Household study results' });
   for (const s of Object.values(SOURCES)) rows.push({ figure: s.title, source: s.short, url: s.url, vintage: s.loc, checked: null, note: s.read ?? null, group: 'Published studies' });
   // the package with its version by its package name (R1-16), as above

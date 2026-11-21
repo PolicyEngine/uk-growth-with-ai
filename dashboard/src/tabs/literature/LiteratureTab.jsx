@@ -23,6 +23,7 @@ import IconText from '@/tabs/method/IconText.jsx';
 import { SRC } from '@/tabs/method/sources.js';
 import { CENTRAL, HEADLINE_YEAR, SURPRISE_YEAR, gap } from '@/tabs/ai/surprise.js';
 import { SET } from '@/lib/dataKeys.js';
+import { MACRO_ABOUT } from '@/lib/labels.js';
 
 // Why UK central's GDP gap is below the IMF's for the same productivity gain
 // (results sanity audit, SET.sanityDoc section 7). The IMF
@@ -276,18 +277,18 @@ function Matrix() {
 function Takeaways() {
   return (
     <div className="cards-grid">
-      <InfoCard icon={iconFor('generations')} title="Of the five, only OG-UK: households by age">
+      <InfoCard icon={iconFor('generations')} title="Of the five, only the overlapping-generations model has households by age">
         <Items
           items={[
             { icon: 'households', text: 'The IMF’s households differ by income and wealth, not by age.' },
-            { icon: 'tax', text: 'Of the five, only OG-UK and the OBR have a tax system.' },
+            { icon: 'tax', text: 'Of the five, only the macro model and the OBR have a tax system.' },
           ]}
         />
       </InfoCard>
       <InfoCard icon={iconFor('labour')} title="Of the five, only Korinek et al.: new tasks and unemployment">
         <Items
           items={[
-            { icon: 'excluded', text: 'OG-UK has neither; the OBR assumes higher unemployment.' },
+            { icon: 'excluded', text: 'The macro model has neither; the OBR assumes higher unemployment.' },
           ]}
         />
       </InfoCard>
@@ -339,7 +340,7 @@ function SourceList({ group, title, icon }) {
 // The page's four sections, for "On this page" (ids match the headings).
 const SECTIONS = [
   { id: 'coverage', title: 'What each source can represent', icon: iconFor('coverage') },
-  { id: 'numbers', title: 'Where OG-UK’s results sit', icon: iconFor('measure') },
+  { id: 'numbers', title: 'Where the macro model’s results sit', icon: iconFor('measure') },
   { id: 'related-work', title: 'Related PolicyEngine work', icon: iconFor('external') },
   { id: 'evidence-map', title: 'UK evidence map', icon: iconFor('table') },
   { id: 'sources', title: 'Sources', icon: iconFor('source') },
@@ -354,16 +355,16 @@ export default function StudiesTab() {
       <div className="page-body">
         <PageIntro
           icon={iconFor('source')}
-          question="How do OG-UK’s results compare with other work on AI and the UK economy?"
-          answer={<IconText icon="compare">The sources model different channels, from households by age to jobs, tasks or the world economy. Each published figure keeps its own baseline.</IconText>}
+          question="How do the macro model’s results compare with other work on AI and the UK economy?"
+          answer={<IconText icon="compare">The macro model is {MACRO_ABOUT}. The sources model different channels, from households by age to jobs, tasks or the world economy. Each published figure keeps its own baseline.</IconText>}
         />
         <SectionHeading id="coverage" icon={iconFor('coverage')} title="What each source can represent">
-            <IconText icon="coverage">Nine channels against five sources. OG-UK is the first column.</IconText>
+            <IconText icon="coverage">Nine channels against five sources. The macro model is the first column.</IconText>
         </SectionHeading>
         <Matrix />
         <Takeaways />
-        <SectionHeading id="numbers" icon={iconFor('measure')} title="Where OG-UK’s results sit">
-            <IconText icon="range">Published figures by measure, OG-UK&rsquo;s beside them where comparable. Each row states its horizon.</IconText>
+        <SectionHeading id="numbers" icon={iconFor('measure')} title="Where the macro model’s results sit">
+            <IconText icon="range">Published figures by measure, the macro model&rsquo;s beside them where comparable. Each row states its horizon.</IconText>
         </SectionHeading>
         <EvidenceLanes />
         <ImfGap />

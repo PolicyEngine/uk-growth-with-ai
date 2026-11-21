@@ -101,7 +101,7 @@ export function cohortSources() {
     closures: [],
     code: false,
     extra: [
-      fileItem(`OG-UK cohort state files: ${SET.cohortsDir}`, OG_RESULT_URLS.cohortsDir, 'OG-UK', `commit ${COHORTS_SHA}`),
+      fileItem(`Macro model cohort state files: ${SET.cohortsDir}`, OG_RESULT_URLS.cohortsDir, 'PolicyEngine', `commit ${COHORTS_SHA}`),
       fileItem('paper/cohort_welfare.py', OG_RESULT_URLS.cohortScript, 'PolicyEngine', `commit ${COHORTS_SHA}`),
     ],
   });

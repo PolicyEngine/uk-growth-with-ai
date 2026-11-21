@@ -439,7 +439,7 @@ const INCOME_TILES = [
                 <>
                   Why below the {ext(LIT.imfSip.url, 'IMF’s UK estimate')}:{' '}
                   <NavLink tab="method" sub="studies" anchor="imf-gap">
-                    Evidence: OG-UK results beside it
+                    Evidence: the macro model’s results beside it
                   </NavLink>
                 </>
               ),

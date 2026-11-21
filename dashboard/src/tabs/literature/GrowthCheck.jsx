@@ -70,15 +70,15 @@ export default function GrowthCheck() {
     <Card
       id="growth-check"
       icon={iconFor('path')}
-      title="OG-UK’s forecast path against the OBR’s growth forecast"
+      title="The macro model’s forecast path against the OBR’s growth forecast"
       replication={{ code: 'https://github.com/PolicyEngine/uk-growth-with-ai/blob/dashboard/story/dashboard/scripts/build_method_facts.py', result: code('analysis/rerun/output/zk0.1/baseline_p1.json') }}
       className="mx-kpi"
-      finding={<IconText icon="compare">{`Without the shock, OG-UK’s average ${span} GDP growth is ${ours.toFixed(2)}%, against ${obr.toFixed(1)}% in the OBR’s October 2026 forecast${smoother ? '; smoother year by year' : ''}.`}</IconText>}
+      finding={<IconText icon="compare">{`Without the shock, the macro model’s average ${span} GDP growth is ${ours.toFixed(2)}%, against ${obr.toFixed(1)}% in the OBR’s October 2026 forecast${smoother ? '; smoother year by year' : ''}.`}</IconText>}
       about={{
         how: (
           <Items
             items={[
-              { icon: 'model', text: 'OG-UK: GDP growth each year on the committed forecast path (some foreign capital).' },
+              { icon: 'model', text: 'Macro model: GDP growth each year on the committed forecast path (some foreign capital).' },
               { icon: 'forecast', text: <>The forecast path takes two OBR March 2026 inputs: trend productivity ({ext(SRC.efoMarPath.url, '¶1.2')}) and 2030 debt/GDP.</> },
               { icon: 'timing', text: 'So the forecast path is March 2026; this check uses October 2026.' },
               { icon: 'excluded', text: 'It is not fitted to the OBR’s growth path.' },
@@ -91,7 +91,7 @@ export default function GrowthCheck() {
           <Items
             items={[
               { icon: 'source', text: <>{ext(OBR_GROWTH.url, src.short)}, {OBR_GROWTH.loc}.</> },
-              { icon: 'data', text: <>OG-UK: {ext(code('analysis/rerun/output/zk0.1/baseline_p1.json'), 'baseline_p1.json')}, the committed baseline solve.</> },
+              { icon: 'data', text: <>Macro model: {ext(code('analysis/rerun/output/zk0.1/baseline_p1.json'), 'baseline_p1.json')}, the committed baseline solve.</> },
             ]}
           />
         ),
@@ -99,11 +99,11 @@ export default function GrowthCheck() {
         read: 'The OBR publishes one decimal place.',
       }}
       download={{
-        title: 'OG-UK’s forecast path against the OBR’s growth forecast',
+        title: 'The macro model’s forecast path against the OBR’s growth forecast',
         context: () => `Real GDP growth a year, ${span}, %; OBR: ${src.short}, ${OBR_GROWTH.loc}`,
-        table: () => ({ columns: ['Year', 'OG-UK’s forecast path growth (%)', `${OBR_GROWTH.label} (%)`], rows: pairs.map((p) => [p.yr, p.ours, p.obr]) }),
+        table: () => ({ columns: ['Year', 'Macro model forecast path growth (%)', `${OBR_GROWTH.label} (%)`], rows: pairs.map((p) => [p.yr, p.ours, p.obr]) }),
         svg: () => growthSvg(pairs, max),
-        legend: () => [{ label: 'OG-UK’s forecast path', color: cssColour('var(--series-2)'), shape: 'box' }, { label: OBR_GROWTH.label, color: CHART_COLOURS.ink, shape: 'tick' }],
+        legend: () => [{ label: 'Macro model forecast path', color: cssColour('var(--series-2)'), shape: 'box' }, { label: OBR_GROWTH.label, color: CHART_COLOURS.ink, shape: 'tick' }],
       }}
     >
       <div className="mx-kpi-body">
@@ -111,7 +111,7 @@ export default function GrowthCheck() {
           <div>
             <span className="mx-kpi-k">
               <Icon name={iconFor('model')} size={14} className="mx-dt-icon" />
-              OG-UK’s forecast path
+              Macro model forecast path
             </span>
             <a className="mx-kpi-v ev-kpi-ours" href={code('analysis/rerun/output/zk0.1/baseline_p1.json')} target="_blank" rel="noreferrer">
               {ours.toFixed(2)}%
@@ -130,10 +130,10 @@ export default function GrowthCheck() {
             <IconText icon="measure">Average GDP growth a year, {span}.</IconText>
           </p>
         </div>
-        <div className="mx-kpi-chart" aria-label={`GDP growth by year, ${span}: OG-UK’s forecast path bars, OBR forecast marks`}>
+        <div className="mx-kpi-chart" aria-label={`GDP growth by year, ${span}: macro model forecast path bars, OBR forecast marks`}>
           <ul className="ev-kpi-key" aria-hidden="true">
             <li>
-              <span className="ev-kpi-key-bar" /> OG-UK’s forecast path
+              <span className="ev-kpi-key-bar" /> Macro model forecast path
             </li>
             <li>
               <span className="ev-kpi-key-obr" /> {OBR_GROWTH.label}
@@ -151,7 +151,7 @@ export default function GrowthCheck() {
             items={pairs.map((p) => ({
               head: String(p.yr),
               rows: [
-                { name: 'OG-UK’s forecast path', value: `${p.ours.toFixed(2)}%`, icon: 'model' },
+                { name: 'Macro model forecast path', value: `${p.ours.toFixed(2)}%`, icon: 'model' },
                 { name: OBR_GROWTH.label, value: `${p.obr.toFixed(1)}%`, icon: 'forecast' },
               ],
               unit: 'Real GDP growth, % a year.',

@@ -10,6 +10,7 @@ import { sentenceItems } from '@/tabs/explore/direction.jsx';
 import { PagePill } from '@/components/ui/SettingsBar.jsx';
 import { useNav, subOf, NavLink } from '@/lib/nav.jsx';
 import { pickersFor } from '@/lib/labels.js';
+import { ModelTip } from '@/tabs/story/PartHead.jsx';
 import { HEADLINE_YEAR, SURPRISE_YEAR } from '@/tabs/ai/surprise.js';
 import { cohortNotice } from '@/lib/dataKeys.js';
 import { economyAnswer } from '@/tabs/explore/answers.js';
@@ -23,10 +24,12 @@ import { ruleGapText } from '@/tabs/ai/lines.js';
 // `label` leads the strip where it does not follow the Version picker.
 const answerOf = (a, label) => <AnswerStrip a={typeof a === 'string' ? { drivers: sentenceItems(a) } : a} label={label} />;
 // The model row's scope note, after the pill (item-22-fable.md): what the
-// page's numbers are. Economy and Public finances answer for the main arm
+// page's numbers are. It opens with the model's name, whose tip says in
+// plain words what the macro model is (push D, Q1: the tab's first mention;
+// the same tip as the Story's part opener). Economy and Public finances answer for the main arm
 // in the headline year, whatever the version picked (it drives the
 // matrices), so their strip is led by that.
-const SCOPE = 'OG-UK · gaps against the OBR’s central forecast path';
+const SCOPE = ' · gaps against the OBR’s central forecast path';
 const MAIN = `Automation + productivity, ${HEADLINE_YEAR}`;
 const DATE_NOTE = `The scenario’s AI starts in ${SURPRISE_YEAR}: an assumed date, not a forecast.`;
 // Public finances' answer (item 38): one Finding box, sign-aware
@@ -52,7 +55,10 @@ function Row({ sub }) {
   return (
     <>
       <PagePill pick={pickersFor('explore', sub)} sub={sub} />
-      <span className="model-scope">{SCOPE}</span>
+      <span className="model-scope">
+        <ModelTip model="oguk" />
+        {SCOPE}
+      </span>
     </>
   );
 }

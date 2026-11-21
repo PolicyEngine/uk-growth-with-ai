@@ -12,7 +12,7 @@ import { Items, WhyChain } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from './IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
-import { METHOD, MEASURE, RULES as RULE_NAMES } from '@/lib/labels.js';
+import { METHOD, MEASURE, RULES as RULE_NAMES, MACRO_ABOUT_CAP } from '@/lib/labels.js';
 import { ADOPTION, ADOPTION_YEAR, CALENDAR, overlapShares, pctRange, tfpInput } from '@/lib/obrOverlap.js';
 import { S, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, foreignShareOf } from '@/tabs/ai/surprise.js';
 import { SET } from '@/lib/dataKeys.js';
@@ -71,9 +71,9 @@ function ClosureCards() {
           <Items
             items={[
               { icon: 'foreign', text: <>&zeta;<sub>K</sub>, in OG-Core&rsquo;s definition: the share of excess capital demand (the extra capital firms want) that foreigners supply ({cite('ogCoreParams')}).</> },
-              { icon: 'model', text: <>{pct(ZETA[CENTRAL], 0)} is OG-Core&rsquo;s US default, chosen by the study and kept by OG-UK ({cite('ogukParams')}); not calibrated to the UK.</> },
-              { icon: 'interest', text: <>World interest rate 2%: OG-UK&rsquo;s default ({cite('ogukParams')}; OG-Core&rsquo;s is 4%). A modelling choice, not from a published source.</> },
-              { icon: 'debt', text: <>Foreigners buy 40% of new government debt (&zeta;<sub>D</sub>): OG-Core&rsquo;s default, kept by OG-UK ({cite('ogukParams')}). A modelling choice, not from a UK source.</> },
+              { icon: 'model', text: <>{pct(ZETA[CENTRAL], 0)} is OG-Core&rsquo;s US default, chosen by the study and kept by the macro model ({cite('ogukParams')}); not calibrated to the UK.</> },
+              { icon: 'interest', text: <>World interest rate 2%: the macro model&rsquo;s default ({cite('ogukParams')}; OG-Core&rsquo;s is 4%). A modelling choice, not from a published source.</> },
+              { icon: 'debt', text: <>Foreigners buy 40% of new government debt (&zeta;<sub>D</sub>): OG-Core&rsquo;s default, kept by the macro model ({cite('ogukParams')}). A modelling choice, not from a UK source.</> },
               { icon: 'data', text: <>Its baseline income paid abroad sits inside the UK&rsquo;s ({cite('pinkBook')}).</> },
               { icon: 'caveat', text: <>It misses the current account; the no-foreign-capital case is closer on the net foreign-asset stock ({ext(DOC_MAIN('closure_choice.md'), 'closure memo')}).</> },
               { icon: 'timing', text: 'Foreign capital resets each year.' },
@@ -140,7 +140,7 @@ const FOREIGN_DK = (() => {
 
 const MEASURES = [
   { k: 'GDP', icon: 'gdp', t: 'Output produced in the UK', d: `The stress test holds it at the OBR’s central forecast path in ${HEADLINE_YEAR}.` },
-  { k: 'NNI', icon: 'gni', t: MEASURE.NNI.title, d: 'The income UK residents keep: GNI − δK, with δ = 0.065 a year (OG-UK default parameters). It leads the headline figures.', href: SRC.ogukParams.url },
+  { k: 'NNI', icon: 'gni', t: MEASURE.NNI.title, d: 'The income UK residents keep: GNI − δK, with δ = 0.065 a year (the macro model’s default parameters). It leads the headline figures.', href: SRC.ogukParams.url },
   { k: 'GNI', icon: 'depreciation', t: MEASURE.GNI.title, d: 'GDP less the return paid on foreign-owned capital and gilts, before depreciation.' },
 ];
 
@@ -156,7 +156,7 @@ const RULE_TEXT = {
       // M11: the step in the debt rule's first year (only while the data shows it)
       ...(investStepLine() ? [{ icon: 'jump', text: investStepLine() }] : []),
       { icon: 'finances', text: 'Government consumption and transfers are fixed shares of GDP.' },
-      { icon: 'rule', text: <>A modelling choice, against OG-UK&rsquo;s default of 4 ({ext(SRC.tg1.url, 'tG1 = 10')}).</> },
+      { icon: 'rule', text: <>A modelling choice, against the macro model&rsquo;s default of 4 ({ext(SRC.tg1.url, 'tG1 = 10')}).</> },
       { icon: 'timing', text: `So debt is quoted for ${HEADLINE_YEAR} and ${LATE_YEAR}.` },
     ],
   },
@@ -204,7 +204,7 @@ function Limitations() {
       para: true,
       text: (
         <>
-          OG-UK&rsquo;s gap between tax on labour and on capital income ({TAX_GAP.toFixed(1)}pp) is{' '}
+          The macro model&rsquo;s gap between tax on labour and on capital income ({TAX_GAP.toFixed(1)}pp) is{' '}
           <NavLink tab="explore" sub="finances" anchor="tax-gap">
             narrower than the OBR&rsquo;s rates imply
           </NavLink>
@@ -260,8 +260,8 @@ export default function MethodTab() {
       <OnThisPage tab="method" sub="how" sections={SECTIONS} label="Method contents" />
       <div className="page-body">
         <PageIntro
-          question="How does OG-UK turn an AI scenario into these results?"
-          answer={<IconText icon="model">A model of the whole UK economy in which every market clears. Each result is a gap against the OBR’s central forecast path: OG-UK’s own path on the OBR’s March 2026 productivity growth and debt target, restarted in {SURPRISE_YEAR} without the extra AI. Not a forecast.</IconText>}
+          question="How does the macro model turn an AI scenario into these results?"
+          answer={<IconText icon="model">{MACRO_ABOUT_CAP}. Every market clears. Each result is a gap against the OBR’s central forecast path: the model’s own path on the OBR’s March 2026 productivity growth and debt target, restarted in {SURPRISE_YEAR} without the extra AI. Not a forecast.</IconText>}
         >
           <WhyChain
             className="mx-chain"
@@ -283,10 +283,10 @@ export default function MethodTab() {
             id="model-diagram"
             sources={[docItem('OG-UK, the UK calibration', URLS.ogUkFork, 'OG-UK'), docItem('OG-Core, the model it is built on', URLS.ogCore, 'OG-Core')]}
             icon={iconFor('model')}
-            title="OG-UK in four blocks"
+            title="The macro model in four blocks"
             finding={<IconText icon="breakEven">Households, firms, a government and the rest of the world, trading until every market clears.</IconText>}
             logo={false}
-            download={{ title: 'OG-UK in four blocks', context: 'The flows between the blocks of the model', table: flowTable, svg: diagramSvg, legend: () => [] }}
+            download={{ title: 'The macro model in four blocks', context: 'The flows between the blocks of the model', table: flowTable, svg: diagramSvg, legend: () => [] }}
           >
             <ModelDiagram />
           </Card>
@@ -348,7 +348,7 @@ export default function MethodTab() {
 
         <section>
           <SectionHeading id="m-shock" icon={iconFor('shock')} title="The shock">
-            <IconText icon="ai">OG-UK has no AI parameter. AI changes two numbers in production.</IconText>
+            <IconText icon="ai">The macro model has no AI parameter. AI changes two numbers in production.</IconText>
           </SectionHeading>
           <UsedBy id="m-shock" />
           <FoldGrid className="card-grid">
@@ -360,7 +360,7 @@ export default function MethodTab() {
                 <Items
                   items={[
                     { icon: 'equation', text: <>Cobb-Douglas production: the labour share is exactly 1 &minus; &gamma;.</> },
-                    { icon: 'scenario', text: <>A fall of f points sets &gamma; to 0.35 + f/100; 0.35 is OG-UK&rsquo;s default ({cite('ogukParams')}).</> },
+                    { icon: 'scenario', text: <>A fall of f points sets &gamma; to 0.35 + f/100; 0.35 is the macro model&rsquo;s default ({cite('ogukParams')}).</> },
                     {
                       icon: 'code',
                       text: (
@@ -407,7 +407,7 @@ export default function MethodTab() {
               more={
                 <Items
                   items={[
-                    { icon: 'forecast', text: <>Forecast path: OG-UK&rsquo;s path, set to the OBR&rsquo;s central forecast, which already includes the OBR&rsquo;s own assumption about AI ({cite('bp9B14')}; {cite('efoOct127')}).</> },
+                    { icon: 'forecast', text: <>Forecast path: the macro model&rsquo;s path, set to the OBR&rsquo;s central forecast, which already includes the OBR&rsquo;s own assumption about AI ({cite('bp9B14')}; {cite('efoOct127')}).</> },
                     { icon: 'ai', text: <>Its trend productivity growth is 1% a year, from the March 2026 EFO ({cite('efoMarPath')}).</> },
                     { icon: 'scenario', text: 'Each scenario’s sizes are published estimates of AI’s whole effect, against no AI. They are not net of the OBR’s own.' },
                     {

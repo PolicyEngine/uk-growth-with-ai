@@ -122,7 +122,7 @@ const ARM_TEXT = {
           { icon: 'breakEven', text: <>It stops when the {HEADLINE_YEAR} GDP gap is within 0.01pp of zero.</> },
           { icon: 'forecast', text: <>Named after the OBR&rsquo;s March 2026 displacement scenario, GDP unchanged ({ext(SRC.efoMarBox22.url, SRC.efoMarBox22.label)}).</> },
           { icon: 'limit', text: 'It matches the OBR only on GDP.' },
-          { icon: 'compare', text: 'The OBR adjusts through jobs; OG-UK, with no unemployment, through the wage.' },
+          { icon: 'compare', text: 'The OBR adjusts through jobs; the macro model, with no unemployment, through the wage.' },
         ]}
       />
     ),
@@ -232,7 +232,7 @@ export default function ScenariosSection({ uses = null }) {
       </p>
 
       <SubHead id="m-inputs-head" icon="source" title="Every input and its source">
-        <IconText icon="source">Published, derived by this study, OG-UK&rsquo;s default, or a modelling choice: each row says which, and links it.</IconText>
+        <IconText icon="source">Published, derived by this study, the macro model&rsquo;s default, or a modelling choice: each row says which, and links it.</IconText>
       </SubHead>
       <Card
         id="inputs-table"

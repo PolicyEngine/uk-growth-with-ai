@@ -58,7 +58,7 @@ const LAST_YEAR = YEARS[YEARS.length - 1];
 // and no sign: the pay cards are that fact's home.
 export const CLOSE_RECAP = [
   // `when` is kept on one line (a year range never splits at its dash)
-  { id: 'oguk', icon: 'gdp', name: 'OG-UK', rest: 'models the whole economy over decades,', when: `${SURPRISE_YEAR} to ${LAST_YEAR}`, end: ' and beyond.' },
+  { id: 'oguk', icon: 'gdp', name: 'The macro model', rest: 'models the whole economy over decades,', when: `${SURPRISE_YEAR} to ${LAST_YEAR}`, end: ' and beyond.' },
   { id: 'study', icon: 'households', name: 'The household study (PolicyEngine UK)', rest: 'models UK households in one year,', when: MODEL_YEAR, end: '.' },
 ];
 
@@ -66,7 +66,7 @@ export const CLOSE_RECAP = [
 export const LENSES = [
   {
     id: 'oguk',
-    name: 'OG-UK',
+    name: 'The macro model',
     icon: 'gdp',
     can: [
       { text: 'Output', to: 'p2-morph', scene: 'GDP, scenario by scenario' },

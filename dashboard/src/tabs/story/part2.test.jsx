@@ -709,10 +709,10 @@ describe('direction icons follow the signs', () => {
       // one decimal restates the headline GDP gap (data-axis)
       const two = shock.querySelectorAll('.p2-shock-cap')[1];
       if (/new small tile/.test(two.textContent)) {
-        expect(two.textContent).toContain('OG-UK works out the size.');
+        expect(two.textContent).toContain('The macro model works out the size.');
         expect(two.querySelectorAll('[data-axis]'), q).toHaveLength(1);
       }
-      expect(shock.textContent.match(/OG-UK works out the size/g)?.length ?? 0).toBeLessThanOrEqual(1);
+      expect(shock.textContent.match(/macro model works out the size/g)?.length ?? 0).toBeLessThanOrEqual(1);
       expect(shock.textContent).toContain('OBR’s central forecast path');
       expect(shock.textContent).not.toMatch(/no-shock|[Ii]llustrat/);
       unmount();

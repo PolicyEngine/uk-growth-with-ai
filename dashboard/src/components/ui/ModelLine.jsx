@@ -38,7 +38,7 @@ export function modelSegments(model = 'aistudy', link = false) {
     ),
     'PolicyEngine UK',
     MODEL_YEAR,
-    link ? 'OG-UK settings don’t apply' : null,
+    link ? 'Macro model settings don’t apply' : null,
   ].filter(Boolean);
 }
 

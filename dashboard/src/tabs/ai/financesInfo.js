@@ -102,7 +102,7 @@ function refLines(sid, closure, rule, chart) {
 
 function ruleYear() {
   return [
-    { key: 'set', text: `The ${LATE_YEAR} start is set in this study, not taken from the OBR. OG-UK’s own default is ${OGUK_TG1_YEAR}.` },
+    { key: 'set', text: `The ${LATE_YEAR} start is set in this study, not taken from the OBR. The macro model’s own default is ${OGUK_TG1_YEAR}.` },
     { key: 'fixed', text: 'It is a fixed calendar year. It does not move with the year extra AI starts.' },
   ];
 }

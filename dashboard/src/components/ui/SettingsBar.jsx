@@ -181,7 +181,7 @@ export function OgukPill({ pick, sub, className = '', align }) {
   const { st, set } = useNav();
   const sections = ogukSections(pick, st, set, { alwaysRule: sub === 'finances' });
   if (!sections.length) return null;
-  return <Pill title="OG-UK settings" sections={sections} className={className} align={align} />;
+  return <Pill title="Macro model settings" sections={sections} className={className} align={align} />;
 }
 export function SettingsChip({ pick, sub }) {
   return <OgukPill pick={pick} sub={sub} className="is-header" align="right" />;

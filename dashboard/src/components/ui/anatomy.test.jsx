@@ -108,7 +108,7 @@ describe('the card shell', () => {
     );
     const card = container.querySelector('#x');
     expect([...card.children].map(slotOf)).toEqual([1, 2, 3, 4, 5, 6, 8, 9]);
-    expect(card.querySelector('.card-model-row .model-line').textContent).toContain('OG-UK');
+    expect(card.querySelector('.card-model-row .model-line').textContent).toContain('Macro model');
     expect(audit(container)).toEqual([]);
   });
 

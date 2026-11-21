@@ -575,7 +575,7 @@ function ConsLine({ c }) {
         <ChartHover
           className="ex-cl-area"
           label="Consumption against the forecast path, by year"
-          items={ys.map(([y, v]) => ({ head: String(y), rows: [{ name: 'Consumption gap', value: pct(v), icon: 'consumption' }], unit: 'Against the forecast path, %. OG-UK works it out.' }))}
+          items={ys.map(([y, v]) => ({ head: String(y), rows: [{ name: 'Consumption gap', value: pct(v), icon: 'consumption' }], unit: 'Against the forecast path, %. The macro model works it out.' }))}
         >
           <svg viewBox={`0 0 100 ${H}`} preserveAspectRatio="none" role="img" aria-label={`Consumption against the forecast path, ${first[0]} to ${last[0]}: ${pct(first[1])} to ${pct(last[1])}`}>
             <line x1="0" x2="100" y1={Y(0)} y2={Y(0)} className="ex-cl-zero" vectorEffect="non-scaling-stroke" />

@@ -17,6 +17,7 @@ import { ext } from '@/tabs/shared/ui.jsx';
 import { fmtInputPct, fmtPct1 } from '@/tabs/story/part3/format.js';
 import { methodName } from './figures.js';
 import { REFS } from '@/tabs/story/part3/sources.jsx';
+import { MACRO_ABOUT } from '@/lib/labels.js';
 
 // Method and sources > Household method: how uk-ai-study (PolicyEngine/
 // uk-ai-study PR #18; its status is read from the data) produces the results in story part 3 and
@@ -328,7 +329,7 @@ export default function HouseholdsMethod() {
             {[
               ['excluded', 'No re-employment, partners’ hours, redundancy pay or drawing on savings.'],
               ['timing', 'A one-year stock of job loss.'],
-              ['model', 'Not linked to OG-UK: no OG-UK prices, wages or interest rates.'],
+              ['model', 'Not linked to the macro model: no prices, wages or interest rates from it.'],
               ['tax', 'No corporation tax, VAT or other indirect taxes.'],
               ['finances', 'The public-sector pay bill of the displaced is outside the balance.'],
               ['benefits', 'Council tax reduction does not respond to the lost earnings.'],
@@ -346,9 +347,9 @@ export default function HouseholdsMethod() {
             <IconText icon="link">
               For the wider economy, see{' '}
               <NavLink tab="method" sub="how" anchor="m-limits">
-                OG-UK&rsquo;s limitations
+                The macro model&rsquo;s limitations
               </NavLink>
-              ; OG-UK has no unemployment.
+              ; the macro model, {MACRO_ABOUT}, has no unemployment.
             </IconText>
           </p>
         </section>

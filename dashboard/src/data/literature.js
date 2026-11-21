@@ -177,7 +177,7 @@ export const SOURCES = {
 // the model; na = the source does not say. The IMF UK column is the SIP/2026/072
 // model, which is Rockall et al. (IMF WP/25/68); each note names its document.
 export const MODELS = [
-  { id: 'oguk', label: 'OG-UK (this study)', short: 'OG-UK' },
+  { id: 'oguk', label: 'Macro model (this study)', short: 'Macro model' },
   { id: 'korinek', label: 'Korinek et al.', short: 'Korinek', src: 'korinek' },
   { id: 'moll', label: 'Moll and Imas', short: 'Moll & Imas', src: 'mollImas' },
   { id: 'obr', label: 'OBR', short: 'OBR', src: 'obrEfoMar26' },

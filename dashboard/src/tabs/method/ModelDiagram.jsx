@@ -163,7 +163,7 @@ export default function ModelDiagram() {
   const node = NODES.find((n) => n.id === open);
   return (
     <div className="md" data-no-axes="A diagram of flows between blocks: no scale">
-      <div className={`md-grid${open ? ' is-lit' : ''}`} role="group" aria-label="OG-UK: four blocks and the flows between them">
+      <div className={`md-grid${open ? ' is-lit' : ''}`} role="group" aria-label="The macro model: four blocks and the flows between them">
         {NODES.map((n) => (
           <button
             key={n.id}

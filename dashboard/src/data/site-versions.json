@@ -3,7 +3,7 @@
   "entries": [
     {
       "id": "solves",
-      "label": "OG-UK solves (2028 surprise)",
+      "label": "Macro model solves (2028 surprise)",
       "value": "ba2e7b0",
       "where": "PolicyEngine/uk-growth-with-ai, branch rerun/surprise-2028: the final solves, merged into the dashboard at b0a20a4 (git log, 15 Nov 2026)"
     },

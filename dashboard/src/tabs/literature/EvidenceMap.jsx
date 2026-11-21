@@ -70,7 +70,7 @@ export function ourRows() {
     id: `oguk-${metric}`,
     ours: true,
     institution: 'PolicyEngine (this study)',
-    study: `OG-UK, the ${SURPRISE_YEAR} surprise: automation + productivity`,
+    study: `Macro model, the ${SURPRISE_YEAR} surprise: automation + productivity`,
     url: null,
     year: Number(S.generated_utc.slice(0, 4)),
     metric,
@@ -102,7 +102,7 @@ export function view(rows, { measure = 'all', country = 'all', sort = 'metric' }
     .map((x) => x.r);
 }
 
-const HOW = { read: 'Re-read in the primary text', review: 'Confirmed in the 15 Nov 2026 UK-studies review', solve: 'OG-UK solve output' };
+const HOW = { read: 'Re-read in the primary text', review: 'Confirmed in the 15 Nov 2026 UK-studies review', solve: 'Macro model solve output' };
 
 export function mapTable(rows) {
   return {
@@ -143,7 +143,7 @@ export default function EvidenceMap({ map = MAP }) {
       icon={iconFor('table')}
       title="Published estimates of AI’s economic effects"
       className="ev-card"
-      finding={<IconText icon="table">{`${published} published figures from ${bodies} institutions and authors, each on its own baseline and horizon; OG-UK’s rows sit beside them.`}</IconText>}
+      finding={<IconText icon="table">{`${published} published figures from ${bodies} institutions and authors, each on its own baseline and horizon; the macro model’s rows sit beside them.`}</IconText>}
       controls={
         <Pill
           className="is-card"
@@ -166,7 +166,7 @@ export default function EvidenceMap({ map = MAP }) {
               { icon: 'timing', text: 'Each at its own horizon; none is converted.' },
               { icon: 'foreign', text: 'Studies of the US or other economies are labelled.' },
               { icon: 'measure', text: 'Adoption and exposure rows are levels or shares, not effects.' },
-              { icon: 'model', text: `OG-UK rows: automation + productivity, ${HEADLINE_YEAR} gap.` },
+              { icon: 'model', text: `Macro model rows: automation + productivity, ${HEADLINE_YEAR} gap.` },
               { icon: 'link', text: 'That gap is against the OBR’s central forecast path; figures on Explore, download.' },
               { icon: 'check', text: 'Read in the primary text, at the page or table given.' },
               { icon: 'period', text: 'Read on the date given.' },
@@ -188,7 +188,7 @@ export default function EvidenceMap({ map = MAP }) {
       }}
       download={{
         title: 'UK evidence map',
-        context: `Published estimates of AI’s economic effects, each against its own baseline; OG-UK rows: ${HEADLINE_YEAR} gap against the OBR’s central forecast path, from ${DATA_FILE} (built from ${S.source_commit})`,
+        context: `Published estimates of AI’s economic effects, each against its own baseline; macro model rows: ${HEADLINE_YEAR} gap against the OBR’s central forecast path, from ${DATA_FILE} (built from ${S.source_commit})`,
         table: () => mapTable(view(all)),
       }}
     >
@@ -199,7 +199,7 @@ export default function EvidenceMap({ map = MAP }) {
       </p>
       <div className="ev-wrap" data-no-axes="A table of published figures">
         <table className="data-table evidence-table ev-table">
-          <caption className="visually-hidden">Published estimates of AI’s economic effects, with OG-UK’s results</caption>
+          <caption className="visually-hidden">Published estimates of AI’s economic effects, with the macro model’s results</caption>
           <thead>
             <tr>
               <th scope="col">Institution</th>

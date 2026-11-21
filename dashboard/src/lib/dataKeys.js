@@ -177,7 +177,7 @@ export const setHas = (key) => !SET_MISSING.includes(key);
 // 2028 solves beside the 2027 data.
 export const VERSIONS = S.surprise_year === 2028 ? V2028 : {
   ...V2028,
-  entries: V2028.entries.map((e) => (e.id === 'solves' ? { ...e, label: `OG-UK solves (${S.surprise_year} surprise)`, value: S.source_commit, where: `PolicyEngine/uk-growth-with-ai: the ${S.surprise_year} runs (${SET.results} source_commit), merged into the dashboard with the swap` } : e)),
+  entries: V2028.entries.map((e) => (e.id === 'solves' ? { ...e, label: `Macro model solves (${S.surprise_year} surprise)`, value: S.source_commit, where: `PolicyEngine/uk-growth-with-ai: the ${S.surprise_year} runs (${SET.results} source_commit), merged into the dashboard with the swap` } : e)),
 };
 const METHOD_FACTS_BY_YEAR = { 2028: MF2028, 2027: MF2027 };
 export const METHOD_FACTS = METHOD_FACTS_BY_YEAR[S.surprise_year] ?? MF2028;

@@ -42,7 +42,7 @@ const inter = localFont({
 const SITE_URL = 'https://uk-growth-with-ai.vercel.app';
 const TITLE = PAGE_TITLE;
 const DESCRIPTION =
-  `Four scenarios of AI doing more work than the OBR expects, from ${SURPRISE_YEAR}: what OG-UK projects for UK output, pay and the public finances to ${LATE_YEAR}, and what a one-year PolicyEngine UK test shows for household incomes and poverty. Gaps against the OBR’s central forecast path, not forecasts.`;
+  `Four scenarios of AI doing more work than the OBR expects, from ${SURPRISE_YEAR}: what an overlapping-generations model of the UK economy projects for UK output, pay and the public finances to ${LATE_YEAR}, and what a one-year PolicyEngine UK test shows for household incomes and poverty. Gaps against the OBR’s central forecast path, not forecasts.`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

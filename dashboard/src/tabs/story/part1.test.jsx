@@ -132,7 +132,7 @@ describe('story part 1, real data', () => {
     // the comparison path is OG-UK's own, on the March 2026 forecast
     expect(el.textContent).toContain('The OBR’s latest forecast, shown for context, has growth of');
     expect(el.textContent.split('March 2026').length - 1).toBe(1);
-    expect(el.textContent).toContain('Part 2 measures each scenario against OG-UK’s own forecast path, built on the OBR’s March 2026 forecast, not against this one.');
+    expect(el.textContent).toContain('Part 2 measures each scenario against the macro model’s own forecast path, built on the OBR’s March 2026 forecast, not against this one.');
     // drawn dashed and apart from the outturn bars
     expect(el.querySelector('.p1-forecast')).not.toBeNull();
   });

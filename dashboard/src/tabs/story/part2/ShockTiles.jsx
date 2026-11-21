@@ -85,15 +85,15 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
             { name: 'Labour income', value: base.labour.toFixed(1), color: LABOUR_COLOR, path: `output_split.baseline.${cl}.labour` },
             { name: 'Capital income, gross', value: (100 - base.labour).toFixed(1), color: CAPITAL_COLOR },
           ],
-          unit: 'Per 100 of GDP. OG-UK, the forecast path.',
+          unit: 'Per 100 of GDP. The macro model, the forecast path.',
         },
         {
           head: `${SCEN_NAME[sid]}, ${SPLIT_YEAR}`,
           rows: [
             { name: 'Shift to capital (input)', value: `${inputPp.toFixed(1)} of 100`, color: CAPITAL_COLOR },
-            ...(ch ? [{ name: 'Added output (OG-UK result)', value: signed(ch.gdp, 2, '%'), color: LABOUR_COLOR, path: `output_split.change.${sid}.${cl}.gdp` }] : []),
+            ...(ch ? [{ name: 'Added output (macro model result)', value: signed(ch.gdp, 2, '%'), color: LABOUR_COLOR, path: `output_split.change.${sid}.${cl}.gdp` }] : []),
           ],
-          unit: 'The shift is an assumption we set; OG-UK works out the added output.',
+          unit: 'The shift is an assumption we set; the macro model works out the added output.',
         },
       ]
     : [];
@@ -109,7 +109,7 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
               {/* under 5 new tiles the rounded split misleads (2 tiles split 1
                   and 1 beside "the new split"): no split (review round 1, R1-18) */}
               Output grows about <span data-axis="">{ch.gdp.toFixed(1)}%</span>: {N} new small {N === 1 ? 'tile' : 'tiles'}
-              {N < 5 ? '' : `, about ${NL} to labour, ${NK} to capital, at the new split`}. OG-UK works out the size.
+              {N < 5 ? '' : `, about ${NL} to labour, ${NK} to capital, at the new split`}. The macro model works out the size.
             </>
           );
   const stripLabel = base
@@ -164,7 +164,7 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
       </p>
       <p className="story-figure-unit">
         {/* phones: two lines (phone-type-vs-sticky-fable.md, 4); the badge says OG-UK */}
-        <span className="p3-long">One tile is 1 of every 100 of GDP on the OBR&rsquo;s central forecast path. One small tile is 0.1. OG-UK.</span>
+        <span className="p3-long">One tile is 1 of every 100 of GDP on the OBR&rsquo;s central forecast path. One small tile is 0.1. Macro model.</span>
         <span className="p3-short">One tile is 1 of every 100 of GDP on the forecast path; a small tile is 0.1.</span>
       </p>
       {both ? <p className="story-figure-unit">With both foreign-capital cases chosen above, the figure shows some foreign capital.</p> : null}

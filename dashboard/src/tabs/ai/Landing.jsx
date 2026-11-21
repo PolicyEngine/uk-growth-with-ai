@@ -167,9 +167,9 @@ export function SummaryQuestion({ sid, titleId = 'summary-q' }) {
       <p className="hero-sub">{SCENARIO_COUNT_WORD} scenarios, from {SURPRISE_YEAR}</p>
       <Items className="hero-a hero-items" items={heroItems(sid, cl)} />
       <p className="hero-meta">
-        {NAME[sid]} scenario{sid === 'korinek' ? ', the upper case' : ''}, {cl === BOUND ? 'no foreign capital' : 'some foreign capital'}, {HEADLINE_YEAR}, against the OBR&rsquo;s central forecast path, as run in <A href={URLS.ogUk}>OG-UK</A>. {SURPRISE_YEAR} is a modelling choice, not a forecast
+        {NAME[sid]} scenario{sid === 'korinek' ? ', the upper case' : ''}, {cl === BOUND ? 'no foreign capital' : 'some foreign capital'}, {HEADLINE_YEAR}, against the OBR&rsquo;s central forecast path, as run in the <A href={URLS.ogUk}>macro model</A>. {SURPRISE_YEAR} is a modelling choice, not a forecast
         <InfoTip label="What is the forecast path?">
-          OG-UK&rsquo;s path, set to the OBR&rsquo;s central forecast, which already includes the OBR&rsquo;s own assumption about AI (<A href={`${URLS.obrBp9}#page=51`}>Briefing paper No.9, &para;B.14</A>
+          the macro model&rsquo;s path, set to the OBR&rsquo;s central forecast, which already includes the OBR&rsquo;s own assumption about AI (<A href={`${URLS.obrBp9}#page=51`}>Briefing paper No.9, &para;B.14</A>
           ). It grows at the OBR&rsquo;s 1% a year medium-term productivity rate (<A href={URLS.obrEfo}>Economic and fiscal outlook, March 2026</A>) and matches its 2030 debt/GDP. {overlapTip(sid)} It is defined under {METHOD.shock.label} on Method.
         </InfoTip>
       </p>

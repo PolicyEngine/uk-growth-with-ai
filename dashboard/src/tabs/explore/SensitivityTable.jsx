@@ -180,7 +180,7 @@ function SensGrid({ res }) {
         { name: 'Gap', value: x == null ? holeText(res[s.id]?.[a.id]) : fmt(x, 2), icon: 'gdp', path: x == null ? undefined : `sensitivity.${SENS}.results.${s.id}.${a.id}.gaps.${c.v}.${HEADLINE_YEAR}` },
         { name: 'With ζK 0.1', value: ce == null ? holeText(storedAt(s.id, a.id, CENTRAL)) : fmt(ce, 2), icon: 'compare' },
       ],
-      unit: `% gap against the forecast path, ${HEADLINE_YEAR}. OG-UK works it out.`,
+      unit: `% gap against the forecast path, ${HEADLINE_YEAR}. The macro model works it out.`,
     };
   });
   return (

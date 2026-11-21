@@ -153,8 +153,8 @@ function Cause({ icon, title, axis, ours, theirs, effect, up }) {
               <span className={`cause-mark-label is-below${below(theirs.value)}`}>{theirs.name} {theirs.text}</span>
             </TipTarget>
           )}{' '}
-          <TipTarget className="cause-mark is-ours" style={{ left: pct(ours.value) }} label={`OG-UK: ${ours.text}`} tip={<><b>OG-UK</b><span className="tip-value">{ours.text}</span></>}>
-            <span className={`cause-mark-label${edge(ours.value)}`}>OG-UK {ours.text}</span>
+          <TipTarget className="cause-mark is-ours" style={{ left: pct(ours.value) }} label={`Macro model: ${ours.text}`} tip={<><b>Macro model</b><span className="tip-value">{ours.text}</span></>}>
+            <span className={`cause-mark-label${edge(ours.value)}`}>Macro model {ours.text}</span>
           </TipTarget>{' '}
           <span className="cause-ticks" aria-hidden="true" data-axis="">
             <span>0</span>{' '}
@@ -209,7 +209,7 @@ function causesSvg() {
     const tx = c.lo != null ? (X(c.lo) + X(c.hi)) / 2 : X(c.value);
     out += `<text x="${tx}" y="${ty + 22}" font-size="11" text-anchor="middle" fill="${C.axisTitle}">${esc(`${c.theirs} ${c.theirsText}`)}</text>`;
     out += `<circle cx="${X(c.ours)}" cy="${ty}" r="6" fill="${C.ours}"/>`;
-    out += `<text x="${X(c.ours)}" y="${ty - 12}" font-size="11" font-weight="600" text-anchor="middle" fill="${C.ink}">${esc(`OG-UK ${c.oursText}`)}</text>`;
+    out += `<text x="${X(c.ours)}" y="${ty - 12}" font-size="11" font-weight="600" text-anchor="middle" fill="${C.ink}">${esc(`Macro model ${c.oursText}`)}</text>`;
     out += `<text x="${x0}" y="${ty + 40}" font-size="11" fill="${C.tick}">0</text><text x="${x1}" y="${ty + 40}" font-size="11" text-anchor="end" fill="${C.tick}">${esc(`${c.max}${c.unit === 'pp' ? 'pp' : ` ${c.unit}`}`)}</text>`;
     out += `<text x="0" y="${ty + 62}" font-size="12" fill="${C.ink}">${esc(c.effect)}</text>`;
     y = ty + 84;
@@ -217,7 +217,7 @@ function causesSvg() {
   return { w: W, h: y, markup: out };
 }
 
-export const TAX_TITLE = 'OG-UK’s revenue fall is smaller than OBR tax rates imply';
+export const TAX_TITLE = 'The macro model’s revenue fall is smaller than OBR tax rates imply';
 
 // Highlight the main arm's 2031 end point on the Tax/GDP chart while the
 // link is hovered or focused (the figure's one home is that end label).
@@ -237,7 +237,7 @@ function TaxStrip({ model, uk, onChart }) {
     <div className="ex-taxstrip" role="group" aria-label={`Tax/GDP gap in ${HEADLINE_YEAR}: the model and the scaling with OBR rates`}>
       <div className="ex-taxrow">
         <span className="ex-taxlabel">
-          <Icon name={iconFor('model')} size={16} /> Model (OG-UK)
+          <Icon name={iconFor('model')} size={16} /> Macro model
         </span>
         <span className="ex-taxtrack">
           <span className="ex-taxzero" style={{ left: pos(0) }} aria-hidden="true" />
@@ -335,7 +335,7 @@ function TaxGapCard({ sid, closure, rule }) {
         <Items
           className="ex-notes"
           items={[
-            { key: 'rates', icon: 'rule', text: `OG-UK taxes labour ${TAX_GAP.toFixed(1)}pp more than capital; OBR rates imply ${CAUSES[0].lo}–${CAUSES[0].hi}pp` },
+            { key: 'rates', icon: 'rule', text: `The macro model taxes labour ${TAX_GAP.toFixed(1)}pp more than capital; OBR rates imply ${CAUSES[0].lo}–${CAUSES[0].hi}pp` },
             // the sign changes only where tax/GDP rises by the headline year
             // (review round 1, R1-02)
             closure !== 'central' && closedTax ? { key: 'closed', icon: 'closed', text: closedTax.flips ? `With no foreign capital the ${HEADLINE_YEAR} sign changes:` : 'With no foreign capital:' } : null,
@@ -353,7 +353,7 @@ function TaxGapCard({ sid, closure, rule }) {
               key: 'legend',
               text: (
                 <>
-                  <b>Model (OG-UK):</b> OG-UK’s tax/GDP gap, all AI effects included. <b>Scaled with OBR effective rates:</b> {OBR_PER_PP[0]}–{OBR_PER_PP[1]}pp of revenue per point of income shifted from labour to capital, times this scenario’s {HEADLINE_YEAR} labour-share fall of {Math.abs(ls).toFixed(1)} points (
+                  <b>Macro model:</b> its tax/GDP gap, all AI effects included. <b>Scaled with OBR effective rates:</b> {OBR_PER_PP[0]}–{OBR_PER_PP[1]}pp of revenue per point of income shifted from labour to capital, times this scenario’s {HEADLINE_YEAR} labour-share fall of {Math.abs(ls).toFixed(1)} points (
                   <NavLink tab="explore" sub="economy" anchor="economy-prices">
                     Economy
                   </NavLink>
@@ -373,7 +373,7 @@ function TaxGapCard({ sid, closure, rule }) {
               items={[
                 { key: 'r1', icon: 'source', text: 'OBR, July 2026: wages and salaries 46%, profits 27%; November 2025: labour income around 40%, corporate profits around 17%' },
                 { key: 'r2', icon: 'arithmetic', text: '19–23pp: those rates differenced, on different bases; the OBR publishes neither gap' },
-                { key: 'r3', icon: 'model', text: <>OG-UK {TAX_GAP.toFixed(1)}pp: {ETR.labour.toFixed(1)}% on labour (with employer NICs), {ETR.capital_gross.toFixed(1)}% on gross capital, {HEADLINE_YEAR}, some foreign capital</> },
+                { key: 'r3', icon: 'model', text: <>Macro model {TAX_GAP.toFixed(1)}pp: {ETR.labour.toFixed(1)}% on labour (with employer NICs), {ETR.capital_gross.toFixed(1)}% on gross capital, {HEADLINE_YEAR}, some foreign capital</> },
                 sized?.kind === 'more' && z ? { key: 'rg', icon: 'compare', text: `The rate gap alone accounts for ${z.rg[0].toFixed(2)}–${z.rg[1].toFixed(2)}pp of that; the rest is the model’s other channels` } : null,
               ]}
             />
@@ -405,7 +405,7 @@ function TaxGapCard({ sid, closure, rule }) {
         title: TAX_TITLE,
         context: () => contextLine(sid, closure, `tax/GDP in ${HEADLINE_YEAR} with UK tax rates: rough scaling, some foreign capital, automation + productivity`, rule),
         table: () => ({
-          columns: ['Item', 'OG-UK', 'Comparison', 'Comparison source', 'Effect on revenue'],
+          columns: ['Item', 'Macro model', 'Comparison', 'Comparison source', 'Effect on revenue'],
           rows: [
             ...CAUSES.map((c) => [c.title, c.oursText, c.lo != null ? `${c.lo}–${c.hi}${c.unit}` : `${c.value}${c.unit === 'pp' ? 'pp' : '%'}`, c.theirs, c.effect]),
             [`Tax/GDP in ${HEADLINE_YEAR} scaled with OBR effective rates (pp of GDP), low`, null, uk ? uk[0] : null, 'OBR effective rates x labour-share fall', ''],
@@ -414,7 +414,7 @@ function TaxGapCard({ sid, closure, rule }) {
         }),
         svg: causesSvg,
         legend: () => [
-          { label: 'OG-UK', color: 'var(--series-2)', shape: 'dot' },
+          { label: 'Macro model', color: 'var(--series-2)', shape: 'dot' },
           { label: 'Comparison', color: CHART_COLOURS.muted, shape: 'ring' },
         ],
       }}

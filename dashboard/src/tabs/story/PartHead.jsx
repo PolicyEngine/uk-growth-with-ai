@@ -2,6 +2,7 @@
 
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import { Hy } from '@/components/story/Hy.jsx';
+import { MACRO_ABOUT_CAP } from '@/lib/labels.js';
 
 // The chapter opener of a story part (Fable's part-opener ruling, 17 Nov):
 // one thin rule above it, then
@@ -16,7 +17,7 @@ import { Hy } from '@/components/story/Hy.jsx';
 // multiset is unchanged.
 export const MODELS = {
   official: { label: 'Official statistics', tip: 'Published statistics only. The one forecast shown is the OBR’s.' },
-  oguk: { label: 'OG-UK', tip: 'A model of the whole economy over decades. It has no unemployment. Results are gaps against the OBR’s central forecast path. That path already has the OBR’s AI productivity, so part of each scenario’s productivity gain is not extra to it.' },
+  oguk: { label: 'Macro model', tip: `${MACRO_ABOUT_CAP}, over decades. It has no unemployment. Results are gaps against the OBR’s central forecast path. That path already has the OBR’s AI productivity, so part of each scenario’s productivity gain is not extra to it.` },
   aistudy: { label: 'Household study', tip: 'A one-year simulation of UK households. Job losses are assumed.' },
 };
 

@@ -8,7 +8,7 @@ import D from '@/data/aiStudy2425.json';
 export const studyLabel = (d = D) => ['Household study', d.model_year_label, d.provisional ? 'provisional' : null].filter(Boolean).join(' · ');
 export const MODELS = {
   official: { label: 'Official statistics', icon: 'record' },
-  oguk: { label: 'OG-UK', icon: 'model' },
+  oguk: { label: 'Macro model', icon: 'model' },
   aistudy: { label: studyLabel(), icon: D.provisional ? 'provisional' : 'households' },
 };
 

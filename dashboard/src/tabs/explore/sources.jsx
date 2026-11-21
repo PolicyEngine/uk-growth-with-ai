@@ -31,9 +31,9 @@ export const methodItem = (key) => (METHOD[key] ? navItem(`Method: ${METHOD[key]
 // navItem from lib/sourceItems.js).
 export function sourcesItems({ sid, closures = ['zk0.1', 'zk0'], method, extra = [], code = true } = {}) {
   return [
-    ...closures.map((zk) => fileItem(`OG-UK results, ${CLOSURE_DIR[zk] ?? zk}`, ogOutput(zk), 'OG-UK', `commit ${RESULTS_SHA}`)),
+    ...closures.map((zk) => fileItem(`Macro model results, ${CLOSURE_DIR[zk] ?? zk}`, ogOutput(zk), 'PolicyEngine', `commit ${RESULTS_SHA}`)),
     code ? fileItem('surprise.py, the script that assembles the results', OG_RESULT_URLS.assemble, 'PolicyEngine') : null,
-    sid ? fileItem(`${SCEN_NAME[sid]} inputs`, ogScenarioFile(sid), 'OG-UK') : null,
+    sid ? fileItem(`${SCEN_NAME[sid]} inputs`, ogScenarioFile(sid), 'PolicyEngine') : null,
     ...extra,
     method ? methodItem(method) : null,
   ].filter(Boolean);

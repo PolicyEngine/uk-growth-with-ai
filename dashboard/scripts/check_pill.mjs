@@ -29,7 +29,7 @@
 //  8. no fill: the pill at rest, hovered and open, and the chosen option,
 //     are the surface colour or transparent;
 //  9. item 22: no kicker; the row 10px (±1) under the title; "A different
-//     model" nowhere; "OG-UK settings don’t apply" once, on Explore >
+//     model" nowhere; "Macro model settings don’t apply" once, on Explore >
 //     Households; the household model line's text and its one link;
 // 10. no console errors.
 //
@@ -152,8 +152,8 @@ for (const [W, H] of sizes) {
     });
     // the story keeps its own call-outs (item 22: the Story is unchanged)
     if (k !== 'story' && /a different model|settings do not apply/i.test(row.text)) fail(`${k}: "A different model" is still drawn`);
-    const nApply = (row.text.match(/OG-UK settings don’t apply/g) ?? []).length;
-    if (nApply !== (k === 'households' ? 1 : 0)) fail(`${k}: "OG-UK settings don’t apply" ${nApply} times`);
+    const nApply = (row.text.match(/Macro model settings don’t apply/g) ?? []).length;
+    if (nApply !== (k === 'households' ? 1 : 0)) fail(`${k}: "Macro model settings don’t apply" ${nApply} times`);
     if ([...OGUK, 'households', 'mhh'].includes(k)) {
       if (!row.row) fail(`${k}: no .model-row after h2.page-q`);
       else if (Math.abs(row.gap - 10) > 1) fail(`${k}: the row is ${row.gap}px under the title`);
@@ -161,7 +161,7 @@ for (const [W, H] of sizes) {
     }
     if (row.hasQ && !row.notesInQ) fail(`${k}: the Sources and notes icon is not on the title line`);
     if (k === 'households' || k === 'mhh') {
-      const want = ['Household study', 'PolicyEngine UK', 'FY 2027–28', ...(k === 'households' ? ['OG-UK settings don’t apply'] : [])];
+      const want = ['Household study', 'PolicyEngine UK', 'FY 2027–28', ...(k === 'households' ? ['Macro model settings don’t apply'] : [])];
       if (JSON.stringify(row.line) !== JSON.stringify(want)) fail(`${k}: model line ${JSON.stringify(row.line)}`);
       const nl = k === 'households' ? 1 : 0;
       if ((row.links ?? []).length !== nl || (nl && (row.links[0][0] !== 'Household study' || !/tab=method&sub=households/.test(row.links[0][1])))) fail(`${k}: model line links ${JSON.stringify(row.links)}`);

@@ -95,10 +95,10 @@ function rangeSvg(metric) {
     out += `<text x="0" y="${y + 28}" font-size="11" fill="${C.muted}">${esc(b)}</text>`;
   };
   const top0 = y;
-  if (ours.length) group(`OG-UK, automation + productivity, ${HEADLINE_YEAR}`);
+  if (ours.length) group(`Macro model, automation + productivity, ${HEADLINE_YEAR}`);
   for (const o of ours) {
     const cy = y + ROW / 2;
-    label(o.label, 'OG-UK, year 4 of adoption');
+    label(o.label, 'Macro model, year 4 of adoption');
     if (o.c != null && o.b != null) out += `<line x1="${X(o.c)}" x2="${X(o.b)}" y1="${cy}" y2="${cy}" stroke="${hl}" stroke-width="3"/>`;
     if (o.b != null) out += `<circle cx="${X(o.b)}" cy="${cy}" r="5.5" fill="${C.surface}" stroke="${hl}" stroke-width="2.5"/>`;
     if (o.c != null) out += `<circle cx="${X(o.c)}" cy="${cy}" r="6" fill="${hl}"/>`;
@@ -137,8 +137,8 @@ function table(metric) {
     columns: ['Measure', 'Row', 'Horizon', 'Low (%)', 'High (%)', 'Source central case (%)', 'Note', 'Source location', 'Link'],
     rows: [
       ...ours.flatMap((o) => [
-        [m.title, `${o.label}, some foreign capital`, `OG-UK, ${HEADLINE_YEAR}`, o.c, o.c, null, 'OG-UK, automation + productivity, against the OBR’s central forecast path', DATA_FILE, ''],
-        [m.title, `${o.label}, no foreign capital`, `OG-UK, ${HEADLINE_YEAR}`, o.b, o.b, null, 'OG-UK, automation + productivity, against the OBR’s central forecast path', DATA_FILE, ''],
+        [m.title, `${o.label}, some foreign capital`, `Macro model, ${HEADLINE_YEAR}`, o.c, o.c, null, 'Macro model, automation + productivity, against the OBR’s central forecast path', DATA_FILE, ''],
+        [m.title, `${o.label}, no foreign capital`, `Macro model, ${HEADLINE_YEAR}`, o.b, o.b, null, 'Macro model, automation + productivity, against the OBR’s central forecast path', DATA_FILE, ''],
       ]),
       ...pub.map((r) => [m.title, r.label, r.horizon, r.none ? null : r.lo, r.none ? null : r.hi, r.mark ?? null, `${r.note}${r.unverified ? ' (unverified)' : ''}; against the study’s own baseline`, `${r.short}, ${r.loc}`, r.url]),
     ],
@@ -240,7 +240,7 @@ function Lane({ metric }) {
         { name: CLOSURE_LABEL[CENTRAL], value: fmt(o.c), icon: 'closure' },
         { name: CLOSURE_LABEL[BOUND], value: fmt(o.b), icon: 'closure' },
       ],
-      unit: `OG-UK, automation + productivity, ${HEADLINE_YEAR}.`,
+      unit: `Macro model, automation + productivity, ${HEADLINE_YEAR}.`,
       kind: 'result',
     })),
     ...pub.map((r) => ({ head: r.short, rows: [{ name: r.horizon, value: figOf(r), icon: 'source' }], unit: `${r.note}${r.unverified ? ' (unverified)' : ''}. ${r.loc}` })),
@@ -251,7 +251,7 @@ function Lane({ metric }) {
       <LaneHead m={m} />
       <ChartHover label={m.title ?? metric} items={tips} onActive={setAt}>
       <div className="mx-rb">
-        {ours.length ? <div className="mx-rb-group">OG-UK, automation + productivity, {HEADLINE_YEAR}</div> : null}
+        {ours.length ? <div className="mx-rb-group">Macro model, automation + productivity, {HEADLINE_YEAR}</div> : null}
         {ours.map((o) => {
           const key = `o-${o.sid}`;
           return (
@@ -259,7 +259,7 @@ function Lane({ metric }) {
               <span className="mx-rb-label">
                 <b>{o.label}</b>{' '}
                 <span>
-                  OG-UK, year 4 of adoption ·{' '}
+                  Macro model, year 4 of adoption ·{' '}
                   <NavLink tab="explore" sub="economy" anchor="economy-wall" patch={{ s: o.sid }} className="nav-link ev-rb-home">
                     figures on Explore
                   </NavLink>
@@ -330,7 +330,7 @@ function Lane({ metric }) {
 
 const LANES = Object.keys(META).filter((k) => (META[k].kind === 'shares' ? shareRows(k).length : (RANGES[k] ?? plotted(k)).length));
 const RANGE_LANES = LANES.filter((k) => META[k].kind !== 'shares');
-const TITLE = `Published estimates by measure, with OG-UK’s in ${HEADLINE_YEAR} where comparable`;
+const TITLE = `Published estimates by measure, with the macro model’s in ${HEADLINE_YEAR} where comparable`;
 
 export default function EvidenceLanes() {
   return (
@@ -340,10 +340,10 @@ export default function EvidenceLanes() {
       title={TITLE}
       className="mx-ranges ev-rb"
       replication={{ code: 'https://github.com/PolicyEngine/uk-growth-with-ai/blob/dashboard/story/dashboard/src/tabs/literature/EvidenceLanes.jsx', result: 'https://github.com/PolicyEngine/uk-growth-with-ai/blob/dashboard/story/dashboard/src/data/site-evidence-map.json' }}
-      finding={<IconText icon="link">One lane per measure. Published figures live in the evidence map, OG-UK’s on Explore.</IconText>}
+      finding={<IconText icon="link">One lane per measure. Published figures live in the evidence map, the macro model’s on Explore.</IconText>}
       unit={<IconText icon="measure">Each lane has its own scale and unit.</IconText>}
       more={[
-        { label: 'Compared with', text: 'Published figures: each study’s own baseline. OG-UK’s figures: the OBR’s central forecast path.' },
+        { label: 'Compared with', text: 'Published figures: each study’s own baseline. The macro model’s figures: the OBR’s central forecast path.' },
         { label: 'Measure', text: 'Adoption is a level, not a gap; exposure is a share of workers, not a gap.' },
         { label: 'How it is drawn', text: 'Each estimate at its own horizon, with its source.' },
       ]}
@@ -370,7 +370,7 @@ export default function EvidenceLanes() {
         how: (
           <Items
             items={[
-              { icon: 'model', text: `OG-UK: automation + productivity, ${HEADLINE_YEAR} gap against the OBR’s central forecast path.` },
+              { icon: 'model', text: `Macro model: automation + productivity, ${HEADLINE_YEAR} gap against the OBR’s central forecast path.` },
               { icon: 'source', text: 'Published: each study’s own level gap, against its own baseline.' },
               { icon: 'ai', text: 'Those baselines mostly have no AI.' },
               { icon: 'timing', text: 'Each at its own horizon; none is converted.' },
@@ -384,7 +384,7 @@ export default function EvidenceLanes() {
       }}
       download={{
         title: TITLE,
-        context: () => `OG-UK: automation + productivity, against the OBR’s central forecast path; published figures against each study’s own baseline. Lanes: ${RANGE_LANES.map((k) => `${META[k].title} (${META[k].unit})`).join('; ')}`,
+        context: () => `Macro model: automation + productivity, against the OBR’s central forecast path; published figures against each study’s own baseline. Lanes: ${RANGE_LANES.map((k) => `${META[k].title} (${META[k].unit})`).join('; ')}`,
         table: () => {
           const ts = RANGE_LANES.map(table);
           // composition lanes: one row per share, low = high = the share

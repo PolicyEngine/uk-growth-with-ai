@@ -16,7 +16,7 @@ describe('Data and code', () => {
   it('the ledger has a row per official figure and states each vintage', () => {
     const rows = ledger(null);
     expect(rows.filter((r) => r.group === 'Official UK data')).toHaveLength(Object.keys(UK.facts).length);
-    expect(rows.find((r) => r.group === 'OG-UK results').vintage).toContain(S.source_commit);
+    expect(rows.find((r) => r.group === 'Macro model results').vintage).toContain(S.source_commit);
     // with the checks file, one row per printed figure, from that file
     const id = Object.keys(UK.facts)[0];
     const withChecks = ledger({ figures: [{ id, publisher: 'ONS', dataset: 'PN2', series_id: 'X', period: '2025', release_date: '2099-01-01', read_by: 'probe', url: 'u' }] });
@@ -30,7 +30,7 @@ describe('Data and code', () => {
     expect(VINTAGES.map((v) => v.file)).toContain(DATA_FILE);
   });
   it('one vintages table carries both models, each row labelled', () => {
-    for (const v of VINTAGES) expect(['OG-UK', 'Household study', '—']).toContain(v.model);
+    for (const v of VINTAGES) expect(['Macro model', 'Household study', '—']).toContain(v.model);
     const text = JSON.stringify(VINTAGES.filter((v) => v.model === 'Household study'));
     // the household study's vintages, which were on Household method
     expect(text).toContain(AI.source.commit.slice(0, 7));
@@ -40,7 +40,7 @@ describe('Data and code', () => {
   it('each PolicyEngine UK version names its model', () => {
     const pe = MODEL_VERSIONS.filter((e) => e.label === 'policyengine-uk');
     expect(pe.map((e) => [e.model, e.value])).toEqual([
-      ['OG-UK', '2.90.2'],
+      ['Macro model', '2.90.2'],
       ['Household study', AI.method.policyengine_uk],
     ]);
   });
@@ -79,7 +79,7 @@ describe('code blocks', () => {
       expect(btn.querySelector('svg')).not.toBeNull();
     }
     const bib = blocks.find((b) => b.textContent.includes('@misc{'));
-    expect(bib.textContent).toContain(`note         = {Data updated ${LAST_UPDATED}; OG-UK solves ${version('solves').value};`);
+    expect(bib.textContent).toContain(`note         = {Data updated ${LAST_UPDATED}; macro model solves ${version('solves').value};`);
     expect(bib.querySelector('button').getAttribute('aria-label')).toBe('Copy the text');
   });
 });

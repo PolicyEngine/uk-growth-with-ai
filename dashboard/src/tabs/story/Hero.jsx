@@ -144,7 +144,7 @@ function Fan({ lines, sid, wide, cl }) {
   const tips = lines.map((l) => ({
     head: `${l.short ?? SCEN_NAME[l.id]}, ${HEADLINE_YEAR}`,
     rows: [{ name: 'GDP gap', value: fmt(l.at), icon: 'gdp', path: cl ? `results.${l.id}.tfp.${cl}.gaps.Y.${HEADLINE_YEAR}` : undefined }],
-    unit: `Against the ${BASELINE}; main version. OG-UK works it out.`,
+    unit: `Against the ${BASELINE}; main version. The macro model works it out.`,
   }));
   return (
     <ChartHover label={`GDP gap against the ${BASELINE}, four scenarios`} items={tips} className={`hf-hover ${wide ? 'is-wide' : 'is-narrow'}`}>
@@ -325,7 +325,7 @@ export default function Hero() {
               {sel ? <span className="hf-kicker-text">not a forecast</span> : null}
               <SourceLine
                 items={[
-                  docItem('OG-UK runs', REPO, 'PolicyEngine'),
+                  docItem('Macro model runs', REPO, 'PolicyEngine'),
                   navItem('Method: the model', 'method', 'm-model'),
                   navItem('Part 2: the headline figures', 'story', 'story-headline'),
                   ...asOfItems(),

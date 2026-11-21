@@ -76,7 +76,7 @@ export function cellTip(s, row, arm, m) {
       { name: 'Gap', value: x == null ? holeText(storedAt(s.id, arm, row.cl, row.rule)) : fmt(x, 2, m.unit), icon: 'gdp', path: x == null ? undefined : `${RULE_PATH[row.rule]}.${s.id}.${arm}.${row.cl}.gaps.${m.v}.${HEADLINE_YEAR}` },
       ...(other != null ? [{ name: CLOSURE_LABEL[other], value: y == null ? holeText(storedAt(s.id, arm, other, row.rule)) : fmt(y, 2, m.unit), icon: 'compare' }] : []),
     ],
-    unit: `Against the forecast path, ${HEADLINE_YEAR}. OG-UK works it out. Click a cell to show it.`,
+    unit: `Against the forecast path, ${HEADLINE_YEAR}. The macro model works it out. Click a cell to show it.`,
   };
 }
 

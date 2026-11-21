@@ -136,7 +136,7 @@ export function WelfareShape({ state }) {
   const tips = hitIdx.map((i) => ({
     head: `Born ${xs[i]}`,
     rows: [{ name: 'Welfare change', value: `${ys[i] < 0 ? '−' : '+'}${Math.abs(ys[i]).toFixed(2)}%`, icon: 'age' }],
-    unit: `% of remaining-lifetime consumption and bequests. ${xs[i] <= LAST_ALIVE ? `An adult in ${D.shock_year}` : 'Enters later'}. UK central, some foreign capital. OG-UK.`,
+    unit: `% of remaining-lifetime consumption and bequests. ${xs[i] <= LAST_ALIVE ? `An adult in ${D.shock_year}` : 'Enters later'}. UK central, some foreign capital. Macro model.`,
     kind: 'result',
   }));
   return (
@@ -148,7 +148,7 @@ export function WelfareShape({ state }) {
         <>
           <span data-axis-title="y">Remaining-lifetime gain, % of consumption and bequests</span>, by birth year.
           {/* phones: two lines; the case is in the chip, the budget assumption in the notes */}
-          <span className="p3-long"> UK central, some foreign capital, debt held steady by transfers to households. OG-UK.</span>
+          <span className="p3-long"> UK central, some foreign capital, debt held steady by transfers to households. Macro model.</span>
         </>
       }
       chip="UK central · Some foreign capital"

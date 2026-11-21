@@ -128,7 +128,7 @@ export default function InputsTable() {
                         </button>
                       ) : (
                         <span className="mx-inputs-name is-plain">{r.input}</span>
-                      )}
+                      )}{' '}
                       <span className="mx-inputs-short">{r.short}</span>
                     </th>
                     <td className="mx-inputs-v">{r.value}</td>

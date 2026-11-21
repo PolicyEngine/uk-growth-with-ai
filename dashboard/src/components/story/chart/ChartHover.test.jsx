@@ -42,7 +42,7 @@ describe('ChartHover', () => {
     fireEvent.keyDown(host, { key: 'ArrowRight' });
     expect(container.querySelector('.ch-tip').textContent).toContain('UK low');
     fireEvent.keyDown(host, { key: 'ArrowRight' });
-    expect(container.querySelector('.ch-tip').textContent).toContain('OG-UK result');
+    expect(container.querySelector('.ch-tip').textContent).toContain('Macro model result');
     fireEvent.keyDown(host, { key: 'Escape' });
     expect(container.querySelector('.ch-tip')).toBeNull();
   });
@@ -58,8 +58,8 @@ describe('ChartHover', () => {
 describe('ChartTipCard text', () => {
   it('keeps a space between each name and value and between the lines (no joined words)', async () => {
     const { ChartTipCard } = await import('./ChartHover.jsx');
-    const { container } = render(<ChartTipCard head="UK low, 2030" rows={[{ name: 'Labour-share fall by 2030', value: '0.7pp' }, { name: 'GDP gap', value: '+0.41%' }]} unit="OG-UK works it out." />);
+    const { container } = render(<ChartTipCard head="UK low, 2030" rows={[{ name: 'Labour-share fall by 2030', value: '0.7pp' }, { name: 'GDP gap', value: '+0.41%' }]} unit="The macro model works it out." />);
     const t = container.textContent.replace(/\s+/g, ' ').trim();
-    expect(t).toBe('UK low, 2030 Labour-share fall by 2030 0.7pp GDP gap +0.41% OG-UK works it out.');
+    expect(t).toBe('UK low, 2030 Labour-share fall by 2030 0.7pp GDP gap +0.41% The macro model works it out.');
   });
 });

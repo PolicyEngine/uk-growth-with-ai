@@ -8,6 +8,19 @@ import { fracWord } from '@/tabs/story/part2/caveats.js';
 // hero's quiet line above the question.
 export const PAGE_TITLE = 'AI and the UK economy: Beyond the forecast';
 
+// The macro model's one name and its plain-words account (push D, Q1;
+// Vahid: not "OG-UK"). Readers meet "the macro model" (MACRO), or "the
+// overlapping-generations model" where the generational point matters;
+// the package name stays only on links to its code. MACRO_ABOUT is said
+// once on each tab, at its first mention; it claims only what Method's
+// own account does (the four blocks: households by age, firms, a
+// government and the rest of the world; Many generations at once: work,
+// save, retire).
+export const MACRO = 'the macro model';
+export const MACRO_CAP = 'The macro model';
+export const MACRO_ABOUT = 'an overlapping-generations model of the UK economy, which follows households of each age as they work, save and retire, alongside firms, the government and the rest of the world';
+export const MACRO_ABOUT_CAP = MACRO_ABOUT[0].toUpperCase() + MACRO_ABOUT.slice(1);
+
 // Tabs, in order, and their sub-tabs. `scenario` / `closure` / `arm` /
 // `rule`: whether that section is in the page's settings pill ('locked' =
 // shown, fixed, with the reason in the panel); a sub-tab's own setting wins
@@ -30,7 +43,7 @@ export const TABS = [
     ] },
   { id: 'method', label: 'Method and sources', short: 'Method', icon: 'book',
     subs: [
-      { id: 'how', label: 'OG-UK method', short: 'OG-UK', icon: 'sigma' },
+      { id: 'how', label: 'Macro model method', short: 'Macro model', icon: 'sigma' },
       { id: 'households', label: 'Household method', short: 'Households', icon: 'briefcase', study: true },
       { id: 'studies', label: 'Evidence', icon: 'library' },
       { id: 'code', label: 'Data and code', short: 'Code', icon: 'code' },

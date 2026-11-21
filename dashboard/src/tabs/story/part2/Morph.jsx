@@ -358,7 +358,7 @@ export function morphGroups(s, sid, cl) {
     return [
       {
         title: 'How to read',
-        notes: [{ icon: 'forecast', text: `The dashed line is the OBR’s latest forecast, of ${OBR_VINTAGE}, shown for context; the comparison path is OG-UK’s own, on its March 2026 assumptions.` }],
+        notes: [{ icon: 'forecast', text: `The dashed line is the OBR’s latest forecast, of ${OBR_VINTAGE}, shown for context; the comparison path is the macro model’s own, on its March 2026 assumptions.` }],
       },
     ];
   if (s < 2) return [];
@@ -606,7 +606,7 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
           rows: shownNames
             .filter((l) => Number.isFinite(l.ys[i]))
             .map((l) => ({ name: SCEN_NAME[l.id], value: pctS(l.ys[i]), color: l.id === sid ? ARM_COLOR.tfp : 'var(--pe-gray-500)', path: `results.${l.id}.tfp.${cl}.gaps.Y.${yr}` })),
-          unit: `GDP gap against the OBR’s central forecast path, %; ${CL_WORDS[cl]}. OG-UK works it out.`,
+          unit: `GDP gap against the OBR’s central forecast path, %; ${CL_WORDS[cl]}. The macro model works it out.`,
         })).filter((c) => c.rows.length);
   const tips = tipCols.map((c) => ({ head: String(c.yr), rows: c.rows, unit: c.unit }));
   const colW = tipCols.length > 1 ? Math.max(4, Math.abs(tipCols[1].x - tipCols[0].x)) : 12;
@@ -614,7 +614,7 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
     `Line chart, shape only. Real GDP growth each year from ${ACT[0]?.[0]} to ${ACT_LAST}, ONS outturn, solid with filled dots.`,
     s === 1 ? `The OBR’s forecast of growth from ${OBR[0]?.[0]} to ${OBR_LAST}, dashed with open dots, under a band marked Forecast.` : '',
     s >= 2
-      ? `The axis then changes from growth in % a year to a gap in % against the OBR’s central forecast path, as run in OG-UK, which is now the zero line. ${scenarioRel(sid, cl) ? `GDP in ${SCEN_NAME[sid]}'s main version ${scenarioRel(sid, cl)} it from ${SURPRISE_YEAR}` : `${SCEN_NAME[sid]} is not yet solved for this foreign-capital case`}; a band marks the extra AI, ${SURPRISE_YEAR} to ${HEADLINE_YEAR}.`
+      ? `The axis then changes from growth in % a year to a gap in % against the OBR’s central forecast path, as run in the macro model, which is now the zero line. ${scenarioRel(sid, cl) ? `GDP in ${SCEN_NAME[sid]}'s main version ${scenarioRel(sid, cl)} it from ${SURPRISE_YEAR}` : `${SCEN_NAME[sid]} is not yet solved for this foreign-capital case`}; a band marks the extra AI, ${SURPRISE_YEAR} to ${HEADLINE_YEAR}.`
       : '',
     s >= 3
       ? `Drawn: ${shownNames.map((l) => SCEN_NAME[l.id]).join(', ')}. Each ${afterWordsAll(shownNames.map((l) => l.ys)) ?? 'changes more slowly'} after ${HEADLINE_YEAR}; the larger the scenario, the higher the line.${ukRangeDrawn(cl) ? ' The UK range, from UK low to UK high, is shaded.' : ''}`

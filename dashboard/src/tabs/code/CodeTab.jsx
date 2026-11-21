@@ -9,6 +9,7 @@ import { REPO, URLS, issue } from '@/tabs/ai/links.js';
 import { ext } from '../shared/ui.jsx';
 import Card, { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
 import PageIntro from '@/components/ui/PageIntro.jsx';
+import { MACRO_ABOUT } from '@/lib/labels.js';
 import CHANGELOG from '@/data/site-changelog.json';
 import { METHOD_FACTS as MF, setHas } from '@/lib/dataKeys.js';
 import { MODEL_VERSIONS, VINTAGES, AI_FULL_RERUN, AI_STUDY, RELEASES, ledger, ledgerTable, LAST_UPDATED, version } from './ledger.js';
@@ -35,7 +36,7 @@ const SECTIONS = [
   { id: 'ledger', title: 'Source ledger', icon: iconFor('ledger') },
   { id: 'cite', title: 'Cite this work', icon: iconFor('source') },
   { id: 'changelog', title: 'Changelog and revisions', icon: iconFor('revision') },
-  { id: 'use-oguk', title: 'Use OG-UK yourself', icon: iconFor('code') },
+  { id: 'use-oguk', title: 'Use the macro model yourself', icon: iconFor('code') },
 ];
 const SITE_URL = 'https://uk-growth-with-ai.vercel.app';
 // one date format in both changelogs, "12 Nov 2026" (review round 2, R2-31)
@@ -81,7 +82,7 @@ function BeforeYouStart() {
           <Disclosure inCard title="More info" preview="Install, patch, environment and the sp helper">
             <div className="mx-before-part">
               <p className="mx-before-head">
-                <b>Install the model.</b> Clone, OG-Core 0.17.0, OG-UK d0e6ae5.
+                <b>Install the model.</b> Clone, <span data-package="">OG-Core 0.17.0, OG-UK d0e6ae5</span>.
               </p>
               <CopyBlock code={INSTALL} />
             </div>
@@ -271,7 +272,7 @@ function UseOguk() {
       icon: 'install',
       title: 'Install',
       line: [
-        { icon: 'install', text: 'Install OG-UK from PSLmodels with uv.' },
+        { icon: 'install', text: 'Install the macro model’s package from PSLmodels with uv.' },
         { icon: 'version', text: 'It needs Python 3.11 or later.' },
       ],
       code: OG_INSTALL,
@@ -341,7 +342,7 @@ function UseOguk() {
   );
 }
 
-const MODEL_ICON = { 'OG-UK': 'model', 'Household study': 'households' };
+const MODEL_ICON = { 'Macro model': 'model', 'Household study': 'households' };
 function ModelCell({ m }) {
   if (!MODEL_ICON[m]) return <span className="ledger-where">No model</span>;
   return (
@@ -420,7 +421,7 @@ function Vintages() {
                   <td>
                     <ModelCell m={e.model} />
                   </td>
-                  <th scope="row">{e.label}</th>
+                  <th scope="row" data-package="">{e.label}</th>
                   <td>
                     {e.url ? ext(e.url, e.value) : e.value}{' '}
                     <span className="ledger-where">{e.where}</span>
@@ -543,14 +544,14 @@ function Ledger() {
 }
 
 const year = LAST_UPDATED.slice(0, 4);
-const CITE_TEXT = `PolicyEngine (${year}). AI and the UK economy: Beyond the forecast. Interactive dashboard, data updated ${LAST_UPDATED}; OG-UK solves ${version('solves').value}. ${SITE_URL}`;
+const CITE_TEXT = `PolicyEngine (${year}). AI and the UK economy: Beyond the forecast. Interactive dashboard, data updated ${LAST_UPDATED}; macro model solves ${version('solves').value}. ${SITE_URL}`;
 const CITE_BIB = `@misc{policyengine_ai_uk_${year},
   author       = {{PolicyEngine}},
   title        = {{AI} and the {UK} economy: Beyond the forecast},
   year         = {${year}},
   howpublished = {Interactive dashboard},
   url          = {${SITE_URL}},
-  note         = {Data updated ${LAST_UPDATED}; OG-UK solves ${version('solves').value}; code at ${REPO}}
+  note         = {Data updated ${LAST_UPDATED}; macro model solves ${version('solves').value}; code at ${REPO}}
 }`;
 
 function Cite() {
@@ -569,7 +570,7 @@ function Cite() {
               icon: 'model',
               text: (
                 <>
-                  OG-UK:{' '}
+                  Macro model:{' '}
                   <NavLink tab="method" sub="how" anchor="m-limits">
                     the limitations grid
                   </NavLink>
@@ -682,7 +683,7 @@ export default function CodeTab() {
         </PageIntro>
         <section>
           <SectionHeading id="before" icon={iconFor('prerequisite')} title="Reproduce the results">
-            <IconText icon="code">Everything here comes from {ext(REPO, 'uk-growth-with-ai')}. The solves are committed, so the pages rebuild without the model.</IconText>
+            <IconText icon="code">Everything here comes from {ext(REPO, 'uk-growth-with-ai')}. The macro model is {MACRO_ABOUT}; its solves are committed, so the pages rebuild without it.</IconText>
           </SectionHeading>
           <BeforeYouStart />
         </section>
@@ -703,7 +704,7 @@ export default function CodeTab() {
                 items={[
                   { icon: 'measure', text: 'Solver outputs are in model units.' },
                   { icon: 'path', text: 'This study reports gaps against the OBR’s central forecast path instead.' },
-                  { icon: 'cost', text: 'OG-UK’s map functions scale units to £bn by one ONS GDP anchor.' },
+                  { icon: 'cost', text: 'The macro model’s map functions scale units to £bn by one ONS GDP anchor.' },
                 ]}
               />
             </InfoCard>
@@ -743,8 +744,8 @@ export default function CodeTab() {
           <Changelog />
         </section>
         <section>
-          <SectionHeading id="use-oguk" icon={iconFor('code')} title="Use OG-UK yourself">
-            <IconText icon="install">The general workflow for any UK tax or benefit reform. It uses PSLmodels/OG-UK.</IconText>
+          <SectionHeading id="use-oguk" icon={iconFor('code')} title="Use the macro model yourself">
+            <IconText icon="install">The general workflow for any UK tax or benefit reform. It uses {ext(URLS.ogUk, 'PSLmodels/OG-UK')}.</IconText>
           </SectionHeading>
           <UseOguk />
         </section>

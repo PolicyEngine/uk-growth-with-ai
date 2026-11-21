@@ -71,7 +71,7 @@ export function A({ href, children }) {
 export function modelItems(files = [], method = 'm-model') {
   return [
     docItem('OG-UK, the model', SRC.ogUk, 'OG-UK'),
-    fileItem(`OG-UK solves at ${COMMIT}`, `${REPO}/tree/${COMMIT}/analysis/surprise/output`),
+    fileItem(`Macro model solves at ${COMMIT}`, `${REPO}/tree/${COMMIT}/analysis/surprise/output`),
     ...files.filter(([, u]) => u).map(([t, u]) => fileItem(t, u)),
     docItem('PolicyEngine, uk-growth-with-ai', SRC.repo, 'PolicyEngine'),
     navItem('Method', 'method', method, 'how'),

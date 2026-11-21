@@ -378,7 +378,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
         </div>
         <p className="story-figure-unit p2-output-unit">
           <span data-axis-title="y">{`The forecast path, ${SPLIT_YEAR}: income per 100 of GDP`}</span>
-          <span>{`, on the OBR’s central forecast, ${CL_WORDS[cl]}. OG-UK`}</span>
+          <span>{`, on the OBR’s central forecast, ${CL_WORDS[cl]}. Macro model`}</span>
           {both ? <span>. With both foreign-capital cases chosen above, both figures show some foreign capital.</span> : null}
         </p>
         {graph ? (
@@ -434,7 +434,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
         </p>
         <p className="story-figure-unit p2-output-unit">
           <span data-axis-title="x">{`${scenarioById(sid)?.short ?? SCEN_NAME[sid]} minus the forecast path, per 100 of the path’s GDP`}</span>
-          {`, ${SPLIT_YEAR}, ${CL_WORDS[cl]}. OG-UK.`}
+          {`, ${SPLIT_YEAR}, ${CL_WORDS[cl]}. Macro model.`}
         </p>
         {ch ? (
           <>

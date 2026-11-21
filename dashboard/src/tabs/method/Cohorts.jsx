@@ -10,10 +10,10 @@ import MoreInfo from '@/components/ui/MoreInfo.jsx';
 // data): earnings rise to mid-career and fall into retirement. Hover, tap or
 // focus a stage for what it does in the model.
 const STAGES = [
-  { id: 'young', label: 'Young', ages: '20–30', bars: [62, 70, 78], text: 'In OG-UK, little wealth yet, so income is mostly wages.' },
-  { id: 'mid', label: 'Mid-career', ages: '31–50', bars: [86, 94, 100, 98], text: 'In OG-UK, peak earnings and the most saving.' },
-  { id: 'pre', label: 'Late career', ages: '51–65', bars: [90, 78, 66], text: 'In OG-UK, wealth peaks late in working life.' },
-  { id: 'old', label: 'Retired', ages: '66–99', bars: [44, 34, 26], text: 'In OG-UK, running down wealth and leaving bequests.' },
+  { id: 'young', label: 'Young', ages: '20–30', bars: [62, 70, 78], text: 'In the model, little wealth yet, so income is mostly wages.' },
+  { id: 'mid', label: 'Mid-career', ages: '31–50', bars: [86, 94, 100, 98], text: 'In the model, peak earnings and the most saving.' },
+  { id: 'pre', label: 'Late career', ages: '51–65', bars: [90, 78, 66], text: 'In the model, wealth peaks late in working life.' },
+  { id: 'old', label: 'Retired', ages: '66–99', bars: [44, 34, 26], text: 'In the model, running down wealth and leaving bequests.' },
 ];
 
 export default function Cohorts() {

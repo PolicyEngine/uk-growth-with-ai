@@ -29,7 +29,7 @@ import { iconFor } from "@/lib/concepts.js";
 // out"), item 7's words, as the card's foot.
 const KIND = {
   input: "Scenario input: an assumption we set",
-  result: "OG-UK result: OG-UK works it out",
+  result: "Macro model result: the macro model works it out",
 };
 
 export function ChartTipCard({

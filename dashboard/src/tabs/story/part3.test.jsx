@@ -417,7 +417,7 @@ describe('Part3', () => {
     const lines = [...head.querySelectorAll('.close-recap li')];
     expect(lines).toHaveLength(2);
     for (const li of lines) expect(li.querySelectorAll('svg')).toHaveLength(1);
-    expect(lines.map((li) => li.querySelector('strong').textContent)).toEqual(['OG-UK', 'The household study (PolicyEngine UK)']);
+    expect(lines.map((li) => li.querySelector('strong').textContent)).toEqual(['The macro model', 'The household study (PolicyEngine UK)']);
     expect(lines[0].textContent).toContain(`${SURPRISE_YEAR} to ${YEARS[YEARS.length - 1]} and beyond`);
     expect(lines[1].textContent).toContain(`one year, ${MODEL_YEAR}`);
     // the scope and time lines left the circles; the old foot line and Go deeper are gone
@@ -452,7 +452,7 @@ describe('Part3', () => {
     expect(container.textContent.split(CLOSE_SUB.question).length - 1).toBeLessThanOrEqual(1);
     expect(container.querySelector('.lens-table, .story-recap, .scrolly-answer')).toBeNull();
     // one heading per lens naming its model; 4 + 3 "can say" chips, each a link to its scene; 2 outside chips each
-    expect([...container.querySelectorAll('h3.lens-kicker')].map((h) => h.textContent.trim())).toEqual(['OG-UK', expect.stringMatching(/^Household study/)]);
+    expect([...container.querySelectorAll('h3.lens-kicker')].map((h) => h.textContent.trim())).toEqual(['The macro model', expect.stringMatching(/^Household study/)]);
     // each circle is its model name over its chips: no icon, no scope or time line
     for (const c of container.querySelectorAll('.lens-circle')) expect([...c.children].map((x) => x.tagName)).toEqual(['H3', 'H4', 'UL']);
     for (const h of container.querySelectorAll('h3.lens-kicker')) expect(h.querySelector('svg')).toBeNull();

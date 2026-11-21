@@ -10,6 +10,7 @@ import NextPart from '@/components/story/NextPart.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { Hy } from '@/components/story/Hy.jsx';
 import { URLS } from '@/tabs/ai/links.js';
+import { MACRO_ABOUT } from '@/lib/labels.js';
 import { SURPRISE_YEAR, HEADLINE_YEAR, RAMP_WORD } from '@/tabs/ai/surprise.js';
 import { MODEL_BASE_VINTAGE, OBR_MARCH_2026, OBR_VINTAGE } from './part1/data.js';
 
@@ -56,7 +57,7 @@ export const PARTS = [
             icon: 'gdp',
             text: (
               <>
-                <a href={URLS.ogUk} {...ext}><Hy>OG-UK</Hy></a>: a model of the whole economy, over decades
+                <a href={URLS.ogUk} {...ext}>The macro model</a>: {MACRO_ABOUT}, over decades
               </>
             ),
           },
@@ -88,7 +89,7 @@ export const PARTS = [
       <Items
         items={[
           { icon: 'data', text: <Hy>PolicyEngine UK on Microcosm UK survey data</Hy> },
-          { icon: 'jobLoss', text: <Hy>Here people lose jobs; in OG-UK everyone who wants work has it</Hy> },
+          { icon: 'jobLoss', text: 'Here people lose jobs; in the macro model everyone who wants work has it' },
           { icon: 'compare', text: 'Its figures are not added to or compared with part 2’s' },
         ]}
       />
