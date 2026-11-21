@@ -895,6 +895,53 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   margin-top: 4px;
 }
 
+/* ---------- A card's actions (Card.jsx; push D, Q5b) ----------
+   The book icon (SourceLine) and the download icon as one row at the
+   card's top right: one 32px box each, 15px icons, 4px apart, the row
+   centred on the title's first line (1.35em, the title's line height, in
+   the title's size) and inset from the right by the same amount as from
+   the top. Each keeps its own hover, focus, tooltip and aria; on touch
+   screens the hit area grows to 40px tall. */
+.card-actions {
+  --act: 32px;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  font-size: var(--fs-card-title);
+  /* the same negative margin below, so the row never sets the head's height */
+  margin: calc((1.35em - var(--act)) / 2) calc((1.35em - var(--act)) / 2);
+  margin-left: 0;
+}
+/* each slot is a flex box, so neither icon rides a line box's baseline */
+.card-actions > * {
+  display: flex;
+}
+.card.ex-tile .card-actions {
+  font-size: var(--chart-fs-head);
+}
+.card.ex-tile.is-open .card-actions {
+  font-size: 16px;
+}
+.card-actions > .src-line {
+  margin: 0;
+}
+.card-actions .src-line-btn,
+.card-actions .icon-button {
+  position: relative;
+  width: var(--act);
+  height: var(--act);
+  margin: 0;
+  border-radius: 6px;
+}
+@media (pointer: coarse) {
+  .card-actions .src-line-btn::after,
+  .card-actions .icon-button::after {
+    content: '';
+    position: absolute;
+    inset: -4px 0;
+  }
+}
+
 /* ---------- Download menu ---------- */
 .download {
   position: relative;

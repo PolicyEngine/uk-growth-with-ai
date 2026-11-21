@@ -135,9 +135,9 @@ export function cardMore({ more, about, read, notes, essential }) {
 }
 
 // The one card (consolidated-design-fable.md §2). Its slots, in order:
-//   1 the title: one plain icon, the title (a finding, no full stop), the
-//     book icon (the links and any source words) and the download icon at
-//     the end of the line;
+//   1 the title: one plain icon, the title (a finding, no full stop); the
+//     book icon (the links and any source words) and the download icon
+//     as one actions group at the card's top right;
 //   2 the model row: the model line (`model`, only where the card's model
 //     or settings differ from the page's), with the card's settings where
 //     they differ (`modelSettings`), and the card's own chooser, the pill
@@ -162,6 +162,7 @@ export default function Card({
   const words = about?.sources ? [{ title: 'Sources', notes: asItems(about.sources) }] : [];
   const groups = cardMore({ more, about, read, notes, essential });
   const said = lead ?? finding;
+  const hasSources = links.length > 0 || words.length > 0;
   const storyIn = Boolean(story?.anchor) && groups.some((g) => g.items?.length);
   return (
     <article className={`card ${className}`} id={id} ref={ref}>
@@ -169,9 +170,17 @@ export default function Card({
         <h3>
           {icon ? <Icon name={icon} size={18} className="card-icon" /> : null}
           <span>{title}</span>
-          {links.length || words.length ? <SourceLine items={links} groups={words} record={false} /> : null}
         </h3>
-        {download ? <DownloadMenu title={download.title ?? (typeof title === 'string' ? title : '')} cardRef={ref} {...download} /> : null}
+        {/* the card's actions, one group at its top right (push D, Q5b;
+            Vahid: "better align"): the book icon (sources) and the download
+            icon, the same 32px box and 15px icon, centred on the title's
+            first line (v2.css .card-actions) */}
+        {hasSources || download ? (
+          <div className="card-actions">
+            {hasSources ? <SourceLine items={links} groups={words} record={false} /> : null}
+            {download ? <DownloadMenu title={download.title ?? (typeof title === 'string' ? title : '')} cardRef={ref} {...download} /> : null}
+          </div>
+        ) : null}
       </header>
       {model || controls ? (
         <div className="card-model-row">
