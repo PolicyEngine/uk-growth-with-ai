@@ -45,7 +45,11 @@ describe('story beats', () => {
     const cite = beats[3].querySelector('.beat-cite');
     expect(cite.hasAttribute('data-cite')).toBe(true);
     const links = [...cite.querySelectorAll('a')];
-    expect(links.map((a) => a.textContent.trim())).toEqual(['Doorley et al. (2026)', 'Briggs and Kodnani (2023)', 'Who bears the AI shock?']);
+    expect(links.map((a) => a.textContent.trim())).toEqual(['Doorley et al. (2026)', 'Briggs and Kodnani (2023)', 'Ahmadi (2026)']);
+    // the household study's paper: author-year, the full title on hover, the paper's PDF
+    expect(cite.textContent).toMatch(/Household modelling: Ahmadi \(2026\)/);
+    expect(links[2].getAttribute('title')).toBe('Ahmadi (2026), Who bears the AI shock? The distributional and fiscal incidence in the UK, PolicyEngine');
+    expect(links[2].getAttribute('href')).toMatch(/\/paper\/main\.pdf$/);
     expect(links[0].getAttribute('href')).toBe('https://doi.org/10.26504/jr16');
     expect(links[1].getAttribute('href')).toMatch(/^https:\/\/www\.gspublishing\.com\/.*\.pdf$/);
     expect(links[2].getAttribute('href')).toMatch(/uk-ai-study\/blob\/[0-9a-f]{40}\/paper\/main\.pdf$/);

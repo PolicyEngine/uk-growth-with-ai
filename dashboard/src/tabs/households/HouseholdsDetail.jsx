@@ -4,6 +4,7 @@ import { SectionHeading } from '@/components/ui/Card.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { linkAiFiles } from '@/tabs/explore/sources.jsx';
 import { D, PAPER_URL, PR_URL } from '@/tabs/story/part3/shared.jsx';
+import { REFS } from '@/tabs/story/part3/sources.jsx';
 
 // Method and sources > Detail and sources (checks-words2.md, item 23): the
 // household study's result files, the commit they were read at and how the
@@ -50,7 +51,7 @@ export default function HouseholdsDetail() {
           </ul>
           <p className="hh-links">
             <a href={PAPER} target="_blank" rel="noopener noreferrer">
-              {STATUS === 'provisional' ? 'The draft paper (PDF)' : 'The paper (PDF)'}
+              {`${STATUS === 'provisional' ? 'Draft: ' : ''}${REFS.ahmadi.title} (PDF)`}
             </a>
             <a href={PR} target="_blank" rel="noopener noreferrer">
               Household study PR #{D.source.pr}

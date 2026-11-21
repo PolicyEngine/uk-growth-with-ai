@@ -62,7 +62,7 @@ describe('HouseholdsExplore', () => {
       expect(container.querySelector('.hh-lead .notice-chip')).toBeNull();
       expect(container.textContent).not.toMatch(/provisional/i);
     } else {
-      expect(container.querySelector('.hh-lead [data-source-notes]')?.textContent ?? container.textContent).toMatch(/draft paper/i);
+      expect(container.querySelector('.hh-lead [data-source-notes]')?.textContent ?? container.textContent).toMatch(/Draft: Ahmadi \(2026\), Who bears the AI shock\?/);
     }
     expect(container.textContent).not.toMatch(/cell marked/i);
     // the story link and the housing-costs basis behind the page's Sources

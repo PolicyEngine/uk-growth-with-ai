@@ -25,6 +25,8 @@ export const SECTION = {
 };
 
 export const REFS = {
+  // the household study's paper (uk-ai-study cd54488, paper/main.tex: title, author, year)
+  ahmadi: { label: 'Ahmadi (2026)', url: PAPER_URL, title: 'Ahmadi (2026), Who bears the AI shock? The distributional and fiscal incidence in the UK, PolicyEngine' },
   doorley: { label: 'Doorley et al. (2026)', url: 'https://doi.org/10.26504/jr16', title: 'Doorley, O’Connor, O’Shea and Tuda (2026), Artificial intelligence and income inequality in Ireland, ESRI and Department of Finance, JR16' },
   // Goldman Sachs' own copy of the note (checked 18 Nov 2026: HEAD and GET 200, application/pdf)
   briggs: { label: 'Briggs and Kodnani (2023)', url: 'https://www.gspublishing.com/content/research/en/reports/2023/03/27/d64e052b-0f6e-45d7-967b-d7be35fabd16.pdf', title: 'Briggs and Kodnani (2023), The potentially large effects of artificial intelligence on economic growth, Goldman Sachs Global Economics Analyst, 26 March 2023' },

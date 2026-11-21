@@ -12,6 +12,7 @@ import { D, MODEL_YEAR, OBR_SCENARIO, OUTSIDE_REBUILD, PAPER_URL, entryClass, la
 import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtInputPct, fmtPence, fmtPp, fmtPpSpread, fmtShare } from '@/tabs/story/part3/format.js';
 import { Bar, Plane, STEP, ValueTable, signedTick } from './charts.jsx';
 import { RULE_MARGIN_PP, RULE_NAMES, SMALL_DECILE_PCT, fmtGiniPts, ruleName, rulesGap } from './figures.js';
+import { REFS } from '@/tabs/story/part3/sources.jsx';
 
 // Explore > Households (item-24-fable.md): the household study's detail,
 // apart from story part 3. Seven cards in three sections. Each card's
@@ -950,7 +951,7 @@ export default function HouseholdsExplore() {
                     icon: 'source',
                     text: (
                       <a href={PAPER} target="_blank" rel="noreferrer">
-                        {STATUS === 'provisional' ? 'The draft paper (PDF)' : 'The paper (PDF)'}
+                        {`${STATUS === 'provisional' ? 'Draft: ' : ''}${REFS.ahmadi.title} (PDF)`}
                       </a>
                     ),
                   },

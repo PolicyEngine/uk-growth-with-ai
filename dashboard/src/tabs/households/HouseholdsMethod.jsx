@@ -16,6 +16,7 @@ import { URLS } from '@/tabs/ai/links.js';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { fmtInputPct, fmtPct1 } from '@/tabs/story/part3/format.js';
 import { methodName } from './figures.js';
+import { REFS } from '@/tabs/story/part3/sources.jsx';
 
 // Method and sources > Household method: how uk-ai-study (PolicyEngine/
 // uk-ai-study PR #18; its status is read from the data) produces the results in story part 3 and
@@ -100,7 +101,7 @@ export default function HouseholdsMethod() {
           </div>
           <p className="hh-answer">
             <IconText icon="jobLoss">
-              <a href={PAPER_URL} target="_blank" rel="noreferrer">
+              <a href={PAPER_URL} target="_blank" rel="noreferrer" title={REFS.ahmadi.title}>
                 The study
               </a>{' '}
               removes, for one year, the earnings of randomly chosen employees in a calibrated UK sample, weighted by AI exposure.
@@ -365,7 +366,7 @@ export default function HouseholdsMethod() {
           <ul className="p3-close-links">
             <li>
               <a href={AI_STUDY.paperUrl ?? PAPER_URL} target="_blank" rel="noreferrer">
-                <Icon name="arrowRight" size={16} strokeWidth={2} /> The paper (PDF)
+                <Icon name="arrowRight" size={16} strokeWidth={2} /> {REFS.ahmadi.title} (PDF)
               </a>
             </li>
             <li>
