@@ -456,9 +456,14 @@ describe('story part 1, real data', () => {
     // each child span counted apart (textContent glues a fact's value, label and sub)
     const words = (n) => [...(n.children.length ? n.children : [n])].map((c) => c.textContent).join(' ').replace(/\s+/g, ' ').trim().split(' ').length;
     el.querySelectorAll('.scrolly-card').forEach((c) => {
-      // the card's one icon (Scrolly draws it from step.icon)
-      expect([...c.querySelectorAll('svg')].filter((v) => !v.closest('.hl-key'))).toHaveLength(1);
+      // the card's one icon (Scrolly draws it from step.icon). The last
+      // card also holds the topic's closing line, a block of its own that
+      // leads with its own answer icon (bbf2286; check_text rule (a),
+      // step-icons.test.jsx), so it is counted apart.
+      const closing = c.querySelector('.scrolly-takeaway-in-step');
+      expect([...c.querySelectorAll('svg')].filter((v) => !v.closest('.hl-key, .scrolly-takeaway-in-step'))).toHaveLength(1);
       expect(c.querySelector('.scrolly-card-icon')).not.toBeNull();
+      if (closing) expect(closing.querySelectorAll('.scrolly-takeaway svg')).toHaveLength(1);
       // one or two short sentences, at most 22 words (the voice pass's
       // exposure step; Key and Fig chips counted as words)
       const say = c.querySelectorAll('.p1-say');
