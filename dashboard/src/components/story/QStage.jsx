@@ -9,19 +9,21 @@ import { setStyle, subscribe } from '@/lib/scrollLoop.js';
 //
 // QFrame (the default, no added height): the question big and centred
 // inside the scene's own figure frame (a plain icon, the words, one hint
-// line), held for a short scroll, then shrunk up into the topic's header
-// while the chart draws in its place.
+// line), held for a short scroll, then faded in place (full size, no
+// shrink: Vahid, 21 Nov) while the chart draws in its place.
 //
 // QStage (`sub.pin: 'full'`): one pinned screen in the flow above the
-// header, `--q-pin` tall. The question grows, holds at the optical
-// centre below the rail (held by the browser, position: sticky; no
-// per-frame write), and shrinks away, scaling about its centre only.
+// header, `--q-pin` tall. The question is fixed at full size in its box
+// (Vahid, 21 Nov: "dont zoom in or out, be fix in that box"): it scrolls
+// in with the stage, holds at the optical centre below the rail (held by
+// the browser, position: sticky; no per-frame write), and scrolls away
+// with the stage's foot.
 //
 // Both follow the scroll position in both directions (round 1, Vahid: "big
 // questions why when scroll back and then go again are not showing?"):
 // every frame the phase is computed from where the frame is (framePhase /
-// stagePhase below, pure), so scrolling back up re-expands the question
-// and scrolling down again replays arrive, hold, shrink. --qa (arrival)
+// stagePhase below, pure), so scrolling back up brings the question back
+// and scrolling down again replays arrive, hold, leave. --qa (arrival)
 // and --qm (move) are written on the element, never as React state;
 // onPhase fires on each change of phase.
 //
@@ -50,17 +52,14 @@ export function framePhase({ top, V, y0, y1 }) {
   return { qa, qm, phase };
 }
 
-// QStage's phase from the stage's box (Vahid, 18 Nov: "why these text
-// moving in background? they should just get big or small when
-// scrolling"): the question only scales, about its centre, and only
-// while the browser holds it still (position: sticky at --q-top). The
-// stuck run is from the moment the holder reaches --q-top (its layout top,
-// the stage's top plus its margin `mt`) until the stage's foot would push
-// it (28px clear): `run` px of scroll. Over its first Q_GROW the card
-// grows from nothing (qa 0 to 1), then holds, and over its last Q_SHRINK it
-// shrinks to nothing (qm 0 to 1, eased), so it is never seen moving: it is
-// scale 0 before it sticks and after it lets go. The chart starts to draw
-// at 70% of the shrink.
+// QStage's phase from the stage's box. The browser holds the card still
+// (position: sticky at --q-top) from the moment the holder reaches --q-top
+// (its layout top, the stage's top plus its margin `mt`) until the
+// stage's foot would push it (28px clear): `run` px of scroll. qa (0 to 1
+// over the run's first Q_GROW) and qm (0 to 1 over its last Q_SHRINK,
+// eased) set the phase only: the card is full size throughout (story.css
+// .q-stage-card, 21 Nov; it scaled by qa * (1 - qm) before). The chart
+// starts to draw at 70% of the last stretch.
 export const Q_GROW = 0.3;
 export const Q_SHRINK = 0.35;
 // The held card's centre: the optical centre of the screen below the rail,
@@ -145,21 +144,6 @@ function useScrollDriver(ref, read, write, deps) {
   }, deps);
 }
 
-// --q-end: the settled header's font size over the opener's, so the
-// question shrinks to exactly the header's size (typography spec: 0.386 at
-// 1280, 0.607 at 390). Read once per width (in the loop's read phase).
-function qEnd(memo, id, el) {
-  const w = window.innerWidth;
-  if (memo.current && memo.current.w === w) return memo.current.v;
-  const head = document.getElementById(`q-${id}`)?.querySelector('.scene-head-q, h2, h3');
-  const big = el.querySelector('.q-stage-q');
-  const a = head ? parseFloat(getComputedStyle(head).fontSize) : 0;
-  const b = big ? parseFloat(getComputedStyle(big).fontSize) : 0;
-  const v = a > 0 && b > 0 ? Math.min(1, a / b) : null;
-  memo.current = { w, v };
-  return v;
-}
-
 const setVars = (el, qa, qm) => {
   setStyle(el, '--qa', qa.toFixed(3));
   setStyle(el, '--qm', qm.toFixed(3));
@@ -174,7 +158,6 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
   const card = useRef(null);
   const go = usePhase(onPhase);
   const skip = useRef(false);
-  const end = useRef(null);
   useScrollDriver(
     ref,
     (el, f) => {
@@ -191,7 +174,7 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
       // hold, so setStyle writes nothing then.
       const qt = Math.round(qMid(R, V) - H / 2);
       const mt = parseFloat(getComputedStyle(hold).marginTop) || 0;
-      return { p: stagePhase({ top: r.top, bottom: r.bottom, V, R, H, mt }), qt, qe: qEnd(end, id, el) };
+      return { p: stagePhase({ top: r.top, bottom: r.bottom, V, R, H, mt }), qt };
     },
     (el, d, f) => {
       if (!d) {
@@ -205,7 +188,6 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
       // (navy-sections-fable.md 7a, its fallback); it goes with the guard
       el.classList.toggle('is-landed', skip.current);
       setStyle(el, '--q-top', `${d.qt}px`);
-      if (d.qe != null) setStyle(el, '--q-end', d.qe.toFixed(3));
       if (skip.current) {
         setVars(el, 1, 1);
         go(el, 'done');
@@ -236,7 +218,6 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
   const ref = useRef(null);
   const go = usePhase(onPhase);
   const skip = useRef(false);
-  const end = useRef(null);
   useScrollDriver(
     ref,
     (el, f) => {
@@ -251,12 +232,7 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
       // where it stops (sticky) or the rail
       const y1 = stop + 24;
       const y0 = Math.max(y1 + 120, V * 0.55);
-      // where the question goes: up into the header above the frame
-      // (the card's layout top, untransformed, to the header's top)
-      const head = document.getElementById(`q-${id}`);
-      const card = el.querySelector('.q-frame-card');
-      const qdy = head && card && r.bottom > -V && r.top < 2 * V ? Math.round(head.getBoundingClientRect().top - r.top - card.offsetTop) : null;
-      return { p: framePhase({ top: r.top, V, y0, y1 }), past: r.top < y0, qdy, qe: qEnd(end, id, el) };
+      return { p: framePhase({ top: r.top, V, y0, y1 }), past: r.top < y0 };
     },
     (el, d, f) => {
       if (!d) {
@@ -265,8 +241,6 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
       }
       const { p } = d;
       skip.current = nextSkip({ skip: skip.current, jumped: f.jumped, past: d.past, before: !d.past, up: f.up });
-      if (d.qdy != null) setStyle(el, '--qdy', `${d.qdy}px`);
-      if (d.qe != null) setStyle(el, '--q-end', d.qe.toFixed(3));
       if (skip.current) {
         setVars(el, 1, 1);
         go(el, 'done');

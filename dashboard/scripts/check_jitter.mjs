@@ -14,7 +14,9 @@
 // frames look still).
 // The question holds: while a question moment is held (--qa 1, --qm 0)
 // no style may be written under its .q-stage, and its held card must not
-// move against the scroll (the browser holds it: position sticky).
+// move against the scroll (the browser holds it: position sticky). The
+// card is fixed at full size (Vahid, 21 Nov: no zoom): at every sample its
+// computed transform is none and its box height is its layout height.
 // The walk covers WIN px around every step change and the middle of every
 // hold (the whole block when FULL=1).
 //
@@ -155,7 +157,10 @@ for (const [W, H] of sizes) {
       probe.style.cssText = 'position:fixed;left:0;top:0;height:1px;width:1px;pointer-events:none;visibility:hidden';
       document.body.appendChild(probe);
       const samples = [];
-      const ro = new ResizeObserver(() => samples.push({ qa: v('--qa'), qm: v('--qm'), y: card.getBoundingClientRect().top, writes }));
+      const ro = new ResizeObserver(() => {
+        const b = card.getBoundingClientRect();
+        samples.push({ qa: v('--qa'), qm: v('--qm'), y: b.top, sc: card.offsetHeight ? b.height / card.offsetHeight : 0, tf: getComputedStyle(card).transform, writes });
+      });
       ro.observe(probe);
       let k = 0;
       await new Promise((done) => {
@@ -176,6 +181,7 @@ for (const [W, H] of sizes) {
       probe.remove();
       let held = 0;
       const out = [];
+      for (const c of samples) if (c.tf !== 'none' || Math.abs(c.sc - 1) > 0.01) out.push(`card not at full size (scale ${c.sc.toFixed(2)}, ${c.tf})`);
       for (let i = 1; i < samples.length; i++) {
         const p = samples[i - 1];
         const c = samples[i];

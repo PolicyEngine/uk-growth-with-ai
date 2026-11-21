@@ -310,7 +310,7 @@ describe('the question follows the scroll both ways (round 1)', async () => {
     expect(at(-200)).toBe('done');
     expect(at(300)).toBe('in');
   });
-  it('the pinned stage only scales: grows once stuck, holds, shrinks to nothing before its foot pushes it (Vahid, 18 Nov)', () => {
+  it('the pinned stage: grows in (qa), holds, then the move (qm) before its foot pushes it; the phase follows (Vahid, 18 Nov)', () => {
     // the held centre: the optical centre below the rail, 6% below the middle
     expect(qMid(100, V)).toBeCloseTo(100 + (V - 100) * 0.56, 5);
     const H = 160;
@@ -320,14 +320,33 @@ describe('the question follows the scroll both ways (round 1)', async () => {
     const run = stageH - 28 - H - mt;
     // s px since the card stuck (its layout top reached qt)
     const at = (s) => stagePhase({ top: qt - mt - s, bottom: qt - mt - s + stageH, V, R: 100, H, mt });
-    const scale = (s) => at(s).qa * (1 - at(s).qm);
-    expect(scale(-50)).toBe(0); // not yet stuck: nothing shown
-    expect(scale(0.15 * run)).toBeGreaterThan(0.3);
-    expect(scale(0.5 * run)).toBe(1); // the hold
-    expect(scale(run)).toBe(0); // gone as the foot arrives
-    expect(scale(run + 50)).toBe(0);
-    expect(at(0.5 * run).phase).toBe('in');
+    expect(at(-50).qa).toBe(0); // not yet stuck
+    expect(at(0.15 * run).qa).toBeGreaterThan(0.3);
+    expect(at(0.5 * run)).toMatchObject({ qa: 1, qm: 0, phase: 'in' }); // the hold
+    expect(at(run).qm).toBe(1);
     expect(at(run).phase).toBe('done');
+  });
+  it('the question cards are fixed in their box: full size, no scale, no translate (Vahid, 21 Nov)', async () => {
+    const { readFileSync } = await import('node:fs');
+    const css = readFileSync('src/app/story.css', 'utf8');
+    // every rule whose selector names the card (media blocks included)
+    const rules = (sel) => [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter((m) => m[1].split(',').some((x) => x.trim().endsWith(sel)));
+    for (const sel of ['.q-stage-card', '.q-frame-card']) {
+      const found = rules(sel);
+      expect(found.length, sel).toBeGreaterThan(0);
+      for (const [, , body] of found) {
+        const decl = body.replace(/\/\*[\s\S]*?\*\//g, '');
+        expect(decl, sel).not.toMatch(/(^|;|\s)transform\s*:/);
+        expect(decl, sel).not.toMatch(/scale\(|translate/);
+        expect(decl, sel).not.toMatch(/will-change:[^;]*transform/);
+      }
+    }
+    // the question vars no longer size anything
+    expect(css).not.toMatch(/scale\([^)]*var\(--q[am]\)/);
+    expect(css).not.toMatch(/--qdy|--q-end/);
+    // the frame card still fades out after the header's copy is shown
+    // (tint from qm 0.78), so the frame is never blank
+    expect(css).toMatch(/opacity: calc\(\(0\.86 - var\(--qm\)\) \* 4\)/);
   });
 });
 

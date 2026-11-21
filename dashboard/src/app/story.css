@@ -346,8 +346,8 @@
    the optical centre of the screen below the rail (its centre 6% of that
    height below the true centre, QStage qMid); it starts at its place near
    the stage's top and is pushed up by the stage's foot, 28px clear (the
-   bottom margin), as the move begins. Nothing is both sticky and
-   transformed: the scale and fade are on the card inside. */
+   bottom margin), as the move begins. Nothing is sticky and transformed:
+   the card inside is fixed at full size (21 Nov). */
 .q-stage-hold {
   position: sticky;
   top: var(--q-top, 0px);
@@ -364,12 +364,17 @@
   margin: 0 auto;
   padding: 0 16px;
   text-align: center;
-  /* scale only, about the block's centre (Vahid, 18 Nov): it grows while
-     held, holds, and shrinks away while still held (QStage stagePhase); no
-     translate, no fade */
-  transform-origin: 50% 50%;
-  transform: scale(calc(var(--qa) * (1 - var(--qm))));
-  will-change: transform;
+  /* fixed in its box (Vahid, 21 Nov: "dont zoom in or out, be fix in that
+     box"): full size, no scale, no translate, no fade. It scrolls in with
+     the stage, the browser holds it (sticky, .q-stage-hold), and it
+     scrolls away with the stage's foot. --qa and --qm still set the phase
+     (QStage stagePhase) and the chart's reveal; they no longer size it. */
+}
+/* landed past the start (the landing guard; story-bands.css drops the
+   navy band): the white question would sit on the white sheet, so the card
+   is hidden until the guard lifts */
+.q-stage.is-landed .q-stage-card {
+  visibility: hidden;
 }
 .q-stage-icon {
   display: inline-flex;
@@ -2343,11 +2348,11 @@
 
 /* QFrame: the question inside the scene's own figure frame (the default;
    no added height). The tint covers the chart until the move, then fades
-   as the question shrinks up into the header. */
+   as the question fades in place (21 Nov: no shrink) and the header takes
+   it. */
 .q-frame {
   --qa: 0;
   --qm: 0;
-  --qdy: -240px;
   position: absolute;
   inset: 0;
   z-index: 6;
@@ -2376,13 +2381,13 @@
   margin: 0 auto;
   padding: 0 16px;
   text-align: center;
-  transform-origin: 50% 0;
-  transform: translateY(calc(var(--qm) * var(--qdy))) scale(calc(1 - (1 - var(--q-end, 0.3)) * var(--qm)));
-  /* full until qm 0.61, gone at 0.86: it is still leaving when the cover
-     starts to fade at 0.78 (the chart starts to draw), so the frame is
-     never blank (round 2 sign-off #1: it was gone by 0.74) */
+  /* fixed in the frame (Vahid, 21 Nov: no zoom): full size in place, no
+     translate, no scale; it only fades. Full until qm 0.61, gone at 0.86:
+     it is still leaving when the cover starts to fade at 0.78 (the chart
+     starts to draw, and the header's copy is shown), so the frame is never
+     blank (round 2 sign-off #1: it was gone by 0.74) */
   opacity: calc((0.86 - var(--qm)) * 4);
-  will-change: transform, opacity;
+  will-change: opacity;
 }
 .q-frame .q-stage-q {
   font-size: var(--t-display);
