@@ -4084,7 +4084,7 @@
    "labour_share_fall_pp": 2.9,
    "tfp_gain": 0.016,
    "label": "uk high",
-   "source": "/Users/vahid/ugai-surprise/analysis/surprise/uk_targets.json"
+   "source": "analysis/surprise/uk_targets.json"
   },
   "gamma_base": 0.35,
   "gamma_shocked": 0.379,

@@ -698,3 +698,11 @@ def test_run_arm_uses_the_calendar_ramp_at_k1(tmp_path):
     assert np.allclose(w[:5], [0.25, 0.5, 0.75, 1.0, 1.0])
     z = np.asarray(p.Z).ravel()
     assert np.allclose((z[:5] - 1) / (0.94 - 1), [0.25, 0.5, 0.75, 1.0, 1.0])
+
+
+def test_source_of_is_repo_relative_or_bare_name(tmp_path):
+    assert sp._source_of(sp.UK_TARGETS) == "analysis/surprise/uk_targets.json"
+    f = tmp_path / "targets.json"
+    f.write_text("{}")
+    with pytest.warns(UserWarning, match="outside the repo"):
+        assert sp._source_of(f) == "targets.json"
