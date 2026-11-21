@@ -142,7 +142,8 @@ export function cardMore({ more, about, read, notes, essential }) {
 //     or settings differ from the page's), with the card's settings where
 //     they differ (`modelSettings`), and the card's own chooser, the pill
 //     (`controls`);
-//   3 the lead (`lead`; `finding` is its older name): one sentence;
+//   3 the lead (`lead`; `finding` is its older name): one sentence, capped
+//     at 78ch unless `leadFull` (push D, Q6b);
 //   4 the unit line (`unit`): what is plotted, its unit and span;
 //   5 the legend (`legend`): one shared row (components/ui/Legend.jsx);
 //   6 the chart (children);
@@ -155,7 +156,7 @@ export function cardMore({ more, about, read, notes, essential }) {
 // reader has the key before the marks. `foot` (a node after the chart) is
 // kept for the Households flags until item 24 rebuilds them.
 export default function Card({
-  id, icon, title, model, modelSettings, lead, finding, unit, controls, legend, about, method, replication, download, logo = false, className = '', children, foot, sources, notes, read, essential, more, moreId, story,
+  id, icon, title, model, modelSettings, lead, finding, leadFull = false, unit, controls, legend, about, method, replication, download, logo = false, className = '', children, foot, sources, notes, read, essential, more, moreId, story,
 }) {
   const ref = useRef(null);
   const links = cardLinks({ method, replication, sources });
@@ -188,7 +189,7 @@ export default function Card({
           {controls}
         </div>
       ) : null}
-      {said ? <div className="card-finding card-lead">{said}</div> : null}
+      {said ? <div className={`card-finding card-lead${leadFull ? ' is-full' : ''}`}>{said}</div> : null}
       {unit ? <p className="card-unit">{unit}</p> : null}
       {legend ? <div className="card-legend">{legend}</div> : null}
       {children ? <div className="chart-plot">{children}</div> : null}

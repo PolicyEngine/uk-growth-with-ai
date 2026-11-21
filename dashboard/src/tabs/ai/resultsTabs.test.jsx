@@ -61,6 +61,10 @@ describe('Results follows the data file', () => {
     // (the shell, push C: every word in More info, links behind the book)
     {
       const { container, unmount } = at('sub=income&closure=both');
+      // the measures sentence runs the card's full width (push D, Q6b):
+      // the modifier on this card's lead only
+      expect(container.querySelector('#measures .card-finding').classList.contains('is-full')).toBe(true);
+      expect(container.querySelectorAll('.card-finding.is-full')).toHaveLength(1);
       const fold = container.querySelector('#measures [data-more-info]');
       expect(fold.closest('.disclosure-content').hidden).toBe(true);
       expect(fold.textContent.match(/Story’s headline figures \(main version\)/g)).toHaveLength(1);

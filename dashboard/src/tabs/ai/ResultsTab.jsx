@@ -366,6 +366,8 @@ function IncomePanel({ sid }) {
           icon={iconFor('measure')}
           title={MEASURES_TITLE}
           finding={ruleSolved(st.rule, sid) ? <MeasuresFinding sid={sid} arms={st.arms} closure={st.closure} rule={st.rule} /> : null}
+          // the sentence runs the card's full width (push D, Q6b)
+          leadFull
           unit={<span data-axis-title="y">{`% gap vs forecast path, ${HEADLINE_YEAR}`}</span>}
           controls={<Pill className="is-card" title="Options for this chart" name={MEASURES_TITLE} sections={[versionsShownSection(st, set)]} />}
           legend={
