@@ -55,3 +55,28 @@ describe('Explore › Economy opens with one summary box', () => {
     expect(intro.querySelector('.model-row .model-scope')).toBeNull();
   });
 });
+
+describe('Explore › Public finances reuses the summary box (Q6e)', () => {
+  it('holds the scope, the finding and its note, each led by an icon, and the tax-gap link row', async () => {
+    const { financesFinding } = await import('@/tabs/ai/financesInfo.js');
+    const { TAX_TITLE } = await import('@/tabs/ai/FinancesSection.jsx');
+    const { container } = renderPage(page('explore finances'));
+    const intro = container.querySelector('.page-intro');
+    const box = intro.querySelector('.page-a #fin-finding.summary-box');
+    expect(box).not.toBeNull();
+    expect(box.querySelector('.summary-scope').textContent).toBe('Macro model · gaps against the OBR’s central forecast path');
+    expect(intro.querySelector('.model-row .model-scope')).toBeNull();
+    const f = financesFinding('uk_central', 'central', 'common');
+    const lead = box.querySelector('[data-claim="fin-lead"]');
+    expect(lead.classList.contains('is-strong')).toBe(true);
+    expect(lead.textContent).toBe(f.lead);
+    expect(lead.querySelector('.summary-icon')).not.toBeNull();
+    const note = box.querySelector('.fin-note');
+    expect(note?.textContent ?? null).toBe(f.note);
+    if (note) expect(note.querySelector('.summary-icon')).not.toBeNull();
+    const link = box.querySelector('.summary-link a');
+    expect(link.textContent).toBe(TAX_TITLE);
+    expect(link.querySelectorAll('svg')).toHaveLength(1);
+    expect(link.getAttribute('href')).toContain('tax-gap');
+  });
+});

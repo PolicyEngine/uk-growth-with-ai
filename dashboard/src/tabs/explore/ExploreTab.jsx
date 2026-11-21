@@ -8,13 +8,13 @@ import PageIntro from '@/components/ui/PageIntro.jsx';
 import AnswerStrip from '@/tabs/explore/AnswerStrip.jsx';
 import { sentenceItems } from '@/tabs/explore/direction.jsx';
 import { PagePill } from '@/components/ui/SettingsBar.jsx';
-import { useNav, subOf, NavLink } from '@/lib/nav.jsx';
+import { useNav, subOf } from '@/lib/nav.jsx';
 import { pickersFor } from '@/lib/labels.js';
 import { ModelTip } from '@/tabs/story/PartHead.jsx';
 import { HEADLINE_YEAR, SURPRISE_YEAR } from '@/tabs/ai/surprise.js';
 import { cohortNotice } from '@/lib/dataKeys.js';
 import { economyAnswer } from '@/tabs/explore/answers.js';
-import Finding from '@/components/ui/Finding.jsx';
+import SummaryBox, { SummaryLink, SummaryRow } from '@/components/ui/SummaryBox.jsx';
 import { financesFinding } from '@/tabs/ai/financesInfo.js';
 import { TAX_TITLE } from '@/tabs/ai/FinancesSection.jsx';
 import { ruleSolved } from '@/tabs/ai/surprise.js';
@@ -34,22 +34,35 @@ const answerOf = (a, label) => <AnswerStrip a={typeof a === 'string' ? { drivers
 const SCOPE = ' · gaps against the OBR’s central forecast path';
 const MAIN = `Automation + productivity, ${HEADLINE_YEAR}`;
 const DATE_NOTE = `The scenario’s AI starts in ${SURPRISE_YEAR}: an assumed date, not a forecast.`;
-// Public finances' answer (item 38): one Finding box, sign-aware
-// (financesInfo.js), then the tax-gap card's link as one plain line. Not
-// solved: the reason, as a sentence.
+// Public finances' answer (item 38; push D, Q6e): the same summary box as
+// Economy's: the scope line, the finding (the result first, sign-aware,
+// financesInfo.js), the note on what the productivity gain decides, then
+// the tax-gap card's link as a link row. Not solved: the reason, in the
+// box.
 function FinancesAnswer({ st }) {
-  if (!ruleSolved(st.rule, st.s)) return <p className="page-a-text">{ruleGapText(st.rule, st.s)}</p>;
-  const f = financesFinding(st.s, st.closure, st.rule);
-  if (!f) return <p className="page-a-text">This combination is not yet solved.</p>;
+  const f = ruleSolved(st.rule, st.s) ? financesFinding(st.s, st.closure, st.rule) : null;
   return (
-    <>
-      <Finding id="fin-finding" icon="finances" lead={f.lead} lines={f.lines} />
-      <p className="fin-link-line">
-        <NavLink tab="explore" sub="finances" anchor="tax-gap">
-          {TAX_TITLE}
-        </NavLink>
-      </p>
-    </>
+    <SummaryBox id="fin-finding" scope={<Scope />}>
+      {!ruleSolved(st.rule, st.s) ? (
+        <SummaryRow icon="provisional">{ruleGapText(st.rule, st.s)}</SummaryRow>
+      ) : !f ? (
+        <SummaryRow icon="provisional">This combination is not yet solved.</SummaryRow>
+      ) : (
+        <>
+          <SummaryRow icon="debt" strong data-claim="fin-lead">
+            {f.lead}
+          </SummaryRow>
+          {f.note ? (
+            <SummaryRow icon="productivity" className="fin-note">
+              {f.note}
+            </SummaryRow>
+          ) : null}
+          <SummaryLink tab="explore" sub="finances" anchor="tax-gap">
+            {TAX_TITLE}
+          </SummaryLink>
+        </>
+      )}
+    </SummaryBox>
   );
 }
 
@@ -103,7 +116,7 @@ export default function ExploreTab() {
   else if (sub === 'finances')
     body = (
       <>
-        <PageIntro row={<Row sub="finances" scope />} notes={[DATE_NOTE]} question="What happens to public debt and tax under each fiscal rule?" answer={<FinancesAnswer st={st} />} />
+        <PageIntro row={<Row sub="finances" />} notes={[DATE_NOTE]} question="What happens to public debt and tax under each fiscal rule?" answer={<FinancesAnswer st={st} />} />
         <ResultsTab sub="finances" />
         <AcrossDebt />
       </>

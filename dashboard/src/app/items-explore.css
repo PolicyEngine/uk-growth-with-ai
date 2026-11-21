@@ -2466,7 +2466,6 @@
 /* item 38: Public finances' answer, one Finding box and the tax-gap link as
    one plain line */
 .page-a #fin-finding { margin: 0; }
-.fin-link-line { margin: 8px 0 0; font-size: var(--fs-small); }
 .page-a-text { margin: 0; }
 
 /* the scenario matrices' key as swatches with short names, and the

@@ -90,7 +90,8 @@ describe('the answer chips that open Economy and Public finances', () => {
 // netted gap is computed here from the raw data: the main version less
 // the slope to "technology unchanged" times min(input, the calendar
 // clock's high end).
-const CAVEAT = 'The direction of debt/GDP depends on the productivity gain; see “technology unchanged”.';
+// push D, Q6e: the summary box's note, worded so it does not repeat the finding
+const CAVEAT = (sid, cl) => `Whether debt is ${word(val(sid, 'tfp', cl, 'debt_gdp_pp', 'common'))} the path in ${S.headline_year} depends on the productivity gain (compare “Technology unchanged”).`;
 const debtFlips = (sid, cl) => {
   const x = val(sid, 'tfp', cl, 'debt_gdp_pp', 'common');
   const z = val(sid, 'tz', cl, 'debt_gdp_pp', 'common');
@@ -108,7 +109,8 @@ describe('the Public finances Finding: the debt/GDP sign caveat', () => {
         for (const rule of RULES) {
           const f = financesFinding(sid, closure, rule);
           if (!f) continue;
-          const has = f.lines.includes(CAVEAT);
+          const has = f.note === CAVEAT(sid, clOf(closure));
+          expect(f.note == null || has, f.note).toBe(true);
           expect(has, `${sid} ${closure} ${rule}`).toBe(rule === 'common' && debtFlips(sid, clOf(closure)));
           if (has && closure !== 'both') fired.push(`${sid} ${clOf(closure)}`);
         }

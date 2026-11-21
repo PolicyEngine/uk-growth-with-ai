@@ -9,7 +9,7 @@ import {
   S, YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, ARMS, resultAt, gap, signed, R4_TOL_PP,
 } from '@/tabs/ai/surprise.js';
 import { closuresFor, primaryClosure, side } from '@/tabs/ai/lines.js';
-import { SIGN_CAVEAT, signMayFlip } from '@/lib/obrOverlap.js';
+import { signMayFlip } from '@/lib/obrOverlap.js';
 
 // OG-UK's own debt-rule start: tG1 = 4 periods from 2026 (scenarios.py).
 // The one home of this constant; FinancesSection imports it.
@@ -259,40 +259,55 @@ export function taxMoreInfo(sid, closure, rule) {
   ].filter(Boolean);
 }
 
-// Item 38: the one Finding box that opens Public finances, sign-aware
-// (public-finances-moreinfo-fable.md: in the headline year debt/GDP is below
-// the path only where the data say so, today Automation + productivity).
-// { lead, lines } or null (not solved).
+// Item 38, reworked for the summary box (push D, Q6e): the box that opens
+// Public finances, sign-aware, in words ("debt as a share of GDP" in this
+// panel; the cards keep "debt/GDP"). The result leads, title-level with no
+// full stop (Vahid, 18 Nov, as a Finding lead); the note says only
+// what the productivity gain decides, without repeating it.
+//   lead: In {H}, debt as a share of GDP is below the forecast path only
+//         with automation and productivity gains; it is above the path in
+//         the other two versions
+//   note: Whether debt is below the path in {H} depends on the productivity
+//         gain (compare “Technology unchanged”). Common rule only, where the
+//         main version's side may not survive netting the OBR's own AI
+//         productivity (signMayFlip); else null.
+// { lead, note } or null (not solved).
+const WITH = { tfp: 'with automation and productivity gains', tz: 'with technology unchanged', ss: 'in the stress test' };
+const withArm = (id) => WITH[id] ?? `in ${inText(id)}`;
+const COUNT = ['', 'one', 'two', 'three', 'four'];
+export const DEBT_SHARE = 'debt as a share of GDP';
+export function debtLead(sid, cl, rule) {
+  const h = byArm(sid, cl, 'debt_gdp_pp', HEADLINE_YEAR, rule);
+  if (!h.length) return null;
+  const groups = ['below', 'above', 'on'].map((s) => ({ s, ids: h.filter((c) => side(c.x) === s).map((c) => c.id) })).filter((g) => g.ids.length);
+  const full = (s) => (s === 'on' ? 'on the forecast path' : `${s} the forecast path`);
+  const short = (s) => (s === 'on' ? 'on the path' : `${s} the path`);
+  const lead = `In ${HEADLINE_YEAR}, ${DEBT_SHARE} is`;
+  if (groups.length === 1) return `${lead} ${full(groups[0].s)} in every version`;
+  groups.sort((x, y) => x.ids.length - y.ids.length);
+  if (groups.length === 2) {
+    const [a, b] = groups;
+    const rest = b.ids.length > 1 ? `in the other ${COUNT[b.ids.length] ?? b.ids.length} versions` : withArm(b.ids[0]);
+    return `${lead} ${full(a.s)} ${a.ids.length === 1 ? 'only ' : ''}${andList(a.ids.map(withArm))}; it is ${short(b.s)} ${rest}`;
+  }
+  // three sides, one version each
+  const [a, ...rest] = groups;
+  const it = (g) => `${g.s === 'on' ? 'on it' : `${g.s} it`} ${andList(g.ids.map(withArm))}`;
+  return `${lead} ${full(a.s)} ${andList(a.ids.map(withArm))}, ${andList(rest.map(it))}`;
+}
+export function debtNote(sid, cl, rule) {
+  if (rule !== 'common' || !signMayFlip(sid, cl, 'debt_gdp_pp')) return null;
+  const x = gap(sid, 'tfp', cl, 'debt_gdp_pp', HEADLINE_YEAR, rule);
+  if (x == null || side(x) === 'on') return null;
+  return `Whether debt is ${side(x)} the path in ${HEADLINE_YEAR} depends on the productivity gain (compare “${NAMES.tz}”).`;
+}
 export function financesFinding(sid, closure, rule) {
   const cl = primaryClosure(closure);
   if (!solved(sid, cl, rule)) return null;
   const late = debtTitle(sid, closure, rule);
-  const tax = taxTitle(sid, closure, rule);
-  const lines = [];
-  let lead;
   if (rule === 'dn' && /stays on the forecast path/.test(late)) {
-    // R1-17 / R4-08: the lead says how, so it no longer repeats the card
-    // title; the R2-20 filter below drops the title line
-    lead = `Under debt-neutral transfers, transfers to households hold debt/GDP on the forecast path from ${SURPRISE_YEAR + 1}; tax/GDP still moves.`;
-  } else {
-    const h = byArm(sid, cl, 'debt_gdp_pp', HEADLINE_YEAR, rule);
-    const groups = ['below', 'above', 'on'].map((s) => ({ s, ids: h.filter((c) => side(c.x) === s).map((c) => c.id) })).filter((g) => g.ids.length);
-    const say = (s) => (s === 'on' ? 'on the path' : `${s} the path`);
-    if (groups.length === 1) lead = `In ${HEADLINE_YEAR}, debt/GDP is ${say(groups[0].s)} in every version.`;
-    else {
-      const [a, ...rest] = groups.sort((x, y) => x.ids.length - y.ids.length);
-      lead = `In ${HEADLINE_YEAR}, debt/GDP is ${say(a.s)} only in ${andList(a.ids.map(inText))}; ${rest.map((g) => `${andList(g.ids.map(inText))} ${g.ids.length > 1 ? 'are' : 'is'} ${say(g.s)}`).join(', ')}.`;
-    }
-    lines.push(`${late}.`);
-    // the sign caveat (obr-overlap-fable.md, "Direction chips"; review
-    // round 4, R4-02): a debt/GDP direction that may not survive netting
-    // the OBR's own AI productivity
-    if (rule === 'common' && signMayFlip(sid, cl, 'debt_gdp_pp')) lines.push(`The direction of debt/GDP ${SIGN_CAVEAT}.`);
+    // R1-17 / R4-08: the lead says how, so it does not repeat the card title
+    return { lead: `Under debt-neutral transfers, transfers to households hold ${DEBT_SHARE} on the forecast path from ${SURPRISE_YEAR + 1}; tax as a share of GDP still moves`, note: null };
   }
-  if (tax) lines.push(`${tax}.`);
-  // A line that only repeats a card title says the fact twice on one
-  // screen: drop it (review round 2, R2-20; round 3, R3-10). The lead and
-  // the tax-gap link line stay.
-  const titles = new Set([late, tax].filter(Boolean).map((t) => `${t}.`));
-  return { lead, lines: lines.filter((l) => !titles.has(l)) };
+  return { lead: debtLead(sid, cl, rule), note: debtNote(sid, cl, rule) };
 }

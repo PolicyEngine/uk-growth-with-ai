@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import S from '@/lib/activeData.js';
 import { scenarioDone } from '@/lib/dataTestUtils.js';
-import { debtTitle, taxTitle, debtMoreInfo, taxMoreInfo, debtWhy, taxWhy } from '@/tabs/ai/financesInfo.js';
+import { debtTitle, taxTitle, debtMoreInfo, taxMoreInfo, debtWhy, taxWhy, financesFinding } from '@/tabs/ai/financesInfo.js';
 
 // Item 17: each More info sentence is gated on the data's signs for the
 // rule and closure shown (public-finances-moreinfo-fable.md). Expected
@@ -91,4 +91,27 @@ describe('item 17: Public finances More info', () => {
           expect(taxTitle(sid, closure, rule)).toContain(String(H));
         });
       }
+});
+
+// Push D, Q6e: the summary box's words, in every data state (the exact
+// sentences are pinned in financesHeader.test.js): "debt as a share of
+// GDP" in this panel, the result first, a note that does not repeat it.
+describe('push D, Q6e: the Public finances summary in every state', () => {
+  it('names debt in words and keeps the note to the productivity gain', () => {
+    let n = 0;
+    for (const sid of SIDS)
+      for (const rule of ['common', 'fixed', 'dn'])
+        for (const closure of ['central', 'closed', 'both']) {
+          const f = financesFinding(sid, closure, rule);
+          if (!f) continue;
+          n += 1;
+          expect(f.lead).toMatch(/debt as a share of GDP/);
+          expect(f.lead).not.toMatch(/debt\/GDP|\.$/);
+          if (f.note) {
+            expect(f.note).toMatch(/^Whether debt is (above|below) the path in \d{4} depends on the productivity gain \(compare “.+”\)\.$/);
+            expect(f.note).not.toMatch(/only|every version|other two/);
+          }
+        }
+    expect(n).toBeGreaterThan(0);
+  });
 });
