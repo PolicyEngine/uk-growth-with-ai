@@ -373,7 +373,10 @@ describe('Part3', () => {
     expect(bottomDecileRankings()).toHaveLength(2);
     // "upper bound" qualifies the poverty rise; the cost note follows the take-up runs' sign
     const text = renderPart().container.textContent;
-    expect(text).toContain('Poverty rise is an upper bound');
+    // scoped to time out of work (Fable round 7, S4): other displacement
+    // rules give a higher rise, so it is not an upper bound overall
+    expect(text).toContain('Poverty rise is an upper bound for time out of work');
+    expect(text).not.toMatch(/Poverty rise is an upper bound(?! for time out of work)/);
     expect(text).toContain(ladder('takeup').cost_bn > ladder('central_20').cost_bn ? 'fuller benefit take-up raises it' : 'Fuller benefit take-up moves the cost');
     // uniform displacement costs least
     const rules = ['uniform', 'junior', 'exposure', 'compression'].map(rule);

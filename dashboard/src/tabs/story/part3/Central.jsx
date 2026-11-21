@@ -166,7 +166,10 @@ function CentralFigure({ ctx }) {
           ))}
         </ul>
       </div>
-      <Essential icon="limit">Poverty rise is an upper bound: the displaced are jobless all year</Essential>
+      {/* scoped (Fable round 7, S4): other displacement rules give a higher
+          rise, so it is an upper bound for spell length only; "jobless all
+          year" is in the step text (check_sources: 12 words at most) */}
+      <Essential icon="limit">Poverty rise is an upper bound for time out of work</Essential>
     </figure>
   );
 }
