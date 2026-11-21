@@ -257,6 +257,18 @@ function coincideFinding(sid, closure, rule = 'common') {
 const C_BELOW = belowThrough('uk_central', CENTRAL) === LATE_YEAR ? LATE_YEAR : null;
 const TOP_FLAG = investmentFlags()[0] ?? null;
 
+// The investment flag on the cell in view (Fable round 7, S1): the main
+// version's shock-year jump for the scenario and each closure shown, where
+// it is above the flag itself (common rule; investmentFlags), largest
+// first. The caveat then speaks to the cell on screen before the
+// sensitivity's. A sanity-gate flag, not a finding (surprise2027-runs.md,
+// ruling 8). [] where none.
+export function shownInvestFlags(sid, closure, rule) {
+  if (rule !== 'common') return [];
+  const cls = closuresFor(closure);
+  return investmentFlags().filter((f) => f.sid === sid && f.arm === 'tfp' && cls.includes(f.cl));
+}
+
 // The Investment tile's "stays high, then drops" caveat, per cell (review
 // round 5, R5-16): the year from investHighTo, main version, for each
 // closure shown. null where no closure shown has such a year (no foreign
@@ -287,7 +299,8 @@ const ECONOMY = [
         investHighLine(sid, closure, rule) ? { key: 'year1', icon: 'capital', text: investHighLine(sid, closure, rule) } : null,
         { key: 'size', icon: 'limit', text: 'That jump is a model property, not a forecast of a boom' },
         { key: 'grows', icon: 'scenario', text: 'It grows with the scenario' },
-        TOP_FLAG ? { key: 'flag', icon: 'caveat', text: <>{SN[TOP_FLAG.sid]}{TOP_FLAG.arm === 'tfp' ? ', main version' : ''}, ζK {TOP_FLAG.zeta}: +{Math.round(TOP_FLAG.x)}% in {SURPRISE_YEAR}</> } : null,
+        ...shownInvestFlags(sid, closure, rule).map((f) => ({ key: `here-${f.cl}`, icon: 'caveat', text: `This scenario, main version, ζK ${f.zeta}: +${Math.round(f.x)}% in ${SURPRISE_YEAR}` })),
+        TOP_FLAG && !shownInvestFlags(sid, closure, rule).includes(TOP_FLAG) ? { key: 'flag', icon: 'caveat', text: <>{SN[TOP_FLAG.sid]}{TOP_FLAG.arm === 'tfp' ? ', main version' : ''}, ζK {TOP_FLAG.zeta}: +{Math.round(TOP_FLAG.x)}% in {SURPRISE_YEAR}</> } : null,
         TOP_FLAG ? { key: 'flag2', icon: 'limit', text: <>Implausible: above the +{I_FLAG_PCT}% {ext(OG_RESULT_URLS.sanity, 'investment flag')}, {ext(OG_RESULT_URLS.plausibility, 'beyond any year on record')}</> } : null,
       ]} />,
     }) },

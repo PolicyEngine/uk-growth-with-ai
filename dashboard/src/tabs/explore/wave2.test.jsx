@@ -8,7 +8,8 @@ import S from '@/lib/activeData.js';
 import { COHORTS as CO } from '@/lib/dataKeys.js';
 import { NavProvider } from '@/lib/nav.jsx';
 import ClosureSlope, { slopeNote, slopeRows, SLOPE_MEASURES } from '@/tabs/explore/ClosureSlope.jsx';
-import ResultsTab, { WALL_HINTS } from '@/tabs/ai/ResultsTab.jsx';
+import ResultsTab, { WALL_HINTS, shownInvestFlags } from '@/tabs/ai/ResultsTab.jsx';
+import { I_FLAG_PCT } from '@/tabs/explore/caveats.js';
 import { ARM_COLOR } from '@/tabs/ai/surprise.js';
 import WhoGainsTab, { dotCounts } from '@/tabs/cohorts/CohortsTab.jsx';
 import { grid, AGES } from '@/tabs/cohorts/WhoHeatmap.jsx';
@@ -119,6 +120,33 @@ describe('the economy wall', () => {
     // old group anchors still land
     for (const id of ['economy-demand', 'economy-factors', 'economy-prices']) expect(container.querySelector(`#${id}`)).not.toBeNull();
   });
+});
+
+// Fable round 7, S1: the Investment tile's caveat speaks to the cell on
+// screen (main version, each closure shown, common rule) where its own
+// shock-year jump is above the flag, before the sensitivity's line. Gated
+// on the cell's value, never on the scenario's name.
+describe('the investment caveat names the cell on screen', () => {
+  const i = S.years.indexOf(S.surprise_year);
+  for (const s of S.scenarios)
+    for (const closure of ['central', 'closed', 'both'])
+      it(`${s.id}, ${closure}`, () => {
+        const cls = closure === 'both' ? ['zk0', 'zk0.1'] : closure === 'closed' ? ['zk0'] : ['zk0.1'];
+        const want = cls
+          .map((cl) => ({ cl, r: S.results[s.id].tfp[cl] }))
+          .filter(({ r }) => r.status === 'done' && r.gaps.I[i] > I_FLAG_PCT)
+          .map(({ cl, r }) => `This scenario, main version, ζK ${S.closures[cl].zeta_K}: +${Math.round(r.gaps.I[i])}% in ${S.surprise_year}`);
+        const got = shownInvestFlags(s.id, closure, 'common').map((f) => `This scenario, main version, ζK ${f.zeta}: +${Math.round(f.x)}% in ${S.surprise_year}`);
+        expect(got.sort()).toEqual(want.sort());
+        expect(shownInvestFlags(s.id, closure, 'dn')).toEqual([]);
+        const { container, unmount } = wrap(<ResultsTab sub="economy" />, `tab=explore&s=${s.id}&closure=${closure}`);
+        // a closed tile carries no fold: open it
+        fireEvent.click(container.querySelector('#tile-I .ex-tile-open'));
+        const t = container.querySelector('#tile-I').textContent;
+        for (const w of want) expect(t).toContain(w);
+        if (!want.length) expect(t).not.toContain('This scenario, main version');
+        unmount();
+      });
 });
 
 describe('who gains: heatmap and dots', () => {
