@@ -41,7 +41,6 @@ const git = (...a) => {
 // file does not match itself.
 const LOCAL = ['/Us', 'ers/'].join('');
 const gitOut = (...a) => execFileSync('git', a, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] });
-const SCEN_FILE_RE = /^uk_growth_with_ai\/data\/scenarios_surprise202[78]_[a-z0-9_.]+\.json$/;
 // every file a link names, as resolved by check(): { url, at, p, kind }
 const RESOLVED = [];
 const BRANCHES = ['rerun/surprise-2028', 'paper/first-draft', 'audit/sanity-2028-final', 'dashboard/surprise-2028', 'dashboard/story', 'dashboard/ab2026-redesign'];
@@ -143,21 +142,14 @@ describe('no private local paths', () => {
     const files = RESOLVED.filter((r) => r.kind === 'blob');
     expect(files.length).toBeGreaterThan(20);
     const bad = [];
-    const allowed = [];
     for (const r of files) {
       const type = gitOut('cat-file', '-t', `${r.at}:${r.p}`).trim();
       if (type !== 'blob') continue;
       const lines = gitOut('cat-file', '-p', `${r.at}:${r.p}`).split('\n').filter((l) => l.includes(LOCAL));
-      // Known exception, pending a ruling: the scenario files (2027, 2028) carry
-      // the generator's provenance field ("source": a local path to
-      // uk_targets.json). They are model data, never hand-edited; only that
-      // field, only in those files, is allowed.
-      const provenance = SCEN_FILE_RE.test(r.p) && lines.every((l) => /^\s*"source": "/.test(l) && l.includes('/analysis/surprise/uk_targets.json'));
-      if (lines.length && !provenance) bad.push(`${r.url} (${r.p} at ${r.at}): ${lines[0].trim().slice(0, 120)}`);
-      if (lines.length && provenance) allowed.push(r.p);
+      // strict: no exceptions (the scenario files' "source" is repo-relative
+      // since 22fa491; Fable round 6 S2)
+      if (lines.length) bad.push(`${r.url} (${r.p} at ${r.at}): ${lines[0].trim().slice(0, 120)}`);
     }
     expect(bad, bad.join('\n')).toEqual([]);
-    // the exception stays narrow: at most the scenario files
-    expect(allowed.every((f) => SCEN_FILE_RE.test(f))).toBe(true);
   });
 });

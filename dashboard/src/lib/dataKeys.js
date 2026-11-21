@@ -112,9 +112,10 @@ const SETS = {
     // year (--start/--year/YEAR; 2028 is their default)
     runBranch: 'rerun/surprise-2028',
     yearFlag: false,
-    // the ref the scenario files and pipeline files are linked at
-    // ('source_commit': the data file's own commit), and the builder there
-    filesRef: 'source_commit',
+    // the ref the scenario files are linked at: the commit whose files carry a
+    // repo-relative "source" (22fa491, chore/strip-local-source-path; Fable
+    // round 6 S2). The 2028 pipeline links read DASH_REF (yearFlag false).
+    filesRef: '22fa491',
     builder: 'uk_growth_with_ai/dashboard_data.py',
     scenarioFile: (sid) => `uk_growth_with_ai/data/scenarios_surprise2028_${sid}.json`,
     // the commits and solve times each set was built with (R3-04)
@@ -142,8 +143,9 @@ const SETS = {
     docsRef: '59139aa',
     runBranch: 'rerun/surprise-2027',
     yearFlag: true,
-    // the scenario files were committed after the data (3988c0b)
-    filesRef: '3988c0b',
+    // the scenario and pipeline files: 3988c0b plus the path fix (22fa491,
+    // repo-relative "source"; Fable round 6 S2)
+    filesRef: '22fa491',
     builder: 'analysis/surprise/build_dashboard_data.py',
     scenarioFile: (sid) => `uk_growth_with_ai/data/scenarios_surprise2027_${sid}.json`,
     // OG-UK, OG-Core and PolicyEngine versions are the 2028 set's (same
