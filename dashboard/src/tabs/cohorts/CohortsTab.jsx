@@ -1,12 +1,13 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import LineChart from '@/components/LineChart.jsx';
 import Card, { SectionHeading, StatTile } from '@/components/ui/Card.jsx';
 import Finding, { noStop } from '@/components/ui/Finding.jsx';
 import Disclosure from '@/components/ab/Disclosure.jsx';
+import Callout from '@/components/story/Callout.jsx';
 import { profileOf, windowIncomeOf, windowIncomeAge, wealthRatioAt } from '@/lib/dataKeys.js';
 import { revealAnchor } from '@/lib/scroll.js';
 import { Items } from '@/components/story/Items.jsx';
@@ -526,40 +527,6 @@ export function stressWords(cl, rule, arm) {
   return { lead, lines: [s1, s2].filter(Boolean), young: at(FIRST_AGE), old: at(RULER_AGE) };
 }
 
-// Bars on one axis: label, bar, value, each its own cell (the value right-
-// aligned, tabular). With a negative value the zero line sits inside the
-// track and bars run left or right of it. rows: [{ key, label, value, text }].
-function Bars({ rows, caption, signed = false }) {
-  const id = useId();
-  const vs = rows.map((r) => r.value);
-  const lo = Math.min(0, ...vs);
-  const hi = Math.max(0, ...vs);
-  const span = hi - lo || 1;
-  const at = (v) => `${(((v - lo) / span) * 100).toFixed(2)}%`;
-  return (
-    <figure className="ex-bars2">
-      <ul className="ex-bars2-list" role="list" aria-labelledby={id}>
-        {rows.map((r) => (
-          <li key={r.key}>
-            <span className="ex-bars2-label">
-              {r.label}
-              {'\u00a0'}
-            </span>
-            <span className="ex-bars2-track" aria-hidden="true">
-              {lo < 0 ? <span className="ex-bars2-zero" style={{ left: at(0) }} /> : null}
-              <span className="ex-bars2-fill" style={{ left: at(Math.min(0, r.value)), width: `${((Math.abs(r.value) / span) * 100).toFixed(2)}%` }} />
-            </span>
-            <span className={`ex-bars2-val${signed && tone(r.value) ? ` is-${tone(r.value)}` : ''}`}>{r.text}</span>
-          </li>
-        ))}
-      </ul>
-      <figcaption id={id} className="ex-bars2-cap">
-        {caption}
-      </figcaption>
-    </figure>
-  );
-}
-
 // Open the OG-UK settings pill (components/ui/Pill.jsx) at its Budget
 // assumption section: the page pill in the model row, or the sub-tab
 // header's copy once the page pill is under the sticky stack
@@ -710,6 +677,23 @@ function MeasureUnit() {
   );
 }
 
+// Two big numbers with small labels (push D, Q7a and Q7b): { key, label,
+// value, text? }; `text` prints in place of the signed value, and `tone`
+// (default on) colours a signed value by its sign.
+function StatPair({ stats = [], signed = true }) {
+  if (!stats.length) return null;
+  return (
+    <dl className="why-stats">
+      {stats.map((x) => (
+        <div key={x.key} className="why-stat">
+          <dt className="why-stat-label">{x.label}</dt>
+          <dd className={`why-stat-value${signed && x.value != null && tone(x.value) ? ` is-${tone(x.value)}` : ''}`}>{x.text ?? pct(x.value)}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 // One "what drives the result" card (push D, Q7a): one anatomy for all
 // four, in the Finding box's card style: the finding title (as modelled,
 // no full stop), at most two short bullets each led by an icon, a stat row
@@ -734,16 +718,7 @@ function WhyCard({ icon, lead, bullets = [], stats = [], unit, link, actions }) 
           </li>
         ))}
       </ul>
-      {stats.length ? (
-        <dl className="why-stats">
-          {stats.map((x) => (
-            <div key={x.key} className="why-stat">
-              <dt className="why-stat-label">{x.label}</dt>
-              <dd className={`why-stat-value${x.value != null && tone(x.value) ? ` is-${tone(x.value)}` : ''}`}>{x.text ?? pct(x.value)}</dd>
-            </div>
-          ))}
-        </dl>
-      ) : null}
+      <StatPair stats={stats} />
       {unit ? (
         <p className="why-unit" data-axis-title="y">
           {unit}
@@ -847,74 +822,106 @@ function Why({ cl, rule, arm }) {
       </div>
       <div className="ex-mi-box">
         <Disclosure id="who-model-households" title="More info" preview="How the model’s households compare with the UK: pay, transfers and wealth by earnings group">
+          {/* push D, Q7b: an info callout, a 2x2 grid of small cards (one
+              column on phones), each an icon and heading, two numbers, a
+              muted unit line and its takeaway last; the closing caveat in
+              its own callout. Meaning unchanged. */}
           <div className="ex-mi">
-            <p className="ex-mi-lead">The ranking by earnings group is a property of the model, not a finding about the UK.</p>
-            <p className="ex-mi-lead">It follows from how the model’s households are built.</p>
-            <section className="ex-mi-part">
-              <h4 className="ex-mi-head">{prof.labour[0] < prof.labour[6] ? `The ${bot.toLowerCase()} depend less on pay` : `Pay, ${bot.toLowerCase()} and ${top.toLowerCase()}`}</h4>
-              <Bars
-                caption={`Pay as a share of gross income, ${t.shockYear}`}
-                rows={[
-                  { key: 'b', label: bot, value: prof.labour[0], text: plain(prof.labour[0]) },
-                  { key: 't', label: top, value: prof.labour[6], text: plain(prof.labour[6]) },
-                ]}
-              />
-              {prof.labour[0] < prof.labour[6] ? <p className="ex-mi-text">A lower pay rate takes a smaller share of the bottom group’s income.</p> : null}
-            </section>
-            <section className="ex-mi-part">
-              <h4 className="ex-mi-head">{prof.wealth_share[0] > prof.earnings_share[0] ? 'Wealth is spread more evenly than earnings' : `Wealth and earnings of the ${bot.toLowerCase()}`}</h4>
-              <Bars
-                caption={`${bot} of lifetime earners, ${t.shockYear}`}
-                rows={[
-                  { key: 'w', label: 'Share of wealth', value: prof.wealth_share[0], text: plain(prof.wealth_share[0]) },
-                  { key: 'e', label: 'Share of labour income', value: prof.earnings_share[0], text: plain(prof.earnings_share[0]) },
-                ]}
-              />
-              {prof.wealth_share[0] > prof.earnings_share[0] ? <p className="ex-mi-text">So the higher return on capital reaches lower earners as well.</p> : null}
-            </section>
-            <section className="ex-mi-part">
-              <h4 className="ex-mi-head">Transfers are the same amount per head</h4>
-              <Bars
-                caption={`Transfers as a share of gross income, ${t.shockYear}`}
-                rows={[
-                  { key: 'b', label: bot, value: prof.transfers[0], text: plain(prof.transfers[0]) },
-                  { key: 't', label: top, value: prof.transfers[6], text: plain(prof.transfers[6]) },
-                ]}
-              />
-              <p className="ex-mi-text">The same amount is a larger share of a lower earner’s income.</p>
-              {rule === 'dn' && tr && tr[0] < 0 && tr[6] < 0 ? (
-                <>
-                  <Bars
-                    caption={`Cost of lower transfers over ${t.shockYear}–${t.lastFlowYear}, % of consumption`}
-                    rows={[
-                      { key: 'b', label: `Age ${age}, ${bot.toLowerCase()}`, value: Math.abs(tr[0]), text: plain(Math.abs(tr[0]), 1) },
-                      { key: 't', label: `Age ${age}, ${top.toLowerCase()}`, value: Math.abs(tr[6]), text: plain(Math.abs(tr[6]), 1) },
-                    ]}
-                  />
-                  {narrows ? <p className="ex-mi-text">This narrows the gap between the two groups and does not reverse it.</p> : null}
-                </>
-              ) : null}
-            </section>
-            <section className="ex-mi-part">
-              <h4 className="ex-mi-head">{wc < ONS_TOP_TENTH.pct ? 'Wealth is less concentrated than in the UK' : 'Wealth concentration against the UK'}</h4>
-              <Bars
-                caption="Share of wealth held by the top tenth"
-                rows={[
-                  { key: 'm', label: `Model, adults, ${t.shockYear}`, value: wc, text: plain(wc) },
-                  { key: 'o', label: `ONS, households, ${ONS_TOP_TENTH.period}`, value: ONS_TOP_TENTH.pct, text: `${ONS_TOP_TENTH.pct}%` },
-                ]}
-              />
-              <p className="ex-mi-note">
-                <Icon name={iconFor('limit')} size={14} /> Not like for like: the ONS figure is for households in Great Britain. The model’s is for adults, ranked across age and earnings groups.
-              </p>
-              <p className="ex-mi-src">{ext(ONS_TOP_TENTH.url, 'ONS, Household total wealth in Great Britain, April 2018 to March 2020')}</p>
-              {wc < ONS_TOP_TENTH.pct ? (
-                <>
-                  <p className="ex-mi-text">With wealth as concentrated as in ONS data, more of the higher return would go to the top group; the ranking could narrow or reverse.</p>
-                  <p className="ex-mi-text">The runs do not test that.</p>
-                </>
-              ) : null}
-            </section>
+            <Callout as="div" icon="model" className="ex-mi-callout">
+              <p>The ranking by earnings group is a property of the model, not a finding about the UK.</p>
+              <p>It follows from how the model’s households are built.</p>
+            </Callout>
+            <div className="ex-mi-grid">
+              <section className="ex-mi-card">
+                <h4 className="ex-mi-head">
+                  <Icon name={iconFor('pay')} size={16} className="ex-mi-head-icon" />
+                  <span>{prof.labour[0] < prof.labour[6] ? `The ${bot.toLowerCase()} depend less on pay` : `Pay, ${bot.toLowerCase()} and ${top.toLowerCase()}`}</span>
+                </h4>
+                <StatPair
+                  signed={false}
+                  stats={[
+                    { key: 'b', label: bot, value: prof.labour[0], text: plain(prof.labour[0]) },
+                    { key: 't', label: top, value: prof.labour[6], text: plain(prof.labour[6]) },
+                  ]}
+                />
+                <p className="ex-mi-unit">Pay as a share of gross income, {t.shockYear}</p>
+                {prof.labour[0] < prof.labour[6] ? <p className="ex-mi-text">A lower pay rate takes a smaller share of the bottom group’s income.</p> : null}
+              </section>
+              <section className="ex-mi-card">
+                <h4 className="ex-mi-head">
+                  <Icon name={iconFor('capital')} size={16} className="ex-mi-head-icon" />
+                  <span>{prof.wealth_share[0] > prof.earnings_share[0] ? 'Wealth is spread more evenly than earnings' : `Wealth and earnings of the ${bot.toLowerCase()}`}</span>
+                </h4>
+                <StatPair
+                  signed={false}
+                  stats={[
+                    { key: 'w', label: 'Share of wealth', value: prof.wealth_share[0], text: plain(prof.wealth_share[0]) },
+                    { key: 'e', label: 'Share of labour income', value: prof.earnings_share[0], text: plain(prof.earnings_share[0]) },
+                  ]}
+                />
+                <p className="ex-mi-unit">
+                  {bot} of lifetime earners, {t.shockYear}
+                </p>
+                {prof.wealth_share[0] > prof.earnings_share[0] ? <p className="ex-mi-text">So the higher return on capital reaches lower earners as well.</p> : null}
+              </section>
+              <section className="ex-mi-card">
+                <h4 className="ex-mi-head">
+                  <Icon name={iconFor('benefits')} size={16} className="ex-mi-head-icon" />
+                  <span>Transfers are the same amount per head</span>
+                </h4>
+                <StatPair
+                  signed={false}
+                  stats={[
+                    { key: 'b', label: bot, value: prof.transfers[0], text: plain(prof.transfers[0]) },
+                    { key: 't', label: top, value: prof.transfers[6], text: plain(prof.transfers[6]) },
+                  ]}
+                />
+                <p className="ex-mi-unit">Transfers as a share of gross income, {t.shockYear}</p>
+                {rule === 'dn' && tr && tr[0] < 0 && tr[6] < 0 ? (
+                  <>
+                    <p className="ex-mi-sub">
+                      Cost of lower transfers over {t.shockYear}–{t.lastFlowYear}, age {age}
+                    </p>
+                    <StatPair
+                      signed={false}
+                      stats={[
+                        { key: 'b', label: bot, value: Math.abs(tr[0]), text: plain(Math.abs(tr[0]), 1) },
+                        { key: 't', label: top, value: Math.abs(tr[6]), text: plain(Math.abs(tr[6]), 1) },
+                      ]}
+                    />
+                    <p className="ex-mi-unit">% of consumption</p>
+                  </>
+                ) : null}
+                <p className="ex-mi-text">The same amount is a larger share of a lower earner’s income.</p>
+                {rule === 'dn' && tr && tr[0] < 0 && tr[6] < 0 && narrows ? <p className="ex-mi-text">Lower transfers narrow the gap between the two groups and do not reverse it.</p> : null}
+              </section>
+              <section className="ex-mi-card">
+                <h4 className="ex-mi-head">
+                  <Icon name={iconFor('inequality')} size={16} className="ex-mi-head-icon" />
+                  <span>{wc < ONS_TOP_TENTH.pct ? 'Wealth is less concentrated than in the UK' : 'Wealth concentration against the UK'}</span>
+                </h4>
+                <StatPair
+                  signed={false}
+                  stats={[
+                    { key: 'm', label: `Model, adults, ${t.shockYear}`, value: wc, text: plain(wc) },
+                    { key: 'o', label: `ONS, households, ${ONS_TOP_TENTH.period}`, value: ONS_TOP_TENTH.pct, text: `${ONS_TOP_TENTH.pct}%` },
+                  ]}
+                />
+                <p className="ex-mi-unit">Share of wealth held by the top tenth</p>
+                <p className="ex-mi-note">
+                  <Icon name={iconFor('limit')} size={14} /> <span>Not like for like: the ONS figure is for households in Great Britain. The model’s is for adults, ranked across age and earnings groups.</span>
+                </p>
+                <p className="ex-mi-src" data-cite="">
+                  Source: {ext(ONS_TOP_TENTH.url, 'ONS, Household total wealth in Great Britain, April 2018 to March 2020')}
+                </p>
+              </section>
+            </div>
+            {wc < ONS_TOP_TENTH.pct ? (
+              <Callout as="div" icon="caveat" className="ex-mi-callout">
+                <p>With wealth as concentrated as in ONS data, more of the higher return would go to the top group; the ranking could narrow or reverse.</p>
+                <p>The runs do not test that.</p>
+              </Callout>
+            ) : null}
           </div>
         </Disclosure>
       </div>

@@ -19,6 +19,7 @@ const at = (query = 'tab=who') => {
   );
 };
 
+const CO_WC = () => D.closures['zk0.1'].wealth_concentration.top_tenth_pct;
 describe('Who gains tab', () => {
   it('headline defaults to some foreign capital, debt-neutral transfers, main arm', () => {
     const { container } = at();
@@ -376,5 +377,34 @@ describe('What drives the result', () => {
     // E3's transfer pair, debt-neutral only
     const tr = Object.entries(cell('zk0.1', 'dn', 'tfp')).find(([k]) => k.startsWith('income_'))[1].transfers;
     expect(more.textContent).toContain(`${Math.abs(tr[0]).toFixed(1)}%`);
+    // push D, Q7b: an info callout first, then four small cards (an icon
+    // and heading, two numbers, a muted unit line, the takeaway last), the
+    // transfers card's second pair under its sub-label, the wealth card's
+    // footnote with the ONS source as a cited link, and the closing caveat
+    // in its own callout
+    const mi = more.querySelector('.ex-mi');
+    expect(mi.firstElementChild.classList.contains('ex-mi-callout')).toBe(true);
+    expect(mi.firstElementChild.textContent).toContain('a property of the model, not a finding about the UK');
+    const mcards = [...mi.querySelectorAll('.ex-mi-grid > .ex-mi-card')];
+    expect(mcards).toHaveLength(4);
+    for (const c of mcards) {
+      expect(c.querySelector('.ex-mi-head svg')).not.toBeNull();
+      expect(c.querySelector(':scope > .why-stats').querySelectorAll('.why-stat')).toHaveLength(2);
+      expect(c.querySelector('.ex-mi-unit')).not.toBeNull();
+    }
+    expect(mcards[2].querySelector('.ex-mi-sub').textContent).toMatch(/^Cost of lower transfers over \d{4}–\d{4}, age \d+$/);
+    expect(mcards[2].querySelectorAll('.why-stats')).toHaveLength(2);
+    expect(mcards[2].lastElementChild.className).toBe('ex-mi-text');
+    const foot = mcards[3].querySelector('.ex-mi-note');
+    expect(foot.textContent).toMatch(/^ ?Not like for like/);
+    expect(foot.nextElementSibling.querySelector('a').getAttribute('href')).toContain('ons.gov.uk');
+    expect(foot.nextElementSibling.hasAttribute('data-cite')).toBe(true);
+    // check_text: every block in the fold at most 25 words
+    for (const b of mi.querySelectorAll('p, h4')) if (!b.closest('[data-cite]')) expect(b.textContent.trim().split(/\s+/).length, b.textContent).toBeLessThanOrEqual(25);
+    const last = mi.lastElementChild;
+    if (CO_WC() < 43) {
+      expect(last.classList.contains('ex-mi-callout')).toBe(true);
+      expect(last.textContent).toContain('The runs do not test that.');
+    }
   });
 });

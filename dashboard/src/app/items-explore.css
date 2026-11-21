@@ -2455,6 +2455,60 @@
 .ex-mi-lead + .ex-mi-lead {
   margin-top: -16px;
 }
+/* push D, Q7b: the callouts (Callout.jsx) and a 2x2 grid of small cards,
+   one column on phones; the cards in the card style, the numbers in the
+   driver cards' stat pair */
+.ex-mi:has(.ex-mi-grid) {
+  max-width: none;
+}
+.ex-mi .ex-mi-callout {
+  margin: 0;
+}
+.ex-mi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+@media (max-width: 640px) {
+  .ex-mi-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.ex-mi-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius, 12px);
+}
+.ex-mi-head {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.ex-mi-head-icon {
+  display: inline-flex;
+  flex: none;
+  margin-top: 2px;
+  color: var(--pe-gray-500);
+}
+.ex-mi-unit {
+  margin: 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-500);
+}
+.ex-mi-sub {
+  margin: 4px 0 0;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--pe-gray-600);
+}
+.ex-mi-card > .ex-mi-text:last-child {
+  margin-top: auto;
+  padding-top: 4px;
+}
 .ex-mi-part {
   display: grid;
   gap: 8px;
