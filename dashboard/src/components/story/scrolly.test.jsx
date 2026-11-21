@@ -117,7 +117,7 @@ describe('useEnterState', () => {
 
 describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
   const sub = { title: 'Output', icon: 'gdp', question: 'How fast has the UK grown?', takeaway: 'Growth slowed after 2008.' };
-  it('prints the question as the header (no icon) and the takeaway as the one closing line', () => {
+  it('prints the question as the header (no icon) and the takeaway as the one closing line, led by an icon', () => {
     const { container } = render(<Scrolly id="b" sub={sub} steps={steps} graphic={() => null} label="L" />);
     const h = container.querySelector('header.scene-head');
     expect(h.dataset.scene).toBe('Output');
@@ -126,9 +126,11 @@ describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
     const c = container.querySelectorAll('.scrolly-takeaway');
     expect(c).toHaveLength(1);
     expect(c[0].textContent).toBe('Growth slowed after 2008.');
-    // a caption ending the last card (a pinned figure keeps its height), no icon
+    // a caption ending the last card (a pinned figure keeps its height),
+    // led by one icon (Vahid, 21 Nov: "all text should have icon")
     expect(c[0].closest('#s-c .scrolly-card')).not.toBeNull();
-    expect(c[0].querySelectorAll('svg')).toHaveLength(0);
+    expect(c[0].querySelectorAll('svg')).toHaveLength(1);
+    expect(c[0].firstElementChild.querySelector('svg')).not.toBeNull();
   });
   it('an answer wins over a takeaway: still one closing line, no "Answer" label, no repeated question', () => {
     const { container } = render(<Scrolly id="b" sub={{ ...sub, answer: 'About 1.5% a year' }} steps={steps} graphic={() => null} label="L" />);

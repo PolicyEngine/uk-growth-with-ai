@@ -262,8 +262,9 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
 }
 
 // A scene's one closing line: a takeaway caption inside its figure frame
-// (typography spec, 17 Nov, option b), directly under the plot. No icon; a
-// 3px left rule in the part accent; the text in the three greys. Never
+// (typography spec, 17 Nov, option b), directly under the plot. It leads
+// with the answer icon (Vahid, 21 Nov: "all text should have icon"; the
+// inline Tx style, .p2-tx-icon); the text in the three greys. Never
 // hidden from innerText (opacity only), so the number checks see the same
 // text at any scroll. `to` (the figure's home) is not a link; it marks the
 // line data-axis: it restates a figure printed there.
@@ -271,6 +272,7 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
 export function Answer({ question, answer, to, shown = true }) {
   return (
     <p className={`scrolly-takeaway${shown ? ' is-shown' : ''}`} data-closing="" data-axis={to != null ? '' : undefined}>
+      <Icon name={iconFor('answer')} size={14} className="p2-tx-icon" />
       {answer}
     </p>
   );

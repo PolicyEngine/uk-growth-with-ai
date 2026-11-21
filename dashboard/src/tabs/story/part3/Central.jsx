@@ -166,7 +166,7 @@ function CentralFigure({ ctx }) {
           ))}
         </ul>
       </div>
-      <Essential>Poverty rise is an upper bound: the displaced are jobless all year</Essential>
+      <Essential icon="limit">Poverty rise is an upper bound: the displaced are jobless all year</Essential>
     </figure>
   );
 }

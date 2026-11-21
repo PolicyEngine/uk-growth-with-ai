@@ -175,7 +175,7 @@ function ChannelsFigure({ ctx }) {
           £0bn: no change
         </span>
       </span>
-      <Essential>Dividend tax is counted; corporation tax on the profits is not</Essential>
+      <Essential icon="excluded">Dividend tax is counted; corporation tax on the profits is not</Essential>
     </figure>
   );
 }

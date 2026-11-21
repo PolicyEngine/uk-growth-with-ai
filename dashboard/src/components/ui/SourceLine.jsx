@@ -113,8 +113,15 @@ function Item({ it, onNav }) {
 
 // The muted essential-caveat line a figure may keep under its chart (at
 // most one, 12 words or fewer); everything else goes behind the button.
-export function Essential({ children }) {
-  return children ? <p className="src-essential" data-essential="">{children}</p> : null;
+// It leads with a concept icon (Vahid, 21 Nov: "with icon"; the inline Tx
+// style, .p2-tx-icon): `icon`, a caveat by default.
+export function Essential({ icon = 'caveat', children }) {
+  return children ? (
+    <p className="src-essential" data-essential="">
+      <Icon name={iconFor(icon)} size={12} className="p2-tx-icon" />
+      {children}
+    </p>
+  ) : null;
 }
 
 export default function SourceLine({ items = [], notes = [], groups = [], through, label = 'Sources and notes', className = '', title, record = true }) {

@@ -198,10 +198,12 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
           </ChartHover>
           <div className="p2-shock-caps">
             <p className={`p2-shock-cap${s >= 1 ? ' is-on' : ''}`} style={{ '--cd': `${capDelay(1)}ms` }}>
-              AI moves <span data-input="">{inputPp.toFixed(1)}</span> of every 100 tiles of output from labour to capital: {M} small tiles cross. Its size is an assumption for each scenario.
+              <Tx icon="ai">
+                AI moves <span data-input="">{inputPp.toFixed(1)}</span> of every 100 tiles of output from labour to capital: {M} small tiles cross. Its size is an assumption for each scenario.
+              </Tx>
             </p>
             <p className={`p2-shock-cap${s >= 2 ? ' is-on' : ''}`} style={{ '--cd': `${capDelay(2)}ms` }}>
-              {line2}
+              <Tx icon={ch == null ? 'provisional' : 'gdp'}>{line2}</Tx>
             </p>
           </div>
         </>

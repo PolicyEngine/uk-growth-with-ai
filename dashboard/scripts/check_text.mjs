@@ -10,9 +10,11 @@
 // missing icon; round 2 brings (b) and (c) to them). An icon marks a kind
 // of thing, once per block group; it no longer leads every line.
 //   (a) must have exactly one icon: a chart title, a figure title, a step
-//       card;
+//       card (its closing line's icon not counted), a takeaway caption, an
+//       essential caveat line, a tile caption (Vahid, 21 Nov: "all text
+//       should have icon");
 //   (b) must have none: the part opener's h2, a topic header, the
-//       takeaway caption (typography spec, 17 Nov), a story beat, source
+//       story beat, source
 //       lines, unit lines, axis titles, the model tag, fold summaries and
 //       fold bodies, chart notes, legend entries;
 //   (c) no leaf text block has more than one icon;
@@ -177,15 +179,16 @@ for (const [name, path] of Object.entries(PAGES)) {
       }
       if (!story) return { out };
       // (a) exactly one icon
-      for (const sel of ['.ch-title', '.scrolly-card', '.story-figure-title']) {
+      for (const sel of ['.ch-title', '.scrolly-card', '.story-figure-title', '.scrolly-takeaway', '.src-essential', '.p2-shock-cap']) {
         for (const el of panel.querySelectorAll(sel)) {
           if (el.closest(skip) || !visible(el)) continue;
-          const n = iconsIn(el).length;
+          // a step card's closing line counts as its own block
+          const n = iconsIn(el).filter((s) => sel !== '.scrolly-card' || !s.closest('.scrolly-takeaway-in-step')).length;
           if (n !== 1) out.push(`${where(el)} ${sel}: ${n} icons (must be 1): ${text(el).slice(0, 60)}`);
         }
       }
       // (b) none
-      for (const sel of ['.part-opener h2', '.scene-head', '.scrolly-takeaway', '.story-beat', '.story-source', '.ch-source', '.ch-unit', '[data-axis-title]', '.ch-badge', 'details > summary', 'details > :not(summary)', '.ch-note', '.ch-legend li']) {
+      for (const sel of ['.part-opener h2', '.scene-head', '.story-beat', '.story-source', '.ch-source', '.ch-unit', '[data-axis-title]', '.ch-badge', 'details > summary', 'details > :not(summary)', '.ch-note', '.ch-legend li']) {
         for (const el of panel.querySelectorAll(sel)) {
           if (el.closest(skip) || !visible(el)) continue;
           const n = iconsIn(el).length;
