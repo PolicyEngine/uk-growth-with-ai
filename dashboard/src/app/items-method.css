@@ -982,7 +982,7 @@ p.mx-axis-title.is-x {
    at the left, then C, D, and E1 over E2 at the right, the draws tag over
    C to the outputs; below, one column in reading order with each arrow a
    line of words (its two ends named) between boxes. */
-.hf-grid {
+.hflow-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 1fr minmax(0, 1fr) 1fr minmax(0, 1fr) 1fr minmax(0, 1fr);
   grid-template-areas:
@@ -992,19 +992,19 @@ p.mx-axis-title.is-x {
   gap: 10px 6px;
   align-items: center;
 }
-.hf-a { grid-area: a; }
-.hf-b { grid-area: b; }
-.hf-c { grid-area: c; }
-.hf-d { grid-area: d; }
-.hf-e1 { grid-area: e1; }
-.hf-e2 { grid-area: e2; }
-.hf-link-ad { grid-area: ad; }
-.hf-link-bc { grid-area: bc; }
-.hf-link-cd { grid-area: cd; }
-.hf-link-de1 { grid-area: de1; }
-.hf-link-de2 { grid-area: de2; }
-.hf-tag { grid-area: tag; }
-.hf-box {
+.hflow-a { grid-area: a; }
+.hflow-b { grid-area: b; }
+.hflow-c { grid-area: c; }
+.hflow-d { grid-area: d; }
+.hflow-e1 { grid-area: e1; }
+.hflow-e2 { grid-area: e2; }
+.hflow-link-ad { grid-area: ad; }
+.hflow-link-bc { grid-area: bc; }
+.hflow-link-cd { grid-area: cd; }
+.hflow-link-de1 { grid-area: de1; }
+.hflow-link-de2 { grid-area: de2; }
+.hflow-tag { grid-area: tag; }
+.hflow-box {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -1014,21 +1014,21 @@ p.mx-axis-title.is-x {
   border: 1px solid var(--pe-gray-300);
   border-radius: var(--card-radius);
 }
-.hf-d {
+.hflow-d {
   border-width: 2px;
   border-color: var(--c-gain);
 }
-.hf-box-head {
+.hflow-box-head {
   font-size: var(--fs-small);
   color: var(--pe-gray-800);
   --il-color: var(--c-gain-text);
 }
-.hf-box-line {
+.hflow-box-line {
   font-size: var(--fs-caption);
   line-height: 1.4;
   color: var(--pe-gray-600);
 }
-.hf-link {
+.hflow-link {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1039,10 +1039,10 @@ p.mx-axis-title.is-x {
   text-align: center;
   color: var(--pe-gray-700);
 }
-.hf-link .md-arrow {
+.hflow-link .md-arrow {
   margin-top: 0;
 }
-.hf-ends {
+.hflow-ends {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -1050,7 +1050,7 @@ p.mx-axis-title.is-x {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
-.hf-tag {
+.hflow-tag {
   margin: 0;
   padding-bottom: 4px;
   font-size: var(--fs-caption);
@@ -1058,19 +1058,19 @@ p.mx-axis-title.is-x {
   border-bottom: 1px dashed var(--pe-gray-300);
 }
 @media (max-width: 760px) {
-  .hf-grid {
+  .hflow-grid {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: none;
     gap: 6px;
   }
-  .hf-grid > * { grid-area: auto; }
-  .hf-link {
+  .hflow-grid > * { grid-area: auto; }
+  .hflow-link {
     flex-direction: row;
     align-items: flex-start;
     text-align: left;
     padding-left: 12px;
   }
-  .hf-ends {
+  .hflow-ends {
     position: static;
     width: auto;
     height: auto;
@@ -1080,7 +1080,7 @@ p.mx-axis-title.is-x {
     font-weight: 600;
     color: var(--c-gain-text);
   }
-  .hf-tag { border-bottom: 0; padding-bottom: 0; }
+  .hflow-tag { border-bottom: 0; padding-bottom: 0; }
 }
 
 /* Data and code > Start here (Method redesign, section 8): three text

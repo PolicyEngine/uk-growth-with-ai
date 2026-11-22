@@ -41,7 +41,7 @@ describe('every icon-led line is the shared IconLine', () => {
     let n = 0;
     for (const p of PAGES) {
       const { container, unmount } = renderPage(p);
-      for (const el of container.querySelectorAll('p, li, dd, figcaption, h4, .hh-tile-label, .hf-box-head, .scrolly-card.has-icon')) {
+      for (const el of container.querySelectorAll('p, li, dd, figcaption, h4, .hh-tile-label, .hflow-box-head, .scrolly-card.has-icon')) {
         const svg = leadIcon(el);
         if (!svg || !el.textContent.trim() || el.matches(EXEMPT)) continue;
         n += 1;

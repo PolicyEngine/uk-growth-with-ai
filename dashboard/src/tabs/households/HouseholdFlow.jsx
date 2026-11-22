@@ -59,11 +59,11 @@ export function flowSvg({ boxes, links, tag }) {
 
 function Box({ k, b }) {
   return (
-    <div className={`hf-box hf-${k}`}>
-      <IconLine as="span" concept={b.icon} tier="body" className="hf-box-head">
+    <div className={`hflow-box hflow-${k}`}>
+      <IconLine as="span" concept={b.icon} tier="body" className="hflow-box-head">
         <b>{b.title}</b>
       </IconLine>
-      <span className="hf-box-line">{b.line}</span>
+      <span className="hflow-box-line">{b.line}</span>
     </div>
   );
 }
@@ -74,10 +74,10 @@ const inLine = (t) => (/^[A-Z][a-z]+[A-Z]/.test(t) || /^[A-Z]{2}/.test(t) ? t : 
 
 function Link({ l, boxes }) {
   return (
-    <p className={`hf-link hf-link-${l.id}`}>
+    <p className={`hflow-link hflow-link-${l.id}`}>
       <Arrow dir={DIR[l.id] ?? 'right'} />
       <span>
-        <span className="hf-ends">
+        <span className="hflow-ends">
           {boxes[l.from].title} to {inLine(boxes[l.to].title)}:{' '}
         </span>
         {l.label}
@@ -92,11 +92,11 @@ export default function HouseholdFlow({ boxes, links, tag }) {
   const link = (id) => links.find((l) => l.id === id);
   return (
     <div className="hf" data-no-axes="A diagram of the study’s steps: no scale">
-      <div className="hf-grid" role="group" aria-label="The household study: from survey data to a result">
+      <div className="hflow-grid" role="group" aria-label="The household study: from survey data to a result">
         <Box k="a" b={boxes.a} />
         <Box k="b" b={boxes.b} />
         <Link l={link('bc')} boxes={boxes} />
-        <IconLine concept="draws" tier="meta" className="hf-tag">
+        <IconLine concept="draws" tier="meta" className="hflow-tag">
           {tag}
         </IconLine>
         <Box k="c" b={boxes.c} />

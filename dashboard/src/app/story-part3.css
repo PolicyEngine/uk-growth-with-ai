@@ -1565,7 +1565,7 @@ svg.p3-dim {
 }
 .close-next-kicker {
   margin: 0 0 12px;
-  font-size: 14px;
+  font-size: var(--t-ui);
   text-align: center;
   color: var(--pe-gray-600);
 }
