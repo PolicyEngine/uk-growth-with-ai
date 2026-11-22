@@ -6,13 +6,15 @@ import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { MEASURE, ruleLabel } from '@/lib/labels.js';
 import { useNav } from '@/lib/nav.jsx';
-import { HEADLINE_YEAR, CENTRAL, BOUND, ZETA, ARMS, SCEN_NAME, gap, fmt, holeText, ruleSolved, storedAt } from '@/tabs/ai/surprise.js';
+import { HEADLINE_YEAR, CENTRAL, BOUND, CLOSURE_SHORT, ZETA, ARMS, SCEN_NAME, gap, fmt, holeText, ruleSolved, storedAt } from '@/tabs/ai/surprise.js';
 import { NEGLIGIBLE } from '@/tabs/explore/cells.js';
 import { VERSION_TEXT_COLOR as ARM_TEXT_COLOR, VERSION_MAIN, VERSION_TOKEN, versionName } from '@/lib/versionColors.js';
 import Legend from '@/components/ui/Legend.jsx';
 import { side, ruleGapText } from '@/tabs/ai/lines.js';
 import { sentenceItems } from '@/tabs/explore/direction.jsx';
 import IconLine from '@/components/ui/IconLine.jsx';
+import { TipTarget } from '@/components/ab/Tip.jsx';
+import { DotTip } from '@/tabs/ai/Headline.jsx';
 
 // Some foreign capital and no foreign capital, per measure and version: a
 // dumbbell row of the two solved cases on one shared horizontal % axis. The
@@ -117,15 +119,28 @@ function Row({ m, r, pct, sel }) {
       style={on ? { '--arm': VERSION_TOKEN[r.arm.id] } : undefined}
     >
       <span className="ex-fc-rlabel">{name}</span>{' '}
-      <div className="ex-fc-track" role="img" aria-label={said}>
+      <div className="ex-fc-track" role="group" aria-label={said}>
         <span className="ex-fc-zero" style={{ left: pct(0) }} aria-hidden="true" />
         {r.c == null ? (
           <span className="ex-fc-hole">{r.cHole}</span>
         ) : (
           <>
             {both ? <span className="ex-fc-bar" style={{ left: pct(lo), width: `calc(${pct(hi)} - ${pct(lo)})` }} aria-hidden="true" /> : null}
-            {r.b != null ? <span className="ex-fc-dot is-none" style={{ left: pct(r.b) }} aria-hidden="true" /> : null}
-            <span className="ex-fc-dot is-some" style={{ left: pct(r.c) }} aria-hidden="true" />
+            {/* each dot a tooltip target: the two-decimal value, the version and the case (Fable push E, fix 3) */}
+            {r.b != null ? (
+              <TipTarget
+                className="ex-fc-dot is-none"
+                style={{ left: pct(r.b) }}
+                label={`${name}, no foreign capital, ${m.label}: ${fmt(r.b)}`}
+                tip={<DotTip arm={name} closure="No foreign capital" measure={m.label} value={r.b} />}
+              />
+            ) : null}
+            <TipTarget
+              className="ex-fc-dot is-some"
+              style={{ left: pct(r.c) }}
+              label={`${name}, some foreign capital, ${m.label}: ${fmt(r.c)}`}
+              tip={<DotTip arm={name} closure="Some foreign capital (main case)" measure={m.label} value={r.c} />}
+            />
             {val(r.c, cLeft, 'some')}{' '}
             {r.b != null ? (
               val(r.b, !cLeft, 'none')
@@ -218,8 +233,8 @@ export default function ClosureSlope({ sid }) {
             className="ex-fc-legend"
             label="Foreign capital"
             items={[
-              { key: 'some', label: 'Some foreign capital (main case)', kind: 'dot' },
-              { key: 'none', label: 'No foreign capital', kind: 'ring' },
+              { key: 'some', label: `${CLOSURE_SHORT[CENTRAL]} (main case)`, kind: 'dot' },
+              { key: 'none', label: CLOSURE_SHORT[BOUND], kind: 'ring' },
             ]}
           />
         ) : null

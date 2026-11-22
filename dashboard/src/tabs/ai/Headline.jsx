@@ -79,7 +79,7 @@ function niceMax(m) {
   return steps.find((s) => s >= m) ?? Math.ceil(m);
 }
 
-function DotTip({ arm, closure, measure, value }) {
+export function DotTip({ arm, closure, measure, value }) {
   return (
     <>
       <b>{measure}, {HEADLINE_YEAR}</b>

@@ -74,6 +74,14 @@ const FIND = () => {
     if (b.width < 80 || b.height < 40) continue;
     cands.push([f, f]);
   }
+  // the foreign-capital dumbbells, drawn in HTML: each dot a tooltip target
+  for (const f of panel.querySelectorAll('.ex-fc')) {
+    if (!shown(f) || f.querySelector('[data-hover-svg]')) continue;
+    const b = f.getBoundingClientRect();
+    if (b.width < 80 || b.height < 40) continue;
+    if (!f.querySelector('.ex-fc-dot')) continue;
+    cands.push([f, f.closest('.card, section, figure') ?? f]);
+  }
   for (const f of panel.querySelectorAll('figure.p3-figure, figure.p2-figure, .lens-fig')) {
     if (!shown(f) || f.querySelector('[data-hover-svg]')) continue;
     const b = f.getBoundingClientRect();
@@ -99,8 +107,10 @@ const FIND = () => {
   return out;
 };
 // the one tooltip (ChartHover and Crosshair draw .ch-tip) and the Sankeys'
-// own (ruled to stay); an old TipBox (.tip-box) no longer counts
-const TIP = '.ch-tip, .sankey-tip';
+// own (ruled to stay); an old TipBox (.tip-box) no longer counts, except
+// the foreign-capital dumbbells' dot tips (TipTarget, as the four-measure
+// dumbbells; Fable push E, fix 3)
+const TIP = '.ch-tip, .sankey-tip, .ex-fc .tip-box';
 const tipText = () =>
   page.evaluate((TIP) => {
     const t = [...document.querySelectorAll(TIP)].filter((e) => {
@@ -124,7 +134,7 @@ const MARKS = (i) => {
     if (r.width > 0 && r.height > 0) pts.push([r.left + r.width / 2, r.top + r.height / 2]);
   }
   if (pts.length) return pts.slice(0, 6);
-  for (const m of svg.querySelectorAll('circle, rect, path, line, polyline, [data-mark]')) {
+  for (const m of svg.querySelectorAll('circle, rect, path, line, polyline, [data-mark], .ex-fc-dot')) {
     if (m.closest('[aria-hidden="true"]') && !m.closest('svg[aria-hidden]')) continue;
     const r = m.getBoundingClientRect();
     if (r.width * r.height < 4 && r.width < 2) continue;

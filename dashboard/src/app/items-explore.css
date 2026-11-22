@@ -961,6 +961,10 @@
   border-radius: 50%;
   box-sizing: border-box;
 }
+/* a tooltip target keeps its place on the track (ab.css sets .tip-target relative) */
+.ex-fc-dot.tip-target { position: absolute; }
+.ex-fc-dot.tip-target:hover,
+.ex-fc-dot.tip-target:focus-visible { z-index: 2; }
 .ex-fc-dot.is-some { background: var(--arm, var(--fc-muted)); }
 .ex-fc-dot.is-none { background: var(--pe-surface, #fff); }
 .ex-fc-val,
