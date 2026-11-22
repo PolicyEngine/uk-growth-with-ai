@@ -546,6 +546,9 @@ export default function OutputSplit({ sid, closure }) {
       ) : (
         <Scrolly
           id="p2-output"
+          // a scene on phones too (22 Nov): one card at a time under the
+          // pinned figure, not both stacked under it
+          scene
           label={`Where output goes in ${SPLIT_YEAR}`}
           steps={steps}
           close={ch ? { answer: outputAnswer(ch), answerTo: 'story-output' } : undefined}

@@ -2958,3 +2958,12 @@
 .p2-wf > li::marker {
   content: none;
 }
+/* no list numbering on a Scrolly's steps, whatever wraps the Story (22
+   Nov: "1." and "2." showed under a figure at 900px and below); the <ol>
+   stays for its semantics */
+.scrolly-steps > .scrolly-step {
+  list-style: none;
+}
+.scrolly-steps > .scrolly-step::marker {
+  content: none;
+}
