@@ -3,9 +3,11 @@
 // 22 Nov 2026 under the 2028 set, so a reworded label or an added symbol
 // cannot move a link from another page.
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, render } from '@testing-library/react';
+import { act, cleanup, fireEvent, render } from '@testing-library/react';
+import { pickInPill } from '@/components/ui/pillTestUtils.js';
 import { NavProvider } from '@/lib/nav.jsx';
 import { INPUTS, ROWS } from './inputs.js';
+import { rowMatches } from './InputsTable.jsx';
 import InputsPage, { InputsPart } from './InputsPage.jsx';
 
 afterEach(cleanup);
@@ -97,5 +99,53 @@ describe('Inputs and sources', () => {
     expect(container.querySelector('#in-sources').compareDocumentPosition(container.querySelector('.mx-uses')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     const ev = [...container.querySelectorAll('#in-sources ~ * a, .mx-sources-line a')].find((a) => a.textContent === 'Evidence, Sources');
     expect(ev.getAttribute('href')).toMatch(/tab=method&sub=studies#sources$/);
+  });
+  // Method redesign, 6.1: search, the "Used by" filter and the count line
+  const visibleRows = (c) => [...c.querySelectorAll('tr.mx-inputs-row')].filter((tr) => !tr.hidden && !tr.closest('tbody[hidden]'));
+  const count = (c) => c.querySelector('.mx-inputs-n').textContent;
+  it('every row is used by Part 2 or Part 3; two rows by the household study', () => {
+    for (const r of ROWS) expect(['macro', 'households'], r.id).toContain(r.part);
+    expect(ROWS.filter((r) => r.part === 'households').map((r) => r.group)).toEqual(['Household study', 'Household study']);
+    const { container } = render(<InputsPart />);
+    for (const r of ROWS) expect(container.querySelector(`#${r.id} .mx-inputs-part`).textContent, r.id).toBe(r.part === 'macro' ? 'Part 2 · Macro model' : 'Part 3 · Household study');
+    expect(count(container)).toBe(`${ROWS.length} of ${ROWS.length} inputs`);
+  });
+  it('a search narrows the rows and the count, and opens every group', () => {
+    const { container } = render(<InputsPart />);
+    const box = container.querySelector('input[type="search"]#inputs-search');
+    expect(container.querySelector('label[for="inputs-search"]').textContent).toBe('Search inputs');
+    for (const term of ['ζ', 'foreign']) {
+      fireEvent.change(box, { target: { value: term } });
+      const want = ROWS.filter((r) => rowMatches(r, { q: term }));
+      expect(want.length, term).toBeGreaterThan(0);
+      expect(want.length, term).toBeLessThan(ROWS.length);
+      expect(visibleRows(container).map((tr) => tr.id), term).toEqual(want.map((r) => r.id));
+      expect(count(container), term).toBe(`${want.length} of ${ROWS.length} inputs`);
+      expect(container.querySelector('.mx-group-toggle'), term).toBeNull();
+    }
+    fireEvent.change(box, { target: { value: 'no such input anywhere' } });
+    expect(visibleRows(container)).toHaveLength(0);
+    expect(count(container)).toContain('No input matches. Clear the search or the filters.');
+    fireEvent.click(container.querySelector('.mx-inputs-clear'));
+    expect(box.value).toBe('');
+    expect(count(container)).toBe(`${ROWS.length} of ${ROWS.length} inputs`);
+  });
+  it('the Used by filter leaves the two household-study rows', () => {
+    const { container } = render(<InputsPart />);
+    pickInPill(container, 'Used by', 'Household study');
+    expect(visibleRows(container).map((tr) => tr.id)).toEqual(ROWS.filter((r) => r.part === 'households').map((r) => r.id));
+    expect(count(container)).toBe(`2 of ${ROWS.length} inputs`);
+  });
+  it('a link that reveals a row left out by a search clears the search and shows it', () => {
+    const { container } = render(<InputsPart />);
+    const box = container.querySelector('#inputs-search');
+    fireEvent.change(box, { target: { value: 'foreign' } });
+    const r = ROWS.find((x) => !rowMatches(x, { q: 'foreign' }) && !x.key);
+    expect(container.querySelector(`#${r.id}`).hidden).toBe(true);
+    act(() => {
+      container.querySelector(`#${r.id}`).dispatchEvent(new CustomEvent('reveal', { bubbles: true }));
+    });
+    expect(box.value).toBe('');
+    expect(container.querySelector(`#${r.id}`).hidden).toBe(false);
   });
 });

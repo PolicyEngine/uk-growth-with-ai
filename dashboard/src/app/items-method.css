@@ -469,6 +469,8 @@ p.mx-axis-title.is-x {
   .mx-inputs-row > .mx-inputs-v { flex: 0 1 auto; max-width: 38%; white-space: normal; text-align: right; }
   .mx-inputs-row > .mx-inputs-k { flex: none; padding-left: 18px; }
   .mx-inputs-row > .mx-inputs-src { flex: 1 1 100%; min-width: 0; padding-left: 18px; overflow-wrap: anywhere; }
+  .mx-inputs-row > .mx-inputs-part { flex: 1 1 100%; padding-left: 18px; }
+  .mx-inputs-part-name { display: none; }
   .mx-inputs-detail td { padding: 0 0 12px 18px; }
 }
 
@@ -538,7 +540,8 @@ p.mx-axis-title.is-x {
 
 /* a closed input group's other rows (push D, Q9.2c): hidden at every
    width, though the phone layout sets the rows' display */
-.mx-inputs-table .mx-inputs-row[hidden] { display: none !important; }
+.mx-inputs-table .mx-inputs-row[hidden],
+.mx-inputs-table tbody[hidden] { display: none !important; }
 
 /* a fiscal rule card's step in the debt rule's first year (push D, Q9.5):
    a small head, a sentence, then UK central's three figures in the
@@ -638,4 +641,58 @@ p.mx-axis-title.is-x {
   .mx-ov .card-grid.mx-ov-grid {
     gap: var(--gap-card-phone);
   }
+}
+
+/* Inputs (Method redesign, 6.1): the search box beside the pill, the count
+   line under them, and the "Used by" column */
+.mx-inputs-find {
+  display: flex;
+  flex: 1 1 260px;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.mx-inputs-find label {
+  font-size: var(--t-meta);
+  font-weight: 600;
+  color: var(--pe-gray-600);
+  white-space: nowrap;
+}
+.mx-inputs-search {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 32px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: var(--chart-fs-label);
+  border: 1px solid var(--pe-gray-300);
+  border-radius: 6px;
+  background: var(--pe-surface);
+}
+.mx-inputs-search:focus-visible {
+  outline: 2px solid var(--pe-teal-500);
+  outline-offset: 1px;
+}
+.mx-inputs-n {
+  margin: 0 0 8px;
+  font-size: var(--t-meta);
+  color: var(--pe-gray-600);
+}
+.mx-inputs-clear {
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--pe-teal-700);
+  text-decoration: underline;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.mx-inputs-part {
+  font-size: var(--t-meta);
+  color: var(--pe-gray-600);
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .mx-inputs-find { flex-basis: 100%; }
 }
