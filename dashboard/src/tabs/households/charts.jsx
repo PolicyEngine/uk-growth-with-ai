@@ -182,7 +182,8 @@ export function Bar({ value, max, parts, fill = 'is-neutral', thin = false, dela
   );
 }
 
-// A value table (section 3): label | bar (optional) | value cells, each
+// A value table (section 3), named by `caption` (an aria-label): label |
+// bar (optional) | value cells, each
 // value in its own cell under a column head, right-aligned. Rows:
 //   { group: node }                       a group head (16px, 600)
 //   { id, label, cells: [node], bar?, marker?: { tone, ring, n }, main?, sub?, muted? }
@@ -195,8 +196,11 @@ export function ValueTable({ cols, rows, bar = false, caption, rowHead = 'Row', 
   const width = 1 + (bar ? 1 : 0) + cols.length;
   return (
     <div className={`hh-tblwrap is-${layout} ${className}`.trim()} style={{ '--hh-n': cols.length }}>
-      <table className={`hh-tbl${bar ? ' has-bar' : ''}`}>
-        {caption ? <caption className="visually-hidden">{caption}</caption> : null}
+      {/* the table's name as an aria-label, not a <caption> (push D, Q8.1):
+          each card already shows the same words as its unit line or set
+          head, and a visually hidden caption still reaches the page's text
+          (copy, reader view, innerText, the page dump) as a second line */}
+      <table className={`hh-tbl${bar ? ' has-bar' : ''}`} aria-label={caption || undefined}>
         <thead>
           <tr>
             <th scope="col" className="hh-tbl-label">

@@ -155,6 +155,17 @@ describe('HouseholdsExplore', () => {
     expect(c.textContent).not.toMatch(/\)£\d|[a-z]£\d+\.\d|[a-z][+−]\d/);
   });
 
+  // push D, Q8.1: one visible caption per chart; each table is named by an
+  // aria-label, so its name never shows as a second line beside the card's
+  // unit line or a set's head
+  it('names every value table by aria-label, with no caption element', () => {
+    const { container } = render(<HouseholdsExplore />);
+    expect(container.querySelectorAll('caption')).toHaveLength(0);
+    for (const t of container.querySelectorAll('table.hh-tbl')) expect(t.getAttribute('aria-label')).toBeTruthy();
+    const sets = [...container.querySelectorAll('#hh-displaced .hh-set')];
+    for (const s of sets) expect(s.querySelector('table').getAttribute('aria-label')).toBe(flat(s.querySelector('.hh-set-head')));
+  });
+
   it('keeps the OBR-sized runs a separate group: no arrow joins the groups', () => {
     const obr = (id) => id.startsWith('obr');
     for (const [a, b] of VARIANT_ARROWS) expect(obr(a)).toBe(obr(b));
