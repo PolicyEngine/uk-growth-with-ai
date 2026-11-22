@@ -106,8 +106,8 @@ export function householdsFigures() {
     // one, and the top-loaded extreme case's three
     ...['uniform', 'junior', 'compression'].map((k) => fmtGiniPts(rule(k).gini_pp)),
     fmtBn(rule('klein_top_loaded').cost_bn), fmtPp(rule('klein_top_loaded').poverty_pp), fmtGiniPts(rule('klein_top_loaded').gini_pp),
-    // the title's gap to the rules within the margin of the main one
-    ...(rulesGap(D.rules) ? [rulesGap(D.rules)] : []),
+    // the title's gap to the rules within the margin of the main one: in
+    // card 4's More info since push D (Q8.2), restated, not counted
     // 5 who the displaced are
     ...['claim_uc', 'claim_uc_entitled', 'existing_unemployed_claim', 'capital_over_limit', 'other_earner', 'homeowner'].map((k) => fmtShare(X[k].value)),
     ...['uc_per_displaced', 'uc_per_displaced_takeup', 'uc_per_existing_unemployed'].map((k) => fmtGbp(X[k].value)),

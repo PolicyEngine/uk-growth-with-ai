@@ -216,7 +216,7 @@ function CostByTax() {
         <Lead>
           {/* the main-case cost: its home is story step 1 */}
           <>
-            The eight lines sum to a net cost of <Ax>{fmtBn(C.total_bn)}</Ax> a year.
+            The eight lines sum to a net cost of <Ax>{fmtBn(C.total_bn)}</Ax> a year, a {C.draws}-draw average.
           </>
         </Lead>
       }
@@ -290,19 +290,9 @@ function PerPound() {
       title={perPoundWords()}
       lead={
         <Lead>
-          {[
-            <>
-              Each <Ax>£1</Ax> lost to wage cuts costs <Ax>{fmtPence(w.government_p)}</Ax>, and each <Ax>£1</Ax> lost to job loss <Ax>{fmtPence(j20.government_p)}</Ax>, employer National Insurance (NI) included.
-            </>,
-            rising ? (
-              <>
-                On one draw, full Universal Credit (UC) take-up raises the job-loss figure from <Ax>{fmtPence(seed0[0].government_p)}</Ax> to <Ax>{fmtPence(seed0[1].government_p)}</Ax>, and Jobseeker’s Allowance (JSA) raises it to{' '}
-                <Ax>{fmtPence(seed0[2].government_p)}</Ax>.
-              </>
-            ) : (
-              'On one draw, full Universal Credit (UC) take-up and Jobseeker’s Allowance (JSA) change the job-loss figure.'
-            ),
-          ]}
+          <>
+            Per <Ax>£1</Ax> lost, wage cuts cost <Ax>{fmtPence(w.government_p)}</Ax> and job loss <Ax>{fmtPence(j20.government_p)}</Ax>, employer National Insurance (NI) included: {D.per_pound_20.draws}-draw averages.
+          </>
         </Lead>
       }
       unit={
@@ -339,6 +329,15 @@ function PerPound() {
           <>
             Job loss on {D.per_pound_20.draws} draws ranges from <Ax>{fmtPence(j20.min_p)}</Ax> to <Ax>{fmtPence(j20.max_p)}</Ax> across draws.
           </>,
+          // Fable round 7, N1: the one-draw steps, each figure's draw set named
+          rising ? (
+            <>
+              On one draw (seed 0), job loss costs <Ax>{fmtPence(seed0[0].government_p)}</Ax>; full Universal Credit (UC) take-up raises it to <Ax>{fmtPence(seed0[1].government_p)}</Ax> and Jobseeker’s Allowance (JSA) to{' '}
+              <Ax>{fmtPence(seed0[2].government_p)}</Ax>.
+            </>
+          ) : (
+            'On one draw (seed 0), full Universal Credit (UC) take-up and Jobseeker’s Allowance (JSA) change the job-loss figure.'
+          ),
         ],
         caveats: ['The seed-0 rows are one draw; compare them with each other, not with the 20-draw rows.', ...FLAG],
         sources: [`${j20.file} (run channel_displacement)`, `${D.per_pound_20.file} (variant cut_only)`, `seed 0: ${perPound('job_loss').file}`, 'results/takeup/takeup_draws.csv (scenario disp_only)'],
@@ -533,16 +532,37 @@ function rulesLead() {
   const lo = four.reduce((a, b) => (b.cost_bn < a.cost_bn ? b : a));
   const hi = four.reduce((a, b) => (b.cost_bn > a.cost_bn ? b : a));
   const K = rule('klein_top_loaded');
-  return [
+  return {
+    lead: (
+      <>
+        Of the four stylised rules, the cost runs from <Ax>{fmtBn(lo.cost_bn)}</Ax> under {ruleName(lo.id)} to <Ax>{fmtBn(hi.cost_bn)}</Ax> under {ruleName(hi.id)}.
+      </>
+    ),
+    // More info (push D, Q8.2): the extreme case, and the title's tie with
+    // its gap (rulesGap), restated
+    more: [
+      <>
+        The top-loaded extreme case costs <Ax>{fmtBn(K.cost_bn)}</Ax>.
+      </>,
+      tieLine(D.rules),
+    ].filter(Boolean),
+  };
+}
+// the tie sentence with its gap marked as restated
+function tieLine(rules) {
+  const t = rulesTieWords(rules);
+  const g = rulesGap(rules);
+  if (!t) return null;
+  const [a, b] = g ? t.split(g) : [t, ''];
+  return g ? (
     <>
-      The cost runs from <Ax>{fmtBn(lo.cost_bn)}</Ax> under {ruleName(lo.id)} to <Ax>{fmtBn(hi.cost_bn)}</Ax> under {ruleName(hi.id)}.
-    </>,
-    <>
-      The top-loaded extreme case costs <Ax>{fmtBn(K.cost_bn)}</Ax>.
-    </>,
-    // the title's tie, with its gap (rulesGap)
-    rulesTieWords(D.rules),
-  ];
+      {a}
+      <Ax>{g}</Ax>
+      {b}
+    </>
+  ) : (
+    t
+  );
 }
 function Rules() {
   const [ref, e] = useSeenBeat();
@@ -555,7 +575,7 @@ function Rules() {
       id="hh-rules"
       icon="users"
       title={rulesWords(D.rules)}
-      lead={<Lead>{rulesLead()}</Lead>}
+      lead={<Lead>{rulesLead().lead}</Lead>}
       unit="Cost, £bn a year; poverty, pp; Gini, points"
       more={[
         { label: 'Measure', text: 'Absolute poverty before housing costs; the Gini on its 0 to 100 scale.' },
@@ -568,7 +588,7 @@ function Rules() {
         table: { columns: ['rule', 'draws', 'cost_bn', 'cost_sd_bn', 'poverty_bhc_pp', 'gini_points'], rows: D.rules.map((r) => [ruleName(r.id), r.draws, r.cost_bn, r.cost_sd_bn, r.poverty_pp, r.gini_pp]) },
       }}
       about={about({
-        how: ['Every rule displaces the same expected number of employees.', 'Wage and capital-income changes are the same under every rule.'],
+        how: ['Every rule displaces the same expected number of employees.', 'Wage and capital-income changes are the same under every rule.', ...rulesLead().more],
         caveats: [
           'The rules are the study’s stylised designs.',
           `${ruleName('junior')}: a higher chance for workers aged 16 to 24.`,
