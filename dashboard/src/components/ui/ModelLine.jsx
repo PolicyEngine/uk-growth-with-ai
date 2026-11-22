@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect, useRef } from 'react';
+import { Fragment, useLayoutEffect, useRef } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
@@ -26,6 +26,10 @@ import { MODEL_YEAR } from '@/tabs/story/part3/shared.jsx';
 // space between them, so copied text and screen readers never join two
 // segments (review round 1, R1-21). A segment that starts a line carries no
 // dot before it.
+// The scope note on Explore > Households: a quiet outlined tag, not a chip
+// (Households redesign, R1; check_pill still reads it as the fourth
+// segment).
+export const SCOPE_NOTE = 'Macro model settings don’t apply';
 export function modelSegments(model = 'aistudy', link = false) {
   if (model !== 'aistudy') return [MODELS[model]?.label ?? model];
   return [
@@ -38,7 +42,7 @@ export function modelSegments(model = 'aistudy', link = false) {
     ),
     'PolicyEngine UK',
     MODEL_YEAR,
-    link ? 'Macro model settings don’t apply' : null,
+    link ? SCOPE_NOTE : null,
   ].filter(Boolean);
 }
 
@@ -62,12 +66,20 @@ export default function ModelLine({ model = 'aistudy', link = false, settings = 
   return (
     <p className={`model-line ${className}`.trim()} ref={ref} data-model={model}>
       <Icon name={iconFor(model === 'aistudy' ? 'households' : 'model')} size={16} />
-      {segs.map((x, i) => (
-        <span key={i} className="model-line-seg">
-          {i ? ' ' : null}
-          {x}
-        </span>
-      ))}
+      {segs.map((x, i) =>
+        x === SCOPE_NOTE ? (
+          // the space sits outside the tag, so the outline holds the words only
+          <Fragment key={i}>
+            {' '}
+            <span className="model-line-seg is-scope">{x}</span>
+          </Fragment>
+        ) : (
+          <span key={i} className="model-line-seg">
+            {i ? ' ' : null}
+            {x}
+          </span>
+        ),
+      )}
     </p>
   );
 }

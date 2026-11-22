@@ -1905,6 +1905,28 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 .model-line-seg.is-line-start::before {
   content: none;
 }
+/* the scope note (Explore > Households): a quiet outlined tag, muted, no
+   fill and no dot, at most 24px tall (check_pill caps the row at 32px) */
+.model-line-seg.is-scope {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 22px;
+  margin-left: 8px;
+  padding: 0 8px;
+  font-size: var(--chart-fs-tick);
+  line-height: 1;
+  color: var(--pe-gray-500);
+  background: none;
+  border: 1px solid var(--pe-gray-300);
+  border-radius: 999px;
+}
+.model-line-seg.is-scope::before {
+  content: none;
+}
+.model-line-seg.is-scope.is-line-start {
+  margin-left: 0;
+}
 .model-line a {
   color: inherit;
   text-decoration: underline;
