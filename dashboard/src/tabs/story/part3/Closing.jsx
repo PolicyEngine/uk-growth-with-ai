@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import IconLine from '@/components/ui/IconLine.jsx';
 import { hy } from '@/components/story/Hy.jsx';
@@ -46,20 +47,27 @@ export const CLOSING_SUB = {
   title: 'What this one-year test leaves out',
 };
 
+// 22 Nov (Vahid: "how enter to this is important… have a separate thing or
+// color box?"): the whole block is one tinted panel (the notice tokens, a
+// soft amber, not the question cards' teal), on top of the section's grey
+// band: its title led by the limits icon (IconLine), a one-line lead, the
+// list, and the "See also" links as its footer. It fades in once as it
+// enters (no movement; none under reduced motion).
 export default function Closing() {
   const [ref, entry] = useEntry({ line: 0.85 });
   const snap = useSnap(ref, entry);
+  // once: the panel stays shown after its first entry
+  const [seen, setSeen] = useState(false);
+  if (entry.entered && !seen) setSeen(true);
   return (
-    <div className="p3-close">
-      <header className="scene-head topic-head p3-close-head" data-scene={CLOSING_SUB.title} id="q-p3-close">
-        <h2 className="scene-head-q" id="p3-close-h">
+    <div className={`p3-close p3-close-panel${seen ? ' is-seen' : ''}`}>
+      <header className="topic-head p3-close-head" data-scene={CLOSING_SUB.title} id="q-p3-close">
+        <IconLine as="h2" concept="limit" tier="body" className="p3-close-title" id="p3-close-h">
           {hy(CLOSING_SUB.title)}
-        </h2>
+        </IconLine>
       </header>
       <div ref={ref} className={`p3-close-card${entry.entered ? ' is-in' : ''}${snap ? ' is-snap' : ''}`}>
-        <IconLine concept="limit" tier="body" className="p3-close-lead">
-          Leaving these out, the household study shows the first year after the assumed job loss, before households or employers respond: a test, not a forecast.
-        </IconLine>
+        <p className="p3-close-lead">The first year after the job loss, before households or employers respond. A test, not a forecast.</p>
         <div className="p3-out" role="group" aria-labelledby="p3-close-h">
           <div className="p3-out-heads">
             <span>Left out</span>
@@ -82,7 +90,7 @@ export default function Closing() {
             </section>
           ))}
         </div>
-        <p className="p3-close-foot">
+        <p className="p3-close-foot p3-close-panel-foot">
           <span className="p3-close-see">See also:</span>{' '}
           <NavLink tab="explore" sub="households" anchor="hh-ladder">
             Explore, households

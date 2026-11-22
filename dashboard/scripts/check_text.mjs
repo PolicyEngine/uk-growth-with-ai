@@ -65,7 +65,7 @@ import { chromium, webkit } from 'playwright';
 // Standalone notes that state a finding, a caveat or a reading instruction
 // (Fable round 8, D6 and M3): each leads with exactly one icon. Notes in a
 // step card stay iconless (the card's icon is the one).
-const NOTE_ICON_SEL = ['.scrolly-takeaway-note', '.p3-close-lead', '.p3-margin-note', '.p3-pound-caveat', '.close-why', '.ex-slope-note', '.db-headline-note', '.hh-note[data-caveat="bottom-decile"]'];
+const NOTE_ICON_SEL = ['.scrolly-takeaway-note', '.p3-margin-note', '.p3-pound-caveat', '.close-why', '.ex-slope-note', '.db-headline-note', '.hh-note[data-caveat="bottom-decile"]'];
 
 const base = process.argv[2] ?? 'http://localhost:4360';
 const PAGES = {

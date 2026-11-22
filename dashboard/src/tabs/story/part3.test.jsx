@@ -346,8 +346,15 @@ describe('Part3', () => {
     expect(close.querySelector('.p3-close-foot').textContent).toMatch(/^See also: /);
     const foot = close.querySelectorAll('.p3-close-foot a');
     expect([...foot].map((a) => a.getAttribute('href'))).toEqual([expect.stringMatching(/tab=explore.*sub=households.*hh-ladder|hh-ladder/), expect.stringMatching(/hm-out/)]);
-    expect(close.querySelectorAll('.scene-head svg').length).toBe(0);
-    expect(close.querySelector('.scene-head h2#p3-close-h')).not.toBeNull();
+    // one tinted panel (22 Nov): its title led by the limits icon (the
+    // shared IconLine), a one-line lead with no icon, the links its footer
+    expect(close.classList.contains('p3-close-panel')).toBe(true);
+    const title = close.querySelector('.p3-close-head h2#p3-close-h');
+    expect(title.classList.contains('icon-line')).toBe(true);
+    expect(title.querySelectorAll('svg')).toHaveLength(1);
+    expect(close.querySelector('.p3-close-lead').textContent).toBe('The first year after the job loss, before households or employers respond. A test, not a forecast.');
+    expect(close.querySelectorAll('.p3-close-lead svg')).toHaveLength(0);
+    expect(close.querySelector('.p3-close-foot').classList.contains('p3-close-panel-foot')).toBe(true);
     expect(close.querySelector('.p3-close-chip, .story-panel, button, .p3-chip-frame')).toBeNull();
     expect(container.textContent).not.toContain('None in the main case');
     expect(container.textContent).not.toContain('A one-year test, not a forecast');
