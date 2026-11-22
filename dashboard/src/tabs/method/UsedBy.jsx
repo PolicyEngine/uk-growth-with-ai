@@ -1,5 +1,7 @@
 'use client';
 
+import Icon from '@/components/ab/Icon.jsx';
+import { iconFor } from '@/lib/concepts.js';
 import { AI_STUDY } from '@/tabs/code/ledger.js';
 import { REPLICATE as OGUK_REPLICATE } from './sources.js';
 
@@ -17,14 +19,20 @@ export const REPLICATE = {
   'hm-draws': [{ label: 'runner.py', url: study('uk_ai_study/runner.py') }, { label: 'central.json', url: study('results/central.json') }],
 };
 
-// One small row under each Method section: the code and result file to
-// replicate it. (The "Used by" links back to the charts were cut in round 2,
-// review item E9: one row of links per section at most.)
+// One small row under each Method section heading, always in that place:
+// a code icon, then the code and result files to replicate it (push D,
+// Q9.4: "one consistent link row per section"). `id` may list several
+// keys, for a section that holds several old ones (What AI changes: the
+// shock and the scenarios); their links are joined, duplicates once.
+// (The "Used by" links back to the charts were cut in round 2, review item
+// E9: one row of links per section at most.)
 export default function UsedBy({ id }) {
-  const code = REPLICATE[id] ?? [];
+  const ids = [id].flat();
+  const code = ids.flatMap((k) => REPLICATE[k] ?? []).filter((r, i, xs) => xs.findIndex((x) => x.url === r.url) === i);
   if (!code.length) return null;
   return (
-    <p className="mx-uses" data-replicate={id}>
+    <p className="mx-uses" data-replicate={ids.join(' ')}>
+      <Icon name={iconFor('replication')} size={14} className="mx-uses-icon" />
       <span className="mx-uses-label">Replicate</span>
       {code.map((r, i) => (
         <span key={r.url}>

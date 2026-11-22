@@ -259,9 +259,17 @@ p.mx-axis-title.is-x {
 }
 /* One row of links under a Method section: used by, then replicate */
 .mx-uses {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 4px;
   margin: -4px 0 16px;
   font-size: 12px;
   color: var(--pe-gray-600);
+}
+.mx-uses-icon {
+  flex: none;
+  color: var(--pe-gray-500);
 }
 .mx-uses-label {
   font-weight: 600;

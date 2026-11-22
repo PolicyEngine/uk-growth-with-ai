@@ -358,7 +358,7 @@ export default function MethodTab() {
           <SectionHeading id="m-shock" icon={iconFor('shock')} title="What AI changes">
             <IconText icon="ai">The macro model has no AI parameter. AI changes two numbers in production.</IconText>
           </SectionHeading>
-          <UsedBy id="m-shock" />
+          <UsedBy id={['m-shock', 'm-scenarios']} />
           <SubHead id="m-shock-head" title="The shock" />
           <FoldGrid className="card-grid">
             <InfoCard
@@ -446,7 +446,7 @@ export default function MethodTab() {
               />
             </InfoCard>
           </FoldGrid>
-          <ScenariosPart uses={<UsedBy id="m-scenarios" />} />
+          <ScenariosPart />
           <ArmsPart />
           <TimingPart />
         </section>

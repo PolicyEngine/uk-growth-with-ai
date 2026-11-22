@@ -99,4 +99,17 @@ describe('Scenarios direction icons', () => {
     }
     expect(container.querySelectorAll('.mx-foldgrid').length).toBeGreaterThan(0);
   });
+  // push D, Q9.4: one replicate row per section, a code icon first, right
+  // under the section's heading
+  it('gives each Method section one replicate row, under its heading, with a code icon', () => {
+    const { container } = render(<MethodTab />);
+    for (const sec of container.querySelectorAll('.page-body > section')) {
+      const rows = sec.querySelectorAll('.mx-uses');
+      const h = sec.querySelector(':scope > .section-heading').textContent;
+      expect(rows.length, h).toBe(1);
+      expect(rows[0].previousElementSibling.classList.contains('section-heading'), h).toBe(true);
+      const first = rows[0].firstElementChild;
+      expect(first.tagName.toLowerCase() === 'svg' || !!first.querySelector('svg'), h).toBe(true);
+    }
+  });
 });
