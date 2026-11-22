@@ -644,50 +644,6 @@ svg.p3-dim {
 .hm-list li + li {
   margin-top: 4px;
 }
-.hm-flow {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 22px;
-  margin: 0 0 24px;
-  padding: 0;
-  list-style: none;
-  counter-reset: none;
-}
-.hm-stage {
-  position: relative;
-  display: grid;
-  gap: 4px;
-  align-content: start;
-  padding: 12px;
-  font-size: var(--t-meta);
-  line-height: 1.45;
-  color: var(--pe-gray-600);
-  background: var(--pe-surface);
-  border: 1px solid var(--card-border);
-  border-radius: var(--card-radius);
-}
-.hm-stage b {
-  font-size: var(--t-ui);
-  color: var(--pe-gray-900);
-}
-.hm-stage .plain-icon {
-  color: var(--pe-gray-600);
-}
-.hm-stage-n {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  font-weight: 600;
-  color: var(--pe-gray-400);
-}
-.hm-stage + .hm-stage::before {
-  position: absolute;
-  top: 50%;
-  left: -18px;
-  content: '→';
-  color: var(--pe-gray-400);
-  transform: translateY(-50%);
-}
 .hm-vintage {
   display: grid;
   gap: 8px;
@@ -712,16 +668,6 @@ svg.p3-dim {
 @media (max-width: 900px) {
   .hh-tiles {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .hm-flow {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 18px;
-  }
-  .hm-stage + .hm-stage::before {
-    top: -16px;
-    left: 18px;
-    content: '↓';
-    transform: none;
   }
 }
 @media (max-width: 600px) {
