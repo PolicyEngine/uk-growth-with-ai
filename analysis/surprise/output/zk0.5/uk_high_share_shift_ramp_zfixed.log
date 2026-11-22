@@ -12,7 +12,7 @@ Demographics data: Initial Data year =  2026 , Final Data year =  2028
   gamma ramps 0.35 -> 0.379
   Z ramps 1.0 -> 0.950806
   baseline=False, initial state INHERITED from baseline
-  SS guess from /Users/vahid/ugai-rerun-work/surprise2028/zk0.5/uk_high_share_shift_tfp_ramp/SS/SS_vars.pkl
+  SS guess from SS_vars.pkl
 Using previous solutions for SS
 Using previous solutions for SS
 GE loop errors = ['-4.620e-04', '-4.798e-04', '-2.747e-02', '0.000e+00', '-1.835e-02', '-6.966e-06', '-8.908e-06', '-9.343e-06', '-5.509e-06', '-6.272e-06', '-6.539e-06', '-1.045e-06', '-1.101e-03']
@@ -160,4 +160,4 @@ Checking time path for violations of constraints.
 Max Euler error, savings: 4.215239268745563e-12
 Max Euler error labor supply: 1.5731860258938468e-12
 OK 8.8 min | SS labour share 0.6210 | RC/Y 2026 -0.0000% | RC interior max 2.66e-06 | TPI dist 7.1714055057982e-05 in 7 its
-wrote /Users/vahid/ugai-surprise/analysis/surprise/output/zk0.5/uk_high_share_shift_ramp_zfixed.json
+wrote analysis/surprise/output/zk0.5/uk_high_share_shift_ramp_zfixed.json

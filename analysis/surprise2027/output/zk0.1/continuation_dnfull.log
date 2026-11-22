@@ -270,4 +270,4 @@ Max Euler error, savings: 5.504485756091526e-12
 Max Euler error labor supply: 1.6142642778049776e-12
 OK 8.7 min | SS labour share 0.6500 | RC/Y 2026 +0.0000% | RC interior max 5.88e-06 | TPI dist 7.633711400826475e-05 in 27 its
   debt-neutral to the horizon: max |D/Y error| 5.39e-05, max |G/Y - alpha_G| 0.0e+00
-wrote /Users/vahid/ugai-surprise2027/analysis/surprise2027/output/zk0.1/continuation_dnfull.json
+wrote analysis/surprise2027/output/zk0.1/continuation_dnfull.json

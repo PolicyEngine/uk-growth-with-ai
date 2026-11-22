@@ -96,4 +96,4 @@ baseline_p1: alpha_G_shift +0.009315, 2030 D/Y 95.045%
   }
  }
 }
-wrote /Users/vahid/ugai-surprise/analysis/rerun/output/zk0.5/GATE_baseline.json
+wrote analysis/rerun/output/zk0.5/GATE_baseline.json

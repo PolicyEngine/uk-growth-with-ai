@@ -15,30 +15,30 @@ Demographics data: Initial Data year =  2026 , Final Data year =  2028
 Traceback (most recent call last):
   File "<frozen runpy>", line 203, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/__main__.py", line 3, in <module>
+  File "uk_growth_with_ai/__main__.py", line 3, in <module>
     raise SystemExit(main())
                      ~~~~^^
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 133, in main
+  File "uk_growth_with_ai/cli.py", line 133, in main
     return _surprise(args)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 200, in _surprise
+  File "uk_growth_with_ai/cli.py", line 200, in _surprise
     sp.run_step(args.outdir, args.closure, args.stage, args.work, args.rerun_dir,
     ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
                 scenario=args.scenario, **kw)
                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/surprise.py", line 971, in run_step
+  File "uk_growth_with_ai/surprise.py", line 971, in run_step
     rec = run_arm(f"{closure} surprise{year} {spec['label']}", spec["gamma"], shock,
                   spec["Z"], str(bdir), client, handles, alpha_G=spec["alpha_G"],
                   out_dir=str(adir), baseline_spending=spec["baseline_spending"],
                   surprise=state, nexp=NEXP_SURPRISE - k, debt_neutral=dn,
                   **settings)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/solve.py", line 410, in run_arm
+  File "uk_growth_with_ai/solve.py", line 410, in run_arm
     ss = SS.run_SS(p, client=client)
-  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/ogcore/SS.py", line 1599, in run_SS
+  File "SS.py", line 1599, in run_SS
     output = SS_solver(
         b_guess,
     ...<12 lines>...
         fsolve_flag,
     )
-  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/ogcore/SS.py", line 1147, in SS_solver
+  File "SS.py", line 1147, in SS_solver
     raise RuntimeError(err)
 RuntimeError: Steady state aggregate resource constraint not satisfied
