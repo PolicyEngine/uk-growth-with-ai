@@ -949,10 +949,12 @@ function Rankings() {
 // the plane. The table keeps the study's order, with wage insurance under
 // the two other displacement rules as indented sub-rows. No ranking words,
 // no cost-per-point figure.
+// direct labels in words; under 460px the numbers sit apart (2 right, 3
+// left), as points 2 and 3 are close
 const POLICY_LAB = {
-  R1_wage_insurance: { lab: 'Wage insurance', pos: 'l' },
-  R2_uc_circuit_breaker: { lab: 'Higher UC allowance', pos: 't' },
-  R3_cap_suspension_taper_cut: { lab: 'Cap suspended, lower taper', pos: 'b' },
+  R1_wage_insurance: { lab: 'Wage insurance', pos: 'l', npos: 'l' },
+  R2_uc_circuit_breaker: { lab: 'Higher UC allowance', pos: 't', npos: 'r' },
+  R3_cap_suspension_taper_cut: { lab: 'Cap suspended, lower taper', pos: 'b', npos: 'l' },
 };
 function Policy() {
   const P = D.policy;
@@ -1012,7 +1014,7 @@ function Policy() {
         <Plane
           on={e.on}
           label="Scatter: cost against the change in absolute poverty for each policy response"
-          points={main.map((r) => ({ id: r.id, n: n[r.id], group: 'c', name: r.label, lab: POLICY_LAB[r.reform]?.lab ?? r.label, pos: POLICY_LAB[r.reform]?.pos ?? 'r', x: r.cost_bn, y: r.poverty_pp }))}
+          points={main.map((r) => ({ id: r.id, n: n[r.id], group: 'c', name: r.label, lab: POLICY_LAB[r.reform]?.lab ?? r.label, pos: POLICY_LAB[r.reform]?.pos ?? 'r', npos: POLICY_LAB[r.reform]?.npos, x: r.cost_bn, y: r.poverty_pp }))}
           xMax={xMax}
           yMax={0}
           yMin={yMin}

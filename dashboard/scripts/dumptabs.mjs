@@ -38,8 +38,8 @@ const tabs = [
 // ([data-more-info], components/ui/MoreInfo.jsx; item-36-fable.md §1.3): a
 // definition, a draw count or a period may have its one home there. An
 // open fold is already in innerText and is not read twice.
-// A closed table fold ([data-table-fold], households TableFold.jsx; the
-// Households redesign) is read before the mark: a table fold is a figure's
+// A closed table fold ([data-table-fold]: the Households redesign's "Show
+// table" fold, held for a ruling and not built yet) is read before the mark: a table fold is a figure's
 // home; More info only restates.
 // check_numbers.py counts the printed figures before the mark.
 const MORE_MARK = '[[more info]]';

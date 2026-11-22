@@ -63,6 +63,7 @@
   color: var(--pe-gray-900);
 }
 .hh-tile-sub {
+  margin: 0;
   font-size: var(--chart-fs-tick);
   line-height: 1.35;
   color: var(--pe-gray-500);

@@ -57,7 +57,9 @@ export default function SummaryStrip() {
               <span className="hh-tile-value" data-axis="">
                 {t.value}
               </span>{' '}
-              <span className="hh-tile-sub">{t.key === 'responses' && !same && t.draws ? `${t.sub}; ${t.draws} draws` : t.sub}</span>
+              {/* the sub-line is its own block (a p), so the tile is not one
+                  long list item to check_text */}
+              <p className="hh-tile-sub">{t.key === 'responses' && !same && t.draws ? `${t.sub}; ${t.draws} draws` : t.sub}</p>
             </NavLink>
           </li>
         ))}
