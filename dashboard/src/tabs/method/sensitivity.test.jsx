@@ -37,6 +37,11 @@ const page = () =>
 describe('Sensitivities', () => {
   it('every cell is fmt() of its data path in the active set, inside [data-axis]', () => {
     const { container } = page();
+    // the sideways-scrolling wrap is reachable by keyboard and named (push E, D11)
+    const wrap = container.querySelector('.mx-sens-wrap');
+    expect(wrap.getAttribute('tabindex')).toBe('0');
+    expect(wrap.getAttribute('role')).toBe('region');
+    expect(wrap.getAttribute('aria-label')).toBe(container.querySelector('.mx-sens caption').textContent);
     const vals = [...container.querySelectorAll('.mx-sens-v')];
     expect(vals.length).toBeGreaterThan(0);
     for (const v of vals) {

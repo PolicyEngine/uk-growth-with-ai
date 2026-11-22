@@ -38,6 +38,12 @@ const at = (query) => {
 describe('All scenarios', () => {
   it('draws every cell: solved ones print their value, pending ones are holes, the cell in view links', () => {
     const { container } = at('tab=explore');
+    // the sideways-scrolling wrap is reachable by keyboard and named (push E, D11)
+    for (const w of container.querySelectorAll('.ex-mx-wrap')) {
+      expect(w.getAttribute('tabindex')).toBe('0');
+      expect(w.getAttribute('role')).toBe('region');
+      expect(w.getAttribute('aria-label')).toBeTruthy();
+    }
     const cells = container.querySelectorAll('#all-scenarios .ex-mx-cell');
     // 4 scenarios x 3 rules x 2 closures
     expect(cells).toHaveLength(4 * 6);

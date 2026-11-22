@@ -1840,7 +1840,8 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
    first. A hovered or focused track rises so its tooltip clears the rows
    after it. */
 .db-track,
-.cause-axis {
+.cause-axis,
+.ex-fc-track {
   z-index: 0;
 }
 /* decoration under the marks does not take the pointer from a hit area */
@@ -1856,7 +1857,8 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   z-index: 5;
 }
 .db-dot.tip-target::after,
-.cause-mark.tip-target::after {
+.cause-mark.tip-target::after,
+.ex-fc-dot.tip-target::after {
   content: '';
   position: absolute;
   z-index: -1;

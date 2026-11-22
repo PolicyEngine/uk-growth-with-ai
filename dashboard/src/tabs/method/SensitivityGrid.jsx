@@ -28,6 +28,7 @@ import { mathNodes } from '@/components/ui/MathSym.jsx';
 // path by design: "held", no figure.
 const SID = 'uk_central';
 const Y = YEARS.indexOf(HEADLINE_YEAR);
+const SENS_CAPTION = `${scenarioById(SID).label}, ${HEADLINE_YEAR}: % gap against the forecast path with one setting changed at a time`;
 const done = (r) => (r?.status === 'done' ? r : null);
 const res = (path) => path.reduce((o, k) => o?.[k], S);
 
@@ -119,9 +120,10 @@ export default function SensitivityGrid() {
         </div>
       }
     >
-      <div className="mx-sens-wrap" data-no-axes="A table of gaps">
+      {/* scrolls sideways on a phone: reachable by keyboard, named */}
+      <div className="mx-sens-wrap" data-no-axes="A table of gaps" tabIndex={0} role="region" aria-label={SENS_CAPTION}>
         <table className="mx-sens">
-          <caption className="visually-hidden">{`${scenarioById(SID).label}, ${HEADLINE_YEAR}: % gap against the forecast path with one setting changed at a time`}</caption>
+          <caption className="visually-hidden">{SENS_CAPTION}</caption>
           <thead>
             <tr>
               <th scope="col" className="mx-sens-corner">

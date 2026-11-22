@@ -146,7 +146,7 @@ export function Matrix({ arm, m, printHome = true, label }) {
   return (
     // the tooltip's host sits outside the scrolling wrap, so the card is never clipped
     <ChartHover label={label} items={order.map(({ s, row }) => cellTip(s, row, arm, m))}>
-    <div className="ex-mx-wrap">
+    <div className="ex-mx-wrap" tabIndex={0} role="region" aria-label={label}>
       <table className="ex-mx" aria-label={label}>
         <thead>
           <tr>
