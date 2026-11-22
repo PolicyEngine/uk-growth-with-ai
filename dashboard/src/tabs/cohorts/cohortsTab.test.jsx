@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { cohortSurprise } from '@/lib/dataTestUtils.js';
 import { cleanup, render } from '@testing-library/react';
 import { COHORTS as D } from '@/lib/dataKeys.js';
-import WhoGainsTab, { cell, pct, tileRange, dnfullFor, whoAnswer, whoFindingOf, RETURN_LINE, byFormLead, whyTokens, consumptionWords, earningsWords, payWords, stressWords, HORIZON_YEAR } from '@/tabs/cohorts/CohortsTab.jsx';
+import WhoGainsTab, { cell, pct, tileRange, dnfullFor, whoAnswer, whoFindingOf, RETURN_LINE, byFormLead, whyTokens, consumptionWords, consumptionStats, consumptionUnit, earningsWords, payWords, stressWords, HORIZON_YEAR } from '@/tabs/cohorts/CohortsTab.jsx';
 import { NavProvider } from '@/lib/nav.jsx';
 import S from '@/lib/activeData.js';
 
@@ -338,6 +338,49 @@ describe('What drives the result', () => {
             }
           }
         });
+
+  // the Fable 5.2 ruling for Vahid (R2): card 1's unit line names the
+  // shock year when the second stat is the crossing year (a year, no tone),
+  // else covers both gaps; the stress test with some foreign capital has no
+  // crossing year
+  it('card 1: the unit line follows whether there is a crossing year', () => {
+    for (const cl of ['zk0', 'zk0.1'])
+      for (const rule of ['common', 'dn'])
+        for (const arm of ['tfp', 'zfixed', 'stress']) {
+          const t = whyTokens(cl, rule, arm);
+          const u = consumptionUnit(cl, rule, arm);
+          const st = consumptionStats(cl, rule, arm);
+          if (t.cAboveYear != null) {
+            expect(u).toBe(`Consumption gap vs forecast path in ${t.shockYear}, %; 0 is the path`);
+            expect(st[1]).toMatchObject({ key: 'cross', label: 'First year above the path', text: String(t.cAboveYear), value: null });
+          } else {
+            expect(u).toBe('Consumption gap vs forecast path, %; 0 is the path');
+            expect(st.some((x) => x.key === 'cross')).toBe(false);
+          }
+        }
+    expect(whyTokens('zk0.1', 'dn', 'stress').cAboveYear).toBeNull();
+    expect(consumptionUnit('zk0.1', 'dn', 'stress')).toBe('Consumption gap vs forecast path, %; 0 is the path');
+    const shock = whyTokens('zk0.1', 'dn', 'tfp');
+    if (shock.cAboveYear != null) expect(consumptionUnit('zk0.1', 'dn', 'tfp')).toContain(`in ${shock.shockYear},`);
+    for (const q of ['tab=who', 'tab=who&arm=stress']) {
+      window.history.replaceState(null, '', `/?${q}`);
+      const { container, unmount } = render(
+        <NavProvider>
+          <WhoGainsTab />
+        </NavProvider>,
+      );
+      const card = container.querySelector('.ex-why2 > .why-card');
+      expect(card.querySelectorAll('.why-unit'), q).toHaveLength(1);
+      const unit = card.querySelector('.why-unit').textContent;
+      const year = [...card.querySelectorAll('.why-stat')].find((x) => x.querySelector('dt').textContent === 'First year above the path');
+      // the crossing year: shown as a year, with no tone; the unit names the shock year
+      if (year) {
+        expect(year.querySelector('dd').className, q).toBe('why-stat-value');
+        expect(unit, q).toMatch(/^Consumption gap vs forecast path in \d{4}, %; 0 is the path$/);
+      } else expect(unit, q).toBe('Consumption gap vs forecast path, %; 0 is the path');
+      unmount();
+    }
+  });
 
   it('the default view: the four boxes, the closed disclosure, no typed horizon year', () => {
     window.history.replaceState(null, '', '/?tab=who');

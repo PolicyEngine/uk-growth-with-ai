@@ -458,6 +458,14 @@ export function consumptionStats(cl, rule, arm) {
   return [first, second].filter((x) => x.value != null || x.text != null);
 }
 
+// A's unit line (the Fable 5.2 ruling for Vahid, R2): with a crossing
+// year the only gap shown is the shock year's, so the line names that
+// year; with none it covers both gaps. One .why-unit either way.
+export function consumptionUnit(cl, rule, arm) {
+  const t = whyTokens(cl, rule, arm);
+  return t.cAboveYear != null ? `Consumption gap vs forecast path in ${t.shockYear}, %; 0 is the path` : 'Consumption gap vs forecast path, %; 0 is the path';
+}
+
 // B. Who gains, by earnings: the bottom 25% against the top 1%.
 export function earningsWords(cl, rule, arm) {
   const c = cell(cl, rule, arm);
@@ -772,7 +780,7 @@ function Why({ cl, rule, arm }) {
           lead={A.lead}
           bullets={bulletsOf(aBullets(A, cl, rule, arm), (l) => (l.startsWith('The average gain') ? 'bequests' : l.startsWith('Households') ? 'savings' : 'timing'))}
           stats={consumptionStats(cl, rule, arm)}
-          unit="Consumption gap vs forecast path, %; 0 is the path"
+          unit={consumptionUnit(cl, rule, arm)}
           link={
             A.link ? (
               <JumpLink to="welfare-breakdown">
