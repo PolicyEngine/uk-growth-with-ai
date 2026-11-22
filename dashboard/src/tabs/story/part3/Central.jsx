@@ -54,7 +54,9 @@ const FACTS = [
     // the spread is across random draws of who loses their job, not across
     // assumptions (Maria M2; the SD of the draws in the data): said in full
     // in the figure's notes, the fact keeps to 12 words
-    sub: `varies by about ${fmtBn(H.central_cost.sd)} across draws`,
+    // Fable round 7, N3: named as what it is; the single-draw range is in
+    // the figure's notes
+    sub: `standard deviation across draws ${fmtBn(H.central_cost.sd)}`,
   },
   {
     key: 'poverty',
@@ -273,7 +275,9 @@ function CentralSource() {
           notes: [
             {
               icon: 'draws',
-              text: 'The cost’s spread is across random draws of who loses their job, not across assumptions.',
+              text: Array.isArray(H.central_cost.range)
+                ? `The cost’s spread is across random draws of who loses their job, not across assumptions; single draws run from ${fmtBn(H.central_cost.range[0])} to ${fmtBn(H.central_cost.range[1])}.`
+                : 'The cost’s spread is across random draws of who loses their job, not across assumptions.',
             },
             { icon: 'poverty', text: <>After housing costs, absolute poverty {fmtPp(H.central_poverty_ahc.value)}.</> },
             {

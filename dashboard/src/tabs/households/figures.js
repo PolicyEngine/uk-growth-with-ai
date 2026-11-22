@@ -56,6 +56,8 @@ export function storyFigures() {
     fmtMillions(H.central_displaced.value), fmtBn(H.central_cost.value), fmtPp(H.central_poverty.value), fmtPct1(D.baseline.absolute_bhc_pct.value),
     fmtPp(H.central_poverty_relative.value), fmtPct1(D.baseline.relative_bhc_pct.value), fmtGiniPts(H.central_gini.value), fmtBn(H.central_cost.sd),
     fmtPp(H.central_poverty_ahc.value),
+    // ... the single-draw range of the cost, in the figure's notes (Fable round 7, N3)
+    ...(Array.isArray(H.central_cost.range) ? H.central_cost.range.map(fmtBn) : []),
     // 2 channels
     ...['displacement', 'wage', 'capital'].map((k) => fmtBn(ch(k).cost_bn)), fmtBn(D.channels.sum_bn), fmtBn2(D.channels.interaction_bn),
     // 3 deciles 2-10, and decile 1 under the three rankings in its caveat
@@ -75,6 +77,8 @@ export function storyFigures() {
     // employer NI in the figure's notes)
     fmtBn(D.sankey.total.earnings_lost_bn), ...['disposable_bn', 'benefits_bn', 'tax_ni_bn', 'other_bn'].map((k) => fmtBn(D.sankey.total[k])),
     fmtShare(D.sankey.tax_benefit_share_pct), fmtBn(D.sankey.employer_ni_bn),
+    // ... the same pound with employers' NI, in pence (Fable round 7, N2)
+    fmtPence(((D.sankey.total.tax_ni_bn + D.sankey.total.benefits_bn + D.sankey.employer_ni_bn) / D.sankey.total.earnings_lost_bn) * 100),
   ];
 }
 

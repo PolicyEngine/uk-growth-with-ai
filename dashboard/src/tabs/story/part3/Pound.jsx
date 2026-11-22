@@ -7,7 +7,7 @@ import Sankey from '@/components/story/Sankey.jsx';
 import StoryBeat from '@/components/story/StoryBeat.jsx';
 import Icon from '@/components/ab/Icon.jsx';
 import { absorbGraph, DESTS, MOST, POUR_ORDER } from '@/tabs/households/Absorb.jsx';
-import { fmtBn, fmtShare } from './format.js';
+import { fmtBn, fmtPence, fmtShare } from './format.js';
 import { docItem } from '@/lib/sourceItems.js';
 import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import { D, FigureHead, Source, entryClass, useBeat } from './shared.jsx';
@@ -30,6 +30,10 @@ const S = D.sankey;
 // the title is a finding (story-finding-titles-fable.md)
 const TAX_MORE = S.total.tax_ni_bn > S.total.benefits_bn;
 const RATE = `${S.displacement_rate_pct.toFixed(2)}%`;
+// Fable round 7, N2: the same lost pound with employers' NI added, from the
+// Sankey's own totals (tax and NI, benefits and employer NI over earnings
+// lost), so the share and the pence read as one quantity
+export const POUND_WITH_EMPLOYER_P = ((S.total.tax_ni_bn + S.total.benefits_bn + S.employer_ni_bn) / S.total.earnings_lost_bn) * 100;
 
 export const POUND_SUB = {
   title: 'Where a lost pound goes',
@@ -48,7 +52,7 @@ export const POUND_STEPS = [
     highlight: ['disposable', 'tax', 'benefits'],
     body: (
       <p className="p3-step-line">
-        {MOST ? 'Most' : 'Part'} of the lost earnings fall on household income; tax, NI and benefits absorb {fmtShare(S.tax_benefit_share_pct)}.
+        {MOST ? 'Most' : 'Some'} lost earnings fall on household income; tax, NI and benefits absorb {fmtShare(S.tax_benefit_share_pct)}, or {fmtPence(POUND_WITH_EMPLOYER_P)} with employers’ NI.
       </p>
     ),
   },

@@ -48,6 +48,9 @@ for x in [m(H3['central_displaced']['value']), bn(H3['central_cost']['value']), 
           pct1(AI['baseline']['relative_bhc_pct']['value']), pts(H3['central_gini']['value']), bn(H3['central_cost']['sd']),
           pp(H3['central_poverty_ahc']['value'])]:
     story[x] += 1
+# the cost's single-draw range, in the figure's notes (Fable round 7, N3)
+for x in H3['central_cost'].get('range') or []:
+    story[bn(x)] += 1
 # 2 the three channels, their sum and interaction (20 draws)
 for k in ('displacement', 'wage', 'capital'): story[bn(CH[k]['cost_bn'])] += 1
 story[bn(AI['channels']['sum_bn'])] += 1; story[bn2(AI['channels']['interaction_bn'])] += 1
@@ -70,6 +73,8 @@ story[f"+{rnd(AI['breakeven']['capital']['value_pct'])}%"] += 1
 story[bn(S['total']['earnings_lost_bn'])] += 1
 for k in ('disposable_bn', 'benefits_bn', 'tax_ni_bn', 'other_bn'): story[bn(S['total'][k])] += 1
 story[share(S['tax_benefit_share_pct'])] += 1; story[bn(S['employer_ni_bn'])] += 1
+# the same pound with employers' NI, in pence (Fable round 7, N2)
+story[pence((S['total']['tax_ni_bn'] + S['total']['benefits_bn'] + S['employer_ni_bn']) / S['total']['earnings_lost_bn'] * 100)] += 1
 _gini_level = AI['baseline']['gini'].get('value_points', AI['baseline']['gini']['value'] * 100)
 STORY_TEXT = [f"from {rnd(_gini_level, 1):.1f}", f"{rnd(AI['breakeven']['duration']['value_months'], 1)} months", 'not the main case']
 
