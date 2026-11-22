@@ -2679,3 +2679,36 @@
     transform: none;
   }
 }
+
+/* The tax-gap card (FinancesSection.jsx TaxGapCard; 22 Nov, "busy"): three
+   comparison rows of one shape, the label left, the mark pair on its own
+   scale in the middle, one effect tag right; stacked at 768px and below */
+#tax-gap .cause-rows {
+  gap: 12px;
+}
+#tax-gap .cause-row {
+  grid-template-columns: minmax(150px, 200px) minmax(0, 1fr) minmax(150px, 190px);
+  gap: 8px 20px;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--card-border);
+}
+#tax-gap .cause-row:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+#tax-gap .cause-row > .taxgap-label {
+  margin-bottom: 0;
+}
+#tax-gap .cause-see {
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-size: var(--chart-fs-tick);
+  color: var(--pe-teal-700);
+}
+@media (max-width: 768px) {
+  #tax-gap .cause-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

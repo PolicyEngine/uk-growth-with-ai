@@ -1,7 +1,6 @@
 'use client';
 
 import { useRef } from 'react';
-import NoteLine from '@/components/ui/IconLine.jsx';
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import Card, { SectionHeading, IconLine, cardSources } from '@/components/ui/Card.jsx';
@@ -129,42 +128,55 @@ function closedTaxWords(sid, rule) {
 // hundredths of a pp of GDP (docs/red_flags_1_3.md).
 const OBR_PER_PP = [0.19, 0.23];
 
-function Cause({ icon, title, axis, ours, theirs, effect, up }) {
-  const pct = (x) => `${((x / axis.max) * 100).toFixed(2)}%`;
-  const edge = (x) => (x / axis.max > 0.8 ? ' at-end' : x / axis.max < 0.2 ? ' at-start' : '');
+// One comparison row (Vahid, 22 Nov: the card was "busy"): every row the
+// same shape, its label on the left, one small mark pair on its own scale
+// (the macro model's dot against the comparison's band or ring, each value
+// at its mark), and one short effect tag on the right. `axis`: { min, max,
+// lo, hi } (the tick labels); `ours.extra`: a small link beside the value.
+function Cause({ icon, title, axis, ours, theirs, effect, up, tagIcon }) {
+  const span = axis.max - axis.min || 1;
+  const at = (x) => (x - axis.min) / span;
+  const pct = (x) => `${(at(x) * 100).toFixed(2)}%`;
+  const edge = (x) => (at(x) > 0.8 ? ' at-end' : at(x) < 0.2 ? ' at-start' : '');
   // a lower label right of centre ends at its mark on phones (ph-end), so a
-  // long name ("PolicyEngine UK {year} average") stays inside the card at
-  // the 13px floor (checks-c0.md, 390px)
-  const below = (x) => `${edge(x)}${x / axis.max > 0.6 && x / axis.max <= 0.8 ? ' ph-end' : ''}`;
+  // long name stays inside the card at the 13px floor (390px)
+  const below = (x) => `${edge(x)}${at(x) > 0.6 && at(x) <= 0.8 ? ' ph-end' : ''}`;
   return (
     <div className="cause-row">
-      <div className="cause-main">
-        <div className="taxgap-label">
-          <Icon name={icon} size={16} />
-          <span>{title}</span>
-        </div>
-        <div className="cause-axis">
-          <span className="cause-track" aria-hidden="true" />
-          {theirs.lo != null ? (
-            <TipTarget className="cause-range" style={{ left: pct(theirs.lo), width: pct(theirs.hi - theirs.lo) }} label={`${theirs.name}: ${theirs.text}`} tip={<><b>{theirs.name}</b><span className="tip-value">{theirs.text}</span></>}>
-              <span className={`cause-mark-label is-below${below((theirs.lo + theirs.hi) / 2)}`}>{theirs.name} {theirs.text}</span>
-            </TipTarget>
-          ) : (
-            <TipTarget className="cause-mark is-theirs" style={{ left: pct(theirs.value) }} label={`${theirs.name}: ${theirs.text}`} tip={<><b>{theirs.name}</b><span className="tip-value">{theirs.text}</span></>}>
-              <span className={`cause-mark-label is-below${below(theirs.value)}`}>{theirs.name} {theirs.text}</span>
-            </TipTarget>
-          )}{' '}
-          <TipTarget className="cause-mark is-ours" style={{ left: pct(ours.value) }} label={`Macro model: ${ours.text}`} tip={<><b>Macro model</b><span className="tip-value">{ours.text}</span></>}>
-            <span className={`cause-mark-label${edge(ours.value)}`}>Macro model {ours.text}</span>
-          </TipTarget>{' '}
-          <span className="cause-ticks" aria-hidden="true" data-axis="">
-            <span>0</span>{' '}
-            <span>{axis.label}</span>
-          </span>
-        </div>
+      <div className="taxgap-label">
+        <Icon name={icon} size={16} />
+        <span>{title}</span>
       </div>
-      {/* icon + text, no box; the arrow follows the comparison (up) */}
-      <IconLine icon={up ? 'arrowUp' : 'arrowDown'} className={`cause-effect${up ? ' is-main' : ''}`}>
+      <div className="cause-axis">
+        <span className="cause-track" aria-hidden="true" />
+        {theirs.lo != null ? (
+          <TipTarget className="cause-range" style={{ left: pct(Math.min(theirs.lo, theirs.hi)), width: `${((Math.abs(theirs.hi - theirs.lo) / span) * 100).toFixed(2)}%` }} label={`${theirs.name}: ${theirs.text}`} tip={<><b>{theirs.name}</b><span className="tip-value">{theirs.text}</span></>}>
+            <span className={`cause-mark-label is-below${below((theirs.lo + theirs.hi) / 2)}`}>{theirs.name} {theirs.text}</span>
+          </TipTarget>
+        ) : theirs.value != null ? (
+          <TipTarget className="cause-mark is-theirs" style={{ left: pct(theirs.value) }} label={`${theirs.name}: ${theirs.text}`} tip={<><b>{theirs.name}</b><span className="tip-value">{theirs.text}</span></>}>
+            <span className={`cause-mark-label is-below${below(theirs.value)}`}>{theirs.name} {theirs.text}</span>
+          </TipTarget>
+        ) : (
+          <span className="cause-mark-label is-below at-start">{theirs.name} {theirs.text}</span>
+        )}{' '}
+        {ours.value != null ? (
+          <TipTarget className="cause-mark is-ours" style={{ left: pct(ours.value) }} label={`Macro model: ${ours.text}`} tip={<><b>Macro model</b><span className="tip-value">{ours.text}</span></>}>
+            <span className={`cause-mark-label${edge(ours.value)}`} data-path={ours.path}>
+              Macro model {ours.text}
+            </span>
+          </TipTarget>
+        ) : (
+          <span className="cause-mark-label at-start">Macro model {ours.text}</span>
+        )}{' '}
+        {ours.extra ?? null}
+        <span className="cause-ticks" aria-hidden="true" data-axis="">
+          <span>{axis.lo}</span>{' '}
+          <span>{axis.hi}</span>
+        </span>
+      </div>
+      {/* the row's one effect tag: icon + text, no box */}
+      <IconLine icon={tagIcon ?? (up ? 'arrowUp' : 'arrowDown')} className={`cause-effect${up ? ' is-main' : ''}`}>
         {effect}
       </IconLine>
     </div>
@@ -187,8 +199,8 @@ const NICS_URL = atRef(SET.nicsRef, SET.nicsPath);
 const RED_FLAGS_URL = atRef('bf5de33', 'docs/red_flags_1_3.md');
 // The two rows of the tax card, as drawn and as downloaded
 const CAUSES = [
-  { title: 'Labour vs capital tax-rate gap', max: 25, unit: 'pp', ours: TAX_GAP, oursText: `${TAX_GAP.toFixed(1)}pp`, theirs: 'OBR rates, differenced', lo: 19, hi: 23, theirsText: '19–23pp', effect: 'Understates the revenue fall (main effect)' },
-  { title: 'Employer National Insurance, % of earnings', max: 16, unit: '% of earnings', ours: NIC_OGUK, oursText: `flat ${Math.round(NIC_OGUK)}%`, theirs: `PolicyEngine UK ${NICS.year} average`, value: NIC_PE, theirsText: `${NIC_PE.toFixed(1)}%`, effect: 'Partly offsets the first row (smaller)' },
+  { title: 'Labour vs capital tax-rate gap', max: 25, unit: 'pp', ours: TAX_GAP, oursText: `${TAX_GAP.toFixed(1)}pp`, theirs: 'OBR rates, differenced', lo: 19, hi: 23, theirsText: '19–23pp', effect: 'Understates the fall (main)' },
+  { title: 'Employer National Insurance, % of earnings', max: 16, unit: '% of earnings', ours: NIC_OGUK, oursText: `flat ${Math.round(NIC_OGUK)}%`, theirs: `PolicyEngine UK ${NICS.year} average`, value: NIC_PE, theirsText: `${NIC_PE.toFixed(1)}%`, effect: 'Partly offsets (smaller)' },
 ];
 // OG-UK's figure below the comparison: the model's revenue fall is too
 // small (the first row's main effect); above it, the row partly offsets.
@@ -224,70 +236,12 @@ export const TAX_TITLE = 'The macro model’s revenue fall is smaller than OBR t
 // link is hovered or focused (the figure's one home is that end label).
 const flag = (on) => () => document.getElementById('tax-gdp')?.classList.toggle('ex-flag', on);
 
-// The model's tax/GDP gap and the rough UK-rates range on one pp axis. The
-// model's central figure prints here only when the chart shows closed
-// capital; otherwise a link points at (and highlights) the chart's end label.
-function TaxStrip({ model, uk, onChart }) {
+// The first row's scale: the model's tax/GDP gap and the rough UK-rates
+// range on one pp axis from below the lowest to 0 (the forecast path).
+function taxAxis(model, uk) {
   const xs = [0, ...(uk ?? []), ...(model == null ? [] : [model])];
-  const lo = Math.min(...xs) * 1.25;
-  const pos = (x) => `${(((x - lo) / (0 - lo)) * 100).toFixed(2)}%`;
-  const ticks = [];
-  const step = Math.abs(lo) > 0.6 ? 0.2 : 0.1;
-  for (let t = 0; t >= lo; t -= step) ticks.push(Math.round(t * 100) / 100);
-  return (
-    <div className="ex-taxstrip" role="group" aria-label={`Tax/GDP gap in ${HEADLINE_YEAR}: the model and the scaling with OBR rates`}>
-      <div className="ex-taxrow">
-        <span className="ex-taxlabel">
-          <Icon name={iconFor('model')} size={16} /> Macro model
-        </span>
-        <span className="ex-taxtrack">
-          <span className="ex-taxzero" style={{ left: pos(0) }} aria-hidden="true" />
-          {model == null ? (
-            <span className="ex-taxval">{PENDING}</span>
-          ) : (
-            <span className="ex-taxdot" style={{ left: pos(model) }}>
-              {onChart ? null : <span className="ex-taxval">{`${signed(model, 2)}pp`}</span>}
-            </span>
-          )}
-        </span>
-      </div>
-      {onChart && model != null ? (
-        <NoteLine concept="link" className="ex-taxlink">
-          <a href="#tax-gdp" onMouseEnter={flag(true)} onMouseLeave={flag(false)} onFocus={flag(true)} onBlur={flag(false)}>
-            Its value: the main-version end point of the Tax/GDP chart
-          </a>
-        </NoteLine>
-      ) : null}
-      <div className="ex-taxrow">
-        <span className="ex-taxlabel">
-          <Icon name={iconFor('tax')} size={16} /> Scaled with OBR effective rates
-        </span>
-        <span className="ex-taxtrack">
-          <span className="ex-taxzero" style={{ left: pos(0) }} aria-hidden="true" />
-          {uk == null ? (
-            <span className="ex-taxval">{PENDING}</span>
-          ) : (
-            <span className="ex-taxbar" style={{ left: pos(Math.min(...uk)), width: `${((Math.abs(uk[0] - uk[1]) / -lo) * 100).toFixed(2)}%` }}>
-              <span className="ex-taxval">{`${signed(uk[0], 2)} to ${signed(uk[1], 2)}pp`}</span>
-            </span>
-          )}
-        </span>
-      </div>
-      <div className="ex-taxrow ex-taxaxis" aria-hidden="true">
-        <span />
-        <span className="ex-taxtrack" data-axis="">
-          {ticks.map((t) => (
-            <span key={t} className="ex-taxtick" style={{ left: pos(t) }}>
-              {t === 0 ? '0' : `−${Math.abs(t).toFixed(1)}`}
-            </span>
-          ))}
-        </span>
-      </div>
-      <NoteLine concept="arithmetic" className="ex-roughchip">
-        Rough scaling, not a model run
-      </NoteLine>
-    </div>
-  );
+  const min = Math.min(...xs) * 1.25 || -0.1;
+  return { min, max: 0, lo: `−${Math.abs(min).toFixed(1)}pp`, hi: '0' };
 }
 
 // Item 40 (ugai-reviews/item-40-fable.md): the model's tax/GDP gap against
@@ -335,7 +289,7 @@ function TaxGapCard({ sid, closure, rule }) {
         <Items
           className="ex-notes"
           items={[
-            { key: 'rates', icon: 'rule', text: `The model taxes labour ${TAX_GAP.toFixed(1)}pp more than capital; OBR rates imply ${CAUSES[0].lo}–${CAUSES[0].hi}pp` },
+            // the rate gap is row 2's (22 Nov: no separate bullet)
             // the sign changes only where tax/GDP rises by the headline year
             // (review round 1, R1-02)
             closure !== 'central' && closedTax ? { key: 'closed', icon: 'closed', text: closedTax.flips ? `With no foreign capital the ${HEADLINE_YEAR} sign changes:` : 'With no foreign capital:' } : null,
@@ -422,15 +376,36 @@ function TaxGapCard({ sid, closure, rule }) {
       {/* the card is fixed at some foreign capital, main version: said in
           its model row when the page shows another case (R1-09;
           c0-rulings-opus.md ruling 5) */}
-      <AxisTitles y={`Tax/GDP gap in ${HEADLINE_YEAR}, pp of GDP`} />
-      <TaxStrip model={model} uk={uk} onChart={onChart} />
+      {/* three rows of one shape (22 Nov): the tax/GDP gap, then the two
+          rates that size it; the model's figure is printed at its mark,
+          with a small link to the chart where it is that chart's end point */}
+      <AxisTitles y="Each row on its own scale; the dot is the macro model" />
       <div className="cause-rows">
+        <Cause
+          icon={iconFor('model')}
+          title={`Tax/GDP gap in ${HEADLINE_YEAR}, pp of GDP`}
+          axis={taxAxis(model, uk)}
+          ours={{
+            value: model,
+            text: model == null ? PENDING : `${signed(model, 2)}pp`,
+            path: model == null ? undefined : `results.${sid}.tfp.${CENTRAL}.gaps.tax_gdp_pp.${HEADLINE_YEAR}`,
+            extra:
+              onChart && model != null ? (
+                <a className="cause-see" href="#tax-gdp" onMouseEnter={flag(true)} onMouseLeave={flag(false)} onFocus={flag(true)} onBlur={flag(false)}>
+                  see chart
+                </a>
+              ) : null,
+          }}
+          theirs={uk == null ? { name: 'OBR-scaled', text: PENDING } : { name: 'OBR-scaled', lo: uk[0], hi: uk[1], text: `${signed(uk[0], 2)} to ${signed(uk[1], 2)}pp` }}
+          tagIcon={iconFor('arithmetic')}
+          effect="Rough scaling, not a model run"
+        />
         {CAUSES.map((c, i) => (
           <Cause
             key={c.title}
             icon={iconFor(i ? 'tax' : 'compare')}
             title={c.title}
-            axis={{ max: c.max, label: c.unit === 'pp' ? `${c.max}pp` : `${c.max}${c.unit}` }}
+            axis={{ min: 0, max: c.max, lo: '0', hi: c.unit === 'pp' ? `${c.max}pp` : `${c.max}${c.unit}` }}
             ours={{ value: c.ours, text: c.oursText }}
             theirs={c.lo != null ? { name: c.theirs, lo: c.lo, hi: c.hi, text: c.theirsText } : { name: c.theirs, value: c.value, text: c.theirsText }}
             up={understates(c)}
@@ -439,7 +414,7 @@ function TaxGapCard({ sid, closure, rule }) {
         ))}
       </div>
       <IconLine icon={iconFor('rule')} className="net-line">
-        <b>Net:</b> if the first row outweighs the second, {ext(RED_FLAGS_URL, 'the model understates the fall in revenue')}.
+        <b>Net:</b> if row 2 outweighs row 3, {ext(RED_FLAGS_URL, 'the model understates the revenue fall')}.
       </IconLine>
     </Card>
   );

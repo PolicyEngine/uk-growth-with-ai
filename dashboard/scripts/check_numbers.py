@@ -120,11 +120,10 @@ def expected(sid, mode):
         if not coincides(sid, arm, main, 'tax_gdp_pp', 1):
             add(g(sid, arm, main, 'tax_gdp_pp', H), 2, 'pp')
     # the tax card stays central: the top of the rough UK-rates range,
-    # labour-share fall x 0.23 (the bottom prints without a unit). The model's
-    # central tax/GDP (main arm) is the chart's end label, so the card prints
-    # it only when the chart shows closed capital.
-    if mode == 'closed':
-        add(g(sid, 'tfp', C, 'tax_gdp_pp', H), 2, 'pp')
+    # labour-share fall x 0.23 (the bottom prints without a unit). Its first
+    # row prints the model's central tax/GDP (main arm) at its mark in every
+    # case (22 Nov: the value was missing; a small "see chart" link stays)
+    add(g(sid, 'tfp', C, 'tax_gdp_pp', H), 2, 'pp')
     ls = g(sid, 'tfp', C, 'labour_share_pp')
     if ls is not None:
         add(ls * 0.23, 2, 'pp')
@@ -132,10 +131,8 @@ def expected(sid, mode):
     # headline year, central closure (one decimal, unsigned): the causes chart
     etr = D['closures'][C]['reference_effective_tax_rates']
     exp[f"{etr['labour'] - etr['capital_gross']:.1f}pp"] += 1
-    # item 40 (item-40-fable.md, mandated text): the card's first claim
-    # states the same gap ("OG-UK taxes labour 14.8pp more than capital;
-    # OBR rates imply 19-23pp"), so it prints twice
-    exp[f"{etr['labour'] - etr['capital_gross']:.1f}pp"] += 1
+    # (the card's separate "taxes labour ...pp more" bullet is gone, 22 Nov:
+    # row 2 says it, so the gap prints once)
     # and PolicyEngine UK's average employer NICs rate, % of earnings (one
     # decimal): the causes chart's NICs row, from analysis/nics/nics_<year>.json
     # (copied to src/tabs/explore/nics<year>.json); OG-UK's flat rate prints
