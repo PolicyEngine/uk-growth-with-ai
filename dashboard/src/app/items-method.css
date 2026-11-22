@@ -1104,3 +1104,20 @@ p.mx-axis-title.is-x {
   }
   .hf-tag { border-bottom: 0; padding-bottom: 0; }
 }
+
+/* Data and code > Start here (Method redesign, section 8): three text
+   cards, the gap token between them */
+.mx-code .card-grid.mx-start {
+  gap: var(--gap-card);
+  margin-top: 16px;
+}
+.mx-code .mx-start .card.info {
+  display: flex;
+  flex-direction: column;
+}
+.mx-code .mx-start .card-body {
+  flex: 1 1 auto;
+}
+@media (max-width: 600px) {
+  .mx-code .card-grid.mx-start { gap: var(--gap-card-phone); }
+}
