@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '@/components/ab/Icon.jsx';
+import IconLine from '@/components/ui/IconLine.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { Items } from '@/components/story/Items.jsx';
@@ -179,14 +180,13 @@ export const ARM_SHORT = { tfp: 'Auto. + prod.', tz: 'Tech. unchanged', ss: 'Str
 export function HeadlineNote({ rule = 'common' }) {
   if (rule !== 'common') return null;
   return (
-    <p className="db-headline-note">
-      <Icon name={iconFor('story')} size={12} className="p2-tx-icon" />
+    <IconLine concept="story" tier="ui" className="db-headline-note">
       Grey values: the{' '}
       <NavLink tab="story" anchor="story-part-2">
         Story
       </NavLink>
       &rsquo;s headline figures (main version).
-    </p>
+    </IconLine>
   );
 }
 

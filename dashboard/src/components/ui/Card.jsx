@@ -2,6 +2,7 @@
 
 import { isValidElement, useRef } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
+import SharedIconLine from '@/components/ui/IconLine.jsx';
 import Disclosure from '@/components/ab/Disclosure.jsx';
 import DownloadMenu from '@/components/ui/DownloadMenu.jsx';
 import { NavLink } from '@/lib/nav.jsx';
@@ -261,19 +262,18 @@ export function StatTile({ icon, name, value, tone, sub, tip, children }) {
 // What a view is showing when a header picker does not fully apply to it.
 export function ViewNote({ icon = 'info', children }) {
   return (
-    <p className="view-note">
-      <Icon name={icon} size={16} />
-      <span>{children}</span>
-    </p>
+    <SharedIconLine icon={icon} className="view-note">
+      {children}
+    </SharedIconLine>
   );
 }
 
-// Icon + text, no box.
+// Icon + text, no box: the shared IconLine (components/ui/IconLine.jsx)
+// with the card note's look (.icon-note).
 export function IconLine({ icon, children, className = '' }) {
   return (
-    <p className={`icon-line ${className}`}>
-      <Icon name={icon} size={16} />
-      <span>{children}</span>
-    </p>
+    <SharedIconLine icon={icon} className={`icon-note ${className}`.trim()}>
+      {children}
+    </SharedIconLine>
   );
 }

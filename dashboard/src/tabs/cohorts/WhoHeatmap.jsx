@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Icon from '@/components/ab/Icon.jsx';
+import IconLine from '@/components/ui/IconLine.jsx';
 import Card from '@/components/ui/Card.jsx';
 import { sourcesItems } from '@/tabs/explore/sources.jsx';
 import { fileItem } from '@/lib/sourceItems.js';
@@ -68,9 +68,9 @@ export function DotStrip({ m }) {
   const { solid, range } = dotCounts(m.losing);
   return (
     <figure className="ex-dotstrip">
-      <figcaption>
-        <Icon name={iconFor('households')} size={14} /> Adults who lose, {m.label.toLowerCase()}
-      </figcaption>
+      <IconLine as="figcaption" concept="households" tier="body">
+        Adults who lose, {m.label.toLowerCase()}
+      </IconLine>
       <AxisTitles y="Adults who lose; one dot = 1 adult in 100" />
       <div className="ex-dots" role="img" aria-label={`${m.label}: ${solid + range} of 100 dots${range ? `, ${range} of them the range` : ''}`} data-measure={m.id}>
         {Array.from({ length: 100 }, (_, i) => (

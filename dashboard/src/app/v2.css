@@ -718,8 +718,10 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   line-height: 1.55;
   color: var(--pe-gray-600);
 }
+/* a card's reading line runs the card's full width (Vahid, 22 Nov: "these
+   text full length of line"); body paragraphs keep their measure */
 .card-finding {
-  max-width: 78ch;
+  max-width: none;
 }
 /* a lead that runs the card's full width (Card leadFull; push D, Q6b: the
    measures card's sentence), wrapped in balanced lines on phones */
@@ -1200,10 +1202,11 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 .entries-title {
   margin-top: 32px;
 }
-.icon-line {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
+/* Card.jsx IconLine and the Results hourglass line: the line's look; its
+   geometry (icon column, hanging text) is the shared .icon-line
+   (icon-line.css) */
+.icon-note {
+  --il-color: var(--c-gain-text);
   margin: 12px 0 0;
   padding: 0;
   font-size: var(--fs-small);
@@ -1212,37 +1215,28 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   background: none;
   border: 0;
 }
-.icon-line > .plain-icon {
-  display: inline-flex;
-  flex: none;
-  margin-top: 2px;
-  color: var(--c-gain-text);
-}
-.icon-line.is-muted,
-.icon-line.is-muted > .plain-icon {
+.icon-note.is-muted {
+  --il-color: var(--pe-gray-500);
   color: var(--pe-gray-500);
 }
-.icon-line.how-sure {
+.icon-note.how-sure {
   margin-top: 20px;
   font-size: var(--fs-body);
 }
 /* model caveats (which way the missing channel would move the figure), not
    a gain or a loss: neutral ink */
-.icon-line.cause-effect,
-.icon-line.cause-effect > .plain-icon {
+.icon-note.cause-effect {
+  --il-color: var(--pe-gray-700);
   color: var(--pe-gray-700);
 }
-.icon-line.cause-effect.is-main {
+.icon-note.cause-effect.is-main {
   font-weight: 600;
 }
-.icon-line.cause-effect {
+.icon-note.cause-effect {
   margin: 0;
   align-self: center;
 }
 .view-note {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
   margin: -8px 0 16px;
   font-size: var(--fs-small);
   line-height: 1.5;
@@ -2327,13 +2321,11 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   display: grid;
   gap: 12px;
 }
+/* geometry: the shared .icon-line (icon-line.css); full width of the box
+   (Vahid, 22 Nov: "full line"), no ch cap */
 .summary-label,
 .summary-row {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
   margin: 0;
-  max-width: 72ch;
   font-size: var(--chart-fs-tick, 14px);
   line-height: 1.45;
   color: var(--pe-gray-700);
@@ -2347,15 +2339,6 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   font-weight: 600;
   line-height: 1.35;
   color: var(--pe-gray-900);
-}
-.summary-icon {
-  display: inline-flex;
-  flex: none;
-  margin-top: 2px;
-  color: var(--pe-gray-500);
-}
-.summary-row-body {
-  min-width: 0;
 }
 .summary-link a {
   display: inline-flex;
@@ -2382,23 +2365,15 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   align-items: flex-start;
   gap: 8px;
 }
+/* geometry with an icon: the shared .icon-line (icon-line.css) */
 .finding-lead {
-  display: flex;
   flex: 1 1 auto;
-  gap: 8px;
-  align-items: flex-start;
   max-width: 72ch;
   margin: 0;
   font-size: var(--chart-fs-head, 16px);
   font-weight: 600;
   line-height: 1.35;
   color: var(--pe-gray-900);
-}
-.finding-icon {
-  display: inline-flex;
-  flex: none;
-  margin-top: 1px;
-  color: var(--pe-gray-500);
 }
 .finding-actions {
   display: flex;
@@ -2425,7 +2400,6 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   margin-top: 6px;
 }
 .finding-note {
-  max-width: 72ch;
   margin: 8px 0 0;
   font-size: var(--chart-fs-tick, 14px);
   color: var(--pe-gray-600);

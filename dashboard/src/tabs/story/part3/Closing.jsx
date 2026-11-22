@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '@/components/ab/Icon.jsx';
+import IconLine from '@/components/ui/IconLine.jsx';
 import { hy } from '@/components/story/Hy.jsx';
 import { useEntry, useSnap } from '@/components/story/motion.js';
 import { iconFor } from '@/lib/concepts.js';
@@ -56,10 +57,9 @@ export default function Closing() {
         </h2>
       </header>
       <div ref={ref} className={`p3-close-card${entry.entered ? ' is-in' : ''}${snap ? ' is-snap' : ''}`}>
-        <p className="p3-close-lead">
-          <Icon name={iconFor('limit')} size={12} className="p2-tx-icon" />
+        <IconLine concept="limit" tier="body" className="p3-close-lead">
           Leaving these out, the household study shows the first year after the assumed job loss, before households or employers respond: a test, not a forecast.
-        </p>
+        </IconLine>
         <div className="p3-out" role="group" aria-labelledby="p3-close-h">
           <div className="p3-out-heads">
             <span>Left out</span>

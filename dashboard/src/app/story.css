@@ -233,22 +233,16 @@
   opacity: 0.55;
   transition: opacity 400ms var(--story-ease);
 }
-.scrolly-card.has-icon {
-  display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
-  column-gap: 10px;
-  align-items: start;
-}
+/* with an icon, the card is a shared .icon-line (icon-line.css, body
+   tier: 18px column, 10px gap, the icon on the sentence's first line) */
 .scrolly-card-icon {
-  display: inline-flex;
-  margin-top: 0.2em;
-  color: var(--t-muted);
+  --il-color: var(--t-muted);
 }
 .scrolly-step.is-active .scrolly-card {
   opacity: 1;
 }
 .scrolly-step.is-active .scrolly-card-icon {
-  color: var(--t-ink);
+  --il-color: var(--t-ink);
 }
 .scrolly.is-single .scrolly-card {
   opacity: 1;

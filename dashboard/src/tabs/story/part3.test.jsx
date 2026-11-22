@@ -444,7 +444,8 @@ describe('Part3', () => {
     // DOM order: the question screen, the header, the figure, What's next; nothing after it
     expect([...sec.children].map((c) => c.className.split(' ')[0])).toEqual(['q-stage', 'part-opener', 'lens-fig', 'close-next']);
     const head = sec.querySelector('header.part-opener.close-opener');
-    expect([...head.children].map((c) => c.tagName + (c.className ? '.' + c.className : ''))).toEqual(['P.part-opener-meta', 'H2', 'UL.close-recap', 'P.close-why']);
+    // the reason is a shared icon line (IconLine: role class first)
+    expect([...head.children].map((c) => c.tagName + (c.className ? '.' + c.className.split(' ')[0] : ''))).toEqual(['P.part-opener-meta', 'H2', 'UL.close-recap', 'P.close-why']);
     expect(head.querySelector('.part-opener-meta').textContent).toBe('Part 4 · Both models');
     expect(CLOSE_SUB.hint).toBe('The macro model for the whole economy over years; the household study for one year');
     const lines = [...head.querySelectorAll('.close-recap li')];

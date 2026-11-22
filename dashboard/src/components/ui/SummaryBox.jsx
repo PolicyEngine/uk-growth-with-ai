@@ -1,5 +1,5 @@
 import Icon from '@/components/ab/Icon.jsx';
-import { iconFor } from '@/lib/concepts.js';
+import IconLine from '@/components/ui/IconLine.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 
 // The summary card that opens an Explore page (push D, Q6a; Public
@@ -20,10 +20,9 @@ export default function SummaryBox({ id, scope, label, labelIcon = 'version', ch
     <section className={`summary-box ${className}`.trim()} id={id} aria-label="Summary">
       {scope ? <p className="summary-scope model-scope">{scope}</p> : null}
       {label ? (
-        <p className="summary-label">
-          <Icon name={iconFor(labelIcon)} size={16} className="summary-icon" />
-          <span>{label}</span>
-        </p>
+        <IconLine concept={labelIcon} className="summary-label" iconClassName="summary-icon">
+          {label}
+        </IconLine>
       ) : null}
       <div className="summary-rows" aria-live="polite">
         {children}
@@ -32,14 +31,21 @@ export default function SummaryBox({ id, scope, label, labelIcon = 'version', ch
   );
 }
 
-// One row: its icon, then its content. `strong`: the box's finding (bold,
-// title-level).
+// One row: its icon, then its content, in the shared IconLine (ui tier:
+// 16px icon; the strong row too, so every row's text starts at one x).
+// `strong`: the box's finding (bold, title-level).
 export function SummaryRow({ icon, strong = false, className = '', children, ...rest }) {
+  const cls = `summary-row${strong ? ' is-strong' : ''} ${className}`.trim();
+  if (!icon)
+    return (
+      <p className={cls} {...rest}>
+        <span className="summary-row-body">{children}</span>
+      </p>
+    );
   return (
-    <p className={`summary-row${strong ? ' is-strong' : ''} ${className}`.trim()} {...rest}>
-      {icon ? <Icon name={iconFor(icon)} size={16} className="summary-icon" /> : null}
-      <span className="summary-row-body">{children}</span>
-    </p>
+    <IconLine concept={icon} className={cls} iconClassName="summary-icon" textClassName="summary-row-body" {...rest}>
+      {children}
+    </IconLine>
   );
 }
 

@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '@/components/ab/Icon.jsx';
+import IconLine from '@/components/ui/IconLine.jsx';
 import { SectionHeading } from '@/components/ui/Card.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from '@/tabs/method/IconText.jsx';
@@ -98,10 +99,9 @@ export default function RelatedWork() {
             </p>
             <ul className="mx-related-figs">
               {figures.map((f, i) => (
-                <li key={i}>
-                  <Icon name={iconFor(f.icon)} size={14} />
-                  <span>{f.text}</span>
-                </li>
+                <IconLine as="li" key={i} concept={f.icon}>
+                  {f.text}
+                </IconLine>
               ))}
             </ul>
           </li>

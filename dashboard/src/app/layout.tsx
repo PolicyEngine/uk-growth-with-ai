@@ -23,6 +23,7 @@ import './items-explore.css';
 import './items-method.css';
 import './households.css';
 import './chart-type.css';
+import './icon-line.css';
 import 'katex/dist/katex.min.css';
 import SiteFooter from '@/components/ab/SiteFooter.jsx';
 import { SITE_HEADER_STYLES, SITE_NAV_ITEMS } from '@/lib/siteNav.js';

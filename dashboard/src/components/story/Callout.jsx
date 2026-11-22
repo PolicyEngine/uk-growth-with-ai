@@ -1,7 +1,6 @@
 'use client';
 
-import Icon from '@/components/ab/Icon.jsx';
-import { iconFor } from '@/lib/concepts.js';
+import IconLine, { IconLineIcon } from '@/components/ui/IconLine.jsx';
 
 // The story's one call-out: a note that sits beside the narrative (which
 // model a part uses, what a result leaves out). Highlight-band background,
@@ -14,14 +13,13 @@ import { iconFor } from '@/lib/concepts.js';
 //   <Callout icon="model" title="A different model">…</Callout>
 export default function Callout({ icon = 'caveat', title, children, className = '', as: Tag = 'aside', ...rest }) {
   return (
-    <Tag className={`story-callout part-callout${title ? ' has-title' : ''} ${className}`} {...rest}>
-      {title ? null : <Icon name={iconFor(icon)} size={18} className="story-callout-icon" />}
+    <Tag className={`story-callout part-callout${title ? ' has-title' : ' icon-line is-ui'} ${className}`} {...rest}>
+      {title ? null : <IconLineIcon concept={icon} className="story-callout-icon" />}
       <div className="story-callout-body">
         {title ? (
-          <p className="story-callout-title">
-            <Icon name={iconFor(icon)} size={16} className="story-callout-title-icon" />
+          <IconLine concept={icon} className="story-callout-title" iconClassName="story-callout-title-icon">
             {title}
-          </p>
+          </IconLine>
         ) : null}
         {children}
       </div>

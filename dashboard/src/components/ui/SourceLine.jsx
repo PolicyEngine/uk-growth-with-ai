@@ -1,6 +1,7 @@
 'use client';
 
 import { isValidElement, useCallback, useEffect, useId, useRef, useState } from 'react';
+import IconLine from '@/components/ui/IconLine.jsx';
 import { createPortal } from 'react-dom';
 import Icon from '@/components/ab/Icon.jsx';
 import { NavLink } from '@/lib/nav.jsx';
@@ -117,10 +118,9 @@ function Item({ it, onNav }) {
 // style, .p2-tx-icon): `icon`, a caveat by default.
 export function Essential({ icon = 'caveat', children }) {
   return children ? (
-    <p className="src-essential" data-essential="">
-      <Icon name={iconFor(icon)} size={12} className="p2-tx-icon" />
+    <IconLine concept={icon} tier="ui" className="src-essential" data-essential="">
       {children}
-    </p>
+    </IconLine>
   ) : null;
 }
 

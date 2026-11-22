@@ -1,6 +1,5 @@
 import { cloneElement, isValidElement } from 'react';
-import Icon from '@/components/ab/Icon.jsx';
-import { iconFor } from '@/lib/concepts.js';
+import IconLine from '@/components/ui/IconLine.jsx';
 
 // One finding in one box (item-18-fable.md): an optional plain icon and a
 // bold lead (title-level, so no full stop: Vahid, 18 Nov; a trailing one in
@@ -26,10 +25,16 @@ export default function Finding({ id, icon, lead, lines = [], note, actions, chi
   return (
     <section className={`finding${layout === 'side' ? ' is-side' : ''} ${className}`.trim()} id={id}>
       <div className="finding-head">
-        <p className="finding-lead" aria-live="polite">
-          {icon ? <Icon name={iconFor(icon)} size={18} className="finding-icon" /> : null}
-          <span>{noStop(lead)}</span>
-        </p>
+        {icon ? (
+          // the shared IconLine, body tier (16px bold lead, 18px icon)
+          <IconLine concept={icon} tier="body" className="finding-lead" iconClassName="finding-icon" aria-live="polite">
+            {noStop(lead)}
+          </IconLine>
+        ) : (
+          <p className="finding-lead" aria-live="polite">
+            <span>{noStop(lead)}</span>
+          </p>
+        )}
         {actions ? <div className="finding-actions">{actions}</div> : null}
       </div>
       {shown.length ? (

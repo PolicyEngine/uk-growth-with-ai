@@ -387,11 +387,7 @@
   list-style: none;
   font-size: var(--fs-small);
 }
-.mx-related-figs li {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-}
+/* .mx-related-figs li: the shared .icon-line (icon-line.css) */
 .mx-lane-unit {
   margin: -2px 0 8px;
   font-size: var(--fs-caption);

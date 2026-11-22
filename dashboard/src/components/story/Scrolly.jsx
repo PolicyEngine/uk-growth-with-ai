@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
+import IconLine, { IconLineIcon } from '@/components/ui/IconLine.jsx';
 import { EntryCtx, FinalState, useActiveStep, useEntry, useIsPhone, useReducedMotion, useSnap } from './motion.js';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
@@ -758,10 +759,9 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   const noteIcons = subObj?.answerNoteIcons ?? [];
   const noteEl = (on) =>
     notes.map((n, i) => (
-      <p key={i} className={`scrolly-takeaway-note${on ? ' is-shown' : ''}`} data-closing="note">
-        <Icon name={iconFor(noteIcons[i] ?? 'caveat')} size={12} className="p2-tx-icon" />
+      <IconLine concept={noteIcons[i] ?? 'caveat'} tier="ui" key={i} className={`scrolly-takeaway-note${on ? ' is-shown' : ''}`} data-closing="note">
         {n}
-      </p>
+      </IconLine>
     ));
   // Where the caption goes: in the frame where the figure is drawn once
   // (phones: the figure, complete, then its cards); with a pinned figure
@@ -852,9 +852,9 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
               aria-current={i === active ? 'step' : undefined}
             >
               {inline ? <InlineCopy graphic={graphic} i={i} reduce={reduce} label={label} highlight={s.highlight} /> : null}
-              <div className={`scrolly-card${s.icon ? ' has-icon' : ''}`}>
+              <div className={`scrolly-card${s.icon ? ' has-icon icon-line is-body' : ''}`}>
                 {s.title ? <TitleTag className="scrolly-title visually-hidden">{s.title}</TitleTag> : null}
-                {s.icon ? <Icon name={iconFor(s.icon)} size={18} className="scrolly-card-icon" /> : null}
+                {s.icon ? <IconLineIcon concept={s.icon} tier="body" className="scrolly-card-icon" /> : null}
                 <div className="scrolly-body">{s.body}</div>
                 {i === lastCard && !capInFrame && !inline && !capAfter ? <div className="scrolly-takeaway-in-step">{takeawayEl}</div> : null}
                 {once ? (

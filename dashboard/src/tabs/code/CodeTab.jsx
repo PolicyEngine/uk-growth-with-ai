@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '@/components/ab/Icon.jsx';
+import IconLine from '@/components/ui/IconLine.jsx';
 import { SET, DATA_FILE } from '@/lib/dataKeys.js';
 import { SURPRISE_YEAR } from '@/tabs/ai/surprise.js';
 import CopyBlock from '@/components/ab/CopyBlock.jsx';
@@ -674,12 +675,9 @@ export default function CodeTab() {
               { icon: 'data', text: 'Build the pages' },
             ]}
           />
-          <p className="updated-stamp">
-            <Icon name="calendar" size={14} />
-            <span>
-              Data last updated <time dateTime={LAST_UPDATED}>{longDate(LAST_UPDATED)}</time>
-            </span>
-          </p>
+          <IconLine icon="calendar" className="updated-stamp">
+            Data last updated <time dateTime={LAST_UPDATED}>{longDate(LAST_UPDATED)}</time>
+          </IconLine>
         </PageIntro>
         <section>
           <SectionHeading id="before" icon={iconFor('prerequisite')} title="Reproduce the results">

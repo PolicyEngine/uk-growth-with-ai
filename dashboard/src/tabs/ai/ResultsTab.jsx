@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import IconLine from '@/components/ui/IconLine.jsx';
 import LineChart from '@/components/LineChart.jsx';
 import Icon from '@/components/ab/Icon.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
@@ -61,10 +62,9 @@ export function VersionLegend({ arms, closure }) {
 export function PendingLine({ names }) {
   if (!names.length) return null;
   return (
-    <p className="icon-line is-muted">
-      <Icon name="hourglass" size={16} />
-      <span>The no-foreign-capital case is not yet solved for: {names.join(', ')}.</span>
-    </p>
+    <IconLine icon="hourglass" className="icon-note is-muted">
+      The no-foreign-capital case is not yet solved for: {names.join(', ')}.
+    </IconLine>
   );
 }
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import IconLine from '@/components/ui/IconLine.jsx';
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import LineChart from '@/components/LineChart.jsx';
@@ -713,18 +714,16 @@ function WhyCard({ icon, lead, bullets = [], stats = [], unit, link, actions }) 
   return (
     <section className="finding why-card">
       <div className="finding-head">
-        <p className="finding-lead">
-          <Icon name={iconFor(icon)} size={18} className="finding-icon" />
-          <span>{noStop(lead)}</span>
-        </p>
+        <IconLine concept={icon} tier="body" className="finding-lead" iconClassName="finding-icon">
+          {noStop(lead)}
+        </IconLine>
         {actions ? <div className="finding-actions">{actions}</div> : null}
       </div>
       <ul className="why-bullets">
         {bullets.slice(0, 2).map((b) => (
-          <li key={b.key}>
-            <Icon name={iconFor(b.icon)} size={16} className="why-bullet-icon" />
-            <span>{b.text}</span>
-          </li>
+          <IconLine as="li" key={b.key} concept={b.icon} iconClassName="why-bullet-icon">
+            {b.text}
+          </IconLine>
         ))}
       </ul>
       <StatPair stats={stats} />
@@ -917,9 +916,9 @@ function Why({ cl, rule, arm }) {
                   ]}
                 />
                 <p className="ex-mi-unit">Share of wealth held by the top tenth</p>
-                <p className="ex-mi-note">
-                  <Icon name={iconFor('limit')} size={14} /> <span>Not like for like: the ONS figure is for households in Great Britain. The model’s is for adults, ranked across age and earnings groups.</span>
-                </p>
+                <IconLine concept="limit" className="ex-mi-note">
+                  Not like for like: the ONS figure is for households in Great Britain. The model’s is for adults, ranked across age and earnings groups.
+                </IconLine>
                 <p className="ex-mi-src" data-cite="">
                   Source: {ext(ONS_TOP_TENTH.url, 'ONS, Household total wealth in Great Britain, April 2018 to March 2020')}
                 </p>

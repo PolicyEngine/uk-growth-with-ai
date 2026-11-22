@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import IconLine from '@/components/ui/IconLine.jsx';
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import { iconFor } from '@/lib/concepts.js';
@@ -264,19 +265,15 @@ export default function TwoLenses() {
         <h2 id="story-close-h">{CLOSE_SUB.title}</h2>
         <ul className="close-recap">
           {CLOSE_RECAP.map((r) => (
-            <li key={r.id}>
-              <Icon name={iconFor(r.icon)} size={16} strokeWidth={1.8} className="close-ic" />
-              <span>
-                <strong>{r.name}</strong>: {r.rest} <span className="close-when">{r.when}</span>
-                {r.end} {r.why}
-              </span>
-            </li>
+            <IconLine as="li" key={r.id} concept={r.icon} tier="body" iconClassName="close-ic">
+              <strong>{r.name}</strong>: {r.rest} <span className="close-when">{r.when}</span>
+              {r.end} {r.why}
+            </IconLine>
           ))}
         </ul>
-        <p className="close-why">
-          <Icon name={iconFor('compare')} size={12} className="p2-tx-icon" />
+        <IconLine concept="compare" tier="body" className="close-why">
           {CLOSE_WHY}
-        </p>
+        </IconLine>
       </header>
       <figure
         ref={ref}

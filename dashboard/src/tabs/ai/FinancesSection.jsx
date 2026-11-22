@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
+import NoteLine from '@/components/ui/IconLine.jsx';
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import Card, { SectionHeading, IconLine, cardSources } from '@/components/ui/Card.jsx';
@@ -251,12 +252,11 @@ function TaxStrip({ model, uk, onChart }) {
         </span>
       </div>
       {onChart && model != null ? (
-        <p className="ex-taxlink">
-          <Icon name={iconFor('link')} size={14} />
+        <NoteLine concept="link" className="ex-taxlink">
           <a href="#tax-gdp" onMouseEnter={flag(true)} onMouseLeave={flag(false)} onFocus={flag(true)} onBlur={flag(false)}>
             Its value: the main-version end point of the Tax/GDP chart
           </a>
-        </p>
+        </NoteLine>
       ) : null}
       <div className="ex-taxrow">
         <span className="ex-taxlabel">
@@ -283,9 +283,9 @@ function TaxStrip({ model, uk, onChart }) {
           ))}
         </span>
       </div>
-      <p className="ex-roughchip">
-        <Icon name={iconFor('arithmetic')} size={14} /> Rough scaling, not a model run
-      </p>
+      <NoteLine concept="arithmetic" className="ex-roughchip">
+        Rough scaling, not a model run
+      </NoteLine>
     </div>
   );
 }

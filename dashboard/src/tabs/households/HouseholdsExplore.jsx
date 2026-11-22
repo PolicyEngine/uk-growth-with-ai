@@ -1,9 +1,9 @@
 'use client';
 
 import { Fragment } from 'react';
+import IconLine from '@/components/ui/IconLine.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import Legend from '@/components/ui/Legend.jsx';
-import { Tx } from '@/tabs/story/part2/frame.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { ModelLine, PageNotes } from '@/components/ui/PageIntro.jsx';
 import { linkAiFiles } from '@/tabs/explore/sources.jsx';
@@ -906,13 +906,11 @@ function Rankings() {
             );
           })}
         </div>
-        <p className="hh-note" data-caveat="bottom-decile">
-          {/* the inline icon pattern through Tx: this file names raw lucide
-              icons in its section list, so it takes no concept helper */}
-          <Tx icon="caveat" size={12}>
-            Decile 1, grey: its direction depends on how households are ranked, so no conclusion is drawn.
-          </Tx>
-        </p>
+        {/* the shared IconLine takes the concept itself: this file names
+            raw lucide icons in its section list, so it names no concept helper */}
+        <IconLine concept="caveat" className="hh-note" data-caveat="bottom-decile">
+          Decile 1, grey: its direction depends on how households are ranked, so no conclusion is drawn.
+        </IconLine>
       </div>
     </Card>
   );

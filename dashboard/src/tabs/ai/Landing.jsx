@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '@/components/ab/Icon.jsx';
+import IconLine from '@/components/ui/IconLine.jsx';
 import { InfoTip, TipTarget } from '@/components/ab/Tip.jsx';
 import { Notice } from '@/components/ab/Section.jsx';
 import { StatTile } from '@/components/ui/Card.jsx';
@@ -305,8 +306,7 @@ export function LateLine({ sid, cl, className }) {
   const w = lateWords(sid, cl);
   if (!w) return null;
   return (
-    <p className={className} data-claim="late-year">
-      <Icon name={iconFor('path')} size={12} className="p2-tx-icon" />
+    <IconLine concept="path" tier="ui" className={className} data-claim="late-year">
       {w.parts.map((p, i) =>
         p.path ? (
           <span key={i} className="hf-num" data-path={p.path}>
@@ -316,7 +316,7 @@ export function LateLine({ sid, cl, className }) {
           p.text
         ),
       )}
-    </p>
+    </IconLine>
   );
 }
 export function ConsumptionLine({ sid }) {

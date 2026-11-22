@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import IconLine from '@/components/ui/IconLine.jsx';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { setStyle, subscribe } from '@/lib/scrollLoop.js';
@@ -293,18 +294,17 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
 
 // A scene's one closing line: a takeaway caption inside its figure frame
 // (typography spec, 17 Nov, option b), directly under the plot. It leads
-// with the answer icon (Vahid, 21 Nov: "all text should have icon"; the
-// inline Tx style, .p2-tx-icon); the text in the three greys. Never
+// with the answer icon (Vahid, 21 Nov: "all text should have icon"), in
+// the shared IconLine (body tier: the step cards' 18px column); the text in the three greys. Never
 // hidden from innerText (opacity only), so the number checks see the same
 // text at any scroll. `to` (the figure's home) is not a link; it marks the
 // line data-axis: it restates a figure printed there.
 // eslint-disable-next-line no-unused-vars
 export function Answer({ question, answer, to, shown = true }) {
   return (
-    <p className={`scrolly-takeaway${shown ? ' is-shown' : ''}`} data-closing="" data-axis={to != null ? '' : undefined}>
-      <Icon name={iconFor('answer')} size={14} className="p2-tx-icon" />
+    <IconLine concept="answer" tier="body" className={`scrolly-takeaway${shown ? ' is-shown' : ''}`} data-closing="" data-axis={to != null ? '' : undefined}>
       {answer}
-    </p>
+    </IconLine>
   );
 }
 

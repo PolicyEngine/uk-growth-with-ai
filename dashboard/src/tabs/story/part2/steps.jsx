@@ -205,11 +205,12 @@ export function whoCardSteps() {
       highlight: ['cohort-adults'],
       body: (
         <>
-          {/* the rule switch first (Maria's round, M1), as the step's note;
-              the step's one sentence is where gains peak, and why */}
-          <Note>Here the government passes the shock&rsquo;s budget gain or cost to households as transfers, so debt stays on the forecast path.</Note>
+          {/* the finding first, beside the card's icon (Vahid, 22 Nov: the
+              note above it read upside down); the rule switch (Maria's
+              round, M1) after it, as the step's small grey note */}
           <Say>{whoLead() ?? 'Gains and losses differ by birth year.'}</Say>
           {cohortNotice() ? <Say>{cohortNotice()}</Say> : null}
+          <Note>Here budget gains or costs pass to households as transfers, so debt stays on the forecast path.</Note>
         </>
       ),
     },
