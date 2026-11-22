@@ -379,7 +379,7 @@
 .ref-read {
   display: block;
   margin-top: 4px;
-  font-size: var(--t-meta);
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-600);
 }
 .ref-list a[target='_blank'] .ref-key:last-child::after,
@@ -425,7 +425,7 @@
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
-  font-size: var(--t-meta);
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-600);
   overflow-wrap: anywhere;
 }
@@ -435,7 +435,7 @@
 }
 .cite-foot-link {
   margin: 8px 0 0;
-  font-size: var(--t-meta);
+  font-size: var(--chart-fs-tick);
 }
 .cite-foot-link a {
   display: inline-flex;

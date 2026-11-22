@@ -40,7 +40,7 @@
 }
 .mx-tab .mx-facts-row .story-fact-value,
 .hm-page .mx-facts-row .story-fact-value {
-  font-size: 1.5rem;
+  font-size: var(--t-title);
 }
 
 /* household method: item lists in place of paragraphs */
@@ -108,7 +108,7 @@
 /* a sub-section heading inside a section (Scenarios: the scenarios, arms, timing) */
 .mx-tab .mx-subhead h3 {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: var(--chart-fs-head);
 }
 .mx-tab .mx-scenarios {
   display: block;
@@ -240,7 +240,7 @@
    style, as text */
 p.mx-axis-title {
   margin: 4px 0;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   font-weight: 500;
   color: var(--c-axis-title);
 }
@@ -264,7 +264,7 @@ p.mx-axis-title.is-x {
   align-items: center;
   gap: 0 4px;
   margin: -4px 0 16px;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-600);
 }
 .mx-uses-icon {
@@ -277,7 +277,7 @@ p.mx-axis-title.is-x {
 }
 .mx-foot-line {
   margin: 12px 0 24px;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-600);
 }
 
@@ -293,7 +293,7 @@ p.mx-axis-title.is-x {
 /* the source type: coloured text, no pill (round 1 de-clutter) */
 .mx-kind {
   display: inline;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   line-height: 1.4;
 }
@@ -325,12 +325,12 @@ p.mx-axis-title.is-x {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 14px;
+  font-size: var(--t-ui);
 }
 .mx-inputs-table thead th {
   padding: 6px 10px 6px 0;
   border-bottom: 1px solid var(--pe-gray-300, #d0d5dd);
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   text-align: left;
   color: var(--pe-gray-600);
@@ -342,7 +342,7 @@ p.mx-axis-title.is-x {
   padding: 16px 0 6px;
   border-bottom: 1px solid var(--pe-gray-200);
   background: var(--pe-color-bg-primary, #fff);
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   text-align: left;
   color: var(--pe-gray-600);
@@ -408,7 +408,7 @@ p.mx-axis-title.is-x {
 .mx-inputs-short {
   display: block;
   margin-top: 2px;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-600);
 }
 .mx-inputs-v {
@@ -416,12 +416,12 @@ p.mx-axis-title.is-x {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
-.mx-inputs-src { font-size: 12px; }
+.mx-inputs-src { font-size: var(--chart-fs-tick); }
 .mx-inputs-more { color: var(--pe-gray-500); }
 .mx-inputs-detail td {
   padding: 0 0 12px;
   border-bottom: 1px solid var(--pe-gray-100);
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-700, #344054);
 }
 .mx-inputs-detail p {
@@ -429,7 +429,7 @@ p.mx-axis-title.is-x {
   margin: 0 0 6px;
 }
 .mx-inputs-file { color: var(--pe-gray-600); }
-.mx-inputs-foot { margin-top: 10px; font-size: 12px; }
+.mx-inputs-foot { margin-top: 10px; font-size: var(--chart-fs-tick); }
 .mx-inputs-table .visually-hidden { position: absolute; }
 @media (prefers-reduced-motion: reduce) {
   .mx-chev { transition: none; }
@@ -479,7 +479,7 @@ p.mx-axis-title.is-x {
   max-width: 78ch;
   margin: 0;
   padding: 0 0 0 18px;
-  font-size: 14px;
+  font-size: var(--t-ui);
   line-height: 1.5;
   color: var(--pe-gray-700);
 }
@@ -490,7 +490,7 @@ p.mx-axis-title.is-x {
 .mx-limit-para {
   max-width: 78ch;
   margin: 8px 0 0;
-  font-size: 14px;
+  font-size: var(--t-ui);
   line-height: 1.5;
   color: var(--pe-gray-700);
 }
@@ -561,7 +561,7 @@ p.mx-axis-title.is-x {
   margin: 8px 0 4px;
 }
 .mx-rule-stats .why-stat-value {
-  font-size: 22px;
+  font-size: var(--t-topic);
 }
 @media (max-width: 480px) {
   .mx-rule-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -582,7 +582,7 @@ p.mx-axis-title.is-x {
   align-items: center;
   gap: 6px;
   margin: 0 0 6px;
-  font-size: 1rem;
+  font-size: var(--chart-fs-head);
   font-weight: 600;
 }
 .mx-limit-head svg { color: var(--pe-gray-500); }
@@ -608,7 +608,7 @@ p.mx-axis-title.is-x {
   margin: 0;
 }
 .mx-ov-dl dt {
-  font-size: var(--t-meta);
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   color: var(--pe-gray-500);
 }
@@ -616,7 +616,7 @@ p.mx-axis-title.is-x {
   margin: 2px 0 0;
 }
 .mx-ov-meta {
-  font-size: var(--t-meta);
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-500);
 }
 .mx-ov-link {
@@ -653,7 +653,7 @@ p.mx-axis-title.is-x {
   min-width: 0;
 }
 .mx-inputs-find label {
-  font-size: var(--t-meta);
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   color: var(--pe-gray-600);
   white-space: nowrap;
@@ -675,7 +675,7 @@ p.mx-axis-title.is-x {
 }
 .mx-inputs-n {
   margin: 0 0 8px;
-  font-size: var(--t-meta);
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-600);
 }
 .mx-inputs-clear {
@@ -689,7 +689,7 @@ p.mx-axis-title.is-x {
   cursor: pointer;
 }
 .mx-inputs-part {
-  font-size: var(--t-meta);
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-600);
   white-space: nowrap;
 }
@@ -741,7 +741,7 @@ p.mx-axis-title.is-x {
   justify-content: center;
   width: 22px;
   height: 22px;
-  font-size: var(--t-meta);
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   color: var(--pe-gray-700);
   border: 1px solid var(--pe-gray-300);
@@ -804,7 +804,7 @@ p.mx-axis-title.is-x {
 }
 .mx-setting-heads {
   padding: 8px 12px;
-  font-size: var(--t-meta);
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   color: var(--pe-gray-500);
   border-bottom: 1px solid var(--card-border);
@@ -935,7 +935,7 @@ p.mx-axis-title.is-x {
   white-space: nowrap;
 }
 .mx-sens thead th {
-  font-size: var(--t-meta);
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   color: var(--pe-gray-500);
   white-space: normal;
@@ -957,7 +957,7 @@ p.mx-axis-title.is-x {
 }
 .mx-sens-group th {
   padding-top: 14px;
-  font-size: var(--t-meta);
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   text-align: left;
   color: var(--pe-gray-600);
@@ -1120,4 +1120,35 @@ p.mx-axis-title.is-x {
 }
 @media (max-width: 600px) {
   .mx-code .card-grid.mx-start { gap: var(--gap-card-phone); }
+}
+
+/* One gap token on every Method page (Method redesign, section 9):
+   --gap-card between cards (--gap-card-phone at 600px and below),
+   --gap-block between sections, in place of the literal gaps */
+.mx-tab .card-grid,
+.mx-tab .cards-grid,
+.hm-page .card-grid,
+.hm-page .card-grid.cols-2,
+.mx-code .cards-grid {
+  gap: var(--gap-card);
+}
+.mx-tab .page-body > section + section > .section-heading,
+.mx-tab .page-body > .cite-foot {
+  margin-top: var(--gap-block);
+}
+.mx-tab .page-body > section + section.caution-panel,
+.mx-tab .page-body > section.caution-panel + section {
+  margin-top: var(--gap-block);
+}
+.mx-tab .page-body > section.caution-panel > .section-heading {
+  margin-top: 0;
+}
+@media (max-width: 600px) {
+  .mx-tab .card-grid,
+  .mx-tab .cards-grid,
+  .hm-page .card-grid,
+  .hm-page .card-grid.cols-2,
+  .mx-code .cards-grid {
+    gap: var(--gap-card-phone);
+  }
 }
