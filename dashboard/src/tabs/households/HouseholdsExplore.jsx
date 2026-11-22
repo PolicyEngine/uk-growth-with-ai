@@ -115,6 +115,19 @@ export function takeupBoundWords() {
   if (!c || !vs.length || !vs.every((r) => r.cost_bn > c.cost_bn && r.poverty_pp < c.poverty_pp)) return [];
   return ['With the data’s take-up decisions, the main-case poverty rise is an upper bound; its cost is not.'];
 }
+// Card 7's caveat (Fable round 7, S5): the two UC changes reach every
+// claimant, the displaced or not; wage insurance only the displaced. The
+// study exports no split of their effects, so none is printed. [] unless
+// both kinds of response are in the data.
+export function policyReachWords(rows = D.policy.rows) {
+  const wi = rows.some((r) => r.reform === 'R1_wage_insurance');
+  const uc = rows.filter((r) => r.reform !== 'R1_wage_insurance' && /Universal Credit|UC/.test(r.label)).length;
+  if (!wi || uc < 1) return [];
+  return [
+    `The ${uc === 2 ? 'two ' : ''}UC change${uc === 1 ? '' : 's'} apply to every UC claimant, not only the displaced; wage insurance is paid only to the displaced.`,
+    'So part of the UC changes’ cost and fall in poverty is among claimants who were not displaced; the study does not split it.',
+  ];
+}
 export function policyWords(main) {
   const all = main.every((r) => r.poverty_pp < 0 && r.gini_pp < 0);
   return all ? 'Each response lowers poverty and the Gini; their costs differ' : 'The responses differ in cost and in what they do to poverty and the Gini';
@@ -914,12 +927,9 @@ function Policy() {
       title={policyWords(main)}
       lead={
         <Lead>
-          {[
-            <>
-              The costs run from <Ax>{fmtBn(Math.min(...costs))}</Ax> to <Ax>{fmtBn(Math.max(...costs))}</Ax> a year.
-            </>,
-            'Wage insurance is costed gross; the two Universal Credit (UC) changes are costed net of withdrawal elsewhere.',
-          ]}
+          <>
+            The costs run from <Ax>{fmtBn(Math.min(...costs))}</Ax> to <Ax>{fmtBn(Math.max(...costs))}</Ax> a year.
+          </>
         </Lead>
       }
       unit={<span data-axis-title="y">Cost, £bn a year; poverty, pp; Gini, points</span>}
@@ -936,8 +946,14 @@ function Policy() {
         },
       }}
       about={about({
-        how: ['Each response is simulated on top of the main-case shock.', 'Poverty lines are held at their shocked values.', 'Wage insurance is an untaxed transfer that means tests ignore.'],
-        caveats: ['The designs are the study’s own.', 'They differ in aim, take-up and administration.', 'Compared on cost, poverty and the Gini only; not ranked.'],
+        how: [
+          'Each response is simulated on top of the main-case shock.',
+          'Poverty lines are held at their shocked values.',
+          'Wage insurance is an untaxed transfer that means tests ignore.',
+          'Wage insurance is costed gross; the two Universal Credit (UC) changes are costed net of withdrawal elsewhere.',
+          'The indented rows are wage insurance again, under the other two displacement rules.',
+        ],
+        caveats: ['The designs are the study’s own.', ...policyReachWords(P.rows), 'They differ in aim, take-up and administration.', 'Compared on cost, poverty and the Gini only; not ranked.'],
         sources: [`${P.file}: ${P.key}`],
       })}
     >

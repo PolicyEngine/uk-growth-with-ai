@@ -94,8 +94,11 @@
   font-weight: 600;
   color: var(--pe-gray-900);
 }
+/* a sub-row (the policy card's wage insurance under the other rules,
+   push D, Q8.6): indented under its parent row, with a hairline on its left */
 .hh-tbl tr.is-sub .hh-tbl-label {
   padding-left: 1.2em;
+  box-shadow: inset 2px 0 0 var(--card-border);
   font-size: var(--chart-fs-tick);
   color: var(--pe-gray-500);
 }
@@ -316,6 +319,15 @@
   }
   .hh-tblwrap:not(.is-inline) .hh-tbl tbody tr:not(.hh-tbl-group) {
     padding: 4px 0;
+  }
+  /* narrow: the whole sub-row sits indented under its parent */
+  .hh-tblwrap:not(.is-inline) .hh-tbl tbody tr.is-sub {
+    margin-left: 1.2em;
+    box-shadow: inset 2px 0 0 var(--card-border);
+  }
+  .hh-tblwrap:not(.is-inline) .hh-tbl tbody tr.is-sub .hh-tbl-label {
+    padding-left: 0.6em;
+    box-shadow: none;
   }
   .hh-tblwrap:not(.is-inline) .hh-tbl tbody tr:not(.hh-tbl-group) > td:nth-child(2):not(.hh-tbl-bar) {
     grid-column: 2;

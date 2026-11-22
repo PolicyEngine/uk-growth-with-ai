@@ -166,6 +166,32 @@ describe('HouseholdsExplore', () => {
     for (const s of sets) expect(s.querySelector('table').getAttribute('aria-label')).toBe(flat(s.querySelector('.hh-set-head')));
   });
 
+  // push D, Q8.2 (Vahid: "less text, go to more info if needed"): the
+  // title, at most one short lead line, the chart, one unit line
+  it('keeps each card to a title, at most one short lead line and one unit line', () => {
+    const { container } = render(<HouseholdsExplore />);
+    for (const card of container.querySelectorAll('article.card')) {
+      const lead = card.querySelectorAll('.card-lead .hh-lead-s');
+      expect(lead.length, card.id).toBeLessThanOrEqual(1);
+      if (lead.length) expect(words(flat(lead[0])), card.id).toBeLessThanOrEqual(25);
+      expect(card.querySelectorAll('.card-unit'), card.id).toHaveLength(1);
+    }
+    // moved to More info, not dropped
+    const fold = (id) => container.querySelector(`#${id} [data-more-info]`).textContent;
+    expect(fold('hh-rules')).toMatch(/top-loaded extreme case costs/);
+    expect(fold('hh-ladder')).toMatch(/Wage cuts of the same gross size/);
+    expect(fold('hh-per-pound')).toMatch(/On one draw \(seed 0\)/);
+    expect(fold('hh-policy')).toMatch(/costed gross/);
+    // Fable round 7, S5: the UC changes' reach, in the policy card's caveats
+    expect(fold('hh-policy')).toMatch(/apply to every UC claimant, not only the displaced; wage insurance is paid only to the displaced/);
+    expect(fold('hh-policy')).toMatch(/the study does not split it/);
+    // push D, Q8.6: wage insurance's other rules sit indented under it
+    const rows = [...container.querySelectorAll('#hh-policy tbody tr[data-row]')];
+    rows.forEach((r, k) => {
+      if (r.classList.contains('is-sub')) expect(rows[k - 1].dataset.row.startsWith('R1_wage_insurance'), r.dataset.row).toBe(true);
+    });
+  });
+
   it('keeps the OBR-sized runs a separate group: no arrow joins the groups', () => {
     const obr = (id) => id.startsWith('obr');
     for (const [a, b] of VARIANT_ARROWS) expect(obr(a)).toBe(obr(b));
