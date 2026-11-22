@@ -88,7 +88,11 @@ const JUMP = process.env.JUMP ?? '1';
 for (const [W, H] of JUMP === 'only' || process.env.SANKEY === 'only' || process.env.HOLDS === '0' ? [] : sizes) {
   const page = await (await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: process.env.MOTION === '1' ? 'no-preference' : 'reduce' })).newPage();
   await page.goto(base + '/', { waitUntil: 'networkidle' });
-  await page.waitForTimeout(400);
+  // the walk never touches the page, so for RESTORE ms (2500,
+  // lib/scrollLoop.js) after the loop starts every move reads as the
+  // browser's scroll restoration, a landing: wait it out, so the walk
+  // measures a reader's scroll (Fable 5.2, fix list 11)
+  await page.waitForTimeout(2600);
   const blocks = await page.evaluate(() =>
     [...document.querySelectorAll('.scrolly')]
       .filter((s) => !/is-single|is-once|is-inline/.test(s.className))
