@@ -85,13 +85,23 @@ def signed2(x):
 
 def hero_expected(sid, cl='zk0.1'):
     """The hero (#story-hero, Hero.jsx, central closure): the chosen
-    scenario's three 2031 gaps, GDP, the pay rate and national income (NNI,
-    M1), with GNI beside NNI ("before depreciation") (their home is part 2's
-    headline ledger; the hero repeats them, same data path and format), and
-    each scenario's 2031 GDP gap on its line's end label (main arm)."""
+    scenario's headline-year gaps, GDP, the pay rate and national income
+    (NNI, M1), with GNI beside NNI ("before depreciation") (their home is
+    part 2's headline ledger; the hero repeats them, same data path and
+    format), and each scenario's headline-year GDP gap on its line's end
+    label (main arm). When the late year is not the headline year, the
+    hero's late line (Landing.jsx lateWords) adds GDP, national income and
+    the pay rate in the late year: all three, or none while any is
+    missing."""
     i = SUR['years'].index(SUR['headline_year'])
     r = SUR['results'][sid]['tfp'][cl]
     own = [signed2(r['gaps'][v][i]) for v in ('Y', 'w', 'NNI', 'GNI') if r['status'] == 'done' and r['gaps'].get(v)]
+    late = SUR.get('late_year')
+    if late is not None and late != SUR['headline_year'] and r['status'] == 'done':
+        j = SUR['years'].index(late)
+        lv = [(r['gaps'].get(v) or [None] * (j + 1))[j] for v in ('Y', 'NNI', 'w')]
+        if all(x is not None for x in lv):
+            own += [signed2(x) for x in lv]
     gap = lambda s: SUR['results'][s]['tfp'][cl]['gaps']['Y'][i]
     return Counter(own + [signed2(gap(s)) for s in SCEN if SUR['results'][s]['tfp'][cl]['status'] == 'done'])
 
