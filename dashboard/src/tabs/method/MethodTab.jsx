@@ -14,7 +14,7 @@ import IconText from './IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { METHOD, MEASURE, RULES as RULE_NAMES, MACRO_ABOUT_CAP } from '@/lib/labels.js';
 import { ADOPTION, ADOPTION_YEAR, CALENDAR, overlapShares, pctRange, tfpInput } from '@/lib/obrOverlap.js';
-import { S, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, foreignShareOf } from '@/tabs/ai/surprise.js';
+import { S, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, foreignShareOf, signed } from '@/tabs/ai/surprise.js';
 import { SET } from '@/lib/dataKeys.js';
 import { REPO, URLS, issue, pr } from '@/tabs/ai/links.js';
 import { METHOD_FACTS as F } from '@/lib/dataKeys.js';
@@ -22,7 +22,7 @@ import { ext } from '../shared/ui.jsx';
 import ModelDiagram, { flowTable, diagramSvg } from './ModelDiagram.jsx';
 import Cohorts from './Cohorts.jsx';
 import { ArmsPart, InputsPart, ScenariosPart, SubHead, TimingPart } from './ScenariosSection.jsx';
-import { investStepLine } from './investStep.js';
+import { investStep } from './investStep.js';
 import UsedBy from './UsedBy.jsx';
 import { SRC } from './sources.js';
 
@@ -160,10 +160,12 @@ const RULE_TEXT = {
     id: 'rule-default',
     icon: 'rule',
     tag: 'Default: every solve, and Explore unless you choose another',
+    // the rule in two lines (push D, Q9.5), then what happens in the debt
+    // rule's first year and UK central's figures (step), then the rest
+    rule: [{ icon: 'finances', text: 'Government consumption and transfers are fixed shares of GDP.' }],
+    // M11: the step in the debt rule's first year (only while the data shows it)
+    step: investStep(),
     items: [
-      // M11: the step in the debt rule's first year (only while the data shows it)
-      ...(investStepLine() ? [{ icon: 'jump', text: investStepLine() }] : []),
-      { icon: 'finances', text: 'Government consumption and transfers are fixed shares of GDP.' },
       { icon: 'rule', text: <>A modelling choice, against the macro model&rsquo;s default of 4 ({ext(SRC.tg1.url, 'tG1 = 10')}).</> },
       { icon: 'timing', text: `So debt is quoted for ${HEADLINE_YEAR} and ${LATE_YEAR}.` },
     ],
@@ -191,8 +193,77 @@ const NOTE_ICON = { common: 'path', fixed: 'finances', dn: 'households' };
 const RULES = RULE_NAMES.map((r) => ({
   ...RULE_TEXT[r.id],
   title: r.label,
-  items: [{ icon: NOTE_ICON[r.id], text: `${r.note}.` }, ...RULE_TEXT[r.id].items],
+  rule: [{ icon: NOTE_ICON[r.id], text: `${r.note}.` }, ...(RULE_TEXT[r.id].rule ?? [])],
 }));
+
+// One fiscal-rule card (push D, Q9.5; Vahid: "better ui"): the same
+// template for every rule and for how debt is repriced, in one even grid:
+// a kicker, the rule as a short list, then, for the common rule, what
+// happens in the debt rule's first year and UK central's stat row (every
+// value from the data, the years from the constants), then the remaining
+// lines. A sentence over 12 words is a short paragraph (check_text).
+const sentences = (xs) =>
+  xs.flatMap((it) =>
+    longItem(it)
+      ? it.text.split(/(?<=\.) (?=[A-Z])/).map((t) => (
+          <p key={t} className="mx-card-para">
+            {t}
+          </p>
+        ))
+      : [],
+  );
+function RuleCard({ r }) {
+  const st = r.step;
+  return (
+    <InfoCard id={r.id} icon={iconFor(r.icon)} title={r.title} className="mx-card mx-rule-card">
+      {r.tag ? (
+        <p className="mx-kicker">
+          <IconText icon="link">{r.tag}</IconText>
+        </p>
+      ) : null}
+      <Items items={r.rule.filter((it) => !longItem(it))} />
+      {sentences(r.rule)}
+      {st ? (
+        <div className="mx-rule-step" data-step={st.late}>
+          <p className="mx-rule-step-head">
+            <IconText icon="jump">In {st.late}, the debt rule&rsquo;s first year</IconText>
+          </p>
+          <p className="mx-card-para">Investment steps up again. AI has left debt above the forecast path, so the rule cuts government spending by more, and investment rises.</p>
+          <dl className="why-stats mx-rule-stats" aria-label="UK central, against the forecast path">
+            <div className="why-stat">
+              <dt className="why-stat-label">UK central: investment, {st.prev}</dt>
+              <dd className="why-stat-value">{signed(st.iPrev, 1)}%</dd>
+            </div>
+            <div className="why-stat">
+              <dt className="why-stat-label">Investment, {st.late}</dt>
+              <dd className="why-stat-value">{signed(st.iLate, 1)}%</dd>
+            </div>
+            <div className="why-stat">
+              <dt className="why-stat-label">Debt, % of GDP, {st.late}</dt>
+              <dd className="why-stat-value">{signed(st.dLate, 1)}pp</dd>
+            </div>
+          </dl>
+        </div>
+      ) : null}
+      {r.items?.length ? <Items items={r.items.filter((it) => !longItem(it))} /> : null}
+      {sentences(r.items ?? [])}
+    </InfoCard>
+  );
+}
+const DEBT_CARD = {
+  id: 'm-debt',
+  icon: 'interest',
+  title: 'How debt is repriced',
+  rule: [
+    { icon: 'interest', text: 'All model debt is one-year: a rate rise reprices the whole stock.' },
+    { icon: 'finances', text: 'UK gilts reprice more slowly.' },
+  ],
+  items: [
+    { icon: 'limit', text: <>So the model overstates the rise in debt/GDP after {HEADLINE_YEAR}.</> },
+    { icon: 'check', text: <>Repriced at the OBR&rsquo;s ready-reckoner speed: {ext(pr(43), 'PR #43')}.</> },
+    { icon: 'source', text: <>That speed: {cite('efoOct')}.</> },
+  ],
+};
 
 // OG-UK's gap between the effective tax rates on labour and on gross
 // capital income, some foreign capital (as Explore > Finances reads it)
@@ -497,37 +568,13 @@ export default function MethodTab() {
             <IconText icon="rule">How the budget adjusts, and how debt responds to the interest rate.</IconText>
           </SectionHeading>
           <UsedBy id="m-rules" />
-          <FoldGrid className="card-grid mx-rules">
-            {RULES.map((r) => (
-              <InfoCard key={r.id} id={r.id} icon={iconFor(r.icon)} title={r.title} className="mx-card">
-                <p className="mx-kicker">
-                  <IconText icon="link">{r.tag}</IconText>
-                </p>
-                <Items items={r.items.filter((it) => !longItem(it))} />
-                {r.items.filter(longItem).flatMap((it) =>
-                  // one paragraph a sentence (a paragraph is at most 25 words)
-                  it.text.split(/(?<=\.) (?=[A-Z])/).map((t) => (
-                    <p key={t} className="mx-card-para">
-                      {t}
-                    </p>
-                  )),
-                )}
-              </InfoCard>
+          {/* the three rules and how debt is repriced: one template, one even
+              2 × 2 grid (push D, Q9.5) */}
+          <div className="card-grid cols-2 mx-rules">
+            {[...RULES, DEBT_CARD].map((r) => (
+              <RuleCard key={r.id} r={r} />
             ))}
-          </FoldGrid>
-          <FoldGrid className="card-grid cols-2">
-            <InfoCard icon={iconFor('interest')} title="How debt is repriced" className="mx-card" id="m-debt">
-              <Items
-                items={[
-                  { icon: 'interest', text: 'All model debt is one-year: a rate rise reprices the whole stock.' },
-                  { icon: 'finances', text: 'UK gilts reprice more slowly.' },
-                  { icon: 'limit', text: <>So the model overstates the rise in debt/GDP after {HEADLINE_YEAR}.</> },
-                  { icon: 'check', text: <>Repriced at the OBR&rsquo;s ready-reckoner speed: {ext(pr(43), 'PR #43')}.</> },
-                  { icon: 'source', text: <>That speed: {cite('efoOct')}.</> },
-                ]}
-              />
-            </InfoCard>
-          </FoldGrid>
+          </div>
         </section>
 
         <section>

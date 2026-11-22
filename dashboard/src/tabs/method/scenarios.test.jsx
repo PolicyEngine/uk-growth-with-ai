@@ -112,4 +112,24 @@ describe('Scenarios direction icons', () => {
       expect(first.tagName.toLowerCase() === 'svg' || !!first.querySelector('svg'), h).toBe(true);
     }
   });
+  // push D, Q9.5: the fiscal rules and debt repricing share one template
+  // in an even grid; the common rule shows its first-year step from the data
+  it('lays the fiscal rules out as four cards of one template, the common rule with UK central’s stat row', async () => {
+    const { investStep } = await import('./investStep.js');
+    const { signed, LATE_YEAR } = await import('@/tabs/ai/surprise.js');
+    const { container } = render(<MethodTab />);
+    const grid = container.querySelector('#m-rules').closest('section').querySelector('.card-grid.mx-rules');
+    const cards = [...grid.children];
+    expect(cards.map((c) => c.id)).toEqual(['rule-default', 'rule-fixed', 'rule-dn', 'm-debt']);
+    for (const c of cards) expect(c.classList.contains('mx-rule-card'), c.id).toBe(true);
+    const st = investStep();
+    const step = container.querySelector('#rule-default .mx-rule-step');
+    if (!st) expect(step).toBeNull();
+    else {
+      expect(st.late).toBe(LATE_YEAR);
+      expect([...step.querySelectorAll('.why-stat-value')].map((d) => d.textContent)).toEqual([`${signed(st.iPrev, 1)}%`, `${signed(st.iLate, 1)}%`, `${signed(st.dLate, 1)}pp`]);
+      expect([...step.querySelectorAll('.why-stat-label')].map((d) => d.textContent)).toEqual([`UK central: investment, ${st.prev}`, `Investment, ${st.late}`, `Debt, % of GDP, ${st.late}`]);
+    }
+    for (const c of cards.slice(1)) expect(c.querySelector('.mx-rule-step'), c.id).toBeNull();
+  });
 });

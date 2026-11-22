@@ -223,8 +223,8 @@
     display: none;
   }
 }
-/* Method: the three fiscal rule cards keep their own heights */
-.card-grid.mx-rules,
+/* Method: the fiscal rule cards (push D, Q9.5) are one even grid; the
+   generation cards keep their own heights */
 .card-grid.mx-gen-grid {
   align-items: start;
 }
@@ -539,3 +539,27 @@ p.mx-axis-title.is-x {
 /* a closed input group's other rows (push D, Q9.2c): hidden at every
    width, though the phone layout sets the rows' display */
 .mx-inputs-table .mx-inputs-row[hidden] { display: none !important; }
+
+/* a fiscal rule card's step in the debt rule's first year (push D, Q9.5):
+   a small head, a sentence, then UK central's three figures in the
+   Who tab's stat-row pattern (items-explore.css .why-stats) */
+.mx-rule-step {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--card-border);
+}
+.mx-rule-step-head {
+  margin: 0 0 4px;
+  font-weight: 600;
+  font-size: var(--fs-small);
+}
+.mx-rule-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 8px 0 4px;
+}
+.mx-rule-stats .why-stat-value {
+  font-size: 22px;
+}
+@media (max-width: 480px) {
+  .mx-rule-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
