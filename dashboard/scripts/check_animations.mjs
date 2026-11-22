@@ -19,6 +19,10 @@
 // Under reduced motion nothing is checked here (check_states draws every
 // state there). Looping decorations (an infinite animation) are ignored.
 //
+// Text probe (TEXT=1 after the checks above, TEXT=only alone; Fable 5.2
+// final calls, fix 5): see the block at the end. Off by default, so the
+// output above is unchanged without it.
+//
 //   bun scripts/check_animations.mjs http://localhost:4360 [width height]
 //   (default 1280 800). ONLY=a,b runs the figures whose name or block
 //   contains a or b. Exits 1 on a miss.
@@ -100,9 +104,10 @@ const report = (ok, name, msg) => {
   console.log(`${ok ? 'ok  ' : 'MISS'} ${name}: ${msg}`);
 };
 
+const TEXT = process.env.TEXT ?? '';
 // the hero, from load: its first frame is the final one (round 1, 696d773:
 // "no count-up, no draw-in or fade"), so it must not move
-{
+if (TEXT !== 'only') {
   const page = await ctx.newPage();
   await page.goto(base + '/', { waitUntil: 'domcontentloaded' });
   const sigs = [];
@@ -117,7 +122,8 @@ const report = (ok, name, msg) => {
 }
 
 const ONLY = process.env.ONLY ? process.env.ONLY.split(',') : null;
-for (const [name, block, fig] of TARGETS.filter(([n, b]) => !ONLY || ONLY.some((o) => n.includes(o) || b.includes(o)))) {
+const picked = TARGETS.filter(([n, b]) => !ONLY || ONLY.some((o) => n.includes(o) || b.includes(o)));
+for (const [name, block, fig] of TEXT === 'only' ? [] : picked) {
   const sel = { block, fig };
   // entry by scrolling
   let page = await fresh();
@@ -176,7 +182,7 @@ for (const [name, block, fig] of TARGETS.filter(([n, b]) => !ONLY || ONLY.some((
 // above never hit): the wheel paced by the wall clock at 450, 600 and
 // 1,100px/s from 1.6 screens above each Sankey on the Story until its top is
 // at 25% of the screen; 3s later at least 90% of its ribbons must be drawn
-for (const sel of ['#p3-pound', '#p2-output']) {
+for (const sel of TEXT === 'only' ? [] : ['#p3-pound', '#p2-output']) {
   for (const speed of [450, 600, 1100]) {
     const page = await fresh();
     const g = await page.evaluate((sel) => {
@@ -223,6 +229,252 @@ for (const sel of ['#p3-pound', '#p2-output']) {
     else report(share >= 0.9, `${sel} paced ${speed}px/s`, `${Math.round(share * 100)}% of ribbons drawn 3s after arrival`);
   }
 }
+// ---- Text probe (Fable 5.2 final calls, fix 5; pushE-rulings.md) ----
+// Words and values in a figure are at full opacity within 600ms of their
+// trigger (delay 300ms, fade 300ms at most); marks keep their pace.
+//  - motion on: for each target, the entry (the first class change on
+//    the figure or its scene once the figure is on screen and its question
+//    moment has moved aside: the figure coming into view as the page
+//    decides it) and each later step (the next card made active by a
+//    wheel at SPEED px a frame; a scene drawn once is stepped by its
+//    scrolly-go event). From each trigger the figure is sampled every
+//    50ms for 3s in the page. Every text element (an element with its own
+//    text; not in [inert], .scrolly-sizers or a [data-axis] tick) must
+//    have, 700ms after the trigger, the effective opacity it has once
+//    settled (3s): so text a step hides stays out of the count. 1000ms
+//    for #p1-output's third step (the zoom to quarters) and the morph
+//    axes (.p2-mo-axis, .p2-mo-x, .p2-mo-fade). A run cut by the next
+//    trigger inside its 3s is skipped and named.
+//  - reduced motion: nothing may animate, so the same at 100ms.
+//  - lead (not a miss, for Vahid's eye): a run whose marks settle more
+//    than 1s after its text prints LEAD; with SHOT=dir it also saves a
+//    screenshot 700ms after the trigger.
+//  - Part 1 with no JavaScript, and in print media with JavaScript on:
+//    the vitals' values at opacity 1 and the sparklines drawn; the board's
+//    focus line and end dot; both AI lines drawn, every AI dot, the area
+//    and both end labels (the tiles layer hidden with no JavaScript);
+//    every step card in Parts 1 to 3 at opacity 1.
+// Written unrun (light-work rule): the browser run is its first.
+async function textProbe() {
+  const say = (ok, name, msg) => {
+    if (!ok) misses++;
+    console.log(`${ok ? 'ok  ' : 'MISS'} text ${name}: ${msg}`);
+  };
+  // installed in the page: trigger tracking and the 50ms sampler
+  const INSTALL = ({ block, fig }) => {
+    const blk = document.querySelector(block);
+    const root = blk?.querySelector(fig) ?? blk;
+    if (!root) return null;
+    const sc = blk.closest('.scrolly');
+    const cards = sc ? [...sc.querySelectorAll('.scrolly-step:not(.is-spacer)')] : [];
+    const active = () => cards.findIndex((li) => li.classList.contains('is-active'));
+    const inView = () => {
+      if (sc?.classList.contains('is-asking')) return false;
+      const r = root.getBoundingClientRect();
+      return r.top < innerHeight * 0.95 && r.bottom > 0;
+    };
+    const eff = (el) => {
+      if (!el.getClientRects().length || getComputedStyle(el).visibility === 'hidden') return 0;
+      let o = 1;
+      for (let n = el; n && n !== document.documentElement; n = n.parentElement) o *= Number(getComputedStyle(n).opacity);
+      return o;
+    };
+    const own = (el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.nodeValue.trim());
+    const all = [...root.querySelectorAll('*')];
+    const texts = all.filter((el) => own(el) && !el.closest('[inert], .scrolly-sizers, [data-axis]'));
+    const marks = all.filter((el) => !own(el) && el.matches('rect, path, circle, line, polygon, [data-mark]') && !el.closest('[inert], .scrolly-sizers, [data-axis]'));
+    const tp = { runs: [], step: active(), seen: false, cards: cards.length, once: /is-once/.test(sc?.className ?? '') };
+    const sample = () => ({
+      text: texts.map((el) => eff(el).toFixed(2)),
+      marks: marks.map((el) => {
+        const s = getComputedStyle(el);
+        const r = el.getBoundingClientRect();
+        return `${eff(el).toFixed(2)}|${s.transform}|${s.strokeDashoffset}|${s.clipPath}|${Math.round(r.width)}x${Math.round(r.height)}`;
+      }),
+    });
+    const start = (kind) => {
+      const t0 = performance.now();
+      const prev = tp.runs.at(-1);
+      if (prev && t0 - prev.t0 < 3000) prev.cut = true;
+      const run = { kind, t0, samples: [] };
+      tp.runs.push(run);
+      const tick = () => {
+        const t = performance.now() - t0;
+        run.samples.push({ t, ...sample() });
+        if (t < 3000) setTimeout(tick, 50);
+        else run.done = true;
+      };
+      tick();
+    };
+    const check = () => {
+      const a = active();
+      if (!tp.seen) {
+        if (inView()) {
+          tp.seen = true;
+          tp.step = a;
+          start('entry');
+        }
+        return;
+      }
+      if (a !== tp.step && a >= 0) {
+        tp.step = a;
+        start(`step ${a + 1}`);
+      }
+    };
+    const mo = new MutationObserver(check);
+    mo.observe(sc ?? root, { attributes: true, attributeFilter: ['class'], subtree: true });
+    if (sc && !sc.contains(root)) mo.observe(root, { attributes: true, attributeFilter: ['class'], subtree: true });
+    tp.desc = (i) => {
+      const el = texts[i];
+      return `${el.tagName.toLowerCase()}.${[...el.classList].join('.')} "${el.textContent.trim().slice(0, 30)}"`;
+    };
+    tp.slow = (i) => Boolean(texts[i].closest('.p2-mo-axis, .p2-mo-x, .p2-mo-fade'));
+    window.__tp = tp;
+    return { cards: tp.cards, once: tp.once };
+  };
+  // the analysis of one run, in the page (it names elements)
+  const ANALYSE = ({ i, early, block }) => {
+    const tp = window.__tp;
+    const run = tp.runs[i];
+    const fin = run.samples.at(-1);
+    const at = (ms) => run.samples.find((s) => s.t >= ms) ?? fin;
+    const bad = [];
+    fin.text.forEach((v, j) => {
+      const allow = early ?? (tp.slow(j) || (block === '#p1-output' && run.kind === 'step 3') ? 1000 : 700);
+      if (Math.abs(Number(at(allow).text[j]) - Number(v)) > 0.05) bad.push(`${tp.desc(j)} ${at(allow).text[j]} -> ${v} at ${allow}ms`);
+    });
+    // when each part last changed
+    const settle = (key) => {
+      let last = 0;
+      for (let k = 1; k < run.samples.length; k++) if (run.samples[k][key].some((v, j) => v !== run.samples[k - 1][key][j])) last = run.samples[k].t;
+      return Math.round(last);
+    };
+    return { kind: run.kind, cut: Boolean(run.cut), done: Boolean(run.done), bad, text: settle('text'), marks: settle('marks') };
+  };
+  for (const rm of ['no-preference', 'reduce']) {
+    const c = await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: rm });
+    const tag = rm === 'reduce' ? 'reduced' : 'motion';
+    for (const [name, block, fig] of picked) {
+      const page = await c.newPage();
+      await page.goto(base + '/', { waitUntil: 'networkidle' });
+      // past the scroll-restoration window (lib/scrollLoop.js RESTORE), so
+      // every move reads as a reader's scroll, not a landing
+      await page.waitForTimeout(2600);
+      const info = await page.evaluate(INSTALL, { block, fig });
+      if (!info) {
+        if (W <= 900 && block === '#p2-output') console.log(`skip text ${name}: static on phones`);
+        else say(false, `${name} (${tag})`, `${block} not on the page`);
+        await page.close();
+        continue;
+      }
+      const geo = await page.evaluate(({ block, fig }) => {
+        const b = document.querySelector(block);
+        const f = b.querySelector(fig) ?? b;
+        return { blockTop: b.getBoundingClientRect().top + scrollY, figTop: f.getBoundingClientRect().top + scrollY };
+      }, { block, fig });
+      await page.evaluate((y) => window.scrollTo({ top: Math.max(0, y), behavior: 'instant' }), geo.blockTop - H);
+      await page.waitForTimeout(1500);
+      // a jump above the figure must not count as its entry
+      await page.evaluate(() => {
+        window.__tp.runs.length = 0;
+        window.__tp.seen = false;
+      });
+      await page.mouse.move(W / 2, H / 2);
+      const wheelUntil = async (done, arg) => {
+        for (let k = 0; k < 4000; k++) {
+          if (await page.evaluate(done, arg)) return true;
+          await page.mouse.wheel(0, SPEED);
+          await page.waitForTimeout(16);
+        }
+        return false;
+      };
+      const stopAt = geo.figTop - 0.3 * H;
+      await wheelUntil((y) => scrollY >= y || window.__tp.seen, stopAt);
+      const shoot = async (label) => {
+        if (!process.env.SHOT) return;
+        const t0 = await page.evaluate(() => window.__tp.runs.at(-1)?.t0 ?? performance.now());
+        const now = await page.evaluate(() => performance.now());
+        await page.waitForTimeout(Math.max(0, t0 + 700 - now));
+        await page.screenshot({ path: `${process.env.SHOT}/text-${name.replace(/\W+/g, '-')}-${label}-${tag}-${W}.png` });
+      };
+      await shoot('entry');
+      await page.waitForTimeout(3200);
+      for (let k = 1; k < info.cards; k++) {
+        if (info.once) {
+          await page.evaluate(({ block, k }) => document.querySelector(block).closest('.scrolly').dispatchEvent(new CustomEvent('scrolly-go', { detail: { k } })), { block, k });
+        } else {
+          const ok = await wheelUntil((k) => window.__tp.step >= k, k);
+          if (!ok) {
+            say(false, `${name} (${tag})`, `card ${k + 1} never became active`);
+            break;
+          }
+        }
+        await shoot(`step${k + 1}`);
+        await page.waitForTimeout(3200);
+      }
+      const n = await page.evaluate(() => window.__tp.runs.length);
+      if (!n) say(false, `${name} (${tag})`, 'no trigger seen (the figure never came into view)');
+      for (let i = 0; i < n; i++) {
+        const r = await page.evaluate(ANALYSE, { i, early: rm === 'reduce' ? 100 : null, block });
+        const label = `${name} ${r.kind} (${tag})`;
+        if (r.cut || !r.done) {
+          console.log(`skip text ${label}: ${r.cut ? 'cut by the next trigger' : 'not settled'}`);
+          continue;
+        }
+        say(!r.bad.length, label, r.bad.length ? `${r.bad.length} text element(s) not settled: ${r.bad.slice(0, 3).join('; ')}` : `text settled by ${r.text}ms, marks by ${r.marks}ms`);
+        if (rm !== 'reduce' && r.marks - r.text > 1000) console.log(`LEAD text ${label}: text settled at ${r.text}ms, marks at ${r.marks}ms`);
+      }
+      await page.close();
+    }
+    await c.close();
+  }
+  // Part 1 drawn with no JavaScript, and in print media with JavaScript on
+  const DRAWN = (nojs) => {
+    const eff = (el) => {
+      if (!el.getClientRects().length || getComputedStyle(el).visibility === 'hidden') return 0;
+      let o = 1;
+      for (let n = el; n && n !== document.documentElement; n = n.parentElement) o *= Number(getComputedStyle(n).opacity);
+      return o;
+    };
+    const out = [];
+    const need = (label, sel, test) => {
+      const els = [...document.querySelectorAll(sel)].filter((el) => !el.closest('.scrolly-sizers'));
+      if (!els.length) out.push(`${label}: none on the page`);
+      const bad = els.filter((el) => !test(el));
+      if (bad.length) out.push(`${label}: ${bad.length} of ${els.length}`);
+    };
+    const full = (el) => eff(el) > 0.99;
+    const dash0 = (el) => Math.abs(parseFloat(getComputedStyle(el).strokeDashoffset) || 0) < 1e-3;
+    need('vitals values', '.p1-vital-value', full);
+    need('sparklines', '.p1-spark-line', dash0);
+    need('board focus line and end', '.p1-board-series.is-focus :is(.p1-board-line, .p1-board-end)', full);
+    need('AI lines', '.p1-ai-svg .p1-ai-line', (el) => dash0(el) && full(el));
+    need('AI dots, area, end labels', '.p1-ai-svg :is(.p1-ai-dot, .p1-ai-area, .p1-end-label)', full);
+    need('step cards', '.scrolly .scrolly-steps .scrolly-step .scrolly-card', (el) => Number(getComputedStyle(el).opacity) > 0.99);
+    if (nojs) {
+      const tiles = [...document.querySelectorAll('.p1-swap-layer')].filter((l) => l.querySelector('.p1-tiles, .p1-exposure'));
+      if (tiles.some((l) => eff(l) > 0.01)) out.push('tiles layer shown with no JavaScript');
+    }
+    return out;
+  };
+  for (const mode of ['no JavaScript', 'print']) {
+    const nojs = mode === 'no JavaScript';
+    const c = await browser.newContext({ viewport: { width: W, height: H }, javaScriptEnabled: !nojs, reducedMotion: 'no-preference' });
+    const page = await c.newPage();
+    await page.goto(base + '/', { waitUntil: nojs ? 'load' : 'networkidle' });
+    if (!nojs) {
+      await page.emulateMedia({ media: 'print' });
+      await page.waitForTimeout(400);
+    }
+    const bad = await page.evaluate(DRAWN, nojs);
+    say(!bad.length, `Part 1 (${mode})`, bad.length ? bad.join('; ') : 'every mark of the state drawn, every step card at opacity 1');
+    await c.close();
+  }
+}
+
+const animMisses = misses;
+if (TEXT) await textProbe();
 await browser.close();
-console.log(misses ? `FAIL: ${misses} figure(s) static on entry or moving on landing` : 'PASS: every figure animates on entry and lands in its final state');
+if (TEXT !== 'only') console.log(animMisses ? `FAIL: ${animMisses} figure(s) static on entry or moving on landing` : 'PASS: every figure animates on entry and lands in its final state');
+if (TEXT) console.log(misses > animMisses ? `FAIL: ${misses - animMisses} text miss(es)` : `PASS: every figure's text is at its settled opacity in time, and Part 1 is drawn with no JavaScript and in print`);
 process.exit(misses ? 1 : 0);
