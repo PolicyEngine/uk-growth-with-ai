@@ -890,11 +890,11 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   color: var(--pe-teal-800);
   text-decoration-color: currentColor;
 }
-.app .main-content a:focus-visible,
-.app .main-content button:focus-visible {
+/* the site ring at low specificity (0,1,1), so a component's own focus
+   rule wins; no radius forced onto card links */
+:where(.app .main-content) :is(a, button):focus-visible {
   outline: 2px solid var(--pe-teal-500);
   outline-offset: 2px;
-  border-radius: 4px;
 }
 .disclosure-toggle {
   min-height: 44px;
