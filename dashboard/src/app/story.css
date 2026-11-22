@@ -446,7 +446,7 @@
   z-index: 2;
   margin: var(--gap-answer, 24px) 0 0;
   opacity: 0;
-  transition: opacity 450ms var(--story-ease);
+  transition: opacity 300ms var(--story-ease);
 }
 .scrolly-takeaway.is-shown {
   opacity: 1;
@@ -640,18 +640,6 @@
   width: 100%;
   height: auto;
   overflow: visible;
-}
-
-/* Reveals */
-.reveal {
-  opacity: 0;
-  transform: translateY(16px);
-  transition: opacity var(--story-dur) var(--story-ease), transform var(--story-dur) var(--story-ease);
-  transition-delay: var(--reveal-delay, 0ms);
-}
-.reveal.is-in {
-  opacity: 1;
-  transform: none;
 }
 
 /* SVG primitives */
@@ -1013,7 +1001,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal,
   .draw-path,
   .grow-rect,
   .fade-g,
@@ -1025,12 +1012,6 @@
   .story-callout,
   .story-next {
     transition: none !important;
-  }
-  /* Reveals show at once. Chart parts keep the step logic: a part that is
-     .is-on shows at once, one that is not stays hidden; only the motion goes. */
-  .reveal {
-    opacity: 1;
-    transform: none;
   }
   .fade-g {
     transform: none;
@@ -1849,7 +1830,6 @@
 /* Print: every reveal visible, count-ups at their final value, nothing
    flows or waits on scroll */
 @media print {
-  .reveal,
   .fade-g,
   .draw-end,
   .ch-end,
@@ -2743,7 +2723,7 @@
   z-index: 2;
   margin: 4px 0 0;
   opacity: 0;
-  transition: opacity 450ms var(--story-ease);
+  transition: opacity 300ms var(--story-ease);
 }
 .scrolly-takeaway-note.is-shown {
   opacity: 1;
@@ -2763,6 +2743,22 @@
 @media print {
   .scrolly-takeaway-note {
     opacity: 1;
+  }
+}
+
+/* Without JavaScript every scroll-in fade shows at once: the closing
+   lines, the leaves-out panel and its groups (Part 3), the fade groups and
+   the Two lenses figure. Print and reduced motion are covered where each
+   is defined. */
+@media (scripting: none) {
+  .p3-close-panel,
+  .p3-close-card .p3-out-group,
+  .scrolly-takeaway,
+  .scrolly-takeaway-note,
+  .fade-g,
+  .lens-fig :is(.lens-ring, .lens-circle, .lens-chip-li, .lens-overlap, .lens-outside, .lens-pay) {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
 

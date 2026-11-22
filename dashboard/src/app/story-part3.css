@@ -729,9 +729,6 @@ svg.p3-dim {
 }
 /* the lenses: "It can say" / "It cannot say", each over short icon items */
 
-/* the two columns: a divider between them; each slides in from its side
-   (the framework's .reveal transition; reduced motion: no motion) */
-
 /* the divider draws first, then the columns slide in */
 
 /* ---- Wave 2 scenes (part3/*.jsx): entry beats, Replay, scene heads ---- */
@@ -770,7 +767,10 @@ svg.p3-dim {
   .p3-db-val,
   .p3-db-mark .p3-db-dot,
   .p3-db-seg,
-  .p3-sankey .sankey-node {
+  .p3-sankey .sankey-node,
+  .p3-plane-stress,
+  .p3-plane-link,
+  .p3-plane-label {
     opacity: 1 !important;
   }
   .p3-wf-bar,
@@ -2948,7 +2948,7 @@ a.lens-pay-num:hover {
 }
 @media screen and (prefers-reduced-motion: no-preference) {
   .p3-close-panel {
-    transition: opacity 500ms ease;
+    transition: opacity 300ms ease;
   }
   .p3-close-panel:not(.is-seen) {
     opacity: 0;

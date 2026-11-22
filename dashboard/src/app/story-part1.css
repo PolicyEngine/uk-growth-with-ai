@@ -912,6 +912,20 @@
     animation: none !important;
   }
 }
+/* Print and no JavaScript: the bars and the vitals' sparklines drawn. The
+   step layers (annual and quarterly, the board's series, the swap layers)
+   are step state and are not changed here. */
+@media print, (scripting: none) {
+  .p1-bar {
+    transform: none;
+  }
+  .p1-spark-line {
+    stroke-dashoffset: 0;
+  }
+  .p1-spark-dot {
+    opacity: 1;
+  }
+}
 @media (max-width: 1180px) {
   .p1-vitals-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -99,6 +99,16 @@ describe('the CSS: entrance fades only behind is-swap', () => {
       const bad = rules(css(f)).filter(([sel, body]) => /\.(tab|sub)-panel/.test(sel) && /animation\s*:/.test(body) && !/animation\s*:\s*none/.test(body) && !/\.is-swap/.test(sel));
       expect(bad.map(([sel]) => sel)).toEqual([]);
     });
+  it('scroll-in fades: 300ms at most, and shown without JavaScript (fix 2)', () => {
+    const story = css('story.css');
+    for (const sel of ['.scrolly-takeaway', '.scrolly-takeaway-note']) expect(story).toMatch(new RegExp(`\\n${sel.replace('.', '\\.')} \\{[^}]*transition: opacity 300ms`));
+    expect(css('story-part3.css')).toMatch(/\.p3-close-panel \{\s*transition: opacity 300ms ease;/);
+    const noJs = story.match(/@media \(scripting: none\) \{([\s\S]*?)\n\}/)[1];
+    for (const sel of ['.p3-close-panel', '.p3-close-card .p3-out-group', '.scrolly-takeaway', '.scrolly-takeaway-note', '.fade-g', '.lens-fig']) expect(noJs).toContain(sel);
+    const list = css('story-part3.css').match(/@media print, \(scripting: none\) \{([\s\S]*?)opacity: 1 !important/)[1];
+    for (const sel of ['.p3-plane-stress', '.p3-plane-link', '.p3-plane-label']) expect(list).toContain(sel);
+    expect(story).not.toMatch(/(^|[\s,])\.reveal\b/);
+  });
   it('the panel fades sit inside a no-preference media query', () => {
     expect(css('story.css')).toMatch(/@media screen and \(prefers-reduced-motion: no-preference\) \{\s*\.tab-panel\.is-swap:not\(\[hidden\]\) \{\s*animation: panel-in 200ms/);
     expect(css('v2.css')).toMatch(/@media screen and \(prefers-reduced-motion: no-preference\) \{\s*\.sub-panel\.is-swap \{\s*animation: sub-in 180ms/);
