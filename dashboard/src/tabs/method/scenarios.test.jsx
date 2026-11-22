@@ -59,8 +59,8 @@ describe('Scenarios direction icons', () => {
   it('Method reads in the model pages’ anatomy, and every anchor other pages link to lands', () => {
     const { container } = render(<MethodTab />);
     const heads = [...container.querySelectorAll('.page-body > section > .section-heading h2')].map((h) => h.textContent);
-    expect(heads).toEqual(['How it works', 'Key settings', 'What the model leaves out', 'Sources']);
-    const order = ['m-model', 'model-diagram', 'md-detail', 'm-arms', 's-arms', 'arm-tfp', 'arm-tz', 'arm-ss', 'm-settings', 'm-shock', 'm-shock-head', 'm-scenarios', 's-scenarios', 'scenario-map', 'm-timing', 's-timing', 'timing', 'm-jump', 'm-closures', 'closure-central', 'closure-bound', 'm-measures', 'm-rules', 'rule-default', 'rule-fixed', 'rule-dn', 'm-debt', 'm-generations', 'm-generations-more', 'm-tax', 'm-path', 'm-limits', 'm-sources', 'm-history'];
+    expect(heads).toEqual(['How it works', 'Key settings', 'Sensitivities', 'What the model leaves out', 'Sources']);
+    const order = ['m-model', 'model-diagram', 'md-detail', 'm-arms', 's-arms', 'arm-tfp', 'arm-tz', 'arm-ss', 'm-settings', 'm-shock', 'm-shock-head', 'm-scenarios', 's-scenarios', 'scenario-map', 'm-timing', 's-timing', 'timing', 'm-jump', 'm-closures', 'closure-central', 'closure-bound', 'm-measures', 'm-rules', 'rule-default', 'rule-fixed', 'rule-dn', 'm-debt', 'm-generations', 'm-generations-more', 'm-tax', 'm-path', 'm-sens', 'sens-grid', 'm-limits', 'm-sources', 'm-history'];
     const at = order.map((id) => container.querySelector(`#${id}`));
     at.forEach((el, i) => expect(el, order[i]).not.toBeNull());
     for (let i = 1; i < at.length; i++) expect(at[i - 1].compareDocumentPosition(at[i]) & Node.DOCUMENT_POSITION_FOLLOWING, `${order[i - 1]} before ${order[i]}`).toBeTruthy();
@@ -74,7 +74,7 @@ describe('Scenarios direction icons', () => {
       expect(r.closest('.card'), r.id).toBeNull();
     }
     const nav = [...container.querySelectorAll('nav a, option')].map((a) => a.textContent.trim()).filter(Boolean);
-    for (const t of ['How it works', 'Key settings', 'What the model leaves out', 'Sources']) expect(nav, t).toContain(t);
+    for (const t of ['How it works', 'Key settings', 'Sensitivities', 'What the model leaves out', 'Sources']) expect(nav, t).toContain(t);
     expect(container.querySelector('.mx-chain, .story-chain')).toBeNull();
   });
   // M6: the three versions stay open at rest (the stress-test card's two

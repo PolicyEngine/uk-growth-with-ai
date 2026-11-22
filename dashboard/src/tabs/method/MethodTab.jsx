@@ -19,7 +19,7 @@ import IconText from './IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { METHOD, MEASURE, RULES as RULE_NAMES, MACRO_ABOUT_CAP, MACRO_FOLLOWS } from '@/lib/labels.js';
 import { ADOPTION, ADOPTION_YEAR, CALENDAR, overlapShares, pctRange, tfpInput } from '@/lib/obrOverlap.js';
-import { S, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, foreignShareOf, signed } from '@/tabs/ai/surprise.js';
+import { S, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, foreignShareOf, signed, scenarioById } from '@/tabs/ai/surprise.js';
 import { SET } from '@/lib/dataKeys.js';
 import { REPO, URLS, issue, pr } from '@/tabs/ai/links.js';
 import { METHOD_FACTS as F } from '@/lib/dataKeys.js';
@@ -31,6 +31,7 @@ import { investStep } from './investStep.js';
 import UsedBy from './UsedBy.jsx';
 import { SRC, code } from './sources.js';
 import SettingRow, { SettingHeads } from './SettingRow.jsx';
+import SensitivityGrid from './SensitivityGrid.jsx';
 import { ROWS, name, pc, pp } from './inputs.js';
 
 const cite = (k) => ext(SRC[k].url, SRC[k].label);
@@ -48,8 +49,8 @@ const CENTRAL_TFP = tfpInput('uk_central');
 // The macro model's method, one page in the model pages' one anatomy
 // (Method redesign, section 4; M5): what it is (the intro), how it works
 // (the flow from an AI scenario to a result, and the three versions), key
-// settings (eight rows, each opening to its detail), what the model leaves
-// out, and its sources. Each fact has its one home here; chart cards link
+// settings (eight rows, each opening to its detail), sensitivities (one
+// setting changed at a time), what the model leaves out, and its sources. Each fact has its one home here; chart cards link
 // to the rows by anchor, and a link opens its row. Every input and its
 // source is on Inputs; published figures on Evidence; commands, vintages
 // and the revision history on Data and code.
@@ -67,6 +68,7 @@ const pct = (x, dp = 1) => `${(x * 100).toFixed(dp)}%`;
 const SECTIONS = [
   { id: METHOD.model.id, title: 'How it works', icon: iconFor('model') },
   { id: 'm-settings', title: 'Key settings', icon: iconFor('rule') },
+  { id: 'm-sens', title: 'Sensitivities', icon: iconFor('compare') },
   { id: METHOD.limits.id, title: 'What the model leaves out', icon: iconFor('limit') },
   { id: 'm-sources', title: 'Sources', icon: iconFor('record') },
 ];
@@ -696,6 +698,15 @@ export default function MethodTab() {
               <UsedBy id="m-path" />
             </SettingRow>
           </div>
+        </section>
+
+        <section>
+          <SectionHeading id="m-sens" icon={iconFor('compare')} title="Sensitivities">
+            <IconText icon="compare">
+              What changing one setting does to {scenarioById('uk_central').label}&rsquo;s {HEADLINE_YEAR} figures, with everything else as in the main case.
+            </IconText>
+          </SectionHeading>
+          <SensitivityGrid />
         </section>
 
         <CautionPanel

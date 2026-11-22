@@ -913,3 +913,80 @@ p.mx-axis-title.is-x {
 @media (max-width: 600px) {
   .caution-panel { padding: 16px; }
 }
+
+/* Sensitivities (Method redesign, 4.5): one table, the row label column
+   and four value columns; group names as full-width rows. At 390 the
+   table scrolls inside its card with the label column sticky. */
+.mx-sens-wrap {
+  overflow-x: auto;
+}
+.mx-sens {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--chart-fs-label);
+  font-variant-numeric: tabular-nums;
+}
+.mx-sens th,
+.mx-sens td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--pe-gray-100);
+  text-align: right;
+  white-space: nowrap;
+}
+.mx-sens thead th {
+  font-size: var(--t-meta);
+  font-weight: 600;
+  color: var(--pe-gray-500);
+  white-space: normal;
+  vertical-align: bottom;
+}
+.mx-sens th[scope='row'],
+.mx-sens .mx-sens-corner {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  text-align: left;
+  font-weight: 500;
+  white-space: normal;
+  background: var(--pe-surface);
+}
+.mx-sens tr.is-main th,
+.mx-sens tr.is-main td {
+  font-weight: 600;
+}
+.mx-sens-group th {
+  padding-top: 14px;
+  font-size: var(--t-meta);
+  font-weight: 600;
+  text-align: left;
+  color: var(--pe-gray-600);
+}
+.mx-sens-cell.is-flip .mx-sens-v {
+  padding: 0 3px;
+  border: 1px dashed var(--pe-gray-500);
+  border-radius: 3px;
+}
+.mx-sens-cell.is-held,
+.mx-sens-cell.is-pending {
+  color: var(--pe-gray-500);
+}
+.mx-sens-dir {
+  display: inline-flex;
+  margin-left: 4px;
+  vertical-align: -2px;
+  color: var(--pe-gray-500);
+}
+.mx-sens-links {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+.mx-sens-links a {
+  color: var(--pe-teal-700);
+}
+@media (max-width: 600px) {
+  .mx-sens th[scope='row'] { min-width: 120px; max-width: 150px; }
+  .mx-sens th,
+  .mx-sens td { padding: 6px 8px; }
+}
