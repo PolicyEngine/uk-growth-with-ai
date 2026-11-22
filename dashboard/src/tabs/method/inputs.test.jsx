@@ -149,3 +149,10 @@ describe('Inputs and sources', () => {
     expect(container.querySelector(`#${r.id}`).hidden).toBe(false);
   });
 });
+
+describe('the UK central share note (push E, N5)', () => {
+  it('does not weigh the OBR cross-check against 1.6 on two bases', () => {
+    expect(JSON.stringify(INPUTS)).not.toMatch(/not biased high/);
+    expect(JSON.stringify(ROWS)).not.toMatch(/not biased high/);
+  });
+});

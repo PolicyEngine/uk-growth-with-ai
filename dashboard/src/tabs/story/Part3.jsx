@@ -42,7 +42,7 @@ export default function Part3({ part }) {
           lead
           id="7pct"
           num={fmtInputPct(CENTRAL_RATE)}
-          head="of employees jobless for a year"
+          head="of employees assumed jobless for a year"
           line="Sized from an Irish study: a decade of AI adoption (Goldman Sachs) applied in one year; AI-exposed jobs are hit more."
           numProps={{ 'data-input': '', 'data-path': 'headline.central_displaced.note' }}
         />

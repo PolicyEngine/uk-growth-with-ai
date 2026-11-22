@@ -32,7 +32,7 @@ import { sourcesItems } from '@/tabs/explore/sources.jsx';
 import { docItem, navItem } from '@/lib/sourceItems.js';
 import { NICS, SET } from '@/lib/dataKeys.js';
 import { AxisTitles } from '@/tabs/explore/axes.jsx';
-import { debtTitle, taxTitle, debtMoreInfo, taxMoreInfo } from '@/tabs/ai/financesInfo.js';
+import { debtTitle, taxTitle as taxSectionTitle, debtMoreInfo, taxMoreInfo } from '@/tabs/ai/financesInfo.js';
 
 // Results > Public finances: debt/GDP to the debt rule's first year,
 // tax/GDP, why both are likely understated, and how the result changes with
@@ -198,13 +198,16 @@ const EFO_NOV25 = 'https://obr.uk/efo/economic-and-fiscal-outlook-november-2025/
 const NICS_URL = atRef(SET.nicsRef, SET.nicsPath);
 const RED_FLAGS_URL = atRef('bf5de33', 'docs/red_flags_1_3.md');
 // The two rows of the tax card, as drawn and as downloaded
-const CAUSES = [
-  { title: 'Labour vs capital tax-rate gap', max: 25, unit: 'pp', ours: TAX_GAP, oursText: `${TAX_GAP.toFixed(1)}pp`, theirs: 'OBR rates, differenced', lo: 19, hi: 23, theirsText: '19–23pp', effect: 'Understates the fall (main)' },
-  { title: 'Employer National Insurance, % of earnings', max: 16, unit: '% of earnings', ours: NIC_OGUK, oursText: `flat ${Math.round(NIC_OGUK)}%`, theirs: `PolicyEngine UK ${NICS.year} average`, value: NIC_PE, theirsText: `${NIC_PE.toFixed(1)}%`, effect: 'Partly offsets (smaller)' },
+export const CAUSES = [
+  { title: 'Labour vs capital tax-rate gap', max: 25, unit: 'pp', ours: TAX_GAP, oursText: `${TAX_GAP.toFixed(1)}pp`, theirs: 'OBR rates, differenced', lo: 19, hi: 23, theirsText: '19–23pp' },
+  { title: 'Employer National Insurance, % of earnings', max: 16, unit: '% of earnings', ours: NIC_OGUK, oursText: `flat ${Math.round(NIC_OGUK)}%`, theirs: `PolicyEngine UK ${NICS.year} average`, value: NIC_PE, theirsText: `${NIC_PE.toFixed(1)}%` },
 ];
-// OG-UK's figure below the comparison: the model's revenue fall is too
-// small (the first row's main effect); above it, the row partly offsets.
+// The macro model's figure below the comparison: on this row alone the
+// model's revenue fall is too small; above it, too large. Each row's tag
+// says its own direction; the Net line alone weighs the rows. One string
+// for the card, the SVG and the CSV.
 export const understates = (c) => c.ours < (c.lo ?? c.value);
+export const effectTag = (c) => (c.ours < (c.lo ?? c.value) ? 'Understates the revenue fall' : c.ours > (c.hi ?? c.value) ? 'Overstates the revenue fall' : 'In line with the comparison');
 function causesSvg() {
   const C = CHART_COLOURS;
   const W = 720;
@@ -224,13 +227,16 @@ function causesSvg() {
     out += `<circle cx="${X(c.ours)}" cy="${ty}" r="6" fill="${C.ours}"/>`;
     out += `<text x="${X(c.ours)}" y="${ty - 12}" font-size="11" font-weight="600" text-anchor="middle" fill="${C.ink}">${esc(`Macro model ${c.oursText}`)}</text>`;
     out += `<text x="${x0}" y="${ty + 40}" font-size="11" fill="${C.tick}">0</text><text x="${x1}" y="${ty + 40}" font-size="11" text-anchor="end" fill="${C.tick}">${esc(`${c.max}${c.unit === 'pp' ? 'pp' : ` ${c.unit}`}`)}</text>`;
-    out += `<text x="0" y="${ty + 62}" font-size="12" fill="${C.ink}">${esc(c.effect)}</text>`;
+    out += `<text x="0" y="${ty + 62}" font-size="12" fill="${C.ink}">${esc(effectTag(c))}</text>`;
     y = ty + 84;
   }
   return { w: W, h: y, markup: out };
 }
 
 export const TAX_TITLE = 'The macro model’s revenue fall is smaller than OBR tax rates imply';
+// The tax card's title: TAX_TITLE only where the sizing says the model's
+// fall is the smaller (taxSized's 'more'); otherwise a neutral title.
+export const taxTitle = (sized) => (sized?.kind === 'more' ? TAX_TITLE : 'The macro model’s revenue gap against OBR tax rates');
 
 // Highlight the main arm's 2031 end point on the Tax/GDP chart while the
 // link is hovered or focused (the figure's one home is that end label).
@@ -267,6 +273,9 @@ export function taxSized(model, ls) {
   return { kind: 'more', text: `Scaled with OBR rates, revenue falls ${range2(z.d)} of GDP more than in the model by ${HEADLINE_YEAR}` };
 }
 
+// The title for a scenario and rule, read as TaxGapCard reads the two gaps.
+export const taxTitleFor = (sid, rule) => taxTitle(taxSized(gap(sid, 'tfp', CENTRAL, 'tax_gdp_pp', HEADLINE_YEAR, rule), gap(sid, 'tfp', CENTRAL, 'labour_share_pp', HEADLINE_YEAR, rule)));
+
 function TaxGapCard({ sid, closure, rule }) {
   // The model's central-closure figure is the tax/GDP chart's end label
   // unless that chart is showing no foreign capital: each fact once.
@@ -284,7 +293,7 @@ function TaxGapCard({ sid, closure, rule }) {
       model={closure !== 'central' ? 'oguk' : undefined}
       modelSettings={closure !== 'central' ? [closureLabel('central'), 'main version'] : undefined}
       icon={iconFor('limit')}
-      title={TAX_TITLE}
+      title={taxTitle(sized)}
       lead={
         <Items
           className="ex-notes"
@@ -356,12 +365,12 @@ function TaxGapCard({ sid, closure, rule }) {
           method: 'limits',
         })}
       download={{
-        title: TAX_TITLE,
+        title: taxTitle(sized),
         context: () => contextLine(sid, closure, `tax/GDP in ${HEADLINE_YEAR} with UK tax rates: rough scaling, some foreign capital, automation + productivity`, rule),
         table: () => ({
           columns: ['Item', 'Macro model', 'Comparison', 'Comparison source', 'Effect on revenue'],
           rows: [
-            ...CAUSES.map((c) => [c.title, c.oursText, c.lo != null ? `${c.lo}–${c.hi}${c.unit}` : `${c.value}${c.unit === 'pp' ? 'pp' : '%'}`, c.theirs, c.effect]),
+            ...CAUSES.map((c) => [c.title, c.oursText, c.lo != null ? `${c.lo}–${c.hi}${c.unit}` : `${c.value}${c.unit === 'pp' ? 'pp' : '%'}`, c.theirs, effectTag(c)]),
             [`Tax/GDP in ${HEADLINE_YEAR} scaled with OBR effective rates (pp of GDP), low`, null, uk ? uk[0] : null, 'OBR effective rates x labour-share fall', ''],
             [`Tax/GDP in ${HEADLINE_YEAR} scaled with OBR effective rates (pp of GDP), high`, null, uk ? uk[1] : null, 'OBR effective rates x labour-share fall', ''],
           ],
@@ -408,7 +417,7 @@ function TaxGapCard({ sid, closure, rule }) {
             ours={{ value: c.ours, text: c.oursText }}
             theirs={c.lo != null ? { name: c.theirs, lo: c.lo, hi: c.hi, text: c.theirsText } : { name: c.theirs, value: c.value, text: c.theirsText }}
             up={understates(c)}
-            effect={c.effect}
+            effect={effectTag(c)}
           />
         ))}
       </div>
@@ -688,7 +697,7 @@ export default function FinancesSection({ sid }) {
           name="tax/GDP"
           icon={iconFor('tax')}
           tidy
-          heading={taxTitle(sid, st.closure, st.rule)}
+          heading={taxSectionTitle(sid, st.closure, st.rule)}
           unitLine={FIN_UNIT}
           markers={[{ year: SURPRISE_YEAR, label: 'AI starts' }]}
           bands={[]}

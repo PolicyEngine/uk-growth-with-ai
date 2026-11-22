@@ -479,6 +479,9 @@ describe('What drives the result', () => {
     expect(tip.getAttribute('aria-label')).toBe('What does this measure mean?');
     // "as modelled" hedges stay
     expect(cards[1].querySelector('.finding-lead').textContent).toMatch(/^(As modelled|By lifetime earnings)/);
+    // card 3's lead under the common rule is the model's, not a fact about
+    // the UK (push E, N11); the debt-neutral titles stay
+    for (const arm of ['tfp', 'zfixed', 'stress']) expect(payWords('zk0.1', 'common', arm).lead).toMatch(/^As modelled, /);
     const more = container.querySelector('#who-model-households');
     expect(more.querySelector('.disclosure-content').hidden).toBe(true);
     // the transfer pair is on card 3 now, not in More info

@@ -59,7 +59,7 @@ describe('Explore › Economy opens with one summary box', () => {
 describe('Explore › Public finances reuses the summary box (Q6e)', () => {
   it('holds the scope, the finding and its note, each led by an icon, and the tax-gap link row', async () => {
     const { financesFinding } = await import('@/tabs/ai/financesInfo.js');
-    const { TAX_TITLE } = await import('@/tabs/ai/FinancesSection.jsx');
+    const { taxTitleFor } = await import('@/tabs/ai/FinancesSection.jsx');
     const { container } = renderPage(page('explore finances'));
     const intro = container.querySelector('.page-intro');
     const box = intro.querySelector('.page-a #fin-finding.summary-box');
@@ -75,7 +75,7 @@ describe('Explore › Public finances reuses the summary box (Q6e)', () => {
     expect(note?.textContent ?? null).toBe(f.note);
     if (note) expect(note.querySelector('.summary-icon')).not.toBeNull();
     const link = box.querySelector('.summary-link a');
-    expect(link.textContent).toBe(TAX_TITLE);
+    expect(link.textContent).toBe(taxTitleFor('uk_central', 'common'));
     expect(link.querySelectorAll('svg')).toHaveLength(1);
     expect(link.getAttribute('href')).toContain('tax-gap');
   });

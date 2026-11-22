@@ -235,7 +235,7 @@ function RuleCard({ r }) {
           <p className="mx-rule-step-head">
             <IconText icon="jump">In {st.late}, the debt rule&rsquo;s first year</IconText>
           </p>
-          <p className="mx-card-para">Investment steps up again. AI has left debt above the forecast path, so the rule cuts government spending by more, and investment rises.</p>
+          <p className="mx-card-para">Investment steps up again: in the model, the shock has left debt above the forecast path, so the rule cuts government spending by more.</p>
           <dl className="why-stats mx-rule-stats" aria-label="UK central, against the forecast path">
             <div className="why-stat">
               <dt className="why-stat-label">UK central: investment, {st.prev}</dt>
@@ -283,7 +283,7 @@ export const LIMIT_GROUPS = [
   { key: 'structure', title: 'Structure', icon: 'model', titles: ['One sector', 'No unemployment', 'No regions or housing', 'No money, trade or exchange rate'] },
   { key: 'behaviour', title: 'Behaviour', icon: 'households', titles: ['Perfect foresight', 'Slow capital response', 'No markups', 'Substitution fixed at one'] },
   { key: 'inputs', title: 'Inputs', icon: 'scenario', titles: ['Imposed technology paths', 'Productivity overlaps the OBR’s'] },
-  { key: 'finances', title: 'Public finances', icon: 'finances', titles: ['Revenue responds too little', 'Foreign AI providers'] },
+  { key: 'finances', title: 'Public finances', icon: 'finances', titles: ['Revenue may respond too little', 'Foreign AI providers'] },
 ];
 // What the model leaves out: one short list, a line each, every fact once.
 function Limitations() {
@@ -293,7 +293,7 @@ function Limitations() {
     { title: 'Imposed technology paths', text: 'from OBR and IMF figures, not estimated.' },
     { title: 'Slow capital response', text: <>elasticity below {ext(SRC.korinekT5.url, 'Korinek et al.’s')} lowest ({ext(DOC('red_flags_1_3.md'), 'red flag 1')}).</> },
     {
-      title: 'Revenue responds too little',
+      title: 'Revenue may respond too little',
       // a full sentence over 12 words: a paragraph under the list
       para: true,
       text: (

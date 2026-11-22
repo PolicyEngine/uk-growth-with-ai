@@ -17,7 +17,7 @@ import { cohortNotice } from '@/lib/dataKeys.js';
 import { economyAnswer } from '@/tabs/explore/answers.js';
 import SummaryBox, { SummaryLink, SummaryRow } from '@/components/ui/SummaryBox.jsx';
 import { financesFinding } from '@/tabs/ai/financesInfo.js';
-import { TAX_TITLE } from '@/tabs/ai/FinancesSection.jsx';
+import { taxTitleFor } from '@/tabs/ai/FinancesSection.jsx';
 import { ruleSolved } from '@/tabs/ai/surprise.js';
 import { ruleGapText } from '@/tabs/ai/lines.js';
 
@@ -59,7 +59,7 @@ function FinancesAnswer({ st }) {
             </SummaryRow>
           ) : null}
           <SummaryLink tab="explore" sub="finances" anchor="tax-gap">
-            {TAX_TITLE}
+            {taxTitleFor(st.s, st.rule)}
           </SummaryLink>
         </>
       )}

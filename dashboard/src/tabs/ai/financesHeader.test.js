@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import S from '@/lib/activeData.js';
 import { financesFinding, debtTitle } from '@/tabs/ai/financesInfo.js';
-import { taxSized, taxSizing } from '@/tabs/ai/FinancesSection.jsx';
+import { taxSized, taxSizing, CAUSES, effectTag, understates, taxTitle, taxTitleFor, TAX_TITLE } from '@/tabs/ai/FinancesSection.jsx';
 
 const Y = S.years;
 const H = S.headline_year;
@@ -106,5 +106,27 @@ describe('item 40: the tax-gap sizing', () => {
     expect(taxSized(0.05, -1.6).kind).toBe('up');
     expect(taxSized(-0.5, -1.6).kind).toBe('within');
     expect(taxSized(null, -1.6)).toBeNull();
+  });
+});
+
+describe('the tax card: each row tags its own direction; the title follows the sizing (push E, N1 and N6)', () => {
+  it('a row below the comparison understates the revenue fall, above it overstates', () => {
+    for (const c of CAUSES) {
+      const tag = effectTag(c);
+      expect(tag === 'Understates the revenue fall').toBe(understates(c));
+      expect(['Understates the revenue fall', 'Overstates the revenue fall', 'In line with the comparison']).toContain(tag);
+    }
+    // today: the rate gap is below 19–23pp; the flat NIC rate above the PolicyEngine average
+    expect(effectTag(CAUSES[0])).toBe(CAUSES[0].ours < CAUSES[0].lo ? 'Understates the revenue fall' : 'In line with the comparison');
+    expect(effectTag(CAUSES[1])).toBe(CAUSES[1].ours > CAUSES[1].value ? 'Overstates the revenue fall' : 'Understates the revenue fall');
+    expect(effectTag({ ours: 20, lo: 19, hi: 23 })).toBe('In line with the comparison');
+    expect(effectTag({ ours: 24, lo: 19, hi: 23 })).toBe('Overstates the revenue fall');
+  });
+  it('the title: the claim only when the model\'s fall is the smaller', () => {
+    expect(taxTitle({ kind: 'more' })).toBe(TAX_TITLE);
+    for (const sized of [{ kind: 'within' }, { kind: 'up' }, null, undefined]) expect(taxTitle(sized)).toBe('The macro model’s revenue gap against OBR tax rates');
+    expect(taxTitle(taxSized(-0.5, -1.6))).not.toBe(TAX_TITLE);
+    const z = (sid, rule) => taxSized(g(sid, 'tfp', 'zk0.1', 'tax_gdp_pp', rule), g(sid, 'tfp', 'zk0.1', 'labour_share_pp', rule));
+    for (const sid of S.scenarios.map((x) => x.id)) expect(taxTitleFor(sid, 'common')).toBe(taxTitle(z(sid, 'common')));
   });
 });

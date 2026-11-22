@@ -114,7 +114,7 @@ export default function MethodOverview() {
                       <dd>{p?.question}</dd>
                     </div>
                     <div>
-                      <dt>Key assumption</dt>
+                      <dt>Key limit</dt>
                       <dd>{p?.line}</dd>
                     </div>
                   </dl>

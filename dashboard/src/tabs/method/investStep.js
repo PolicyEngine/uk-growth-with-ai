@@ -22,5 +22,5 @@ export function investStepLine(read = undefined, late = LATE_YEAR, years = YEARS
   const st = investStep(read, late, years);
   if (!st) return null;
   const { prev, iPrev, iLate, dLate } = st;
-  return `Investment steps up again in ${late}, the debt rule’s first year. In UK central it is ${signed(iPrev, 1)}% above the forecast path in ${prev} and ${signed(iLate, 1)}% in ${late}. By then AI has left debt ${dLate.toFixed(1)}pp of GDP above that path, so the rule cuts government spending by more, and investment rises.`;
+  return `Investment steps up again in ${late}, the debt rule’s first year. In UK central it is ${signed(iPrev, 1)}% above the forecast path in ${prev} and ${signed(iLate, 1)}% in ${late}. By then the shock has left debt ${dLate.toFixed(1)}pp of GDP above that path, so the rule cuts government spending by more, and investment rises.`;
 }

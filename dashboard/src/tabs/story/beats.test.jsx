@@ -66,8 +66,8 @@ describe('story beats', () => {
       expect(b.classList.contains('is-lead')).toBe(true);
       expect(b.previousElementSibling.matches('header.part-opener')).toBe(true);
     }
-    expect(el.querySelector(`#beat-${S.surprise_year} .beat-line`).textContent).toBe(`The economy follows the forecast path until ${S.surprise_year}.`);
-    expect(el.querySelector('#beat-7pct .beat-head').textContent).toBe('of employees jobless for a year');
+    expect(el.querySelector(`#beat-${S.surprise_year} .beat-line`).textContent).toBe(`In every scenario, the economy follows the forecast path until ${S.surprise_year}.`);
+    expect(el.querySelector('#beat-7pct .beat-head').textContent).toBe('of employees assumed jobless for a year');
     for (const b of beats) {
       // real text, never hidden, not a heading, no icon, no signed figure
       expect(b.getAttribute('aria-hidden')).toBeNull();

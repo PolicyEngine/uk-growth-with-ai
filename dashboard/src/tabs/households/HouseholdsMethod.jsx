@@ -367,7 +367,7 @@ export default function HouseholdsMethod() {
               ['finances', 'The public-sector pay bill of the displaced is outside the balance.'],
               ['benefits', 'Council tax reduction does not respond to the lost earnings.'],
               ['limit', 'The benefit cap applies without its nine-month grace period.'],
-              ['age', 'No reduced hiring of young workers, the margin early evidence emphasises.'],
+              ['age', 'No reduced hiring of young workers.'],
               ['interest', 'No feedback to prices, interest rates or output.'],
             ].map(([icon, text]) => (
               <li key={text} className="mx-limit-tile hm-out-tile">

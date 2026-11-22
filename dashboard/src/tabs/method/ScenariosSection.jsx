@@ -305,7 +305,7 @@ export function TimingPart() {
         >
           <Items
             items={[
-              { icon: 'excluded', text: <>Nobody expects AI before {SURPRISE_YEAR}.</> },
+              { icon: 'excluded', text: <>Nobody expects the AI shock before {SURPRISE_YEAR}.</> },
               { icon: 'path', text: 'From then on, everyone knows the whole path.' },
             ]}
           />

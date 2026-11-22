@@ -29,7 +29,7 @@ export function stripTiles(d = D) {
       key: 'responses',
       label: `${inWords(resp.length)} policy responses`,
       value: `${fmtBn(Math.min(...costs))} to ${fmtBn(Math.max(...costs))}`,
-      sub: 'cost a year, on top of the main case',
+      sub: resp.every((r) => r.poverty_pp < 0) ? 'cost a year on top of the main case; each lowers poverty' : 'cost a year on top of the main case; poverty effects vary',
       icon: iconFor('policy'),
       anchor: 'hh-policy',
       draws: resp.every((r) => r.draws === resp[0]?.draws) ? resp[0]?.draws : null,

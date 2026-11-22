@@ -115,7 +115,7 @@ export default function Part2({ part }) {
       <PartHead part={part} />
       {/* the part's lead stat block (part openings, approved 22 Nov): the
           surprise year, moved up from after the shock scene */}
-      <StoryBeat lead id={String(SURPRISE_YEAR)} num={SURPRISE_YEAR} head="More AI, sooner, as a surprise" line={`The economy follows the forecast path until ${SURPRISE_YEAR}.`} />
+      <StoryBeat lead id={String(SURPRISE_YEAR)} num={SURPRISE_YEAR} head="More AI, sooner, as a surprise" line={`In every scenario, the economy follows the forecast path until ${SURPRISE_YEAR}.`} />
 
       <Scrolly
         id="p2-shock"

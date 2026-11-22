@@ -84,6 +84,8 @@ describe('HouseholdsExplore', () => {
       expect(c.textContent).not.toMatch(/\d+\.\d|£\d/);
     }
     expect(tiles.map((a) => a.querySelector('.hh-tile-label').textContent)).toEqual(['Net cost to the public finances', 'Absolute poverty', 'Gini', 'Three policy responses']);
+    // the responses tile: cost, and the poverty side in words, never cost alone (push E, N13)
+    expect(tiles[3].textContent).toContain(resp.every((r) => r.poverty_pp < 0) ? 'cost a year on top of the main case; each lowers poverty' : 'cost a year on top of the main case; poverty effects vary');
     expect(container.querySelector('.hh-strip-cap').textContent).toBe(`Main case · mean of ${D.headline.central_cost.draws} draws`);
     // the status comes from the data file: "Provisional" once while the
     // study is provisional, not at all once it is merged

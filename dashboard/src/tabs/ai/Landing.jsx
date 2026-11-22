@@ -141,7 +141,7 @@ export function heroItems(sid, cl = CENTRAL) {
 const ENTRIES = [
   { sub: 'income', icon: 'path', title: 'Year by year', text: `How national income and GDP build up from ${FIRST_YEAR} to ${HEADLINE_YEAR}, in three versions.` },
   { sub: 'economy', icon: 'capital', title: 'Inside the economy', text: 'Consumption, investment, capital, labour, the interest rate and the labour share.' },
-  { sub: 'finances', icon: 'finances', title: 'Public finances', text: 'Debt and tax as shares of GDP, and why the tax effect is likely understated.' },
+  { sub: 'finances', icon: 'finances', title: 'Public finances', text: 'Debt and tax as shares of GDP, and how the tax effect compares with OBR tax rates.' },
 ];
 
 // The pieces of the former Results > Summary, placed by the story: the

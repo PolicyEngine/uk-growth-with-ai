@@ -492,7 +492,7 @@ export function earningsWords(cl, rule, arm, o = {}) {
   const labour = o.labour ?? pr.labour;
   const why =
     ranked && labour[0] < labour[6] && rising(labour) && pr.wealth_share[0] > pr.earnings_share[0] && x.r > 0 && x.w < 0
-      ? 'Lower earners get less of their income from pay, and the higher return on capital reaches them too.'
+      ? 'In the model, lower earners rely less on pay, and the higher return on capital reaches them too.'
       : null;
   return { lead: lead ?? `By lifetime earnings: the ${GROUP_LABELS[0].toLowerCase()} and the ${GROUP_LABELS[6].toLowerCase()}.`, why, bot, top };
 }
@@ -532,7 +532,7 @@ export function payWords(cl, rule, arm, o = {}) {
   const d0 = gap('uk_central', SURPRISE_ARM[arm], cl, 'debt_gdp_pp', 'common', t.shockYear);
   const d1 = gap('uk_central', SURPRISE_ARM[arm], cl, 'debt_gdp_pp', 'common', t.lastFlowYear);
   return {
-    lead: cost ? 'No household pays the fiscal cost: public debt takes it, then government consumption.' : 'No household is charged: public debt takes the fiscal effect, then government consumption.',
+    lead: cost ? 'As modelled, no household pays the fiscal cost: public debt takes it, then government consumption.' : 'As modelled, no household is charged: public debt takes the fiscal effect, then government consumption.',
     why: `Under the common fiscal rule, spending follows GDP; ${NO_VALUE}`,
     // more debt is not a gain: no tone
     stats: [
@@ -802,7 +802,7 @@ export function moreInfoReasons(cl, rule, arm, o = {}) {
     {
       key: 'wealth',
       icon: 'capital',
-      head: spread ? 'Wealth is spread more evenly than earnings' : `Wealth and earnings of the ${bot}`,
+      head: spread ? 'In the model, wealth is spread more evenly than earnings' : `Wealth and earnings of the ${bot}`,
       take: spread && x.r > 0 ? 'So the higher return on capital reaches lower earners too.' : null,
     },
     {
@@ -817,7 +817,7 @@ export function moreInfoReasons(cl, rule, arm, o = {}) {
     {
       key: 'ons',
       icon: 'inequality',
-      head: lessConc ? 'Wealth is less concentrated than in ONS data' : 'Wealth concentration against ONS data',
+      head: lessConc ? 'Model wealth is less concentrated than in ONS data' : 'Wealth concentration against ONS data',
       take: lessConc ? 'Untested: with wealth as concentrated as in ONS data, the ranking could narrow or reverse.' : null,
     },
   ];
