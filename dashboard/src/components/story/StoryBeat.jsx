@@ -58,7 +58,8 @@ export default function StoryBeat({ id, num, head, line, cite = null, from = 'be
   return (
     <aside ref={ref} className={`story-beat is-from-${from}${num == null && icon ? ' has-icon' : ''}`} id={`beat-${id}`} aria-label={num != null ? `${num}: ${head}` : head} data-gap-exempt="">
       <div className="story-beat-card">
-        <span className="beat-rule" aria-hidden="true" />
+        {/* the rule sits above a numeral only; an icon beat has none (fix list 17) */}
+        {num != null ? <span className="beat-rule" aria-hidden="true" /> : null}
         {num != null ? (
           <p className="beat-num" {...numProps}>
             {num}
