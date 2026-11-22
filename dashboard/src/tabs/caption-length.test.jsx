@@ -84,7 +84,16 @@ describe('caption length', () => {
       for (const t of container.querySelectorAll('.disclosure-title, summary')) {
         n += 1;
         const own = [...t.childNodes].filter((c) => !(c.nodeType === 1 && c.classList.contains('disclosure-preview'))).map((c) => c.textContent).join('').trim();
+        // the part opener's one "About this model" fold is approved (Vahid,
+        // 22 Nov; Fable push E, B14): asserted below, not counted
+        if (t.matches('.part-opener-about > summary') && own === 'About this model') continue;
         if (own !== 'More info') bad.push(`${p[0]}: "${own.slice(0, 60)}"`);
+      }
+      // each part opener has at most one fold, and it is "About this model"
+      for (const o of container.querySelectorAll('.part-opener')) {
+        const ds = o.querySelectorAll('details');
+        expect(ds.length).toBeLessThanOrEqual(1);
+        for (const d of ds) expect(d.querySelector(':scope > summary')?.textContent.trim()).toBe('About this model');
       }
       unmount();
     }
