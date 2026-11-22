@@ -2967,3 +2967,14 @@
 .scrolly-steps > .scrolly-step::marker {
   content: none;
 }
+/* desktop: an anchored step card never runs past its column (22 Nov, the
+   GDP scene at 1280: the step text was cut at the page's left edge). It is
+   pushed to the column's chart side (justify-self: end), so a card wider
+   than the 340px column overflowed to the left, off the column: it now
+   wraps within the column. */
+@media (min-width: 901px) {
+  .scrolly.is-anchored .scrolly-card {
+    min-width: 0;
+    max-width: 100%;
+  }
+}

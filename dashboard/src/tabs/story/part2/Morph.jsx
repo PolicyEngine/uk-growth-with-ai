@@ -418,14 +418,53 @@ export const pinnedOf = (pin, sid, lines) => (pin && pin !== sid && lines.some((
 
 // `scrub` (item 30, Vahid: "as soon as I scroll a bit, it changes"): the
 // change from growth to the gap runs across its own step, linked to the
-// scroll (Scrolly stepProgress writes --step-p, 0 to 1, on the block): the
-// lines move from the growth geometry to the gap's, the y axis hands over
-// (the growth ticks and title fade out as the gap's fade in), the x ticks
-// slide. On the page's one scroll loop, attributes and inline styles
-// only (Safari-safe: no CSS d). Reduced motion: nothing moves; the growth
-// layer cross-fades into the gap layer over the same step.
+// scroll (Scrolly stepProgress writes --step-p, 0 to 1, on the block). On
+// the page's one scroll loop, attributes and inline styles only
+// (Safari-safe: no CSS d).
+//
+// 22 Nov (Vahid: "animation doesnt work well"): the lines no longer morph
+// from the growth geometry into the gap's. That tween ran between two x
+// domains (the record's years and the model's) and two y scales, so mid
+// way the zero line sat off the gap axis's 0, lines broke and hooked, the
+// open dots floated off every line, the new axis sat at a third of its
+// strength and the end labels' leaders pointed at lines not yet there. Now
+// three phases, nothing drawn between two scales, and one axis at full
+// strength at every moment:
+//   out    (eased p 0 to 0.35) the record, the forecast, their dots and
+//          notes fade out where they are, on the growth axis, which stays;
+//   swap   (at 0.35) the growth axis gives way to the gap axis, in its
+//          final place: ticks, years, titles, the extra-AI band and the
+//          zero line on its 0 (no cross-fade, so two axes never show);
+//   reveal (0.45 to 1) the chosen scenario's gap line is revealed left to
+//          right on the gap axis's own x scale (a clip), from the surprise
+//          year; its end label and ring fade in with it.
+// Reduced motion: the end state, at once.
 const easeIO = (x) => x * x * (3 - 2 * x);
-const lerpPts = (a, b, t) => a.map(([x, y], i) => [x + (b[i][0] - x) * t, y + (b[i][1] - y) * t]);
+const clamp01 = (x) => Math.min(1, Math.max(0, x));
+export const SCRUB_SWAP = 0.35;
+export const SCRUB_REVEAL = 0.45;
+// One frame of the scrub, pure: `out`, the growth lines' opacity; `axisA`
+// and `axisB`, the growth and gap axes' (one is 1, the other 0); `reveal`,
+// how much of the gap line shows (0 to 1); `at`, which geometry the zero
+// line and the x ticks stand in ('a', growth, or 'b', the gap).
+export function scrubFrame(p, reduce = false) {
+  const e = reduce ? 1 : easeIO(clamp01(p));
+  const at = e < SCRUB_SWAP ? 'a' : 'b';
+  return {
+    e,
+    at,
+    out: clamp01(1 - e / SCRUB_SWAP),
+    axisA: at === 'a' ? 1 : 0,
+    axisB: at === 'b' ? 1 : 0,
+    reveal: clamp01((e - SCRUB_REVEAL) / (1 - SCRUB_REVEAL)),
+  };
+}
+// Where the scrub draws each layer in that frame, from the growth (a) and
+// gap (b) geometries: the zero line's y, and the three lines' points (the
+// record and the forecast on a, the gap line on b; none between).
+export function scrubLayout(f, a, b) {
+  return { zeroY: f.at === 'a' ? a.zeroY : b.zeroY, act: a.act, obr: a.obr, gap: b.gap };
+}
 function useMorphScrub(ref, on, g1, g2) {
   const geo = useRef({ g1, g2 });
   useEffect(() => {
@@ -439,13 +478,10 @@ function useMorphScrub(ref, on, g1, g2) {
     let last = -1;
     // every element the scrub has styled: by the time this effect is torn
     // down, React has already removed the data-scrub attributes of the next
-    // state, so the hand-back cannot find them by selector (a jump from
-    // part-way through the step left the growth layer at part opacity)
+    // state, so the hand-back cannot find them by selector
     const touched = new Set();
     // the elements whose transform the scrub writes: on the way out each
-    // takes React's current transform again, from its data-tx (React may not
-    // rewrite the style itself when its value did not change, as on a jump
-    // onward: "2031" left on the plot's edge over "Year")
+    // takes React's current transform again, from its data-tx
     const wrote = new Set();
     const setT = (el, v) => {
       el.style.transform = v;
@@ -453,47 +489,42 @@ function useMorphScrub(ref, on, g1, g2) {
     };
     const apply = (p) => {
       const { g1: a, g2: b } = geo.current;
-      const e = easeIO(p);
-      for (const el of fig.querySelectorAll('[data-scrub], [data-scrub-path], [data-scrub-x], [data-scrub-zero], [data-scrub-pt]')) touched.add(el);
-      // the hand-over in two halves, so two axes never show at once: the
-      // growth layer goes over the first half, the gap's comes over the second
-      for (const el of fig.querySelectorAll('[data-scrub="out"]')) el.style.opacity = String(Math.max(0, 1 - 2 * e));
-      for (const el of fig.querySelectorAll('[data-scrub="out2"]')) el.style.opacity = String(Math.max(0, 1 - 3 * e));
-      for (const el of fig.querySelectorAll('[data-scrub="in"]')) el.style.opacity = String(Math.max(0, 2 * e - 1));
-      // dots ride their line
-      for (const el of fig.querySelectorAll('[data-scrub-pt]')) {
-        const [x1, y1, x2, y2] = el.dataset.scrubPt.split(',').map(Number);
-        const m = reduce ? 0 : e;
-        setT(el, `translate(${(x1 + (x2 - x1) * m).toFixed(1)}px, ${(y1 + (y2 - y1) * m).toFixed(1)}px)`);
-        el.style.opacity = String(Math.max(0, 1 - 2 * e));
-      }
+      const f = scrubFrame(p, reduce);
+      const L = scrubLayout(f, a, b);
+      for (const el of fig.querySelectorAll('[data-scrub], [data-scrub-path], [data-scrub-x], [data-scrub-zero], [data-scrub-pt], [data-scrub-reveal]')) touched.add(el);
+      // the growth lines, their dots and notes fade out in place
+      for (const el of fig.querySelectorAll('[data-scrub="out2"], [data-scrub-pt]')) el.style.opacity = String(f.out);
+      // one axis at a time, at full strength: the growth axis, then the gap's
+      for (const el of fig.querySelectorAll('[data-scrub="out"]')) el.style.opacity = String(f.axisA);
+      for (const el of fig.querySelectorAll('[data-scrub="in"]')) el.style.opacity = String(f.axisB);
+      // the end labels and the ring come with their line
+      for (const el of fig.querySelectorAll('[data-scrub="label"]')) el.style.opacity = String(f.reveal);
       for (const el of fig.querySelectorAll('[data-scrub-path]')) {
         const k = el.dataset.scrubPath;
-        if (reduce) {
-          el.setAttribute('d', pathOf(k === 'gap' ? b[k] : a[k]));
-          // the same two-half hand-over as the axes and labels: the old lines
-          // go over the first half, the gap line comes over the second
-          // (push B sign-off, suite ruling (i))
-          el.style.opacity = String(k === 'gap' ? Math.max(0, 2 * e - 1) : Math.max(0, 1 - 2 * e));
-        } else {
-          el.setAttribute('d', pathOf(lerpPts(a[k], b[k], e)));
-          if (k === 'obr') el.style.opacity = String(1 - e);
-          if (k === 'act') el.style.opacity = String(1 - e);
-          if (k === 'gap') el.style.opacity = String(Math.min(1, 2 * e));
-        }
+        // the record and the forecast stay on the growth geometry; the gap
+        // line on the gap geometry: no path is drawn between two scales
+        el.setAttribute('d', pathOf(L[k]));
+        el.style.opacity = String(k === 'gap' ? (f.reveal > 0 ? 1 : 0) : f.out);
+      }
+      for (const el of fig.querySelectorAll('[data-scrub-reveal]')) {
+        const [x0, w] = el.dataset.scrubReveal.split(',').map(Number);
+        el.setAttribute('x', String(x0));
+        el.setAttribute('width', (w * f.reveal).toFixed(1));
       }
       for (const el of fig.querySelectorAll('[data-scrub-x]')) {
         const [x1, x2, o1, o2] = el.dataset.scrubX.split(',').map(Number);
-        const m = reduce ? (e < 0.5 ? 0 : 1) : e;
-        setT(el, `translate(${(x1 + (x2 - x1) * m).toFixed(1)}px, 0px)`);
-        // a tick in both states slides; one that leaves goes in the first
-        // half, one that arrives comes in the second (no two labels overlap)
-        el.style.opacity = String(o1 && o2 ? 1 : o1 ? Math.max(0, 1 - 2 * e) : o2 ? Math.max(0, 2 * e - 1) : 0);
+        // a year leaves from where the growth axis puts it and arrives where
+        // the gap axis does: never on its way between two scales
+        const inA = f.at === 'a';
+        setT(el, `translate(${(inA ? x1 : x2).toFixed(1)}px, 0px)`);
+        el.style.opacity = String(inA ? (o1 ? 1 : 0) : o2 ? 1 : 0);
       }
       const z = fig.querySelector('[data-scrub-zero]');
       if (z) {
-        const m = reduce ? (e < 0.5 ? 0 : 1) : e;
-        setT(z, `translate(0px, ${(a.zeroY + (b.zeroY - a.zeroY) * m).toFixed(1)}px)`);
+        // on the growth axis's 0 while it goes, on the gap axis's 0 (the
+        // forecast path) as that comes: never between the two
+        setT(z, `translate(0px, ${L.zeroY.toFixed(1)}px)`);
+        z.style.opacity = '1';
       }
     };
     const stop = subscribe({
@@ -512,9 +543,6 @@ function useMorphScrub(ref, on, g1, g2) {
       stop();
       // hand back to the classes
       for (const el of touched) el.style.opacity = '';
-      // each scrubbed transform back to React's current one, which every
-      // such element mirrors in data-tx (a cached value is wrong after a
-      // scroll back up: React's new value can equal the scrub's last write)
       for (const el of wrote) if (el.dataset.tx != null) el.style.transform = el.dataset.tx;
     };
   }, [on, ref]);
@@ -657,6 +685,13 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
             <clipPath id={clip}>
               <rect x={PX0 - 4} y={CLIP_T} width={PX1 - PX0 + 8} height={CLIP_B - CLIP_T} />
             </clipPath>
+            {/* the scrub's left-to-right reveal of the gap line, from the
+                surprise year, on the gap axis's own x scale */}
+            {sc ? (
+              <clipPath id={`${clip}-rev`}>
+                <rect data-scrub-reveal={`${(g2.X(SURPRISE_YEAR) - 4).toFixed(1)},${(PX1G - g2.X(SURPRISE_YEAR) + 8).toFixed(1)}`} x={g2.X(SURPRISE_YEAR) - 4} y={CLIP_T} width={0} height={CLIP_B - CLIP_T} />
+              </clipPath>
+            ) : null}
           </defs>
           {/* bands: the OBR's forecast years (state 1), the shock (gap states) */}
           {split != null ? (
@@ -773,7 +808,7 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
                 );
               })}
             {sc && ys ? (
-              <path className="p2-mo-line p2-mo-gap is-on" data-scrub-path="gap" data-scen={sid} data-mark={`scen-${sid}`} d={dPath(g1.gap)} style={{ stroke: ARM_COLOR.tfp }} />
+              <path className="p2-mo-line p2-mo-gap is-on" data-scrub-path="gap" data-scen={sid} data-mark={`scen-${sid}`} d={dPath(g2.gap)} clipPath={`url(#${clip}-rev)`} style={{ stroke: ARM_COLOR.tfp }} />
             ) : (
               <Tween
                 className={`p2-mo-line p2-mo-gap${k >= 2 && ys ? ' is-on' : ''}`}
@@ -809,7 +844,7 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
               ONS outturn
             </text>
           </g>
-          <g className={`p2-mo-fade${s === 1 ? ' is-on' : ''}`} data-scrub={sc ? 'out' : undefined}>
+          <g className={`p2-mo-fade${s === 1 ? ' is-on' : ''}`} data-scrub={sc ? 'out2' : undefined}>
             <text x={PX1} y={PY1 - 22} textAnchor="end" className="p2-mo-label">
               OBR forecast
             </text>
@@ -818,7 +853,7 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
             <g
               key={p.key}
               className={`p2-mo-end${p.on ? ' is-on' : ''}${p.key === 'korinek' && resc && !p.pinned ? ' is-late' : ''}${p.pinned ? ' is-pinned' : ''}`}
-              data-scrub={sc && p.on ? 'in' : undefined}
+              data-scrub={sc && p.on ? (p.zero ? 'in' : 'label') : undefined}
              
               style={{ transform: `translate(${PX1G + 6}px, ${p.t.toFixed(1)}px)` }}
             >
@@ -846,7 +881,7 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
           ))}
           {/* the headline year on the chosen line: a ring, no value */}
           {ring ? (
-            <g className={`p2-mo-ring${s >= 2 ? ' is-on' : ''}`} data-scrub={sc ? 'in' : undefined} style={{ transform: `translate(${ring[0].toFixed(1)}px, ${ring[1].toFixed(1)}px)` }}>
+            <g className={`p2-mo-ring${s >= 2 ? ' is-on' : ''}`} data-scrub={sc ? 'label' : undefined} style={{ transform: `translate(${ring[0].toFixed(1)}px, ${ring[1].toFixed(1)}px)` }}>
               <circle r={5.5} />
             </g>
           ) : null}
