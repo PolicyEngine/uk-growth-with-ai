@@ -723,11 +723,6 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 .card-finding {
   max-width: none;
 }
-/* the slope chart's note is left at its measure: that chart is being
-   replaced on another branch (its builder owns it) */
-#closure-slope .card-finding {
-  max-width: 78ch;
-}
 /* a lead that runs the card's full width (Card leadFull; push D, Q6b: the
    measures card's sentence), wrapped in balanced lines on phones */
 .card-finding.is-full {

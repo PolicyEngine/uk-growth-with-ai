@@ -27,7 +27,6 @@ const EXEMPT = [
   '.mx-uses', // a row of replication links
   '.lens-overlap', // a link label inside the lens chart
   '.mx-big', // a big value
-  '.ex-slope-note', // ClosureSlope: replaced by the dumbbell rows on its own branch
   '.story-chain-link', // diagram arrows
 ].join(', ');
 
