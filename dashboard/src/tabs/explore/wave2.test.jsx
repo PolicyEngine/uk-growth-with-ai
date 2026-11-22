@@ -11,6 +11,7 @@ import ClosureSlope, { slopeNote, slopeRows, SLOPE_MEASURES } from '@/tabs/explo
 import ResultsTab, { WALL_HINTS, shownInvestFlags, I_RECORD_PCT } from '@/tabs/ai/ResultsTab.jsx';
 import { I_FLAG_PCT } from '@/tabs/explore/caveats.js';
 import { ARM_COLOR } from '@/tabs/ai/surprise.js';
+import { versionName } from '@/lib/versionColors.js';
 import WhoGainsTab, { dotCounts } from '@/tabs/cohorts/CohortsTab.jsx';
 import { grid, AGES } from '@/tabs/cohorts/WhoHeatmap.jsx';
 
@@ -61,6 +62,39 @@ describe('some foreign capital to no foreign capital', () => {
     expect(slopeNote({ flips: true, nearPath: null })).toBe(' Flips sign.');
     expect(slopeNote({ flips: true, nearPath: 'b' })).toBe(' About on the forecast path with no foreign capital.');
   });
+  it('the flip note: is-flip exactly for a real flip, each version under its own direction; a near-path flip is "about on the forecast path" (Fable push E, fix 1)', () => {
+    const arms = S.arms.map((a) => a.id);
+    const dirOf = (x) => (x > 0 ? 'above' : 'below');
+    for (const s of S.scenarios)
+      for (const rule of ['common', 'fixed', 'dn']) {
+        const { container, unmount } = wrap(<ClosureSlope sid={s.id} />, `tab=explore&s=${s.id}&rule=${rule}`);
+        for (const fig of container.querySelectorAll('.ex-fc-group')) {
+          const v = fig.dataset.measure;
+          const rows = slopeRows(s.id, arms, rule, v);
+          const real = rows.filter((r) => r.flips && !r.nearPath);
+          const near = rows.filter((r) => r.flips && r.nearPath);
+          const notes = fig.querySelectorAll('.ex-fc-note');
+          expect(notes).toHaveLength(1);
+          const note = fig.querySelector('.ex-fc-note.is-flip');
+          expect(!!note).toBe(real.length > 0);
+          const txt = notes[0].textContent;
+          if (real.length) {
+            // each real flip's version sits after its own direction and before the other's
+            for (const r of real) {
+              const d = dirOf(r.b);
+              const name = versionName(r.arm).toLowerCase();
+              const at = txt.indexOf(d);
+              expect(at).toBeGreaterThan(-1);
+              const seg = txt.slice(at).split(';')[0];
+              expect(seg).toContain(name);
+            }
+          }
+          if (near.length) expect(txt).toMatch(/[Aa]bout on (the forecast path|it) with (no|some) foreign capital/);
+          if (!real.length) expect(txt).not.toMatch(/Flips/);
+        }
+        unmount();
+      }
+  });
   it('dumbbell rows: one per measure and version, each dot the data to one decimal, a flip said in words with its direction', () => {
     // one decimal, signed with a true minus; the two-decimal figures stay
     // the four-measure card's
@@ -96,10 +130,7 @@ describe('some foreign capital to no foreign capital', () => {
           }
           expect(row.classList.contains('is-flip')).toBe(c != null && b != null && sgn(c) * sgn(b) === -1);
         }
-        const flips = slopeRows(s.id, S.arms.map((a) => a.id), 'common', v).filter((r) => r.flips);
-        const note = fig.querySelector('.ex-fc-note.is-flip');
-        expect(!!note).toBe(flips.length > 0);
-        if (note) expect(note.textContent).toContain(raw(s.id, flips[0].arm.id, 'zk0', 'common', v) > 0 ? 'above' : 'below');
+        // (the flip note's cases, every rule: the test below)
         // one short note per measure group
         expect(fig.querySelectorAll('.ex-fc-note')).toHaveLength(1);
       }

@@ -141,9 +141,27 @@ function Row({ m, r, pct, sel }) {
   );
 }
 
-// One measure's rows and its note: a flip, a missing case, or the same side.
-function Group({ m, rows, pct, sel }) {
+// One measure's rows and its note: a flip, a near-path end, a missing case,
+// or the same side. A flip whose smaller end prints as about zero (nearPath)
+// is not called a flip here (round 6, S10); the row says "about on the
+// forecast path" and so does the note. Each real flip names its own
+// direction (the no-foreign-capital end's side), grouped by direction.
+const vnames = (rs) => rs.map((r) => versionName(r.arm).toLowerCase()).join(', ');
+const nearText = (near) => `${near[0].nearPath === 'b' ? 'no' : 'some'} foreign capital: ${vnames(near)}`;
+export function flipNoteText(rows) {
   const flips = rows.filter((r) => r.flips);
+  const real = flips.filter((r) => !r.nearPath);
+  const near = flips.filter((r) => r.nearPath);
+  if (real.length) {
+    const dirs = [...new Set(real.map((r) => side(r.b)))];
+    const parts = dirs.map((d, i) => `${i ? `${d} it` : `Flips ${d} the forecast path`}: ${vnames(real.filter((r) => side(r.b) === d))}`);
+    return { flip: true, text: parts.join('; ') + (near.length ? `; about on it with ${nearText(near)}` : '') };
+  }
+  if (near.length) return { flip: false, text: `About on the forecast path with ${nearText(near)}` };
+  return null;
+}
+function Group({ m, rows, pct, sel }) {
+  const note = flipNoteText(rows);
   const pending = rows.filter((r) => r.c != null && r.b == null);
   return (
     <div className="ex-fc-group" role="group" aria-labelledby={`ex-fc-t-${m.v}`} data-measure={m.v}>
@@ -153,13 +171,17 @@ function Group({ m, rows, pct, sel }) {
       {rows.map((r) => (
         <Row key={r.arm.id} m={m} r={r} pct={pct} sel={sel} />
       ))}
-      {flips.length ? (
+      {note?.flip ? (
         <IconLine concept="closure" tier="meta" className="ex-fc-note is-flip" data-label-for="flip">
-          {`Flips ${side(flips[0].b)} the forecast path: ${flips.map((r) => versionName(r.arm).toLowerCase()).join(', ')}`}
+          {note.text}
+        </IconLine>
+      ) : note ? (
+        <IconLine concept="onPath" tier="meta" className="ex-fc-note">
+          {note.text}
         </IconLine>
       ) : pending.length ? (
         <IconLine concept="provisional" tier="meta" className="ex-fc-note">
-          No-foreign-capital case not solved for {pending.map((r) => versionName(r.arm).toLowerCase()).join(', ')}
+          No-foreign-capital case not solved for {vnames(pending)}
         </IconLine>
       ) : (
         <IconLine concept="onPath" tier="meta" className="ex-fc-note">
