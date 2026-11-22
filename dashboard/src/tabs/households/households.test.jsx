@@ -220,7 +220,9 @@ describe('HouseholdsExplore', () => {
     expect(fold('hh-rules')).toMatch(/top-loaded extreme case costs/);
     expect(fold('hh-ladder')).toMatch(/Wage cuts of the same gross size/);
     expect(fold('hh-per-pound')).toMatch(/On one draw \(seed 0\)/);
-    expect(fold('hh-policy')).toMatch(/costed gross/);
+    // the costing basis is said once, under the plane, not in More info
+    expect(fold('hh-policy')).not.toMatch(/costed gross/);
+    expect(text(container.querySelector('#hh-policy'))).toMatch(/Wage insurance is costed gross; the two UC changes are costed net of withdrawal elsewhere\./);
     // Fable round 7, S5: the UC changes' reach, in the policy card's caveats
     expect(fold('hh-policy')).toMatch(/two UC changes are not limited to the displaced; wage insurance is paid only to the displaced/);
     expect(fold('hh-policy')).toMatch(/the study does not split it/);
@@ -355,6 +357,41 @@ describe('HouseholdsExplore', () => {
     expect(sub).toEqual(D.policy.rows.filter((r) => r.family !== 'exposure').map((r) => r.id));
     // R1-24: no grid of policy panels (they were three in a row)
     expect(container.querySelector('.hh-pol-cards, .hh-pol-card')).toBeNull();
+  });
+
+  // Households redesign (Fable 5.2 ruling for Vahid), R7: the responses on
+  // the cost and poverty plane, three points, none highlighted
+  it('draws the policy responses on the plane: three numbered points, no ring, no arrow, the costing basis shown', () => {
+    const { container } = render(<HouseholdsExplore />);
+    const card = container.querySelector('#hh-policy');
+    const main = D.policy.rows.filter((r) => r.family === 'exposure');
+    expect(card.querySelectorAll('.hh-pt')).toHaveLength(main.length);
+    expect(card.querySelector('.hh-pt.is-ring, .hh-arrow')).toBeNull();
+    expect([...card.querySelectorAll('.hh-pt-lab')].map(flat)).toEqual(['Wage insurance', 'Higher UC allowance', 'Cap suspended, lower taper']);
+    expect(card.querySelector('svg[role="img"]').getAttribute('aria-label')).toBe('Scatter: cost against the change in absolute poverty for each policy response');
+    expect(card.querySelector('[data-axis-title="x"]').textContent).toBe('Cost to the public finances');
+    expect(card.querySelector('[data-axis-title="y"]').textContent).toBe('Change in absolute poverty');
+    // y: zero at the top, negative below
+    const ys = [...card.querySelectorAll('.hh-ticks-ov .is-y')].map(flat);
+    expect(ys[ys.length - 1]).toBe('0pp');
+    expect(ys[0]).toMatch(/^−\d/);
+    // the table: a numbered marker on each main row, none on the sub-rows, no bar column
+    expect(card.querySelectorAll('tbody tr:not(.is-sub) .hh-pt-key .hh-pt-n')).toHaveLength(main.length);
+    expect(card.querySelectorAll('tr.is-sub .hh-pt-key')).toHaveLength(0);
+    expect(card.querySelectorAll('tr.is-sub')).toHaveLength(2);
+    expect(card.querySelector('.hh-tbl.has-bar, td.hh-tbl-bar')).toBeNull();
+    const note = card.querySelector('.hh-note[data-caveat="costing"]');
+    expect(note.querySelector('svg')).not.toBeNull();
+    // no cost-per-point figure, no ranking words
+    expect(card.textContent).not.toMatch(/per pp|per point|cheapest|most effective|value for money/i);
+  });
+
+  it('has no control, toggle or funnel on the page; no table fold on the planes', () => {
+    const { container } = render(<HouseholdsExplore />);
+    expect(container.querySelector('button[aria-pressed], [role="switch"]')).toBeNull();
+    expect([...container.querySelectorAll('[class]')].some((el) => /funnel/.test(el.getAttribute('class')))).toBe(false);
+    for (const id of ['hh-ladder', 'hh-rules', 'hh-policy']) expect(container.querySelector(`#${id} [data-table-fold]`), id).toBeNull();
+    expect(container.textContent).not.toMatch(/\bfunnel\b|cost per pp|cheapest|value for money/i);
   });
 
   it('flags the runs outside the rebuild in More info while the data file lists any', () => {

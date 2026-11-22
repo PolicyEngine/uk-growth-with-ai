@@ -941,22 +941,33 @@ function Rankings() {
   );
 }
 
-// --- 7. Policy responses (50 draws): one table with a cost bar -----------------
-// The study's order; wage insurance under the two other displacement rules
-// as indented sub-rows. All three main rows use the main-case shock, so
-// none is "the main case". No ranking words.
+// --- 7. Policy responses (50 draws): the cost and poverty plane, then its table
+// (Households redesign, R7). Three points, the responses on the main-case
+// shock, numbered in the study's order, no ring, no arrow, no guide: all
+// three are on the main case, so none is "the main case". y is the change
+// in absolute poverty, zero at the top. The costing basis is shown under
+// the plane. The table keeps the study's order, with wage insurance under
+// the two other displacement rules as indented sub-rows. No ranking words,
+// no cost-per-point figure.
+const POLICY_LAB = {
+  R1_wage_insurance: { lab: 'Wage insurance', pos: 'l' },
+  R2_uc_circuit_breaker: { lab: 'Higher UC allowance', pos: 't' },
+  R3_cap_suspension_taper_cut: { lab: 'Cap suspended, lower taper', pos: 'b' },
+};
 function Policy() {
   const P = D.policy;
   const [ref, e] = useSeenBeat();
-  const max = Math.ceil((Math.max(...P.rows.map((r) => r.cost_bn)) * 1.05) / 10) * 10;
   const main = P.rows.filter((r) => r.family === 'exposure');
   const others = (reform) => P.rows.filter((r) => r.reform === reform && r.family !== 'exposure');
   const costs = main.map((r) => r.cost_bn);
+  const xMax = Math.ceil((Math.max(...costs) * 1.05) / 10) * 10;
+  const yMin = -Math.ceil((Math.abs(Math.min(0, ...main.map((r) => r.poverty_pp))) * 1.05) / 0.5) * 0.5;
+  const n = Object.fromEntries(main.map((r, i) => [r.id, i + 1]));
   const row = (r, sub = false) => ({
     id: r.id,
     sub,
     label: sub ? `Under the ${ruleName(r.family).toLowerCase()} rule` : <span data-input="">{r.label}</span>,
-    bar: <Bar value={r.cost_bn} max={max} thin={sub} />,
+    marker: sub ? undefined : { tone: 'c', n: n[r.id] },
     cells: [fmtBn(r.cost_bn), fmtPp(r.poverty_pp), fmtGiniPts(r.gini_pp)],
   });
   return (
@@ -971,8 +982,10 @@ function Policy() {
           </>
         </Lead>
       }
-      unit={<span data-axis-title="y">Cost, £bn a year; poverty, pp; Gini, points</span>}
+      // the plane carries the axis titles, as on cards 3 and 4
+      unit="Cost, £bn a year; poverty, pp; Gini, points"
       more={[
+        { label: 'How to read', text: 'Lower on the chart is a larger fall in poverty; further right is a higher cost.' },
         { label: 'Compared with', text: 'The main case after the shock, not today.' },
         { label: 'Sample', text: `${P.rows[0].draws} draws.` },
       ]}
@@ -989,17 +1002,32 @@ function Policy() {
           'Each response is simulated on top of the main-case shock.',
           'Poverty lines are held at their shocked values.',
           'Wage insurance is an untaxed transfer that means tests ignore.',
-          'Wage insurance is costed gross; the two Universal Credit (UC) changes are costed net of withdrawal elsewhere.',
           'The indented rows are wage insurance again, under the other two displacement rules.',
         ],
         caveats: ['The designs are the study’s own.', ...policyReachWords(P.rows), 'They differ in aim, take-up and administration.', 'Compared on cost, poverty and the Gini only; not ranked.'],
         sources: [`${P.file}: ${P.key}`],
       })}
     >
-      <div className={entryClass(e, 'hh-pol')} ref={ref}>
+      <div className={entryClass(e, 'hh-plane-wrap')} ref={ref}>
+        <Plane
+          on={e.on}
+          label="Scatter: cost against the change in absolute poverty for each policy response"
+          points={main.map((r) => ({ id: r.id, n: n[r.id], group: 'c', name: r.label, lab: POLICY_LAB[r.reform]?.lab ?? r.label, pos: POLICY_LAB[r.reform]?.pos ?? 'r', x: r.cost_bn, y: r.poverty_pp }))}
+          xMax={xMax}
+          yMax={0}
+          yMin={yMin}
+          yStep={0.5}
+          xUnit={(t) => `£${t}bn`}
+          yUnit="pp"
+          yTitle="Change in absolute poverty"
+          xTitle="Cost to the public finances"
+        />
+        {/* the costing basis, shown once, under the plane (R7.3) */}
+        <IconLine concept="caveat" className="hh-note" data-caveat="costing">
+          Wage insurance is costed gross; the two UC changes are costed net of withdrawal elsewhere.
+        </IconLine>
         <ValueTable
           layout="stack"
-          bar
           caption="Cost, poverty and Gini change for each policy response"
           rowHead="Response"
           cols={COLS3}
