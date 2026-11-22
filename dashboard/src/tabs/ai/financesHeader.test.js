@@ -15,7 +15,6 @@ const NAME = Object.fromEntries(S.arms.map((a) => [a.id, a.short || a.label]));
 // year sign, in words ("debt as a share of GDP"), the result first. The
 // expected sentence is built here from the raw signs.
 const WITH = { tfp: 'with automation and productivity gains', tz: 'with technology unchanged', ss: 'in the stress test' };
-const and = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}` : xs[0]);
 const full = (s) => (s === 'on' ? 'on the forecast path' : `${s} the forecast path`);
 const short = (s) => (s === 'on' ? 'on the path' : `${s} the path`);
 function expectedLead(sides) {
