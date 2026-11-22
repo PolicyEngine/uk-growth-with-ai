@@ -438,8 +438,11 @@ for (const [W, H] of process.env.HEADERS === '0' || JUMP === 'only' || process.e
   // Item dc-B: the Part 3 leaves-out block too (missing is a miss).
   // HEADERS=centre runs only these centring checks.
   const br = await page.evaluate(() => {
-    const textInk = (root) => {
+    // withIcon: the root's leading icon is ink too (an inline svg the line
+    // is centred with; the Part 3 leaves-out lead, Fable 5.2 fix list 9)
+    const textInk = (root, withIcon = false) => {
       const rs = [];
+      if (withIcon) for (const svg of root.querySelectorAll('svg')) rs.push(...[...svg.getClientRects()].filter((r) => r.width > 0 && r.height > 0));
       const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
       for (let n = tw.nextNode(); n; n = tw.nextNode()) {
         if (!n.nodeValue.trim() || n.parentElement.closest('.visually-hidden')) continue;
@@ -461,14 +464,14 @@ for (const [W, H] of process.env.HEADERS === '0' || JUMP === 'only' || process.e
       if (c == null) continue;
       out.push({ id: `bridge "${a.querySelector('.part-links-kicker')?.textContent ?? '?'}"`, d: Math.round((c - mid(nav.closest('.story-part, .story-leaves'))) * 10) / 10, h: Math.round(a.getBoundingClientRect().height) });
     }
-    // item dc-B: the Part 3 "leaves out" block (box and its lead's and
-    // foot's words) on the same column centre
+    // item dc-B: the Part 3 "leaves out" block (box, its lead's words and
+    // leading icon, its foot's words) on the same column centre
     const card = document.querySelector('.p3-close-card');
     if (card?.getClientRects().length) {
       const col = mid(card.closest('.story-part, .story-leaves'));
       out.push({ id: 'leaves-out block', d: Math.round((mid(card) - col) * 10) / 10 });
       for (const sel of ['.p3-close-lead', '.p3-close-foot']) {
-        const c = textInk(card.querySelector(sel));
+        const c = textInk(card.querySelector(sel), sel === '.p3-close-lead');
         if (c != null) out.push({ id: sel, d: Math.round((c - col) * 10) / 10 });
       }
     }
