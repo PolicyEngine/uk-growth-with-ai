@@ -58,3 +58,11 @@
   font-size: var(--t-body);
   line-height: 1.45;
 }
+/* in a centred block (a part or close opener, the leaves-out card) the icon
+   and its text centre as one group; a wrapped line still hangs under the
+   first line's text (start-aligned in its column, by design) */
+:is(.part-opener, .p3-close-card) .icon-line {
+  grid-template-columns: var(--il-icon) minmax(0, max-content);
+  justify-content: center;
+  text-align: start;
+}
