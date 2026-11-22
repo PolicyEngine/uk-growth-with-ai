@@ -126,3 +126,17 @@ Every PR figure matches after rounding. The full-precision values are £7.38bn, 
 - Displacement is static: a full year out of work, no behavioural or macro response. The 2008-10 backcast over-predicts the poverty response.
 - The draw count differs by row (see the ladder). Seed 0 is a bottom-tail draw for poverty and the Gini.
 - The wage-cut figures come from `wage_cut_draws.csv`. The emitter also checks that the file's `code_fingerprint` matches the current `wage_cut_household.py`. That check needs the source repo, so the builder does not repeat it. The paper's printed values, which the builder does check, passed it at this commit.
+
+## Explore > Households redesign: checks (push E)
+
+The Households redesign (Fable 5.2 ruling for Vahid, 22 Nov) landed as commits 1 to 9 on `perf/pushD`, except commit 6 (below). Under the light-work rule no browser, build or server was run, so the 1280 and 390 check outputs are not recorded here yet.
+
+Run, browser-free:
+
+- `scripts/checks/part3.py`: `waterfall_failures()` and `sankey_failures()` both return no failures. The eight cost lines sum to `total_bn` within 0.001.
+- vitest, under the default data and `NEXT_PUBLIC_DATA=2028`: `households.test.jsx`, `words.test.jsx`, `anatomy.test.jsx`, `icon-lines.test.jsx`, `label-joins.test.jsx`, `caption-length.test.jsx`, `claims-and-years.test.jsx` and the Explore tests all pass. The two "once" tests are unchanged and pass.
+- eslint on the touched files. The `ugai/one-fold` count stays at its baseline of 4.
+
+Not landed: commit 6, "per pound as two bars; the one-draw rows behind Show table". `TableFold` is a `Disclosure` titled "Show table", and `ugai/one-fold` flags any fold whose title is not "More info". That would raise `eslint_ugai_one_fold` from 4 to 5 in `scripts/ratchet-baselines.json`, and no baseline may rise, so the fold is held for a ruling. The per-pound card is as before: job loss on 20 draws is one fill with "not split", wage cuts are a two-part bar, and the seed-0 rows stay open under a "One draw (seed 0)" head. `dumptabs.mjs` already reads a closed table fold before the More info mark (commit 1), so the count holds once the fold lands.
+
+Pending in the browser, at 1280 and 390: `check_numbers` (63 on Households), `check_pill`, `check_header` (Households is now in `ANCHORS`), `check_text`, `check_axes`, `check_sources`, `check_hover`, `check_states`, and the layouts in section 6 of the ruling.
