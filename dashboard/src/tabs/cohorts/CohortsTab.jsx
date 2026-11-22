@@ -628,9 +628,6 @@ function PartBars({ c }) {
   const at = (x) => `${(((x - lo) / (hi - lo || 1)) * 100).toFixed(2)}%`;
   return (
     <div className="ex-parts-wrap">
-      <p className="ex-parts-unit" data-axis-title="y">
-        % of remaining-lifetime consumption and bequests
-      </p>
       <ul className={`ex-parts${lo0 < 0 ? ' has-neg' : ''}${hi0 > 0 ? ' has-pos' : ''}`} aria-label="Average change and its three parts" style={{ '--parts-fill': GROUP_RAMP[3] }}>
         {rows.map((r) => (
           <li key={r.k} className={r.total ? 'is-total' : undefined}>
@@ -660,17 +657,22 @@ function WhoSources() {
   return <SourceLine items={cohortSources()} record={false} />;
 }
 
+// The breakdown is the one Card (components/ui/Card.jsx; task 19, "box ui"):
+// title, the intro line, the unit, then the bars at the card's full width,
+// so the intro no longer sits over an empty column beside the chart.
 function ByForm({ c, both }) {
   return (
-    <Finding
+    <Card
       id="welfare-breakdown"
-      layout="side"
-      icon="bequests"
-      lead={byFormLead(c.parts_alive, c.alive_avg)}
-      lines={[`The average change for adults alive in ${D.shock_year}, split by what changes: spending, free time and bequests.`, both ? 'Shown with some foreign capital.' : null]}
+      className="ex-parts-card"
+      icon={iconFor('bequests')}
+      title={noStop(byFormLead(c.parts_alive, c.alive_avg))}
+      finding={`The average change for adults alive in ${D.shock_year}, split by what changes: spending, free time and bequests.${both ? ' Shown with some foreign capital.' : ''}`}
+      unit={<span data-axis-title="y">% of remaining-lifetime consumption and bequests</span>}
+      sources={cohortSources()}
     >
       <PartBars c={c} />
-    </Finding>
+    </Card>
   );
 }
 
@@ -769,7 +771,7 @@ function Why({ cl, rule, arm }) {
   const top = GROUP_LABELS[6];
   const wc = C.wealth_concentration.top_tenth_pct;
   return (
-    <>
+    <div className="ex-stack">
       <div className="ex-why2">
         {/* A: the year consumption is above the path is in the stat pair,
             so the bullets are the why and, where it holds, the average */}
@@ -933,7 +935,7 @@ function Why({ cl, rule, arm }) {
           </div>
         </Disclosure>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -998,21 +1000,22 @@ export default function WhoGainsTab() {
         ) : null}
       </ul>
       {/* arm and fiscal rule: the settings pill under the page title (one store) */}
-      {both ? (
-        cls.map((k) => (
-          <div key={k} className="wg-closure">
-            <h3 className="wg-closure-title">
-              <Icon name={CL_HEAD[k].icon} size={16} /> {CL_HEAD[k].text}
-            </h3>
-            <Headline c={cell(k, rule, arm)} rule={rule} cl={k} arm={arm} measure={measure} />
-          </div>
-        ))
-      ) : (
-        <Headline c={c} rule={rule} cl={cl} arm={arm} measure={measure} />
-      )}
-      <ByForm c={c} both={both} />
-      <WhoHeatmap cl={both ? 'zk0.1' : cl} rule={rule} arm={arm} both={both} measure={measure} onMeasure={setMeasure} ms={measuresOf(c, rule, cl, arm)} />
-      <div className="cards-stack stack-gap">
+      {/* one stack, one gap between every card (task 19) */}
+      <div className="ex-stack">
+        {both ? (
+          cls.map((k) => (
+            <div key={k} className="wg-closure">
+              <h3 className="wg-closure-title">
+                <Icon name={CL_HEAD[k].icon} size={16} /> {CL_HEAD[k].text}
+              </h3>
+              <Headline c={cell(k, rule, arm)} rule={rule} cl={k} arm={arm} measure={measure} />
+            </div>
+          ))
+        ) : (
+          <Headline c={c} rule={rule} cl={cl} arm={arm} measure={measure} />
+        )}
+        <ByForm c={c} both={both} />
+        <WhoHeatmap cl={both ? 'zk0.1' : cl} rule={rule} arm={arm} both={both} measure={measure} onMeasure={setMeasure} ms={measuresOf(c, rule, cl, arm)} />
         <Card
           id="welfare-chart"
           // slot 9 (review round 3, R3-12): the generations scene's case

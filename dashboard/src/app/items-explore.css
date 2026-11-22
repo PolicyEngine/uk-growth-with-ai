@@ -1455,9 +1455,6 @@
 .ex-hm-readout.is-muted {
   color: var(--pe-gray-500, #6b7280);
 }
-#who-heatmap {
-  margin-top: 20px;
-}
 @media (max-width: 560px) {
   .ex-hm th { font-size: var(--chart-fs-tick); }
   .ex-hm { border-spacing: 2px; }
@@ -2099,8 +2096,8 @@
   }
 }
 
-/* Who gains: the welfare breakdown card (item-19-fable.md), a Finding with
-   layout="side". Four rows on one axis: label, then the track, with the
+/* Who gains: the welfare breakdown card (item-19-fable.md), the one Card,
+   stacked (task 19). Four rows on one axis: label, then the track, with the
    value at the bar's end (left end when negative). */
 .ex-parts-unit {
   margin: 0 0 8px;
@@ -2710,5 +2707,100 @@
 @media (max-width: 768px) {
   #tax-gap .cause-row {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- Explore card grids: one gap, one card frame, one type scale
+   (task 19; Vahid, 22 Nov: "box ui wtf fix it"). Every Explore sub-page
+   (economy, finances, Who, households) is a #explore-sub-* panel; Method
+   and the Story are not touched.
+   - Gap: --gap-card (32px; --gap-card-phone, 24px, at 768px and below),
+     between every card in both directions: grids, stacks and the Who
+     page's blocks (.ex-stack).
+   - Frame: the Card's border, radius and padding on every box.
+   - Type: title --chart-fs-title 600; body --chart-fs-label; chart labels
+     and notes --chart-fs-tick (chart-type.css). */
+[id^="explore-sub-"] {
+  --ex-gap: var(--gap-card, 32px);
+}
+@media (max-width: 768px) {
+  [id^="explore-sub-"] {
+    --ex-gap: var(--gap-card-phone, 24px);
+  }
+}
+[id^="explore-sub-"] :is(.cards-grid, .cards-stack, .card-grid, .card-grid.cols-2, .ex-wall, .ex-why2, .ex-mi-grid, .stat-row.cols-4.ex-who-tiles) {
+  gap: var(--ex-gap);
+}
+[id^="explore-sub-"] .stack-gap {
+  margin-top: var(--ex-gap);
+}
+.ex-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ex-gap, 32px);
+}
+.ex-stack > * {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.ex-stack > .wg-closure + .wg-closure {
+  margin-top: 0;
+}
+/* one frame: the Card's border, radius and padding */
+[id^="explore-sub-"] :is(.card, .stat-tile, .finding, .ex-mi-box) {
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+}
+[id^="explore-sub-"] :is(.ex-who-tiles .stat-tile, .ex-stack .finding, .ex-why2 .finding, .ex-mi-box) {
+  padding: var(--card-padding);
+}
+/* title */
+[id^="explore-sub-"] :is(.card-head h3, .ex-who-tiles .stat-name, :is(.cards-stack, .cards-grid, .ex-stack, .ex-why2) .finding-lead) {
+  font-size: var(--chart-fs-title);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--pe-gray-900);
+}
+[id^="explore-sub-"] .ex-who-tiles .stat-name {
+  min-height: 0;
+}
+/* body */
+[id^="explore-sub-"] :is(.card-finding, .ex-who-tiles .stat-sub, :is(.cards-stack, .cards-grid, .ex-stack, .ex-why2) .finding-lines li, .why-bullets li) {
+  font-size: var(--chart-fs-label);
+  line-height: 1.5;
+}
+/* chart labels and notes */
+[id^="explore-sub-"] .ex-who-tiles :is(.ex-bars, .ex-bars .ex-bar-code, .ex-bars .ex-dd, .ex-mtoggle-row, .ex-mtoggle-name, .ex-mtag, .ex-stat-rows, .ex-ruler-ticks, .ex-ruler-unit),
+[id^="explore-sub-"] :is(.ex-parts-label, .ex-parts-val, .why-stat-label, .why-unit, .card-unit, .finding-note) {
+  font-size: var(--chart-fs-tick);
+}
+/* the Average change rows: one column set for the four rows (subgrid), the
+   value column as wide as its widest value, so "+0.53% to +0.54%" keeps to
+   one line (task 19, fault 4) */
+[id^="explore-sub-"] .ex-who-tiles .ex-bars.ex-avg {
+  grid-template-columns: max-content minmax(48px, 1fr) max-content;
+  column-gap: 10px;
+}
+[id^="explore-sub-"] .ex-who-tiles .ex-bars.ex-avg > li {
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+}
+[id^="explore-sub-"] .ex-who-tiles .ex-bars.ex-avg .ex-dd {
+  white-space: nowrap;
+}
+/* two tiles a row above 768px, one at 768px and below, where a half tile
+   is too narrow for a range value */
+@media (max-width: 768px) {
+  [id^="explore-sub-"] .stat-row.cols-4.ex-who-tiles {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* the breakdown card stacked: the bars run the card's width */
+.ex-parts-card .ex-parts > li {
+  grid-template-columns: 150px minmax(0, 1fr);
+}
+@media (max-width: 600px) {
+  .ex-parts-card .ex-parts > li {
+    grid-template-columns: 120px minmax(0, 1fr);
   }
 }

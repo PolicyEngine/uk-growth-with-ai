@@ -38,8 +38,9 @@ describe('Who gains tab', () => {
     expect(t).not.toContain('first order');
     // the welfare breakdown: the total and each part printed once, beside its bar
     const parts = container.querySelector('#welfare-breakdown');
-    // a Finding lead is title-level: no full stop (Vahid, 18 Nov)
-    expect(parts.querySelector('.finding-lead').textContent).toBe(byFormLead(c.parts_alive, c.alive_avg).replace(/\.$/, ''));
+    // the one Card (task 19): its title is the finding, with no full stop
+    expect(parts.matches('article.card')).toBe(true);
+    expect(parts.querySelector('.card-head h3').textContent).toBe(byFormLead(c.parts_alive, c.alive_avg).replace(/\.$/, ''));
     const vals = [...parts.querySelectorAll('.ex-parts-val')].map((e) => e.textContent);
     expect(vals).toEqual([c.alive_avg, c.parts_alive.consumption, c.parts_alive.leisure, c.parts_alive.bequests].map((x) => pct(x)));
     // the total restates the Average change tile
