@@ -23,10 +23,14 @@ function expectedLead(sides) {
   const groups = ['below', 'above', 'on'].map((s) => ({ s, ids: ids.filter((a, i) => sides[i] === s) })).filter((x) => x.ids.length).sort((a, b) => a.ids.length - b.ids.length);
   const lead = `In ${H}, debt as a share of GDP is`;
   if (groups.length === 1) return `${lead} ${full(groups[0].s)} in every version`;
-  if (groups.length === 2) return `${lead} ${full(groups[0].s)} only ${WITH[groups[0].ids[0]]}; it is ${short(groups[1].s)} in the other two versions`;
+  if (groups.length === 2) return `${lead} ${full(groups[0].s)} only ${WITH[groups[0].ids[0]]}; otherwise it is ${short(groups[1].s)}`;
   const [a, ...rest] = groups;
-  return `${lead} ${full(a.s)} ${WITH[a.ids[0]]}, ${and(rest.map((g) => `${g.s === 'on' ? 'on' : g.s} it ${WITH[g.ids[0]]}`))}`;
+  return `${lead} ${full(a.s)} ${WITH[a.ids[0]]}; the others are ${rest[0].s} and ${rest[1].s} it`;
 }
+// check_text's cap for a block (Fable 5.2, fix list 6): counted its way,
+// the text split on spaces
+const WORDS_MAX = 25;
+const words = (t) => t.split(' ').length;
 describe('item 38: the Public finances summary', () => {
   for (const sid of S.scenarios.map((s) => s.id))
     for (const rule of ['common', 'fixed', 'dn'])
@@ -37,11 +41,13 @@ describe('item 38: the Public finances summary', () => {
           const done = ['tfp', 'tz', 'ss'].every((a) => rec(sid, a, cl, rule)?.status === 'done');
           if (!done) return expect(f).toBeNull();
           if (rule === 'dn' && /stays on the forecast path/.test(debtTitle(sid, closure, rule))) {
-            expect(f.lead).toBe(`Under debt-neutral transfers, transfers to households hold debt as a share of GDP on the forecast path from ${S.surprise_year + 1}; tax as a share of GDP still moves`);
+            expect(f.lead).toBe(`Under debt-neutral transfers, transfers to households hold debt as a share of GDP on the forecast path from ${S.surprise_year + 1}; the tax share still moves`);
+            expect(words(f.lead)).toBeLessThanOrEqual(WORDS_MAX);
             return expect(f.note).toBeNull();
           }
           const sides = ['tfp', 'tz', 'ss'].map((a) => side(g(sid, a, cl, 'debt_gdp_pp', rule)));
           expect(f.lead).toBe(expectedLead(sides));
+          expect(words(f.lead), f.lead).toBeLessThanOrEqual(WORDS_MAX);
           expect(f.lead).not.toMatch(/debt\/GDP/);
           // the note never repeats the finding's words
           if (f.note) {
@@ -52,7 +58,7 @@ describe('item 38: the Public finances summary', () => {
       }
   it('today, UK central: below the path only with automation and productivity gains', () => {
     const sides = ['tfp', 'tz', 'ss'].map((a) => side(g('uk_central', a, 'zk0.1', 'debt_gdp_pp', 'common')));
-    if (sides.join() === 'below,above,above') expect(financesFinding('uk_central', 'central', 'common').lead).toBe(`In ${H}, debt as a share of GDP is below the forecast path only with automation and productivity gains; it is above the path in the other two versions`);
+    if (sides.join() === 'below,above,above') expect(financesFinding('uk_central', 'central', 'common').lead).toBe(`In ${H}, debt as a share of GDP is below the forecast path only with automation and productivity gains; otherwise it is above the path`);
   });
   it('the builder covers every arrangement of sides, not only the ones in the data', async () => {
     const { vi } = await import('vitest');
@@ -69,7 +75,9 @@ describe('item 38: the Public finances summary', () => {
         return { ...m, gap: (sid, arm, cl, v, year, rule) => (v === 'debt_gdp_pp' && year === m.HEADLINE_YEAR ? X[sides[['tfp', 'tz', 'ss'].indexOf(arm)]] : m.gap(sid, arm, cl, v, year, rule)) };
       });
       const { debtLead } = await import('@/tabs/ai/financesInfo.js');
-      expect(debtLead('uk_central', 'zk0.1', 'common'), sides.join()).toBe(expectedLead(sides));
+      const lead = debtLead('uk_central', 'zk0.1', 'common');
+      expect(lead, sides.join()).toBe(expectedLead(sides));
+      expect(words(lead), lead).toBeLessThanOrEqual(WORDS_MAX);
       vi.doUnmock('@/tabs/ai/surprise.js');
     }
   });

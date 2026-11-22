@@ -263,10 +263,16 @@ export function taxMoreInfo(sid, closure, rule) {
 // Public finances, sign-aware, in words ("debt as a share of GDP" in this
 // panel; the cards keep "debt/GDP"). The result leads, title-level with no
 // full stop (Vahid, 18 Nov, as a Finding lead); the note says only
-// what the productivity gain decides, without repeating it.
+// what the productivity gain decides, without repeating it. Every branch
+// is 25 words or fewer (check_text's cap for a block; Fable 5.2, fix list 6).
 //   lead: In {H}, debt as a share of GDP is below the forecast path only
-//         with automation and productivity gains; it is above the path in
-//         the other two versions
+//         with automation and productivity gains; otherwise it is above
+//         the path
+//         (two sides, the smaller with more than one version: "... below
+//         the forecast path in two versions; otherwise it is above the
+//         path"; three sides: "... below the forecast path with
+//         automation and productivity gains; the others are above and on
+//         it")
 //   note: Whether debt is below the path in {H} depends on the productivity
 //         gain (compare “Technology unchanged”). Common rule only, where the
 //         main version's side may not survive netting the OBR's own AI
@@ -287,13 +293,12 @@ export function debtLead(sid, cl, rule) {
   groups.sort((x, y) => x.ids.length - y.ids.length);
   if (groups.length === 2) {
     const [a, b] = groups;
-    const rest = b.ids.length > 1 ? `in the other ${COUNT[b.ids.length] ?? b.ids.length} versions` : withArm(b.ids[0]);
-    return `${lead} ${full(a.s)} ${a.ids.length === 1 ? 'only ' : ''}${andList(a.ids.map(withArm))}; it is ${short(b.s)} ${rest}`;
+    if (a.ids.length > 1) return `${lead} ${full(a.s)} in ${COUNT[a.ids.length] ?? a.ids.length} versions; otherwise it is ${short(b.s)}`;
+    return `${lead} ${full(a.s)} only ${withArm(a.ids[0])}; otherwise it is ${short(b.s)}`;
   }
   // three sides, one version each
   const [a, ...rest] = groups;
-  const it = (g) => `${g.s === 'on' ? 'on it' : `${g.s} it`} ${andList(g.ids.map(withArm))}`;
-  return `${lead} ${full(a.s)} ${andList(a.ids.map(withArm))}, ${andList(rest.map(it))}`;
+  return `${lead} ${full(a.s)} ${withArm(a.ids[0])}; the others are ${rest[0].s} and ${rest[1].s} it`;
 }
 export function debtNote(sid, cl, rule) {
   if (rule !== 'common' || !signMayFlip(sid, cl, 'debt_gdp_pp')) return null;
@@ -307,7 +312,7 @@ export function financesFinding(sid, closure, rule) {
   const late = debtTitle(sid, closure, rule);
   if (rule === 'dn' && /stays on the forecast path/.test(late)) {
     // R1-17 / R4-08: the lead says how, so it does not repeat the card title
-    return { lead: `Under debt-neutral transfers, transfers to households hold ${DEBT_SHARE} on the forecast path from ${SURPRISE_YEAR + 1}; tax as a share of GDP still moves`, note: null };
+    return { lead: `Under debt-neutral transfers, transfers to households hold ${DEBT_SHARE} on the forecast path from ${SURPRISE_YEAR + 1}; the tax share still moves`, note: null };
   }
   return { lead: debtLead(sid, cl, rule), note: debtNote(sid, cl, rule) };
 }
