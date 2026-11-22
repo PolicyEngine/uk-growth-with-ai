@@ -386,6 +386,13 @@ describe('HouseholdsExplore', () => {
     expect(card.textContent).not.toMatch(/per pp|per point|cheapest|most effective|value for money/i);
   });
 
+  it('every settings cell is 12 words or fewer (the macro page’s rule; Fable push E, fix 13)', () => {
+    const { container } = render(<HouseholdsMethod />);
+    const cells = [...container.querySelectorAll('.mx-setting-v')];
+    expect(cells.length).toBeGreaterThan(0);
+    for (const v of cells) expect(v.textContent.trim().split(/\s+/).length, v.textContent).toBeLessThanOrEqual(12);
+  });
+
   it('has no control, toggle or funnel on the page; no table fold anywhere on it', () => {
     const { container } = render(<HouseholdsExplore />);
     expect(container.querySelector('button[aria-pressed], [role="switch"]')).toBeNull();

@@ -290,7 +290,7 @@ export default function HouseholdsMethod() {
               />
               <UsedBy id="hm-rules" />
             </SettingRow>
-            <SettingRow id="hm-takeup" setting="Benefits and take-up" uses="Take-up as drawn in the data; no new-style JSA for the newly displaced" also={<>Full take-up of Universal Credit; JSA for <In>{JSA_WEEKS}</In> weeks</>}>
+            <SettingRow id="hm-takeup" setting="Benefits and take-up" uses="Take-up as in the data; no new-style JSA for the newly displaced" also={<>Full take-up of Universal Credit; JSA for <In>{JSA_WEEKS}</In> weeks</>}>
               <p className="mx-setting-lead">
                 <IconText icon="takeUp">What a displaced worker can claim, and whether they do.</IconText>
               </p>
