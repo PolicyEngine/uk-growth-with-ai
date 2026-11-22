@@ -90,4 +90,13 @@ describe('Scenarios direction icons', () => {
     }
     expect(container.textContent).toContain('Open a row for its arithmetic');
   });
+  // push D, Q9.3: no More info line that only repeats the card titles
+  it('Method’s grid folds carry no preview of the card titles', () => {
+    const { container } = render(<MethodTab />);
+    for (const f of container.querySelectorAll('.mx-foldgrid .disclosure-toggle')) {
+      expect(f.querySelector('.disclosure-preview')).toBeNull();
+      expect(f.textContent.trim()).toBe('More info');
+    }
+    expect(container.querySelectorAll('.mx-foldgrid').length).toBeGreaterThan(0);
+  });
 });

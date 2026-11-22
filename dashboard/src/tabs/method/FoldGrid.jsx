@@ -26,7 +26,9 @@ export default function FoldGrid({ className = '', children }) {
       <div className={className}>{cards}</div>
       {parts.length ? (
         <div className="mx-foldgrid">
-          <Disclosure inCard title="More info" preview={parts.map((p) => p.title).join(' · ')}>
+          {/* no preview (push D, Q9.3): a list of the cards' titles only
+              repeated the headings just above it */}
+          <Disclosure inCard title="More info">
             {parts.map((p) => (
               <div key={p.key} className="info-section">
                 <h4>{p.title}</h4>
