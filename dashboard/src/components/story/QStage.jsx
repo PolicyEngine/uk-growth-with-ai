@@ -13,12 +13,15 @@ import { setStyle, subscribe } from '@/lib/scrollLoop.js';
 // line), held for a short scroll, then faded in place (full size, no
 // shrink: Vahid, 21 Nov) while the chart draws in its place.
 //
-// QStage (`sub.pin: 'full'`): one pinned screen in the flow above the
-// header, `--q-pin` tall. The question is fixed at full size in its box
-// (Vahid, 21 Nov: "dont zoom in or out, be fix in that box"): it scrolls
-// in with the stage, holds at the optical centre below the rail (held by
-// the browser, position: sticky; no per-frame write), and scrolls away
-// with the stage's foot.
+// QStage (`sub.pin: 'full'`): one teal box in the flow above the header,
+// `--q-pin` tall (Vahid, 22 Nov: "lets fix the text in middle and dont
+// move the text when scroll, also lower the height of the box color"):
+// clamp(420px, 60svh, 640px) on desktop, about 70svh at 900px and below.
+// The question (icon, words, hint) is centred in the box by the box's own
+// grid, not held by position: sticky, so it moves with the box and the
+// page, one pixel for one, and never slides inside the box: no pin or
+// unpin offset, no drift, no zoom. Its phase is read from where the box is
+// (boxPhase).
 //
 // Both follow the scroll position in both directions (round 1, Vahid: "big
 // questions why when scroll back and then go again are not showing?"):
@@ -65,10 +68,9 @@ export function framePhase({ top, V, y0, y1 }) {
   return { qa, qm, phase };
 }
 
-// QStage's phase from the stage's box. The browser holds the card still
-// (position: sticky at --q-top) from the moment the holder reaches --q-top
-// (its layout top, the stage's top plus its margin `mt`) until the
-// stage's foot would push it (28px clear): `run` px of scroll. qa (0 to 1
+// The sticky hold's phase (before 22 Nov; kept for its tests): the card
+// held at the optical centre from the moment its holder reached it until
+// the stage's foot would push it (28px clear): `run` px of scroll. qa (0 to 1
 // over the run's first Q_GROW) and qm (0 to 1 over its last Q_SHRINK,
 // eased) set the phase only: the card is full size throughout (story.css
 // .q-stage-card, 21 Nov; it scaled by qa * (1 - qm) before). The chart
@@ -88,6 +90,21 @@ export function stagePhase({ top, bottom, V, R, H, mt = 0 }) {
   const run = Math.max(1, bottom - 28 - H - (top + mt));
   const qa = ease(clamp01(s / (Q_GROW * run)));
   const raw = clamp01((s - (1 - Q_SHRINK) * run) / (Q_SHRINK * run));
+  const qm = ease(raw);
+  const phase = bottom <= R + 1 || raw >= 0.98 ? 'done' : raw >= 0.7 ? 'reveal' : qa >= 0.5 ? 'in' : 'wait';
+  return { qa, qm, phase };
+}
+
+// QStage's phase from its box, now that the question moves with it (22
+// Nov): it arrives as the box comes up (qa, 0 to 1 over the box's first
+// half in view) and leaves as the box, centred at the optical centre
+// below the rail (qMid), carries on up until its foot reaches the rail
+// (qm, eased). The chart starts to draw at 70% of that.
+export function boxPhase({ top, bottom, V, R }) {
+  const h = Math.max(1, bottom - top);
+  const qa = ease(clamp01((V - top) / (0.5 * h)));
+  const from = qMid(R, V) + h / 2;
+  const raw = clamp01((from - bottom) / Math.max(1, from - R));
   const qm = ease(raw);
   const phase = bottom <= R + 1 || raw >= 0.98 ? 'done' : raw >= 0.7 ? 'reveal' : qa >= 0.5 ? 'in' : 'wait';
   return { qa, qm, phase };
@@ -184,20 +201,13 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
   useScrollDriver(
     ref,
     (el, f) => {
-      const c = card.current;
-      const hold = c?.parentElement;
-      // not shown (reduced motion, print): no hold, the chart drawn
-      if (!el.offsetHeight || !hold || getComputedStyle(hold).position !== 'sticky') return null;
+      // not shown (reduced motion, print): the chart drawn
+      if (!el.offsetHeight || !card.current) return null;
       const r = el.getBoundingClientRect();
-      const V = f.V;
       const R = Math.max(0, f.rail());
-      const H = c.offsetHeight;
-      // where the browser holds the card (story.css .q-stage-hold): its
-      // centre at the optical centre below the rail. Constant through the
-      // hold, so setStyle writes nothing then.
-      const qt = Math.round(qMid(R, V) - H / 2);
-      const mt = parseFloat(getComputedStyle(hold).marginTop) || 0;
-      return { p: stagePhase({ top: r.top, bottom: r.bottom, V, R, H, mt }), qt, below: r.bottom >= V };
+      // the phase only: nothing here moves the question (it is centred in
+      // its box by CSS and moves with the page)
+      return { p: boxPhase({ top: r.top, bottom: r.bottom, V: f.V, R }), below: r.bottom >= f.V };
     },
     (el, d, f) => {
       if (!d) {
@@ -215,7 +225,6 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
       // below the viewport: nothing in view or above it moves
       head.current = nextHead({ head: head.current, skip: skip.current, below: d.below });
       el.toggleAttribute('data-head-shown', head.current);
-      setStyle(el, '--q-top', `${d.qt}px`);
       if (skip.current) {
         setVars(el, 1, 1);
         go(el, 'done');

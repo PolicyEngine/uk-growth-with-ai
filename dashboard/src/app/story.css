@@ -297,13 +297,17 @@
      (story-bands.css, navy-sections-fable.md); polish round:
      tall enough that the question holds centred and still for about 40vh
      of scroll before it moves (QStage stagePhase) */
-  --q-pin: 74svh;
-  --q-pin-phone: 0.97;
+  /* 22 Nov (Vahid: "lower the height of the box color"): about 60% of
+     the screen, never under 420px or over 640px; about 70% at 900px and
+     below (the rule below) */
+  --q-pin: clamp(420px, 60svh, 640px);
+  --q-pin-phone: clamp(380px, 70svh, 640px);
 }
 /* browsers before svh (Safari < 15.4): the layout viewport */
 @supports not (height: 1svh) {
   .story {
-    --q-pin: 74vh;
+    --q-pin: clamp(420px, 60vh, 640px);
+    --q-pin-phone: clamp(380px, 70vh, 640px);
   }
 }
 /* the stage takes the block's first row only where it is shown (not under
@@ -328,24 +332,26 @@
   --qa: 0;
   --qm: 0;
   position: relative;
-  /* the hold's margins stay inside the stage */
-  display: flow-root;
+  /* the question centred in its box, vertically and horizontally, by the
+     box's own grid: it moves with the box and the page, never inside it */
+  display: grid;
+  align-content: center;
+  justify-items: center;
   height: var(--q-pin);
   margin-bottom: -8px;
   pointer-events: none;
 }
-/* The hold is the browser's (sign-off r3 major 2: no per-frame
-   counter-scroll): the card's holder sticks at --q-top, which QStage writes
-   only when the screen, rail or card size changes, so the held question at
-   the optical centre of the screen below the rail (its centre 6% of that
-   height below the true centre, QStage qMid); it starts at its place near
-   the stage's top and is pushed up by the stage's foot, 28px clear (the
-   bottom margin), as the move begins. Nothing is sticky and transformed:
-   the card inside is fixed at full size (21 Nov). */
+/* The question's holder (22 Nov): a plain block, centred in the stage by
+   the stage's grid. Before, it was sticky at --q-top (the optical centre
+   below the rail), so as the page scrolled the box moved and the question
+   stayed, sliding inside its box and jumping at the pin and unpin points.
+   Now nothing holds it: no sticky, no transform, no scroll-linked write
+   on the card; it moves with the page. */
 .q-stage-hold {
-  position: sticky;
-  top: var(--q-top, 0px);
-  margin: clamp(16px, calc(var(--q-pin) * 0.06), 48px) 0 28px;
+  /* static (22 Nov): no hold that slides the question inside its box */
+  position: static;
+  width: 100%;
+  margin: 0;
 }
 .q-visual {
   position: relative;
@@ -358,11 +364,10 @@
   margin: 0 auto;
   padding: 0 16px;
   text-align: center;
-  /* fixed in its box (Vahid, 21 Nov: "dont zoom in or out, be fix in that
-     box"): full size, no scale, no translate, no fade. It scrolls in with
-     the stage, the browser holds it (sticky, .q-stage-hold), and it
-     scrolls away with the stage's foot. --qa and --qm still set the phase
-     (QStage stagePhase) and the chart's reveal; they no longer size it. */
+  /* fixed in its box (Vahid, 21 and 22 Nov): full size, no scale, no
+     translate, no fade, centred by the stage's grid and moving with it.
+     --qa and --qm set the phase (QStage boxPhase) and the chart's reveal
+     only. */
 }
 /* landed past the start (the landing guard) with its header showing the
    question (story-bands.css drops the navy band): the white question
@@ -400,7 +405,7 @@
 }
 @media (max-width: 900px) {
   .q-stage {
-    height: calc(var(--q-pin) * var(--q-pin-phone));
+    height: var(--q-pin-phone);
   }
   .q-stage-card {
     gap: 10px;

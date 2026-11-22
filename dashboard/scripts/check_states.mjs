@@ -167,10 +167,13 @@ for (const [W, H] of JUMP === 'only' || process.env.SANKEY === 'only' || process
 const olines = [];
 let omiss = 0;
 const osizes = (process.env.OPENER_SIZES ?? '1280,800 390,844').split(/\s+/).map((x) => x.split(',').map(Number));
-// the held question's centre: 6% of the screen below the rail under its
-// middle (QStage qMid; 18 Nov, Vahid: lower; it was 3%), within 4%
-const Q_OPT = 0.06;
-const Q_TOL = 0.04;
+// 22 Nov (Vahid: "lets fix the text in middle and dont move the text when
+// scroll, also lower the height of the box color"): the question is
+// centred in its box (the stage, clamp(420px, 60svh, 640px) on desktop,
+// about 70svh at 900px and below) and moves with the page: its centre is
+// the box's centre, within 1px, at every sample on screen, and it moves
+// the full step with the page every sample (no pin, unpin or drift).
+const Q_BOX_TOL = 1;
 for (const [W, H] of process.env.OPENERS === '0' || JUMP === 'only' || process.env.SANKEY === 'only' ? [] : osizes) {
   const ctx = await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: 'no-preference' });
   const page = await ctx.newPage();
@@ -221,7 +224,7 @@ for (const [W, H] of process.env.OPENERS === '0' || JUMP === 'only' || process.e
       const v = s.querySelector('.q-visual').getBoundingClientRect();
       // the rendered scale of the card (its box against its layout height)
       const sc = card.offsetHeight ? c.height / card.offsetHeight : 0;
-      return { ok: cardOn || headOn, op, sc, tf: getComputedStyle(card).transform, cx: (c.left + c.right) / 2, cy: (c.top + c.bottom) / 2, qm: Number(getComputedStyle(s).getPropertyValue('--qm')) || 0, phase: s.dataset.phase, mid: (v.top + v.bottom) / 2, R, V };
+      return { ok: cardOn || headOn, op, sc, tf: getComputedStyle(card).transform, cx: (c.left + c.right) / 2, cy: (c.top + c.bottom) / 2, qm: Number(getComputedStyle(s).getPropertyValue('--qm')) || 0, phase: s.dataset.phase, mid: (v.top + v.bottom) / 2, box: (r.top + r.bottom) / 2, bh: r.height, R, V };
     }, id);
   for (const st of stages) {
     const blank = [];
@@ -255,32 +258,31 @@ for (const [W, H] of process.env.OPENERS === '0' || JUMP === 'only' || process.e
           if (Math.abs(r.cx - prev.cx) > 0.5) cls.push('sideways');
           if (m < -0.5) cls.push('against the page');
           if (m > 10.5) cls.push('more than the step');
+          // with the page, the full step: a part move is the question
+          // sliding inside its box (a pin, an unpin or a drift)
           const part = m > 0.5 && m < 9.5;
-          if (part && partial) cls.push('drift');
+          if (part) cls.push(partial ? 'drift' : 'slides in its box');
           partial = part;
           if (cls.length) moved.push(`${dir} ${y} (${d.toFixed(1)}px, ${cls.join(', ')})`);
         } else partial = false;
-        // the hold: no move yet and the card still since the last sample
-        if (!r.off && r.qm === 0 && r.phase === 'in' && prev && Math.abs(r.mid - prev.mid) < 0.5) {
-          const fh = r.V - r.R;
-          offs.push((r.mid - (r.R + fh * (0.5 + Q_OPT))) / fh);
-        }
+        // centred in its box at every sample (px)
+        if (!r.off) offs.push(r.mid - r.box);
         prev = r.off ? null : r;
       }
     }
     const lo = offs.length ? Math.min(...offs) : NaN;
     const hi = offs.length ? Math.max(...offs) : NaN;
-    const offBad = !offs.length || lo < -Q_TOL || hi > Q_TOL;
+    const offBad = !offs.length || lo < -Q_BOX_TOL || hi > Q_BOX_TOL;
     const bad = blank.length > 0 || offBad || moved.length > 0 || scaled.length > 0;
     if (bad) omiss++;
-    const pos = offs.length ? `held ${offs.length} samples, centre ${(100 * lo).toFixed(1)}% to ${(100 * hi).toFixed(1)}% from target` : 'never held';
+    const pos = offs.length ? `${offs.length} samples, question centre ${lo.toFixed(1)} to ${hi.toFixed(1)}px from its box's centre` : 'never on screen';
     olines.push(`  ${bad ? 'MISS' : 'ok  '} ${W}x${H} ${st.id}: ${pos}${blank.length ? `; blank at ${blank.length} samples, e.g. ${blank.slice(0, 3).join('; ')}` : ''}${moved.length ? `; moved off the page at ${moved.length} samples: ${moved.join('; ')}` : ''}${scaled.length ? `; not at full size at ${scaled.length} samples, e.g. ${scaled.slice(0, 3).join('; ')}` : ''}`);
   }
   olines.push(`  ${W}x${H}: ${stages.length} question moments checked`);
   await ctx.close();
 }
 if (olines.length) {
-  console.log(`openers (question or its header always visible; held centre within ${100 * Q_TOL}% of the optical centre):`);
+  console.log(`openers (question or its header always visible; centred in its box within ${Q_BOX_TOL}px; moves with the page):`);
   for (const l of olines) console.log(l);
 }
 
