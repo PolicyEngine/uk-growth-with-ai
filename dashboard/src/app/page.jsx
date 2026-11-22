@@ -40,7 +40,7 @@ const PANELS = {
 };
 
 function Shell() {
-  const { st, go } = useNav();
+  const { st, go, swapTab, clearSwap } = useNav();
   const tab = tabById(st.tab);
   const sub = subOf(st);
   const pick = pickersFor(st.tab, sub);
@@ -101,7 +101,8 @@ function Shell() {
             <section
               key={id}
               id={`tab-${id}`}
-              className={`tab-panel tab-${id}`}
+              className={`tab-panel tab-${id}${id === swapTab ? " is-swap" : ""}`}
+              onAnimationEnd={(e) => e.target === e.currentTarget && clearSwap()}
               role="tabpanel"
               aria-labelledby={`tabbtn-${id}`}
               hidden={id !== st.tab}

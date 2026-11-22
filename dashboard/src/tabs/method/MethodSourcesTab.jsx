@@ -6,6 +6,7 @@ import InputsPage from '@/tabs/method/InputsPage.jsx';
 import StudiesTab from '@/tabs/literature/LiteratureTab.jsx';
 import CodeTab from '@/tabs/code/CodeTab.jsx';
 import HouseholdsMethod from '@/tabs/households/HouseholdsMethod.jsx';
+import { useState } from 'react';
 import { useNav, subOf } from '@/lib/nav.jsx';
 
 // Method and sources: how the results are made and where they sit. The
@@ -19,11 +20,20 @@ import { useNav, subOf } from '@/lib/nav.jsx';
 const PANELS = { overview: MethodOverview, how: MethodTab, households: HouseholdsMethod, inputs: InputsPage, studies: StudiesTab, code: CodeTab };
 
 export default function MethodSourcesTab() {
-  const { st } = useNav();
+  const { st, swapTab } = useNav();
   const sub = subOf(st, 'method');
+  // A sub-tab change fades the new page in once (is-swap); never on first
+  // show, and not when the tab itself is fading in or is hidden (one fade
+  // at a time: subOf flips to the first sub-tab while the tab is hidden).
+  const [seen, setSeen] = useState(sub);
+  const [swap, setSwap] = useState(false);
+  if (sub !== seen) {
+    setSeen(sub);
+    setSwap(st.tab === 'method' && swapTab !== 'method');
+  }
   const Panel = PANELS[sub];
   return (
-    <div key={sub} id={`method-sub-${sub}`} role="tabpanel" aria-labelledby={`method-subbtn-${sub}`} className="sub-panel">
+    <div key={sub} id={`method-sub-${sub}`} role="tabpanel" aria-labelledby={`method-subbtn-${sub}`} className={`sub-panel${swap ? ' is-swap' : ''}`} onAnimationEnd={(e) => e.target === e.currentTarget && setSwap(false)}>
       <Panel />
     </div>
   );

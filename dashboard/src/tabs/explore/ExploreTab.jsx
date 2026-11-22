@@ -8,6 +8,7 @@ import PageIntro from '@/components/ui/PageIntro.jsx';
 import AnswerStrip from '@/tabs/explore/AnswerStrip.jsx';
 import { sentenceItems } from '@/tabs/explore/direction.jsx';
 import { PagePill } from '@/components/ui/SettingsBar.jsx';
+import { useState } from 'react';
 import { useNav, subOf } from '@/lib/nav.jsx';
 import { pickersFor } from '@/lib/labels.js';
 import { ModelTip } from '@/tabs/story/PartHead.jsx';
@@ -101,8 +102,17 @@ function Row({ sub, scope = false }) {
 // only; Households is the uk-ai-study detail (its own page). Each sub-tab's
 // sections keep their ids, which links and scripts/dumptabs.mjs use.
 export default function ExploreTab() {
-  const { st } = useNav();
+  const { st, swapTab } = useNav();
   const sub = subOf(st, 'explore');
+  // A sub-tab change fades the new page in once (is-swap); never on first
+  // show, and not when the tab itself is fading in or is hidden (one fade
+  // at a time: subOf flips to the first sub-tab while the tab is hidden).
+  const [seen, setSeen] = useState(sub);
+  const [swap, setSwap] = useState(false);
+  if (sub !== seen) {
+    setSeen(sub);
+    setSwap(st.tab === 'explore' && swapTab !== 'explore');
+  }
   let body;
   if (sub === 'economy')
     body = (
@@ -132,7 +142,7 @@ export default function ExploreTab() {
     );
   else body = <HouseholdsExplore />;
   return (
-    <div id={`explore-sub-${sub}`} role="tabpanel" aria-labelledby={`explore-subbtn-${sub}`} className="sub-panel" key={sub}>
+    <div id={`explore-sub-${sub}`} role="tabpanel" aria-labelledby={`explore-subbtn-${sub}`} className={`sub-panel${swap ? ' is-swap' : ''}`} onAnimationEnd={(e) => e.target === e.currentTarget && setSwap(false)} key={sub}>
       {body}
     </div>
   );

@@ -2021,18 +2021,17 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 }
 
 /* ---------- Sub-tab change: a short fade, no movement of the layout.
-   Charts reserve their height, so nothing shifts as they draw. */
-.sub-panel {
-  animation: sub-in 180ms var(--ease-out);
+   Charts reserve their height, so nothing shifts as they draw. Only after
+   the reader changes sub-tab (is-swap, set by the tab and cleared when the
+   fade ends), never on first show. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .sub-panel.is-swap {
+    animation: sub-in 180ms var(--ease-out);
+  }
 }
 @keyframes sub-in {
   from {
     opacity: 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .sub-panel {
-    animation: none;
   }
 }
 

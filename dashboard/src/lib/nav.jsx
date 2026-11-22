@@ -229,10 +229,16 @@ export function NavProvider({ children }) {
   const lastSub = useRef({});
   // false until the address has been read once on the client
   const [ready, setReady] = useState(false);
+  // The tab the reader has just changed to: its panel fades in once
+  // (is-swap, page.jsx), and the fade's end clears it. Never set on the
+  // first read, so a shared link opens at full opacity.
+  const [swapTab, setSwapTab] = useState(null);
+  const clearSwap = useCallback(() => setSwapTab(null), []);
 
   useEffect(() => {
     const read = (first) => {
       const next = parseUrl(window.location.search, window.location.hash);
+      if (!first && next.tab !== ref.current.tab) setSwapTab(next.tab);
       ref.current = next;
       setSt(next);
       if (first) setReady(true);
@@ -280,6 +286,7 @@ export function NavProvider({ children }) {
       if (cur.sub) lastSub.current[cur.tab] = cur.sub;
       const url = formatUrl(next, window.location.pathname);
       if (url !== formatUrl(cur, window.location.pathname)) window.history.pushState(null, '', url);
+      if (next.tab !== cur.tab) setSwapTab(next.tab);
       ref.current = next;
       setSt(next);
       if (next.anchor) revealAnchor(next.anchor);
@@ -289,7 +296,7 @@ export function NavProvider({ children }) {
   );
   const href = useCallback((tab, opts = {}) => formatUrl(target(tab, opts), '/'), [target]);
 
-  const value = useMemo(() => ({ st, set, go, href }), [st, set, go, href]);
+  const value = useMemo(() => ({ st, set, go, href, swapTab, clearSwap }), [st, set, go, href, swapTab, clearSwap]);
   return <NavContext.Provider value={value}>{children}</NavContext.Provider>;
 }
 
@@ -297,7 +304,7 @@ const fallbackHref = (name, opts = {}) => {
   const [tab, sub, anchor] = resolve(name, opts.sub ?? null, opts.anchor ?? null);
   return formatUrl({ ...DEFAULTS, tab, sub: sub && sub !== tabById(tab).subs?.[0].id ? sub : null, anchor });
 };
-const FALLBACK = { st: DEFAULTS, set: () => {}, go: () => {}, href: fallbackHref };
+const FALLBACK = { st: DEFAULTS, set: () => {}, go: () => {}, href: fallbackHref, swapTab: null, clearSwap: () => {} };
 export const useNav = () => useContext(NavContext) ?? FALLBACK;
 
 // An internal link: a real <a href> (so it opens in a new tab on request)
