@@ -40,7 +40,7 @@ describe('every step card leads with one icon', () => {
     // with the standalone notes that state a finding, a caveat or a reading
     // instruction (Fable round 8, D6 and M3; check_text NOTE_ICON_SEL).
     // Notes inside a step card (.p2-note) stay iconless.
-    const SEL = ['.scrolly-takeaway', '.src-essential', '.p2-shock-cap', '.scrolly-takeaway-note', '.p3-close-lead', '.p3-margin-note', '.p3-pound-caveat', '.close-why', '.ex-slope-note', '.db-headline-note', '.hh-note[data-caveat="bottom-decile"]'];
+    const SEL = ['.scrolly-takeaway', '.src-essential', '.p2-shock-cap', '.scrolly-takeaway-note', '.p3-close-lead', '.p3-margin-note', '.p3-pound-caveat', '.close-why', '.ex-fc-note', '.db-headline-note', '.hh-note[data-caveat="bottom-decile"]'];
     for (const p of PAGES) {
       const { container, unmount } = renderPage(p);
       for (const sel of SEL)

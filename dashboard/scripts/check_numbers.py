@@ -16,7 +16,8 @@ with Both, the closed-capital value as screen-reader text; the main arm's
 GDP, wage and GNI as a muted reference row linked to the story); Economy,
 each line's headline-year end label, on all eight tiles (GNI and GDP too); Public finances, the debt/GDP and tax/GDP end labels and the tax
 card (its model figure only with closed capital, when the chart's end
-label is a different number). Signed figures with a unit (+0.57%, -1.6pp) are pulled from the page
+label is a different number); the foreign-capital dumbbells, last on
+Income, one-decimal values with no unit, checked in order on their own. Signed figures with a unit (+0.57%, -1.6pp) are pulled from the page
 text as a multiset and compared with the multiset built from the data file
 with the page's own formatting.
 """
@@ -183,6 +184,41 @@ for sid, arms in (D['results'].items() if active_data.HAVE_OUT else []):
                     if abs((s_[v][k] / b_[v][k] - 1) * 100 - r['gaps'][v][k]) > 1e-9:
                         raw_bad += 1
 print('raw-solve recompute mismatches:', raw_bad, f'({raw_run} done cells checked)')
+
+# The foreign-capital dumbbells (Income and output, last card,
+# ClosureSlope.jsx): a row per measure and version, each with its some- and
+# no-foreign-capital value at the headline year to one decimal and no unit
+# (so outside NUM and the multiset above). The card's text runs from its
+# zero-line name ("Forecast path") to its note ("Each row shows"); its
+# one-decimal figures there, in order, are the rows' values (GDP, NNI, GNI,
+# pay rate; versions in data order; some, then none; a missing value prints
+# no figure), then the axis ticks.
+SLOPE_TITLE = 'Some foreign capital to no foreign capital'
+ONE_DP = re.compile(r"(?<![\d.])[+−]?\d+\.\d(?![\d%p])")
+def end_text(x):
+    a = f"{abs(x):.1f}"
+    return '0.0' if float(a) == 0 else ('+' if x > 0 else '−') + a
+for sid in dump:
+    for mode in ('', ':closed', ':both'):
+        t = dump[sid].get(f'results:income{mode}', '')
+        i = t.find(SLOPE_TITLE)
+        j = t.find('Forecast path', i) if i >= 0 else -1
+        k = t.find('Each row shows', j) if j >= 0 else -1
+        if k < 0:
+            bad += 1; print(sid, mode or 'central', 'foreign-capital dumbbells not found on Income'); continue
+        want = []
+        for v in ['Y', 'NNI', 'GNI', 'w']:
+            for arm in ARMS:
+                c, b_ = g(sid, arm, C, v), g(sid, arm, B, v)
+                if c is not None:
+                    want.append(end_text(c))
+                    if b_ is not None:
+                        want.append(end_text(b_))
+        got = ONE_DP.findall(t[j:k])
+        if got[:len(want)] != want:
+            bad += 1; print(sid, mode or 'central', 'foreign-capital dumbbells: expected', want, 'got', got[:len(want)])
+        else:
+            print(sid, mode or 'central', 'foreign-capital dumbbells ok:', len(want), 'values')
 
 # The fiscal-rule box with a rule chosen (Public finances; none under the
 # common rule): every chart

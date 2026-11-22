@@ -780,6 +780,16 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 .ch-swatch.is-dot {
   border-radius: 50%;
 }
+/* a hollow point mark (ClosureSlope's no-foreign-capital dot) */
+.ch-swatch.is-ring,
+.card-legend > .ch-legend .ch-swatch.is-ring {
+  width: 10px;
+  height: 10px;
+  box-sizing: border-box;
+  border: 2px solid var(--sw, var(--pe-gray-800));
+  border-radius: 50%;
+  background: var(--pe-surface, #fff);
+}
 .ch-swatch.is-diamond {
   transform: rotate(45deg) scale(0.85);
 }

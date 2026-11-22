@@ -33,6 +33,13 @@
 //   wraps to leave one word alone on its last line while its row has more
 //   than 30% of its width free is squeezed by a column; flagged.
 //
+// 5 HTML dumbbell rule (the foreign-capital dumbbells, ClosureSlope.jsx,
+//   .ex-fc): its marks are HTML, so rules 2 and 3 do not see them. In each
+//   row a value label overlaps no dot and no other label, and stays inside
+//   the card; the axis ticks and the "Forecast path" label stay inside the
+//   card and do not overlap each other; a row's name does not overlap its
+//   track (on a phone the name sits above it).
+//
 // Exemptions: data-decorative on an element (or an ancestor) takes it out
 // of rules 2 and 3 (an illustration's tiles, a hover ring); data-label-
 // exempt="<reason>" on a chart box skips rule 2 for that chart and is
@@ -335,6 +342,43 @@ function audit([labels, inView]) {
   return out;
 }
 
+// Runs in the page: rule 5, the HTML dumbbells.
+function dumbbellAudit() {
+  const out = [];
+  const shown = (e) => {
+    const r = e.getBoundingClientRect();
+    return r.width > 0 && r.height > 0 && (!e.checkVisibility || e.checkVisibility({ opacityProperty: true, visibilityProperty: true }));
+  };
+  const hit = (a, b) => a.left < b.right - 0.5 && a.right > b.left + 0.5 && a.top < b.bottom - 0.5 && a.bottom > b.top + 0.5;
+  const within = (a, b) => a.left >= b.left - 0.5 && a.right <= b.right + 0.5;
+  const say = (e) => e.textContent.trim().slice(0, 30);
+  for (const fig of document.querySelectorAll('.ex-fc')) {
+    if (!shown(fig)) continue;
+    const card = (fig.closest('.card') ?? fig).getBoundingClientRect();
+    for (const row of fig.querySelectorAll('.ex-fc-row[data-arm]')) {
+      const where = `${row.closest('[data-measure]')?.dataset.measure ?? ''} ${row.dataset.arm}`;
+      const vals = [...row.querySelectorAll('.ex-fc-val, .ex-fc-hole')].filter(shown);
+      const dots = [...row.querySelectorAll('.ex-fc-dot')].filter(shown).map((d) => d.getBoundingClientRect());
+      vals.forEach((v, i) => {
+        const b = v.getBoundingClientRect();
+        if (dots.some((d) => hit(b, d))) out.push(`${where}: "${say(v)}" overlaps a dot`);
+        vals.slice(i + 1).forEach((w) => hit(b, w.getBoundingClientRect()) && out.push(`${where}: "${say(v)}" overlaps "${say(w)}"`));
+        if (!within(b, card)) out.push(`${where}: "${say(v)}" runs outside the card`);
+      });
+      const name = row.querySelector('.ex-fc-rlabel');
+      const track = row.querySelector('.ex-fc-track');
+      if (name && track && shown(name) && hit(name.getBoundingClientRect(), track.getBoundingClientRect())) out.push(`${where}: the row's name overlaps its track`);
+    }
+    const axis = [...fig.querySelectorAll('.ex-fc-tick, .ex-fc-zero-label')].filter(shown);
+    axis.forEach((t, i) => {
+      const b = t.getBoundingClientRect();
+      if (!within(b, card)) out.push(`axis: "${say(t)}" runs outside the card`);
+      axis.slice(i + 1).forEach((u) => hit(b, u.getBoundingClientRect()) && out.push(`axis: "${say(t)}" overlaps "${say(u)}"`));
+    });
+  }
+  return out;
+}
+
 let fails = 0;
 const report = (name, recs) => {
   const missing = recs.filter((r) => r.axis === false);
@@ -382,6 +426,11 @@ for (const [name, path] of Object.entries(PAGES)) {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(200);
     report(name, await page.evaluate(audit, [labels, false]));
+    if (labels) {
+      const fc = await page.evaluate(dumbbellAudit);
+      for (const l of fc) console.log(`  OVERLAP: closure-slope (dumbbells): ${l}`);
+      fails += fc.length;
+    }
   }
 }
 await browser.close();
