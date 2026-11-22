@@ -66,6 +66,20 @@ export function paySens(sid) {
 // while the gap is under a quarter of a per cent, "end above" beyond).
 // The cases split: the sign depends on foreign capital. null otherwise.
 export const PAY_EDGE = 0.25;
+// The headline stat list's pay note (Vahid, 22 Nov: "consilidate"), the
+// same logic as payCaveat in fewer words: { lead, sens } where `sens` is
+// 'edge' or 'end' when the zeta-K 0.5 sensitivity's pay gap is above the
+// path (z > EPS2), the stat list linking "(sensitivity)" to its table.
+export function payNote(sid) {
+  const b = gap(sid, 'tfp', BOUND, 'w');
+  const c = gap(sid, 'tfp', CENTRAL, 'w');
+  if (b == null || c == null) return null;
+  if (paySigns(sid) === 'flips') return { lead: 'Its sign depends on how much capital comes from abroad.', sens: null };
+  if (!(b < -EPS2 && c < -EPS2)) return null;
+  const z = paySens(sid);
+  const sens = z != null && z > EPS2 ? (z < PAY_EDGE ? 'edge' : 'end') : null;
+  return { lead: 'Below the path with or without foreign capital', sens };
+}
 export function payCaveat(sid) {
   const b = gap(sid, 'tfp', BOUND, 'w');
   const c = gap(sid, 'tfp', CENTRAL, 'w');

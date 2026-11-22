@@ -13,7 +13,7 @@ import {
 } from '@/tabs/ai/surprise.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import { Items } from '@/components/story/Items.jsx';
-import { payCaveat, payWords, fracWord } from '@/tabs/story/part2/caveats.js';
+import { payNote, payWords, fracWord } from '@/tabs/story/part2/caveats.js';
 import { ADOPTION, ADOPTION_YEAR, CALENDAR, SIGN_CAVEAT, breakEven, pctRange, signMayFlip, tfpInput } from '@/lib/obrOverlap.js';
 import { iconFor } from '@/lib/concepts.js';
 import { dirConcept, dirWord } from '@/tabs/story/part2/dir.js';
@@ -92,7 +92,7 @@ export function incomeNotes(sid, cl) {
     .join(' ');
   return {
     line: 'income kept after wear and tear',
-    beside: g == null ? null : { v: 'GNI', x: g, label: 'Before depreciation (GNI):' },
+    beside: g == null ? null : { v: 'GNI', x: g, label: 'Before depreciation (GNI)' },
     tip,
   };
 }
@@ -178,62 +178,151 @@ export function SummaryQuestion({ sid, titleId = 'summary-q' }) {
   );
 }
 
+// The headline stat list (Vahid, 22 Nov: "consilidate"): one shape for
+// every row: the label (its definition in the tip), a one-line gloss under
+// it, the value on the right, then at most one note line, all notes in one
+// size and colour, a hairline between rows. GDP, the pay rate, national
+// income (NNI), then consumption in the headline year and public debt in
+// the late year, each value bound to the data (data-path). At 390 the
+// value keeps the right column and the gloss wraps under the label.
+const pp = (x) => fmt(x, 2, 'pp');
+// "see 'Technology unchanged'", linked to the versions on Explore
+const SeeTz = () => (
+  <>
+    see &lsquo;
+    <NavLink tab="explore" sub="economy" anchor="income">
+      Technology unchanged
+    </NavLink>
+    &rsquo;
+  </>
+);
 export function HeadlineTiles({ sid }) {
   const { cl, both, sidPending } = useSummary(sid);
   const inc = incomeNotes(sid, cl);
-  // a second sub-line, where a caveat belongs to one tile: the pay caveat
-  // (Maria's point 3, payCaveat), GNI beside national income, and the sign
-  // caveat where a direction may not survive netting the OBR's own AI
-  // productivity (obr-overlap-fable.md); the full sentences are in the tips
-  const flipNote = (v) => (signMayFlip(sid, cl, v) ? `Its sign ${SIGN_CAVEAT}` : null);
-  const extra = {
-    Y: [flipNote('Y')],
-    w: [payCaveat(sid)],
-    NNI: [
-      inc?.beside ? (
-        <>
-          {inc.beside.label} <b data-path={`results.${sid}.tfp.${cl}.gaps.GNI.${HEADLINE_YEAR}`}>{fmt(inc.beside.x)}</b>
-        </>
-      ) : null,
-      flipNote('NNI'),
-    ],
+  const flips = (v) => signMayFlip(sid, cl, v);
+  const pn = payNote(sid);
+  const cw = consumptionWords(sid, cl);
+  const cH = gap(sid, 'tfp', cl, 'C');
+  const dp = debtParts(sid, cl);
+  const path = (v, yr = HEADLINE_YEAR) => `results.${sid}.tfp.${cl}.gaps.${v}.${yr}`;
+  const notes = {
+    Y: flips('Y') ? (
+      <>
+        Its sign turns on the productivity gain (<SeeTz />).
+      </>
+    ) : null,
+    w: pn ? (
+      <>
+        {pn.lead}
+        {pn.sens ? (
+          <>
+            ; {pn.sens === 'edge' ? 'just above' : 'above'} only with far more (
+            <NavLink tab="explore" sub="economy" anchor="closure-sensitivity">
+              sensitivity
+            </NavLink>
+            )
+          </>
+        ) : null}
+        {pn.lead.endsWith('.') ? null : '.'}
+      </>
+    ) : null,
+    NNI: inc?.beside ? (
+      <>
+        Before depreciation (GNI) <b data-path={path('GNI')}>{fmt(inc.beside.x)}</b>
+        {flips('NNI') ? (
+          <>
+            ; its sign turns on the productivity gain (<SeeTz />)
+          </>
+        ) : null}
+        .
+      </>
+    ) : null,
   };
+  // consumption: the run below the path from the shock (consumptionWords),
+  // "as households save more" only where the interest rate and investment
+  // are up (its `why`); else its side of the path in the headline year
+  const cGloss =
+    cH == null
+      ? null
+      : cw
+        ? cw.end >= HEADLINE_YEAR
+          ? `below the path to ${cw.end}${cw.why ? ' as households save more' : ''}`
+          : `below the path to ${cw.end}${cw.why ? ' as households save more' : ''}, then ${cH > 0.005 ? 'above' : 'about on it'}`
+        : Math.abs(cH) < 0.005
+          ? `on the path in ${HEADLINE_YEAR}`
+          : `${cH > 0 ? 'above' : 'below'} the path in ${HEADLINE_YEAR}`;
+  // public debt in the late year: the OBR-pace figure where the data has
+  // one, else the model's own
+  const dVal = dp ? (dp.obrPace ? dp.obr : dp.d) : null;
+  const dPath = dp ? (dp.obrPace ? `results.${sid}.tfp.${cl}.debt_gdp_pp_obr_repricing_late` : path('debt_gdp_pp', LATE_YEAR)) : null;
+  const rows = [
+    ...KPIS.map((k) => {
+      const x = gap(sid, 'tfp', cl, k.v);
+      return {
+        key: k.v,
+        title: k.title,
+        tip: KPI_TIP(k, sid, cl),
+        value: (
+          <span data-path={path(k.v)}>
+            <CountUp value={fmt(x)} />
+          </span>
+        ),
+        gloss: KPI_LINE(k, sid, cl, x),
+        note: notes[k.v],
+        alt: both ? <b data-path={path(k.v).replace(`.${cl}.`, `.${BOUND}.`)}>{fmt(gap(sid, 'tfp', BOUND, k.v))}</b> : null,
+      };
+    }),
+    cH != null
+      ? {
+          key: 'C',
+          title: 'Consumption',
+          tip: `Household spending on goods and services: the gap against the forecast path in ${HEADLINE_YEAR}.`,
+          value: (
+            <span data-path={path('C')} data-claim="consumption">
+              {fmt(cH)}
+            </span>
+          ),
+          gloss: cGloss,
+        }
+      : null,
+    dp
+      ? {
+          key: 'debt',
+          title: `Public debt, ${LATE_YEAR}`,
+          tip: 'Public debt as a share of GDP: the gap against the forecast path, percentage points.',
+          value: (
+            <span data-path={Number.isFinite(dVal) ? dPath : undefined} data-claim="debt-pace">
+              {Number.isFinite(dVal) ? pp(dVal) : `${side(dp.d)} path`}
+            </span>
+          ),
+          gloss: dp.obrPace ? 'at the OBR’s repricing pace' : null,
+        }
+      : null,
+  ].filter(Boolean);
   return (
     <>
-      <div className="stat-row">
-        {KPIS.map((k) => {
-          const x = gap(sid, 'tfp', cl, k.v);
-          const b = both ? gap(sid, 'tfp', BOUND, k.v) : null;
-          return (
-            <StatTile
-              key={k.v}
-              // the GDP scene's step card holds one icon (the step's): the
-              // definition opens from the name itself, no tile icon
-              name={
-                <TipTarget className="p2-tile-name" label={`What is ${k.title}?`} tip={<span>{KPI_TIP(k, sid, cl)}</span>}>
-                  {k.title}
-                </TipTarget>
-              }
-              value={
-                <span data-path={`results.${sid}.tfp.${cl}.gaps.${k.v}.${HEADLINE_YEAR}`}>
-                  <CountUp value={fmt(x)} />
-                </span>
-              }
-              sub={KPI_LINE(k, sid, cl, x)}
-            >
-              {(extra[k.v] ?? []).filter(Boolean).map((line, i) => (
-                <p key={i} className="stat-line p2-tile-note">
-                  {line}
-                </p>
-              ))}
-              {both ? (
-                <p className="stat-line">
-                  With no foreign capital: <b data-path={`results.${sid}.tfp.${BOUND}.gaps.${k.v}.${HEADLINE_YEAR}`}>{fmt(b)}</b>
-                </p>
-              ) : null}
-            </StatTile>
-          );
-        })}
+      <div className="stat-row stat-list">
+        {rows.map((r) => (
+          <StatTile
+            key={r.key}
+            // the GDP scene's step card holds one icon (the step's): the
+            // definition opens from the name itself, no row icon
+            name={
+              <TipTarget className="p2-tile-name" label={`What is ${r.title}?`} tip={<span>{r.tip}</span>}>
+                {r.title}
+              </TipTarget>
+            }
+            value={r.value}
+            sub={r.gloss}
+          >
+            {r.note ? (
+              <p className="stat-line p2-tile-note">
+                {r.note}
+              </p>
+            ) : null}
+            {both && r.alt ? <p className="stat-line">With no foreign capital: {r.alt}</p> : null}
+          </StatTile>
+        ))}
       </div>
       {DONE < TOTAL && sidPending ? (
         <Notice>

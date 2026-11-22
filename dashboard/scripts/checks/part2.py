@@ -233,7 +233,8 @@ def links():
 
 
 # The headline ledger (#story-headline, Landing.jsx HeadlineTiles,
-# headline-tiles-fable.md): three rows named as in the hero, each value the
+# headline-tiles-fable.md; one stat list since 22 Nov, with consumption and
+# public debt rows after these three): three rows named as in the hero, each value the
 # 2031 gap at the header's closure, the pay note from the data (pay still
 # rising every year 2028-31: "slower growth, not a cut"), the pay caveat
 # (Maria's point 3: the sign depends on foreign capital only where the two
@@ -296,18 +297,19 @@ def ledger(dump):
                 miss.append('sentence')
             if ' · ' in blk:
                 miss.append('chip')
+            # one stat list (22 Nov): label, its gloss, then the value
             for v, name in LEDGER:
-                if f"{name}\n{signed(r['gaps'][v][H], 2)}%" not in blk:
+                if not re.search(re.escape(name) + r"\n(?:[^\n]*\n)?" + re.escape(f"{signed(r['gaps'][v][H], 2)}%"), blk):
                     miss.append(name)
             if pay_note(sid, cl) not in blk:
                 miss.append('pay note: ' + pay_note(sid, cl))
             if ('depends on how much capital comes from abroad' in blk) != pay_flips(sid):
                 miss.append('pay caveat')
-            if ('only in a sensitivity with far more foreign capital' in blk) != (not pay_flips(sid) and pay_sens_above(sid)):
+            if ('only with far more (sensitivity)' in blk) != (not pay_flips(sid) and pay_sens_above(sid)):
                 miss.append('pay sensitivity clause')
             if 'income kept after wear and tear' not in blk:
                 miss.append('national income note')
-            if f"Before depreciation (GNI): {signed(r['gaps']['GNI'][H], 2)}%" not in blk:
+            if f"Before depreciation (GNI) {signed(r['gaps']['GNI'][H], 2)}%" not in blk:
                 miss.append('GNI beside national income')
             for gone in ('Output (GDP)', 'Income UK residents keep', 'capital takes a larger share', 'positive with more foreign capital', 'if repriced at once'):
                 if gone in blk:

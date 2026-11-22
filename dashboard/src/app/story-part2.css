@@ -242,10 +242,11 @@
   }
 }
 
-/* The headline figures: the GDP scene's last step, a three-row ledger
-   (headline-tiles-fable.md section 2): label left, value right in neutral
-   ink (the sign carries the direction), one note under each, a hairline
-   between rows only. No box, no fill, no icons. */
+/* The headline figures: the GDP scene's last step, one stat list (22 Nov,
+   "consilidate"): five rows of one shape, label and gloss left, value
+   right in neutral ink (the sign carries the direction), at most one note
+   line under each, a hairline between rows only. No box, no fill, no
+   icons. */
 .story-headline {
   margin: 14px 0 0;
   scroll-margin-top: calc(var(--sticky-offset) + 8px);
@@ -283,8 +284,11 @@
   color: var(--t-ink);
 }
 .p2-headline-step .stat-value {
-  grid-row: 1;
+  /* the value keeps the right column beside the label and its gloss, so
+     the gloss wraps under the label, never under the value (390) */
+  grid-row: 1 / span 2;
   grid-column: 2;
+  align-self: start;
   justify-self: end;
   margin: 0;
   font-size: 28px;
@@ -294,8 +298,13 @@
   font-variant-numeric: tabular-nums;
   color: var(--t-ink);
 }
-.p2-headline-step .stat-sub,
+.p2-headline-step .stat-sub {
+  grid-row: 2;
+  grid-column: 1;
+}
+/* the one note line: the row's full width, one size and colour */
 .p2-headline-step .stat-extra {
+  grid-row: 3;
   grid-column: 1 / -1;
 }
 .p2-headline-step .stat-extra {

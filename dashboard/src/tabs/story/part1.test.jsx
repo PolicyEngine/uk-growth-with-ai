@@ -724,7 +724,7 @@ describe('hero', () => {
       // GNI beside it, before depreciation (Maria's point 2), from the data
       const gni = stats[2].querySelector(`.hf-stat-beside [data-path="results.${s}.tfp.${cl}.gaps.GNI.${S.headline_year}"]`);
       expect(gni.textContent).toBe(sign(S.results[s].tfp[cl].gaps.GNI[i]));
-      expect(stats[2].querySelector('.hf-stat-beside').textContent).toMatch(/^Before depreciation \(GNI\):/);
+      expect(stats[2].querySelector('.hf-stat-beside').textContent).toMatch(/^Before depreciation \(GNI\) [+−0]/);
       // the GDP tip says it is a level
       expect(heroStats(s, cl)[0].tip).toMatch(/A gap in the level, \d+ years on; not a growth rate\.( Its sign depends on the productivity gain.*)?$/);
       // the gilt holders where no capital is foreign-owned

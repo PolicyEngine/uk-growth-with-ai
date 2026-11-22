@@ -82,26 +82,23 @@ def expected(sid, mode):
             exp[signed(x, dp) + unit] += 1
     main = B if mode == 'closed' else C          # the closure single values read
     shown = [C, B] if mode == 'both' else [main]  # dumbbell markers (B as screen-reader text with Both)
-    # Summary: the three headline tiles (national income as NNI, M1); with
-    # Both, closed capital beside each; GNI beside NNI ("before
-    # depreciation"); the consumption line (Maria's point 6), with GDP's
-    # value beside it while consumption stays below the path through the
-    # headline year and GDP is above it
+    # Summary: the headline stat list (22 Nov, "consilidate"): GDP, the pay
+    # rate and national income (NNI, M1), with Both the no-foreign-capital
+    # value beside each; GNI in national income's note ("before
+    # depreciation"); consumption in the headline year, a row of its own
+    # whenever solved (no GDP beside it now); public debt in the late year,
+    # pp, at the OBR's repricing pace where the data has it, else the
+    # model's own
     for v in ['Y', 'w', 'NNI']:
         add(g(sid, 'tfp', main, v), 2, '%')
         if mode == 'both':
             add(g(sid, 'tfp', B, v), 2, '%')
     if g(sid, 'tfp', main, 'NNI') is not None:
         add(g(sid, 'tfp', main, 'GNI'), 2, '%')
-    cs = [g(sid, 'tfp', main, 'C', yr) for yr in Y if yr >= D['surprise_year']]
-    if cs and None not in cs and cs[0] < -0.005:
-        add(g(sid, 'tfp', main, 'C'), 2, '%')
-        k = 0
-        while k < len(cs) and cs[k] < -0.005:
-            k += 1
-        yH = g(sid, 'tfp', main, 'Y')
-        if Y[Y.index(D['surprise_year']) + k - 1] >= D['headline_year'] and yH is not None and yH > 0.005:
-            add(yH, 2, '%')
+    add(g(sid, 'tfp', main, 'C'), 2, '%')
+    if g(sid, 'tfp', main, 'debt_gdp_pp', LATE) is not None:
+        obr = D['results'][sid]['tfp'][main].get('debt_gdp_pp_obr_repricing_late')
+        add(obr if isinstance(obr, (int, float)) else g(sid, 'tfp', main, 'debt_gdp_pp', LATE), 2, 'pp')
     for arm in ARMS:
         # Income and output: the four-measure card. The main arm's GDP, wage
         # and GNI have their home in the story's headline tiles; the card
