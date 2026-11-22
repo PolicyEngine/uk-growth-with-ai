@@ -386,11 +386,12 @@ describe('HouseholdsExplore', () => {
     expect(card.textContent).not.toMatch(/per pp|per point|cheapest|most effective|value for money/i);
   });
 
-  it('has no control, toggle or funnel on the page; no table fold on the planes', () => {
+  it('has no control, toggle or funnel on the page; no table fold anywhere on it', () => {
     const { container } = render(<HouseholdsExplore />);
     expect(container.querySelector('button[aria-pressed], [role="switch"]')).toBeNull();
     expect([...container.querySelectorAll('[class]')].some((el) => /funnel/.test(el.getAttribute('class')))).toBe(false);
-    for (const id of ['hh-ladder', 'hh-rules', 'hh-policy']) expect(container.querySelector(`#${id} [data-table-fold]`), id).toBeNull();
+    // the seed-0 rows stay open under their own heading (Fable push E, C1): no table fold on the page
+    expect(container.querySelector('[data-table-fold]')).toBeNull();
     expect(container.textContent).not.toMatch(/\bfunnel\b|cost per pp|cheapest|value for money/i);
   });
 
