@@ -93,9 +93,18 @@
 .hh-nav-link:focus-visible {
   text-decoration: underline;
 }
+/* 390 (Households redesign, section 6): the strip two by two with a 12px
+   gap, each value on its own line (a range may wrap, balanced); the pills
+   wrap to a second row rather than scroll */
 @media (max-width: 768px) {
   .hh-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .hh-tile {
+    padding: 10px 12px;
+  }
+  .hh-tile-value {
+    text-wrap: balance;
   }
 }
 

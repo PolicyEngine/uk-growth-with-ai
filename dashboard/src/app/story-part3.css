@@ -482,12 +482,19 @@ svg.p3-dim {
   background: var(--c-notice-bg);
   border-radius: 6px;
 }
+/* one gap token between cards (Households redesign, commit 9; the grids'
+   own gap is the Explore card-grid rule, items-explore.css) */
 .hh-page > .card,
-.hh-page > .disclosure {
-  margin-bottom: 20px;
-}
+.hh-page > .disclosure,
 .hh-page .card-grid {
-  margin-bottom: 24px;
+  margin-bottom: var(--gap-card, 32px);
+}
+@media (max-width: 768px) {
+  .hh-page > .card,
+  .hh-page > .disclosure,
+  .hh-page .card-grid {
+    margin-bottom: var(--gap-card-phone, 24px);
+  }
 }
 .hh-foot {
   margin: 10px 0 0;
