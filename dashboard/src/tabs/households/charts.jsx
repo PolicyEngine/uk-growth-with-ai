@@ -49,14 +49,26 @@ export function ticks(max, n = 4) {
   for (let t = 0; t <= max + 1e-9; t += step) out.push(Math.round(t * 1000) / 1000);
   return out;
 }
+// Ticks every `step` from `lo` to `hi`, for a range that may be negative
+// (the policy plane's poverty axis, zero at the top). Stepped out from 0,
+// so 0 is a tick whenever the range covers it.
+export function ticksBetween(lo, hi, step) {
+  const out = [];
+  const k0 = Math.ceil(lo / step - 1e-9);
+  const k1 = Math.floor(hi / step + 1e-9);
+  for (let k = k0; k <= k1; k += 1) out.push(Math.round(k * step * 1000) / 1000 || 0);
+  return out;
+}
 export const signedTick = (t) => `${t > 0 ? '+' : t < 0 ? MINUS : ''}${Math.abs(t)}`;
 
-// The cost × poverty plane: cost on x, the rise in absolute poverty on y,
-// both from zero. `points`: [{ id, n, x, y, group, ring, name, lab, pos }]
+// The cost × poverty plane: cost on x, the change in absolute poverty on
+// y, both from zero, or y from `yMin` (< 0) up to `yMax`, ticks every
+// `yStep`, with the zero line wherever 0 falls (the policy plane: 0 at the
+// top, falls in poverty below it). `points`: [{ id, n, x, y, group, ring, name, lab, pos }]
 // (`n` the number a narrow plane draws, and the table's marker shows);
 // `arrows`: [[fromId, toId]] (callers draw them only within a group). Axis
 // titles name the quantity only; the ticks carry £bn and pp.
-export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, label, height = 240, yTitle, xTitle }) {
+export function Plane({ points, arrows = [], xMax, yMax, yMin = 0, yStep = 0.5, xUnit, yUnit, on, label, height = 240, yTitle, xTitle }) {
   const [ref, W] = useWidth(560);
   const narrow = W < NARROW;
   const L = 48;
@@ -66,7 +78,8 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, label
   const pw = W - L - R;
   const ph = height - T - B;
   const X = (v) => L + (v / xMax) * pw;
-  const Y = (v) => T + ph - (v / yMax) * ph;
+  const Y = (v) => T + ph - ((v - yMin) / (yMax - yMin || 1)) * ph;
+  const yTicks = yMin < 0 ? ticksBetween(yMin, yMax, yStep) : ticks(yMax);
   const at = Object.fromEntries(points.map((p) => [p.id, p]));
   const head = `hh-head-${label.length}`;
   // hover (M4): each point's two values, as the axes read them
@@ -88,7 +101,7 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, label
           </marker>
         </defs>
         <g className="hh-axis">
-          {ticks(yMax).map((t) => (
+          {yTicks.map((t) => (
             <line key={`y${t}`} x1={L} x2={L + pw} y1={Y(t)} y2={Y(t)} className={t === 0 ? 'hh-zero' : 'hh-grid'} />
           ))}
           <line x1={L} x2={L} y1={T} y2={T + ph} className="hh-zero" />
@@ -125,7 +138,7 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, label
       </svg>
       {/* tick labels as HTML (scale, not data: data-axis) */}
       <div className="hh-ticks-ov" data-axis="" aria-hidden="true">
-        {ticks(yMax).map((t) => (
+        {yTicks.map((t) => (
           <span key={`y${t}`} className="is-y" style={{ left: L - 6, top: Y(t) }}>
             {signedTick(t)}
             {yUnit}

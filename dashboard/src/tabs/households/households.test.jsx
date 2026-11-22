@@ -13,6 +13,7 @@ import HouseholdsMethod from './HouseholdsMethod.jsx';
 import { FIG, RULE_NAMES, counts, householdsFigures, methodName, storyFigures } from './figures.js';
 import { CAVEAT_GREY, DESTS, absorbGraph } from './Absorb.jsx';
 import { imbalances } from '@/components/story/Sankey.jsx';
+import { Plane, ticksBetween } from './charts.jsx';
 
 afterEach(cleanup);
 
@@ -458,5 +459,24 @@ describe('Explore > Households, the words the data support', () => {
     const w = D.per_pound.find((r) => r.id === 'wage_cuts');
     expect(pp.textContent).not.toContain(`${Math.round(w.government_p - w.household_p)}p`);
     expect(pp.textContent).not.toContain(`${Math.round(D.per_pound_20.wage_cuts_employer_ni_p)}p`);
+  });
+});
+
+// The plane takes a negative y range (Households redesign, commit 2): the
+// policy plane's poverty axis, zero at the top.
+describe('charts', () => {
+  it('ticksBetween covers a negative range, 0 included', () => {
+    expect(ticksBetween(-2, 0, 0.5)).toEqual([-2, -1.5, -1, -0.5, 0]);
+    expect(ticksBetween(-1.2, 0.6, 0.5)).toEqual([-1, -0.5, 0, 0.5]);
+  });
+  it('a plane with yMin < 0 puts y = 0 at the top of the plot', () => {
+    const pts = [{ id: 'a', n: 1, x: 10, y: -1.5, name: 'A', lab: 'A' }];
+    const { container } = render(<Plane points={pts} xMax={30} yMax={0} yMin={-2} xUnit={(t) => `£${t}bn`} yUnit="pp" label="Test plane" yTitle="y" xTitle="x" />);
+    const zero = [...container.querySelectorAll('line.hh-zero')].find((l) => l.getAttribute('x1') !== l.getAttribute('x2'));
+    const ys = [...container.querySelectorAll('.hh-axis line')].filter((l) => l.getAttribute('x1') !== l.getAttribute('x2')).map((l) => Number(l.getAttribute('y1')));
+    expect(Number(zero.getAttribute('y1'))).toBe(Math.min(...ys));
+    const pt = container.querySelector('.hh-pt');
+    expect(parseFloat(pt.style.top)).toBeGreaterThan(Number(zero.getAttribute('y1')));
+    expect([...container.querySelectorAll('.hh-ticks-ov .is-y')].map((e) => e.textContent)).toEqual(['−2pp', '−1.5pp', '−1pp', '−0.5pp', '0pp']);
   });
 });
