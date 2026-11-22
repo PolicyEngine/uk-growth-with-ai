@@ -180,7 +180,8 @@ export function SummaryQuestion({ sid, titleId = 'summary-q' }) {
 
 // The headline stat list (Vahid, 22 Nov: "consilidate"): one shape for
 // every row: the label (its definition in the tip), a one-line gloss under
-// it, the value on the right, then at most one note line, all notes in one
+// it, the value on the right, then at most one note line (with Both, a
+// second line gives the no-foreign-capital value), all notes in one
 // size and colour, a hairline between rows. GDP, the pay rate, national
 // income (NNI), then consumption in the headline year and public debt in
 // the late year, each value bound to the data (data-path). At 390 the
