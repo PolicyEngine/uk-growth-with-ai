@@ -11,7 +11,10 @@ import { SRC } from './sources.js';
 // one linked source, with a short line on how it is obtained. The full
 // derivation (arithmetic and every source) is the row's detail, closed by
 // default; a link to the row's id (from a scenario card) opens it. The
-// counts above the table filter it by kind of source.
+// counts above the table filter it by kind of source. Each group (push D,
+// Q9.2c) is closed under a header with its count: a closed group shows its
+// key rows only (inputs.js KEY_INPUTS); a source-type filter, or a link to a
+// row, opens what it needs.
 const GROUPS = [...new Set(ROWS.map((r) => r.group))];
 const COUNTS = Object.fromEntries(Object.keys(KIND).map((k) => [k, ROWS.filter((r) => r.kind === k).length]));
 const SCEN_NOTE = Object.fromEntries(S.scenarios.map((s) => [s.id, s.sources ?? {}]));
@@ -49,13 +52,16 @@ const link = (k) => (
 export default function InputsTable() {
   const [kind, setKind] = useState(null);
   const [open, setOpen] = useState(() => new Set());
+  const [groups, setGroups] = useState(() => new Set());
   // a link to a row (#in-…) opens its detail
   useEffect(() => {
     const go = () => {
       const id = decodeURIComponent(window.location.hash.slice(1));
-      if (ROWS.some((r) => r.id === id)) {
+      const row = ROWS.find((r) => r.id === id);
+      if (row) {
         setKind(null);
         setOpen((o) => new Set(o).add(id));
+        if (!row.key) setGroups((o) => new Set(o).add(row.group));
       }
     };
     go();
@@ -71,7 +77,7 @@ export default function InputsTable() {
     });
   const shown = ROWS.filter((r) => !kind || r.kind === kind);
   return (
-    <div className="mx-inputs" id="m-inputs" data-no-axes="A table of inputs">
+    <div className="mx-inputs" data-no-axes="A table of inputs">
       <div className="mx-inputs-filter">
         <Pill
           className="is-card"
@@ -105,13 +111,29 @@ export default function InputsTable() {
           </tr>
         </thead>
         {GROUPS.map((g) => {
-          const rows = shown.filter((r) => r.group === g);
-          if (!rows.length) return null;
+          const all = shown.filter((r) => r.group === g);
+          if (!all.length) return null;
+          const full = !!kind || groups.has(g) || all.every((r) => r.key);
+          // a closed group's other rows stay in the page, hidden, so a link
+          // to one lands (its hash opens the group) and the page dump reads it
+          const rows = all;
+          const nShown = full ? all.length : all.filter((r) => r.key).length;
+          const gid = `mx-group-${g.toLowerCase().replace(/[^a-z]+/g, '-')}`;
           return (
-            <tbody key={g}>
+            <tbody key={g} id={gid}>
               <tr className="mx-inputs-group">
                 <th colSpan={4} scope="colgroup">
-                  {g}
+                  {kind || all.every((r) => r.key) ? (
+                    <span>
+                      {g} <span className="mx-inputs-count">({all.length})</span>
+                    </span>
+                  ) : (
+                    <button type="button" className="mx-group-toggle" aria-expanded={full} onClick={() => setGroups((o) => { const n = new Set(o); if (n.has(g)) n.delete(g); else n.add(g); return n; })}>
+                      <Icon name="chevronDown" size={14} className="mx-chev" />
+                      <span>{g}</span> <span className="mx-inputs-count">({all.length})</span>
+                      {full ? null : <span className="mx-inputs-count"> · {all.length - nShown} more</span>}
+                    </button>
+                  )}
                 </th>
               </tr>
               {rows.flatMap((r) => {
@@ -119,7 +141,7 @@ export default function InputsTable() {
                 const isOpen = open.has(r.id);
                 const note = scenNote(r);
                 const out = [
-                  <tr key={r.id} id={r.id} className={`mx-inputs-row${isOpen ? ' is-open' : ''}`}>
+                  <tr key={r.id} id={r.id} className={`mx-inputs-row${isOpen ? ' is-open' : ''}`} hidden={!full && !r.key ? true : undefined}>
                     <th scope="row">
                       {d ? (
                         <button type="button" className="mx-row-toggle" aria-expanded={isOpen} aria-controls={`${r.id}-detail`} onClick={() => toggle(r.id)}>
@@ -141,7 +163,7 @@ export default function InputsTable() {
                     </td>
                   </tr>,
                 ];
-                if (d && isOpen)
+                if (d && isOpen && (full || r.key))
                   out.push(
                     <tr key={`${r.id}-d`} id={`${r.id}-detail`} className="mx-inputs-detail">
                       <td colSpan={4}>

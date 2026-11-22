@@ -67,4 +67,27 @@ describe('Scenarios direction icons', () => {
     const nav = [...container.querySelectorAll('nav a, option')].map((a) => a.textContent.trim()).filter(Boolean);
     for (const t of ['Overview', 'What AI changes', 'Inputs and sources', 'Solving and checks']) expect(nav, t).toContain(t);
   });
+  // push D, Q9.2c: every input group closed under a header with its count;
+  // a closed group shows its key rows, the rest one click away
+  it('groups the inputs, each closed with a count, key rows shown', async () => {
+    const { fireEvent } = await import('@testing-library/react');
+    const { ROWS } = await import('./inputs.js');
+    const { container } = render(<InputsPart />);
+    const groups = [...new Set(ROWS.map((r) => r.group))];
+    expect(groups).toEqual(['Scenarios', 'Timing', 'Baseline', 'Model parameters', 'Fiscal rules and solver', 'Household study']);
+    for (const g of groups) {
+      const all = ROWS.filter((r) => r.group === g);
+      expect(all.some((r) => r.key), g).toBe(true);
+      const head = [...container.querySelectorAll('.mx-inputs-group th')].find((th) => th.textContent.startsWith(g));
+      expect(head.textContent, g).toContain(`(${all.length})`);
+      for (const r of all) expect(container.querySelector(`#${r.id}`).hidden, r.id).toBe(!r.key && !all.every((x) => x.key));
+      const btn = head.querySelector('button.mx-group-toggle');
+      if (btn) {
+        expect(btn.getAttribute('aria-expanded')).toBe('false');
+        fireEvent.click(btn);
+        for (const r of all) expect(container.querySelector(`#${r.id}`).hidden, r.id).toBe(false);
+      }
+    }
+    expect(container.textContent).toContain('Open a row for its arithmetic');
+  });
 });

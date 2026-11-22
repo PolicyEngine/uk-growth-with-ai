@@ -352,6 +352,29 @@ p.mx-axis-title.is-x {
   border-bottom: 0;
 }
 .mx-inputs-row > th { width: 44%; }
+/* a group header in the inputs table (push D, Q9.2c): a toggle with the
+   group's count, the same chevron as a row */
+.mx-group-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.mx-group-toggle .mx-chev { margin-top: 0; }
+.mx-group-toggle[aria-expanded='true'] .mx-chev { transform: none; }
+.mx-group-toggle:focus-visible {
+  outline: 2px solid var(--pe-gray-800, #1d2939);
+  outline-offset: 2px;
+}
+.mx-inputs-count {
+  font-weight: 400;
+  color: var(--pe-gray-500);
+}
 .mx-row-toggle {
   display: inline-flex;
   align-items: flex-start;
@@ -504,3 +527,7 @@ p.mx-axis-title.is-x {
 .mx-before-head {
   margin: 0 0 8px;
 }
+
+/* a closed input group's other rows (push D, Q9.2c): hidden at every
+   width, though the phone layout sets the rows' display */
+.mx-inputs-table .mx-inputs-row[hidden] { display: none !important; }

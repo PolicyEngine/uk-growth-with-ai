@@ -101,8 +101,22 @@ const slug = (s) =>
     .replace(/^-|-$/g, '')
     .slice(0, 40);
 
-// Rows as the table renders them: id, short line, detail flag.
+// The rows a closed group still shows (push D, Q9.2c: "the key rows
+// show"): the inputs the headline results rest on most directly. Every
+// other row is one click away under its group's header.
+export const KEY_INPUTS = new Set([
+  'UK central: output at fixed inputs',
+  'UK central: labour-share fall (headline)',
+  'The scenario’s AI starts as a surprise; one starting point',
+  'Trend productivity growth',
+  '2030 debt/GDP target',
+  'ζK: share of the extra capital firms want that foreigners supply',
+  'Capital share γ (labour share 65%)',
+  'Employees displaced; survivors’ wage rise',
+]);
+
+// Rows as the table renders them: id, short line, detail flag, key flag.
 export const ROWS = INPUTS.map((r) => {
   const [short, scen] = SHORT[r.input] ?? [r.how, null];
-  return { ...r, id: `in-${slug(r.input)}`, short, scen, value: r.value.replace(/, model input \(rounded\)$/, '') };
+  return { ...r, id: `in-${slug(r.input)}`, short, scen, key: KEY_INPUTS.has(r.input) || r.input.startsWith('Common rule'), value: r.value.replace(/, model input \(rounded\)$/, '') };
 });
