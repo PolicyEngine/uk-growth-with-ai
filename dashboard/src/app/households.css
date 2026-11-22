@@ -80,20 +80,8 @@
   margin: 16px 0 0;
   font-size: var(--chart-fs-tick);
 }
-.hh-nav-link {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 12px;
-  color: var(--c-link, var(--c-highlight));
-  text-decoration: none;
-  background: none;
-  border: 1px solid var(--pe-gray-300);
-  border-radius: 999px;
-}
-.hh-nav-link:hover,
-.hh-nav-link:focus-visible {
-  text-decoration: underline;
-}
+/* the section links take the one pill look, v2.css .pill-link (Method
+   redesign, M4; Fable push E, D12); .hh-nav-link stays as a hook only */
 /* 390 (Households redesign, section 6): the strip two by two with a 12px
    gap, each value on its own line (a range may wrap, balanced); the pills
    wrap to a second row rather than scroll */

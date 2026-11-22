@@ -1116,7 +1116,7 @@ export default function HouseholdsExplore() {
             active state (Households redesign, R3) */}
         <nav className="hh-nav" aria-label="On this page">
           {SECTIONS.map((s) => (
-            <NavLink key={s.id} tab="explore" sub="households" anchor={s.id} className="hh-nav-link">
+            <NavLink key={s.id} tab="explore" sub="households" anchor={s.id} className="pill-link hh-nav-link">
               {s.title}
             </NavLink>
           ))}
