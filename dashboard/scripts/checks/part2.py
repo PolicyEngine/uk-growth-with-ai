@@ -193,7 +193,8 @@ PART2_FILES = ['tabs/story/Part2.jsx', 'tabs/ai/Landing.jsx'] + [
 
 def links():
     """Every Method anchor part 2 links to exists on Method (an id in
-    tabs/method), and the result files it links to exist at the data
+    tabs/method, written as an attribute or as an `id:` property rendered
+    through `id={x.id}`), and the result files it links to exist at the data
     file's commit (analysis/surprise/output/<closure>/<label>.json)."""
     bad = 0
     method = ''
@@ -202,6 +203,10 @@ def links():
         if f.endswith('.jsx'):
             method += open(os.path.join(mdir, f)).read()
     ids = set(re.findall(r'id="([\w-]+)"', method)) | set(re.findall(r'id=\{`([\w-]+)\$\{', method))
+    # ids set as data and rendered through id={x.id} (MethodTab: DEBT_CARD's
+    # 'm-debt', on RuleCard's InfoCard); counted only while such a render exists
+    if re.search(r'\bid=\{\w+\.id\}', method):
+        ids |= set(re.findall(r'''\bid:\s*['"](m-[\w-]+)['"]''', method))
     seen = 0
     for f in PART2_FILES:
         t = open(os.path.join(SRC_DIR, f)).read()
