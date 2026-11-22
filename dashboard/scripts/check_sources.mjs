@@ -158,7 +158,7 @@ async function openAll(page) {
 const EXTERNAL = [
   { where: '#beat-7pct', text: 'Doorley et al. (2026)', href: 'https://doi.org/10.26504/jr16' },
   { where: '#beat-7pct', text: 'Briggs and Kodnani (2023)', href: 'https://www.gspublishing.com/content/research/en/reports/2023/03/27/d64e052b-0f6e-45d7-967b-d7be35fabd16.pdf' },
-  { where: '#beat-7pct', text: 'Who bears the AI shock?', href: /^https:\/\/github\.com\/PolicyEngine\/uk-ai-study\/blob\/[0-9a-f]{40}\/paper\/main\.pdf$/ },
+  { where: '#beat-7pct', text: 'Ahmadi (2026)', href: /^https:\/\/github\.com\/PolicyEngine\/uk-ai-study\/blob\/[0-9a-f]{40}\/paper\/main\.pdf$/ },
 ];
 for (const [w, h] of SIZES) {
   const page = await (await browser.newContext({ viewport: { width: w, height: h }, reducedMotion: 'reduce' })).newPage();

@@ -287,7 +287,8 @@ export function lateWords(sid, cl) {
   const w = at('w');
   const yH = gap(sid, 'tfp', cl, 'Y');
   if (y == null || n == null || w == null) return null;
-  const still = yH != null && Math.abs(y - yH) < LATE_STILL_PP && Math.abs(y) > 0.005 ? 'still ' : '';
+  // "still" only when the printed figure is the tile's printed figure (Fable round 8 M2)
+  const still = yH != null && Math.abs(y - yH) < LATE_STILL_PP && Math.abs(y) > 0.005 && fmt(y) === fmt(yH) ? 'still ' : '';
   const path = (v) => `results.${sid}.tfp.${cl}.gaps.${v}.${LATE_YEAR}`;
   const parts = [
     { text: `By ${LATE_YEAR}, GDP is ${still}` },

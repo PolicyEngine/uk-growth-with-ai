@@ -755,7 +755,7 @@ describe('hero', () => {
         }
         n += 1;
         const g = r.gaps;
-        const still = Math.abs(g.Y[j] - g.Y[i]) < LATE_STILL_PP ? 'still ' : '';
+        const still = Math.abs(g.Y[j] - g.Y[i]) < LATE_STILL_PP && Math.abs(g.Y[j]) > 0.005 && sign(g.Y[j]) === sign(g.Y[i]) ? 'still ' : '';
         expect(w.text).toBe(`By ${S.late_year}, GDP is ${still}${sign(g.Y[j])}; national income is ${sign(g.NNI[j])} and the pay rate ${sign(g.w[j])}.`);
         expect(w.text.split(/\s+/).length).toBeLessThanOrEqual(25);
         expect(w.parts.filter((p) => p.path).map((p) => p.path)).toEqual(['Y', 'NNI', 'w'].map((v) => `results.${s}.tfp.${cl}.gaps.${v}.${S.late_year}`));
