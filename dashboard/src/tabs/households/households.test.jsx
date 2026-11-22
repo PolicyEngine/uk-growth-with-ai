@@ -380,7 +380,7 @@ describe('the rules\u2019 names', () => {
 describe('HouseholdsMethod', () => {
   it('covers data, exposure, the shock, rules, take-up, draws, what it leaves out and vintages', () => {
     const { container } = render(<HouseholdsMethod />);
-    for (const id of ['hm-pipeline', 'hm-data', 'hm-exposure', 'hm-shock', 'hm-rules', 'hm-takeup', 'hm-draws', 'hm-out', 'hm-vintage'])
+    for (const id of ['hm-pipeline', 'hm-settings', 'hm-data', 'hm-exposure', 'hm-shock', 'hm-rules', 'hm-takeup', 'hm-draws', 'hm-out', 'hm-sources', 'hm-vintage'])
       expect(container.querySelector(`#${id}`), id).not.toBeNull();
     const t = container.textContent;
     expect(t).toContain(D.model_year_label);
@@ -396,6 +396,36 @@ describe('HouseholdsMethod', () => {
   it('prints no result figure', () => {
     const { container } = render(<HouseholdsMethod />);
     expect(text(container).match(/[+−]\d+\.\d\dpp|£\d+\.\dbn/g)).toBeNull();
+  });
+
+  // Method redesign, section 5: the model pages' one anatomy, a true flow
+  it('reads in the model pages’ anatomy: a flow, six closed rows, what it leaves out, sources', async () => {
+    const { container } = render(<HouseholdsMethod />);
+    const heads = [...container.querySelectorAll('.page-body > section > .section-heading h2')].map((h) => h.textContent);
+    expect(heads).toEqual(['How it works', 'Key settings', 'What it leaves out', 'Sources']);
+    const rows = [...container.querySelectorAll('.mx-setting')];
+    expect(rows.map((r) => r.id)).toEqual(['hm-data', 'hm-exposure', 'hm-shock', 'hm-rules', 'hm-takeup', 'hm-draws']);
+    for (const r of rows) {
+      expect(r.querySelector('.mx-setting-body').hidden, r.id).toBe(true);
+      const uses = r.querySelectorAll('.mx-setting-body > .mx-uses');
+      expect(uses.length, r.id).toBe(1);
+      expect(r.querySelector('.mx-setting-body').lastElementChild, r.id).toBe(uses[0]);
+    }
+    // every typed input in a header is a quoted input, not a result
+    for (const v of container.querySelectorAll('.mx-setting-head')) {
+      const c = v.cloneNode(true);
+      c.querySelectorAll('[data-input]').forEach((n) => n.remove());
+      expect(c.textContent, v.textContent).not.toMatch(/\d+(\.\d+)?%/);
+    }
+    expect(container.querySelector('#hm-draws .mx-setting-uses').textContent).toContain(`Mean of ${D.headline.central_cost.draws} draws, main case`);
+    // the flow: six boxes, five arrows, none to the macro model
+    const flow = container.querySelector('#hm-flow');
+    expect(flow.querySelectorAll('.hf-box')).toHaveLength(6);
+    expect(flow.querySelectorAll('.hf-link')).toHaveLength(5);
+    expect(flow.textContent).not.toMatch(/macro model/i);
+    expect(flow.textContent).toContain('sets each group’s share, in the main case');
+    // the caution panel holds the nine tiles
+    expect(container.querySelector('#hm-out').closest('.caution-panel').querySelectorAll('.hm-out-tile')).toHaveLength(9);
   });
 });
 
