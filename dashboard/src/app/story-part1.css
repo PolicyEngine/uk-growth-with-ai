@@ -83,11 +83,13 @@
   stroke-width: 1.5;
 }
 
-/* 1A, the output canvas. Zooming in (.is-q): the x zoom (600ms), then the
-   annual layer fades (300ms from 600ms), then the quarters grow (from
-   900ms, inline delays). Zooming out reverses: the quarters shrink at
-   once, the annual layer returns (300ms), then the zoom eases back from
-   300ms. Labels of one state are visibility: hidden in the others. */
+/* 1A, the output canvas. Zooming in (.is-q): the x zoom (600ms), the
+   annual layer fading as it ends (300ms from 400ms), then the quarterly
+   axis, bars and notes (from 600ms, the bars by inline delays). Its
+   notes are in by 900ms: one of the two scale swaps allowed 900ms.
+   Zooming out reverses: the quarters shrink at once, the annual layer
+   returns (300ms), then the zoom eases back from 300ms. Labels of one
+   state are visibility: hidden in the others. */
 .p1-zoom {
   transition: transform 600ms var(--p1-ease) 300ms;
 }
@@ -100,7 +102,7 @@
 }
 .p1-canvas.is-q .p1-annual {
   opacity: 0;
-  transition-delay: 600ms;
+  transition-delay: 400ms;
 }
 .p1-quarterly {
   opacity: 0;
@@ -108,7 +110,7 @@
 }
 .p1-canvas.is-q .p1-quarterly {
   opacity: 1;
-  transition: opacity 300ms var(--p1-ease) 900ms;
+  transition: opacity 300ms var(--p1-ease) 600ms;
 }
 .p1-only-fc,
 .p1-only-q,
@@ -126,7 +128,7 @@
 .p1-canvas.is-q .p1-only-q {
   opacity: 1;
   visibility: visible;
-  transition: opacity 300ms var(--p1-ease) 900ms, visibility 0s linear 900ms;
+  transition: opacity 300ms var(--p1-ease) 600ms, visibility 0s linear 600ms;
 }
 /* the forecast keeps its place while the annual layer fades with it */
 .p1-canvas.is-q .p1-annual .p1-only-fc,
@@ -258,7 +260,7 @@
 }
 .p1-end-label.is-all.is-on {
   opacity: 1;
-  transition: opacity 300ms var(--p1-ease) 600ms;
+  transition: opacity 300ms var(--p1-ease) 300ms;
 }
 .p1-end-label.is-ten {
   fill: var(--mk-ten, var(--pe-gray-600));
@@ -269,7 +271,7 @@
 .p1-end-label.is-ten.is-on {
   opacity: 1;
   visibility: visible;
-  transition: opacity 300ms var(--p1-ease) 600ms, visibility 0s;
+  transition: opacity 300ms var(--p1-ease) 300ms, visibility 0s;
 }
 
 /* Legends: the exposure groups' key */
@@ -335,7 +337,7 @@
 }
 .p1-exposure.is-grouped .p1-tile-labels {
   opacity: 1;
-  transition: opacity 300ms var(--p1-ease) var(--p1-settle, 900ms);
+  transition: opacity 300ms var(--p1-ease) 300ms;
 }
 
 /* The foot: one source line and a "Sources" disclosure that opens over

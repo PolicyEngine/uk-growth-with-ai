@@ -29,7 +29,8 @@ export { LABOUR_COLOR, CAPITAL_COLOR };
 // chart comes in, each time it does; a landing draws it at once.
 //
 // Pace: a forward move starts LEAD ms after the card changes, so its
-// sentence is read first; the caption fades in once the move has landed.
+// sentence is read first. The caption is the step card's second line and
+// shows with its card, not after the move.
 // Back, on a landing (no previous state), in the measuring copies and under
 // reduced motion: no lead, no drop, the final state at once (Scrolly's
 // is-snap clears every delay after a jump). New small tiles enter by a CSS

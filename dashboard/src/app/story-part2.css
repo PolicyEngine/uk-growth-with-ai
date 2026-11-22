@@ -517,7 +517,7 @@
   opacity: 0;
 }
 .p2-wf-value {
-  transition: opacity 300ms ease 400ms;
+  transition: opacity 300ms ease 300ms;
 }
 /* phones (OutputSplit.jsx TIMING.fast): the values fade in sooner */
 .p2-output-graphic.is-fast .p2-wf-value {
@@ -536,7 +536,7 @@
   padding: 1px 6px;
   border: 1px solid transparent;
   border-radius: 999px;
-  transition: transform 750ms var(--story-ease, ease), opacity 300ms ease 400ms, background-color 300ms ease, border-color 300ms ease;
+  transition: transform 750ms var(--story-ease, ease), opacity 300ms ease 300ms, background-color 300ms ease, border-color 300ms ease;
 }
 .p2-wf-value.is-chip {
   font-weight: 600;
@@ -691,7 +691,7 @@
   }
 }
 .p2-sankey .sankey-node {
-  transition: opacity 400ms ease var(--wipe-delay, 0ms);
+  transition: opacity 300ms ease min(var(--wipe-delay, 0ms), 300ms);
 }
 .p2-sankey .sankey-node.is-hidden {
   opacity: 0;
@@ -1089,10 +1089,10 @@
 }
 .p2-mo-end.is-on {
   opacity: 1;
-  transition: transform 600ms var(--story-ease, ease), opacity 300ms ease 700ms;
+  transition: transform 600ms var(--story-ease, ease), opacity 300ms ease 300ms;
 }
 .p2-mo-end.is-on.is-late {
-  transition: transform 600ms var(--story-ease, ease), opacity 300ms ease 1200ms;
+  transition: transform 600ms var(--story-ease, ease), opacity 300ms ease 300ms;
 }
 .p2-mo-ring {
   opacity: 0;
@@ -1295,8 +1295,9 @@
   }
 }
 
-/* Waterfall build: the GDP row's value appears once its bar (the last) is
-   drawn, with a dashed connector from the last part's end: GDP is the sum */
+/* Waterfall build: the GDP row's value appears 300ms after the build
+   starts, ahead of its bar (the last), with a dashed connector from the
+   last part's end: GDP is the sum */
 .p2-wf-row[data-row='gdp'] .p2-wf-value {
   display: inline-flex;
   gap: 4px;
@@ -1307,8 +1308,8 @@
 }
 .p2-wf.is-on .p2-wf-row[data-row='gdp'] .p2-wf-value {
   opacity: 1;
-  /* OutputSplit.jsx TIMING: 2500ms pinned, shorter on phones */
-  transition-delay: var(--wf-gdp-delay, 2500ms);
+  /* OutputSplit.jsx TIMING: 300ms, pinned and on phones */
+  transition-delay: var(--wf-gdp-delay, 300ms);
 }
 .p2-wf-row[data-row='gdp'] .p2-wf-link {
   text-decoration: none;
@@ -1342,14 +1343,15 @@
   }
 }
 
-/* gross capital's total appears with its outline, after labour's bar */
+/* gross capital's total appears 300ms after the build starts, ahead of
+   its outline */
 .p2-wf-row[data-row='capital'] .p2-wf-value {
   opacity: 0;
   transition: opacity 300ms ease 0ms;
 }
 .p2-wf.is-on .p2-wf-row[data-row='capital'] .p2-wf-value {
   opacity: 1;
-  transition-delay: var(--wf-capital-delay, 700ms);
+  transition-delay: var(--wf-capital-delay, 300ms);
 }
 @media (prefers-reduced-motion: reduce) {
   .p2-wf-row[data-row='capital'] .p2-wf-value {

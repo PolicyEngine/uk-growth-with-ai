@@ -54,11 +54,12 @@ export const GROW_STAGGER = 420;
 // moved by a transform, so each change is printed once.
 const TRAVEL = ['labour', 'domestic', 'foreign', 'depreciation'];
 // The beats' timings (ms). Phones and tablets (one unpinned figure, read
-// while scrolling) take the short set: the whole build, chips to the GDP
-// value, ends within about 1.5s of state 2 (round 1f).
+// while scrolling) take the short set for the marks. The capital and GDP
+// values (text) show within 600ms of state 2 in both sets: a 300ms delay
+// at most, ahead of their bars (the in-figure text cap).
 export const TIMING = {
-  full: { grow: GROW_STAGGER, hold: 1100, travel: 750, stagger: 120, capital: 700, gdp: 2500 },
-  fast: { grow: 130, hold: 300, travel: 450, stagger: 110, capital: 250, gdp: 950 },
+  full: { grow: GROW_STAGGER, hold: 1100, travel: 750, stagger: 120, capital: 300, gdp: 300 },
+  fast: { grow: 130, hold: 300, travel: 450, stagger: 110, capital: 250, gdp: 300 },
 };
 // the smallest vertical gap between two chips at the nodes, px: the
 // nodes of the capital split sit closer than a chip's height

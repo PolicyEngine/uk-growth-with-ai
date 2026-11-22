@@ -1871,7 +1871,8 @@
   stroke: var(--pe-gray-500);
   stroke-width: 1;
 }
-/* pour: ribbons revealed left to right, nodes and labels as they land */
+/* pour: ribbons revealed left to right; nodes and labels within 300ms
+   (the in-figure text cap), ahead of their ribbons */
 .sankey-link.is-pour {
   clip-path: inset(-2px 100% -2px 0);
   transition: clip-path 200ms ease, opacity 250ms ease;
@@ -1888,7 +1889,7 @@
 .sankey-node.is-pour.is-on {
   opacity: 1;
   transform: none;
-  transition: opacity 250ms ease var(--pour-delay, 0ms), transform 250ms var(--ch-ease) var(--pour-delay, 0ms);
+  transition: opacity 250ms ease min(var(--pour-delay, 0ms), 300ms), transform 250ms var(--ch-ease) min(var(--pour-delay, 0ms), 300ms);
 }
 .sankey-node.is-src {
   transform: none;

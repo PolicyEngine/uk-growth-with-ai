@@ -1,7 +1,7 @@
 'use client';
 
 import { useEnterState, useDrawIn } from '@/components/story/motion.js';
-import { TileField, tileSettleMs } from '@/components/story/primitives.jsx';
+import { TileField } from '@/components/story/primitives.jsx';
 import { ChartHover, Crosshair, ModelBadge, barPath as chartBar } from '@/components/story/chart/index.js';
 import { BICS_WAVE, EXPOSURE_GROUPS, FACTS, OBR, OBR_VINTAGE, OPH_BASE, SERIES } from './data.js';
 import { WORKERS_PERIOD, aiTitle, employmentTitle, forecastTitle, outputTitle, payTitle, productivityTitle, workersTitle } from './findings.js';
@@ -268,7 +268,7 @@ export function OutputCanvas({ state, notes }) {
                   className={`p1-bar p1-bar-q${yr === z1 ? ' is-now' : ''}${q.y[i] < 0 ? ' is-neg' : ''}${zoomed ? ' is-on' : ''}`}
                   data-mark={yr === z1 ? 'q-now' : 'q-past'}
                   data-series={yr === z1 ? 'q-now' : 'q-past'}
-                  style={{ transitionDelay: zoomed ? `${900 + Math.min(i * 20, 400)}ms` : '0ms' }}
+                  style={{ transitionDelay: zoomed ? `${600 + Math.min(i * 20, 400)}ms` : '0ms' }}
                 />
               );
             })}
@@ -620,7 +620,7 @@ export function ExposureTiles({ state, source, entered = true }) {
     ? 'A grid of 100 tiles, each one per cent of UK workers, in three groups by exposure to AI: high exposure and high complementarity, high exposure and low complementarity, and low exposure.'
     : 'A grid of 100 tiles, each one per cent of UK workers.';
   return (
-    <figure className={`p1-figure p1-exposure${grouped ? ' is-grouped' : ''}`} style={{ '--p1-settle': `${tileSettleMs(exposureTiles(1))}ms` }}>
+    <figure className={`p1-figure p1-exposure${grouped ? ' is-grouped' : ''}`}>
       <ModelBadge model="official" className="p1-badge" />
       <FigTitle icon="workers" title={wHead.title} fallback={wHead.fallback} source={source} />
       <FigUnit>{`Each tile is one per cent of UK workers; two of the three groups are high exposure. IMF estimates, ${WORKERS_PERIOD}, via DSIT.`}</FigUnit>
