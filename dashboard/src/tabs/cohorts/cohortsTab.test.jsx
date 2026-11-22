@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { cohortSurprise } from '@/lib/dataTestUtils.js';
 import { cleanup, render } from '@testing-library/react';
 import { COHORTS as D } from '@/lib/dataKeys.js';
-import WhoGainsTab, { cell, pct, tileRange, dnfullFor, whoAnswer, whoFindingOf, RETURN_LINE, byFormLead, whyTokens, consumptionWords, consumptionStats, consumptionUnit, earningsWords, payWords, stressWords, HORIZON_YEAR } from '@/tabs/cohorts/CohortsTab.jsx';
+import WhoGainsTab, { cell, pct, tileRange, dnfullFor, whoAnswer, whoFindingOf, RETURN_LINE, byFormLead, whyTokens, consumptionWords, consumptionStats, consumptionUnit, earningsWords, payWords, stressWords, moreInfoReasons, HORIZON_YEAR } from '@/tabs/cohorts/CohortsTab.jsx';
 import { NavProvider } from '@/lib/nav.jsx';
 import S from '@/lib/activeData.js';
 
@@ -294,33 +294,46 @@ describe('What drives the result', () => {
           const t = whyTokens(cl, rule, arm);
           const ys = Object.keys(c.c_gap).map(Number);
           expect(t).toEqual({ shockYear: D.shock_year, lastFlowYear: Math.max(...ys), debtRuleYear: Math.max(...ys) + 1, cAboveYear: c.first_year_c_above ?? null });
-          // A
+          // A: one why-line (Who cards, A1 to A4); the average no longer
+          // rides on it (the link to the breakdown shows in every cell)
           const A = consumptionWords(cl, rule, arm);
           const c0 = c.c_gap[String(D.shock_year)];
-          if (A.lines[0].startsWith('Households save more')) {
+          if (A.why.startsWith('Households save more')) {
             expect(sgap(cl, rule, arm, 'r_bp', S.headline_year)).toBeGreaterThan(0);
             expect(sgap(cl, rule, arm, 'I', D.shock_year)).toBeGreaterThan(0);
-          }
-          if (c.first_year_c_above) expect(A.lines.join(' ')).toContain(`from ${c.first_year_c_above} under ${rule === 'dn' ? 'debt-neutral transfers' : 'the common fiscal rule'}`);
-          else expect(A.lines.join(' ')).toContain(`in ${HORIZON_YEAR}`);
-          if (A.lines.some((l) => l.startsWith('The average gain is positive'))) {
-            expect(c.alive_avg).toBeGreaterThan(0);
-            expect(c.parts_alive.bequests + c.parts_alive.leisure).toBeGreaterThan(c.parts_alive.consumption);
             expect(c0).toBeLessThan(0);
           }
-          // B: the two groups shown, in the order the lead says
+          expect(A.why.endsWith('at first.')).toBe(c.first_year_c_above != null);
+          expect(A.why).not.toMatch(/average gain/);
+          // B: the two groups shown, in the order the lead says; B1's gates
           const B = earningsWords(cl, rule, arm);
           if (B.lead.includes('gain more than')) expect(B.bot).toBeGreaterThan(B.top);
           if (B.lead.includes('lose less than')) expect(B.bot).toBeGreaterThan(B.top);
           expect(B.lead).not.toMatch(/lower earners gain more/);
-          // C: years and the sign of the windowed transfers
+          if (B.why) {
+            expect(sgap(cl, rule, arm, 'r_bp', S.headline_year)).toBeGreaterThan(0);
+            expect(sgap(cl, rule, arm, 'w', S.headline_year)).toBeLessThan(0);
+          }
+          // C: the sign of the windowed transfers, the debt held on its path
           const Cw = payWords(cl, rule, arm);
-          expect(Cw.lines.join(' ')).toContain(`From ${t.debtRuleYear}`);
+          expect(Cw.stats).toHaveLength(2);
           if (rule === 'dn') {
             const tr = Object.entries(c).find(([k]) => k.startsWith('income_'))[1].transfers;
             if (Cw.lead.includes('pay the fiscal cost')) expect(tr.every((v) => v < 0)).toBe(true);
-            expect(Cw.lines[0]).toContain(`${t.shockYear}–${t.lastFlowYear}`);
-          } else if (Cw.lead.includes('fiscal cost')) expect(sgap(cl, 'common', arm, 'debt_gdp_pp', t.debtRuleYear)).toBeGreaterThan(0);
+            if (Cw.why?.startsWith('Transfers fall to keep public debt')) {
+              expect(tr.every((v) => v < 0)).toBe(true);
+              expect(Math.abs(sgap(cl, rule, arm, 'debt_gdp_pp', t.lastFlowYear))).toBeLessThan(0.005);
+            }
+            expect(Cw.stats.map((x) => x.value)).toEqual([tr[0], tr[6]]);
+            expect(Cw.unit).toBe(`Change in transfers over ${t.shockYear}–${t.lastFlowYear}, at age ${Object.keys(c).find((k) => k.startsWith('income_')).match(/_age(\d+)$/)[1]}, % of consumption`);
+            expect(Cw.signed).toBe(true);
+          } else {
+            if (Cw.lead.includes('fiscal cost')) expect(sgap(cl, 'common', arm, 'debt_gdp_pp', t.debtRuleYear)).toBeGreaterThan(0);
+            expect(Cw.why).toBe('Under the common fiscal rule, spending follows GDP; households in the model do not value government consumption.');
+            expect(Cw.stats.map((x) => x.label)).toEqual([String(t.shockYear), String(t.lastFlowYear)]);
+            for (const x of Cw.stats) expect(x.text).toMatch(/^[+−]?\d+\.\d{2} pp$/);
+            expect(Cw.signed).toBe(false);
+          }
           // D: the youngest, from the stress cell
           const Dw = stressWords(cl, rule, arm);
           const xs = D.closures[cl].birth_year;
@@ -328,17 +341,46 @@ describe('What drives the result', () => {
           expect(Dw.young).toBe(s.cev_all[xs.indexOf(D.shock_year - 20)]);
           expect(Dw.old).toBe(s.cev_all[xs.indexOf(D.shock_year - 65)]);
           if (Dw.lead.includes('the youngest adults lose')) expect(Dw.young).toBeLessThan(0);
-          if (Dw.lines.some((l) => l.startsWith('With no output gain'))) expect(sgap(cl, rule, 'stress', 'w', S.headline_year)).toBeLessThan(sgap(cl, rule, 'tfp', 'w', S.headline_year));
+          if (Dw.why?.startsWith('The youngest adults have')) expect(sgap(cl, rule, 'stress', 'w', S.headline_year)).toBeLessThan(0);
+          if (Dw.why?.startsWith('With no output gain')) expect(sgap(cl, rule, 'stress', 'w', S.headline_year)).toBeLessThan(sgap(cl, rule, 'tfp', 'w', S.headline_year));
+          // every title a sentence; every why-line at most 20 words, with a
+          // full stop, and no literal year
           for (const b of [A, B, Cw, Dw]) {
             expect(b.lead).toMatch(/\.$/);
-            expect(b.lines.length).toBeGreaterThanOrEqual(1);
-            expect(b.lines.length).toBeLessThanOrEqual(3);
-            for (const l of b.lines) {
-              expect(l).toMatch(/\.$/);
-              expect(l.split(' ').length).toBeLessThanOrEqual(25);
-            }
+            if (b.why == null) continue;
+            expect(b.why).toMatch(/\.$/);
+            expect(b.why.split(' ').length, b.why).toBeLessThanOrEqual(20);
           }
+          // More info: four reasons, each takeaway at most 15 words
+          for (const r of moreInfoReasons(cl, rule, arm)) if (r.take) expect(r.take.split(' ').length, r.take).toBeLessThanOrEqual(15);
         });
+
+  // Who cards (Fable 5.2 ruling for Vahid): each gated line goes when its
+  // gate is forced false
+  it('each gated line is absent when its gate is false', () => {
+    const [cl, rule, arm] = ['zk0.1', 'dn', 'tfp'];
+    expect(consumptionWords(cl, rule, arm, { r: -1 }).why).toMatch(/^Households spend less/);
+    expect(consumptionWords(cl, rule, arm, { inv: -1 }).why).toMatch(/^Households spend less/);
+    expect(consumptionWords(cl, rule, arm, { c0: 1 }).why).toBe(`Households spend more from ${D.shock_year}.`);
+    expect(consumptionWords(cl, rule, arm, { cAbove: null }).why).not.toMatch(/at first/);
+    expect(earningsWords(cl, rule, arm).why).not.toBeNull();
+    expect(earningsWords(cl, rule, arm, { r: -1 }).why).toBeNull();
+    expect(earningsWords(cl, rule, arm, { w: 1 }).why).toBeNull();
+    expect(earningsWords(cl, rule, arm, { labour: [50, 60, 55, 70, 75, 80, 90] }).why).toBeNull();
+    expect(payWords(cl, rule, arm).why).toMatch(/^Transfers (fall|rise) to keep public debt/);
+    expect(payWords(cl, rule, arm, { debt: 0.5 }).why).toMatch(/^Transfers (fall|rise) to \d{4}; households/);
+    expect(payWords(cl, rule, arm, { transfers: [-1, 1, 1, 1, 1, 1, 1] }).why).toBeNull();
+    expect(payWords(cl, rule, arm, { transfers: [1, 1, 1, 1, 1, 1, 1] }).why).toMatch(/^Transfers rise/);
+    expect(stressWords(cl, rule, arm, { wealthYoung: 1 }).why).not.toMatch(/^The youngest adults have/);
+    expect(stressWords(cl, rule, arm, { wealthYoung: 1, tfpW: 1 }).why).toBeNull();
+    const take = (o) => Object.fromEntries(moreInfoReasons(cl, rule, arm, o).map((r) => [r.key, r.take]));
+    expect(take({ w: 1 }).pay).toBeNull();
+    expect(take({ r: -1 }).wealth).toBeNull();
+    expect(take({ narrows: false }).transfers).toBe('The same amount is a larger share of a lower earner’s income.');
+    expect(take({ wc: 50 }).ons).toBeNull();
+    expect(moreInfoReasons(cl, rule, arm, { wc: 50 }).find((r) => r.key === 'ons').head).toBe('Wealth concentration against ONS data');
+    expect(moreInfoReasons(cl, 'common', arm).find((r) => r.key === 'transfers').take).toBe('The same amount is a larger share of a lower earner’s income.');
+  });
 
   // the Fable 5.2 ruling for Vahid (R2): card 1's unit line names the
   // shock year when the second stat is the crossing year (a year, no tone),
@@ -355,12 +397,13 @@ describe('What drives the result', () => {
             expect(u).toBe(`Consumption gap vs forecast path in ${t.shockYear}, %; 0 is the path`);
             expect(st[1]).toMatchObject({ key: 'cross', label: 'First year above the path', text: String(t.cAboveYear), value: null });
           } else {
-            expect(u).toBe('Consumption gap vs forecast path, %; 0 is the path');
+            // the fact the dropped second line carried (Who cards)
+            expect(u).toBe(cell(cl, rule, arm).c_gap[String(t.shockYear)] < 0 ? `Consumption gap vs forecast path, %; still below it in ${HORIZON_YEAR}, the last year in the data` : 'Consumption gap vs forecast path, %; 0 is the path');
             expect(st.some((x) => x.key === 'cross')).toBe(false);
           }
         }
     expect(whyTokens('zk0.1', 'dn', 'stress').cAboveYear).toBeNull();
-    expect(consumptionUnit('zk0.1', 'dn', 'stress')).toBe('Consumption gap vs forecast path, %; 0 is the path');
+    expect(consumptionUnit('zk0.1', 'dn', 'stress')).toBe(`Consumption gap vs forecast path, %; still below it in ${HORIZON_YEAR}, the last year in the data`);
     const shock = whyTokens('zk0.1', 'dn', 'tfp');
     if (shock.cAboveYear != null) expect(consumptionUnit('zk0.1', 'dn', 'tfp')).toContain(`in ${shock.shockYear},`);
     for (const q of ['tab=who', 'tab=who&arm=stress']) {
@@ -378,7 +421,7 @@ describe('What drives the result', () => {
       if (year) {
         expect(year.querySelector('dd').className, q).toBe('why-stat-value');
         expect(unit, q).toMatch(/^Consumption gap vs forecast path in \d{4}, %; 0 is the path$/);
-      } else expect(unit, q).toBe('Consumption gap vs forecast path, %; 0 is the path');
+      } else expect(unit, q).toBe(`Consumption gap vs forecast path, %; still below it in ${HORIZON_YEAR}, the last year in the data`);
       unmount();
     }
   });
@@ -392,24 +435,36 @@ describe('What drives the result', () => {
     );
     expect(container.querySelectorAll('.ex-why2 > .finding')).toHaveLength(4);
     expect(container.querySelector('.ex-caveat-chip, .ex-timeline, .ex-chain')).toBeNull();
-    // push D, Q7a: one anatomy: a title, at most two bullets each led by an
-    // icon, a stat pair where the data have one (cards 1, 2 and 4), one unit
-    // line, one link row ending in an arrow (card 4 has no link target)
+    // Who cards (Fable 5.2 ruling for Vahid): a title, one why-line led by
+    // an icon (none in B2 and D3), two stats and one unit line on every
+    // card (card 3 too), one link row ending in an arrow (card 4 only with
+    // the stress test in view)
     const cards = [...container.querySelectorAll('.ex-why2 > .why-card')];
     expect(cards).toHaveLength(4);
+    const words = [consumptionWords('zk0.1', 'dn', 'tfp'), earningsWords('zk0.1', 'dn', 'tfp'), payWords('zk0.1', 'dn', 'tfp'), stressWords('zk0.1', 'dn', 'tfp')];
     cards.forEach((card, k) => {
       expect(card.querySelector('.finding-lead svg')).not.toBeNull();
-      const bullets = [...card.querySelectorAll('.why-bullets > li')];
-      expect(bullets.length).toBeGreaterThanOrEqual(1);
-      expect(bullets.length).toBeLessThanOrEqual(2);
-      for (const b of bullets) expect(b.firstElementChild.querySelector('svg') ?? b.querySelector(':scope > svg')).not.toBeNull();
-      expect(card.querySelectorAll('.why-stat')).toHaveLength(k === 2 ? 0 : 2);
-      expect(card.querySelectorAll('.why-unit')).toHaveLength(k === 2 ? 0 : 1);
+      const lines = [...card.querySelectorAll('.why-bullets > li')];
+      expect(lines).toHaveLength(words[k].why ? 1 : 0);
+      for (const b of lines) {
+        expect(b.firstElementChild.querySelector('svg')).not.toBeNull();
+        expect(b.textContent.trim().split(/\s+/).length).toBeLessThanOrEqual(20);
+      }
+      expect(card.querySelectorAll('.why-stat')).toHaveLength(2);
+      expect(card.querySelectorAll('.why-unit')).toHaveLength(1);
       const link = card.querySelector('.why-link');
       if (k === 3) expect(link).toBeNull();
       else expect(link.querySelectorAll('svg')).toHaveLength(1);
     });
-    expect(cards[2].querySelector('.why-link').textContent).toBe('Change under Budget assumption ');
+    expect(cards[0].querySelector('.why-link').textContent).toBe('See the average, split by what changes ');
+    expect(cards[1].querySelector('.why-link').textContent).toBe('Why this ranking depends on the model ');
+    expect(cards[2].querySelector('.why-link').textContent).toBe('Change the budget assumption ');
+    // card 3: the age-45 transfer change, signed to 2 dp and toned, on its face
+    const tr = Object.entries(cell('zk0.1', 'dn', 'tfp')).find(([k]) => k.startsWith('income_'))[1].transfers;
+    const vals = [...cards[2].querySelectorAll('.why-stat-value')];
+    expect(vals.map((v) => v.textContent)).toEqual([pct(tr[0]), pct(tr[6])]);
+    expect(vals[0].className).toMatch(/is-(gain|loss)/);
+    expect(cards[2].querySelector('.why-unit').textContent).toMatch(/^Change in transfers over \d{4}–\d{4}, at age \d+, % of consumption$/);
     // the welfare unit explains itself in plain words
     const tip = cards[1].querySelector('.why-unit .tip-target');
     expect(tip.textContent).toBe('% of remaining-lifetime consumption and bequests');
@@ -418,37 +473,46 @@ describe('What drives the result', () => {
     expect(cards[1].querySelector('.finding-lead').textContent).toMatch(/^(As modelled|By lifetime earnings)/);
     const more = container.querySelector('#who-model-households');
     expect(more.querySelector('.disclosure-content').hidden).toBe(true);
-    // E3's transfer pair, debt-neutral only
-    const tr = Object.entries(cell('zk0.1', 'dn', 'tfp')).find(([k]) => k.startsWith('income_'))[1].transfers;
-    expect(more.textContent).toContain(`${Math.abs(tr[0]).toFixed(1)}%`);
-    // push D, Q7b: an info callout first, then four small cards (an icon
-    // and heading, two numbers, a muted unit line, the takeaway last), the
-    // transfers card's second pair under its sub-label, the wealth card's
-    // footnote with the ONS source as a cited link, and the closing caveat
-    // in its own callout
+    // the transfer pair is on card 3 now, not in More info
+    expect(more.textContent).not.toContain(`${Math.abs(tr[0]).toFixed(1)}%`);
+    // More info: one lead callout, then four reasons of one shape (heading,
+    // one pair, one unit, at most one takeaway of 15 words or fewer)
     const mi = more.querySelector('.ex-mi');
     expect(mi.firstElementChild.classList.contains('ex-mi-callout')).toBe(true);
-    expect(mi.firstElementChild.textContent).toContain('a property of the model, not a finding about the UK');
+    expect(mi.firstElementChild.textContent).toBe('The ranking by earnings group is a property of the model, not a finding about the UK.');
+    expect(mi.querySelectorAll('.ex-mi-callout')).toHaveLength(1);
+    expect(mi.querySelector('.ex-mi-sub')).toBeNull();
     const mcards = [...mi.querySelectorAll('.ex-mi-grid > .ex-mi-card')];
     expect(mcards).toHaveLength(4);
     for (const c of mcards) {
       expect(c.querySelector('.ex-mi-head svg')).not.toBeNull();
-      expect(c.querySelector(':scope > .why-stats').querySelectorAll('.why-stat')).toHaveLength(2);
-      expect(c.querySelector('.ex-mi-unit')).not.toBeNull();
+      expect(c.querySelectorAll('.why-stats')).toHaveLength(1);
+      expect(c.querySelectorAll('.why-stat')).toHaveLength(2);
+      expect(c.querySelectorAll('.ex-mi-unit')).toHaveLength(1);
+      const take = c.querySelectorAll('.ex-mi-text');
+      expect(take.length).toBeLessThanOrEqual(1);
+      for (const x of take) expect(x.textContent.trim().split(/\s+/).length).toBeLessThanOrEqual(15);
     }
-    expect(mcards[2].querySelector('.ex-mi-sub').textContent).toMatch(/^Cost of lower transfers over \d{4}–\d{4}, age \d+$/);
-    expect(mcards[2].querySelectorAll('.why-stats')).toHaveLength(2);
     expect(mcards[2].lastElementChild.className).toBe('ex-mi-text');
     const foot = mcards[3].querySelector('.ex-mi-note');
-    expect(foot.textContent).toMatch(/^ ?Not like for like/);
+    expect(foot.textContent.trim()).toBe('Not like for like: ONS counts households in Great Britain; the model counts adults.');
     expect(foot.nextElementSibling.querySelector('a').getAttribute('href')).toContain('ons.gov.uk');
     expect(foot.nextElementSibling.hasAttribute('data-cite')).toBe(true);
+    if (CO_WC() < 43) expect(mcards[3].lastElementChild.textContent).toBe('Untested: with wealth as concentrated as in ONS data, the ranking could narrow or reverse.');
     // check_text: every block in the fold at most 25 words
     for (const b of mi.querySelectorAll('p, h4')) if (!b.closest('[data-cite]')) expect(b.textContent.trim().split(/\s+/).length, b.textContent).toBeLessThanOrEqual(25);
-    const last = mi.lastElementChild;
-    if (CO_WC() < 43) {
-      expect(last.classList.contains('ex-mi-callout')).toBe(true);
-      expect(last.textContent).toContain('The runs do not test that.');
-    }
+  });
+
+  it('card 4 links to the chart only with the stress test in view', () => {
+    window.history.replaceState(null, '', '/?tab=who&arm=stress');
+    const { container } = render(
+      <NavProvider>
+        <WhoGainsTab />
+      </NavProvider>,
+    );
+    const card = container.querySelectorAll('.ex-why2 > .why-card')[3];
+    const a = card.querySelector('.why-link a');
+    expect(a.textContent).toBe('See every age in the chart ');
+    expect(a.getAttribute('href')).toBe('#welfare-chart');
   });
 });

@@ -2513,12 +2513,6 @@
   font-size: var(--fs-caption);
   color: var(--pe-gray-500);
 }
-.ex-mi-sub {
-  margin: 4px 0 0;
-  font-size: var(--fs-caption);
-  font-weight: 600;
-  color: var(--pe-gray-600);
-}
 .ex-mi-card > .ex-mi-text:last-child {
   margin-top: auto;
   padding-top: 4px;
@@ -2803,4 +2797,28 @@
   .ex-parts-card .ex-parts > li {
     grid-template-columns: 120px minmax(0, 1fr);
   }
+}
+/* Who cards' More info (Fable 5.2 ruling for Vahid): the four reasons in
+   the same frame and scale, 2x2 above 640px, one column below */
+[id^="explore-sub-"] .ex-mi-card {
+  padding: var(--card-padding);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+}
+[id^="explore-sub-"] .ex-mi-head {
+  font-size: var(--chart-fs-title);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--pe-gray-900);
+}
+[id^="explore-sub-"] .ex-mi-text {
+  font-size: var(--chart-fs-label);
+  line-height: 1.5;
+}
+[id^="explore-sub-"] :is(.ex-mi-unit, .ex-mi-note, .ex-mi-src) {
+  font-size: var(--chart-fs-tick);
+}
+/* the 16px icon centred on the 18px heading's first line (24px box) */
+[id^="explore-sub-"] .ex-mi-head-icon {
+  margin-top: 4px;
 }

@@ -4,8 +4,12 @@
 // figcaption, summary, blockquote) is short: at most 12 words for a list
 // item, 25 for any other block and for a Finding box's line (.finding-lines
 // li, a sentence: it also needs a final full stop and no svg). A Who
-// why-bullet (.why-bullets li) is an icon-led sentence, capped at 25 words
-// too. Exempt from length: source citations
+// why-line (.why-bullets li) is an icon-led sentence, capped at 20 words
+// with a final full stop (Who cards, Fable 5.2 ruling for Vahid). Each Who
+// card (.why-card) has at most one why-line, one .why-unit and one
+// .why-link, and exactly two .why-stat; each More info reason
+// (.ex-mi-card) has one .why-stats, one .ex-mi-unit and at most one
+// .ex-mi-text of 15 words or fewer. Exempt from length: source citations
 // (.story-source, [data-cite]) and reference lists ([data-reference]).
 //
 // Icons, on the Story only (Explore and Method no longer fail for a
@@ -133,9 +137,11 @@ for (const [name, path] of Object.entries(PAGES)) {
         // sentences led by an icon, each one line of a short list: capped
         // as a paragraph
         const sentence = el.tagName === 'LI' && el.parentElement?.matches('.close-recap, .close-next-list, .why-bullets');
-        const max = el.tagName === 'LI' && !line && !sentence ? 12 : 25;
+        const whyLine = el.tagName === 'LI' && el.parentElement?.classList.contains('why-bullets');
+        const max = whyLine ? 20 : el.tagName === 'LI' && !line && !sentence ? 12 : 25;
         const why = [];
         if (!cite && words > max) why.push(`${words} words`);
+        if (whyLine && !/\.$/.test(t)) why.push('no final full stop');
         if (line && !/\.$/.test(t)) why.push('no final full stop');
         if (line && el.querySelector('svg')) why.push('an svg in a finding line');
         const n = story ? iconsIn(el).length : 0;
@@ -148,6 +154,30 @@ for (const [name, path] of Object.entries(PAGES)) {
         if (n > 1) out.push(`${where(el)} .finding-lead: ${n} icons (at most 1): ${text(el).slice(0, 60)}`);
         // and, title-level, no full stop at the end (Vahid, 18 Nov)
         if (/\.$/.test(text(el))) out.push(`${where(el)} .finding-lead ends in a full stop: ${text(el).slice(0, 60)}`);
+      }
+      // The Who cards' one anatomy (Fable 5.2 ruling for Vahid): counted in
+      // the DOM, so the closed More info is read too
+      for (const el of panel.querySelectorAll('.why-card')) {
+        const n = (sel) => el.querySelectorAll(sel).length;
+        const bad = [];
+        if (n('.why-bullets > li') > 1) bad.push(`${n('.why-bullets > li')} why-lines`);
+        if (n('.why-unit') > 1) bad.push(`${n('.why-unit')} unit lines`);
+        if (n('.why-link') > 1) bad.push(`${n('.why-link')} links`);
+        if (n('.why-stat') !== 2) bad.push(`${n('.why-stat')} stats (want 2)`);
+        if (bad.length) out.push(`${where(el)} .why-card: ${bad.join(', ')}: ${el.textContent.trim().slice(0, 60)}`);
+      }
+      for (const el of panel.querySelectorAll('.ex-mi-card')) {
+        const n = (sel) => el.querySelectorAll(sel).length;
+        const bad = [];
+        if (n('.why-stats') !== 1) bad.push(`${n('.why-stats')} stat pairs (want 1)`);
+        if (n('.ex-mi-unit') !== 1) bad.push(`${n('.ex-mi-unit')} unit lines (want 1)`);
+        const takes = [...el.querySelectorAll('.ex-mi-text')];
+        if (takes.length > 1) bad.push(`${takes.length} takeaways`);
+        for (const x of takes) {
+          const w = x.textContent.replace(/\s+/g, ' ').trim().split(' ').length;
+          if (w > 15) bad.push(`takeaway ${w} words`);
+        }
+        if (bad.length) out.push(`${where(el)} .ex-mi-card: ${bad.join(', ')}: ${el.textContent.trim().slice(0, 60)}`);
       }
       // No non-breaking hyphen (U+2011) anywhere in rendered text, svg
       // included: Inter's subset lacks it, so it falls back to another font.

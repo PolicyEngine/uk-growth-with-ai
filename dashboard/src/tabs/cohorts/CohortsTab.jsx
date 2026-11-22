@@ -69,7 +69,6 @@ export const HORIZON_YEAR = 2085;
 // the top tenth of households held 43% of wealth. External: not part of a
 // data swap.
 const ONS_TOP_TENTH = { pct: 43, period: '2018–2020', url: ONS_WEALTH };
-const RULE_WORDS = { dn: 'debt-neutral transfers', common: 'the common fiscal rule' };
 
 const minus = (s) => s.replace('-', '−');
 export const pct = (x, dp = 2) => (x == null ? 'n/a' : minus(`${x > 0 ? '+' : ''}${x.toFixed(dp)}%`));
@@ -427,22 +426,23 @@ export function whyTokens(cl, rule, arm) {
   return { shockYear: D.shock_year, lastFlowYear, debtRuleYear: lastFlowYear + 1, cAboveYear: c.first_year_c_above ?? null };
 }
 
-// A. The consumption path.
-export function consumptionWords(cl, rule, arm) {
-  const c = cell(cl, rule, arm);
-  const x = whySigns(cl, rule, arm);
+// The Who cards (Fable 5.2 ruling for Vahid, "Who cards"): each block
+// returns its title (lead), one why-line or null, and what its card needs.
+// Every gate reads the data; `o` overrides the signs, so a test can force a
+// gate false and see its line go.
+// A. The consumption path. Why-line A1 to A4.
+export function consumptionWords(cl, rule, arm, o = {}) {
+  const x = { ...whySigns(cl, rule, arm), ...o };
   const t = whyTokens(cl, rule, arm);
-  const inv = gap('uk_central', SURPRISE_ARM[arm], cl, 'I', rule, t.shockYear);
+  const cAboveYear = 'cAbove' in o ? o.cAbove : t.cAboveYear;
+  const inv = o.inv ?? gap('uk_central', SURPRISE_ARM[arm], cl, 'I', rule, t.shockYear);
   const below = x.c0 < 0;
-  const lead = below ? (t.cAboveYear ? 'Consumption falls below the forecast path first, then rises above it.' : 'Consumption stays below the forecast path.') : 'Consumption starts above the forecast path.';
+  const lead = below ? (cAboveYear ? 'Consumption falls below the forecast path first, then rises above it.' : 'Consumption stays below the forecast path.') : 'Consumption starts above the forecast path.';
   // "at first" only where consumption later rises above the path (review
   // round 2, R2-11)
-  const first = t.cAboveYear ? ' at first' : '';
-  const s1 = below ? (x.r > 0 && inv > 0 ? `Households save more as the return on capital rises, so they spend less${first}.` : `Households spend less${first}.`) : `Households spend more from ${t.shockYear}.`;
-  const s2 = t.cAboveYear ? `Consumption is above the forecast path from ${t.cAboveYear} under ${RULE_WORDS[rule]}.` : `It is still below the forecast path in ${HORIZON_YEAR}, the last year in the data.`;
-  const p = c.parts_alive;
-  const s3 = c.alive_avg > 0 && p.bequests + p.leisure > p.consumption && below ? 'The average gain is positive all the same: most of it is the value of leaving bequests and of free time.' : null;
-  return { lead, lines: [s1, s2, s3].filter(Boolean), link: !!s3 };
+  const first = cAboveYear ? ' at first' : '';
+  const why = below ? (x.r > 0 && inv > 0 ? `Households save more as the return on capital rises, so they spend less${first}.` : `Households spend less${first}.`) : `Households spend more from ${t.shockYear}.`;
+  return { lead, why, below };
 }
 
 // A's stat pair (push D, Q7a): the shock year's gap, then the year
@@ -459,18 +459,23 @@ export function consumptionStats(cl, rule, arm) {
   return [first, second].filter((x) => x.value != null || x.text != null);
 }
 
-// A's unit line (the Fable 5.2 ruling for Vahid, R2): with a crossing
-// year the only gap shown is the shock year's, so the line names that
-// year; with none it covers both gaps. One .why-unit either way.
+// A's unit line (the Fable 5.2 ruling for Vahid, R2; Who cards): with a
+// crossing year the only gap shown is the shock year's, so the line names
+// that year; with none, it says consumption is still below the path at the
+// horizon (the fact the dropped second line carried), where it is below.
 export function consumptionUnit(cl, rule, arm) {
   const t = whyTokens(cl, rule, arm);
-  return t.cAboveYear != null ? `Consumption gap vs forecast path in ${t.shockYear}, %; 0 is the path` : 'Consumption gap vs forecast path, %; 0 is the path';
+  if (t.cAboveYear != null) return `Consumption gap vs forecast path in ${t.shockYear}, %; 0 is the path`;
+  return whySigns(cl, rule, arm).c0 < 0 ? `Consumption gap vs forecast path, %; still below it in ${HORIZON_YEAR}, the last year in the data` : 'Consumption gap vs forecast path, %; 0 is the path';
 }
 
-// B. Who gains, by earnings: the bottom 25% against the top 1%.
-export function earningsWords(cl, rule, arm) {
+// B. Who gains, by earnings: the bottom 25% against the top 1%. Why-line
+// B1, or none (B2).
+const rising = (xs) => xs.every((v, i) => i === 0 || v >= xs[i - 1]);
+export function earningsWords(cl, rule, arm, o = {}) {
   const c = cell(cl, rule, arm);
   const prof = profileOf(D.closures[cl]);
+  const x = { ...whySigns(cl, rule, arm), ...o };
   const [bot, top] = [c.alive_by_group[0], c.alive_by_group[6]];
   const [b, t] = [tone(bot), tone(top)];
   const who = `the ${GROUP_LABELS[0].toLowerCase()} of lifetime earners`;
@@ -483,57 +488,81 @@ export function earningsWords(cl, rule, arm) {
     else if (b === 'gain' && t === null) lead = `As modelled, ${who} gain and ${top1} are unchanged.`;
   }
   const ranked = lead != null;
-  const s1 = ranked && prof.labour[0] < prof.labour[6] && prof.wealth_share[0] > prof.earnings_share[0] ? 'The bottom group depends less on pay, and the higher return on capital reaches it too.' : null;
-  return { lead: lead ?? `By lifetime earnings: the ${GROUP_LABELS[0].toLowerCase()} and the ${GROUP_LABELS[6].toLowerCase()}.`, lines: [s1, 'This ranking depends on how the model spreads wealth and transfers.'].filter(Boolean), bot, top };
+  const labour = o.labour ?? prof.labour;
+  const why =
+    ranked && labour[0] < labour[6] && rising(labour) && prof.wealth_share[0] > prof.earnings_share[0] && x.r > 0 && x.w < 0
+      ? 'Lower earners get less of their income from pay, and the higher return on capital reaches them too.'
+      : null;
+  return { lead: lead ?? `By lifetime earnings: the ${GROUP_LABELS[0].toLowerCase()} and the ${GROUP_LABELS[6].toLowerCase()}.`, why, bot, top };
 }
 
-// C. Who pays the fiscal cost.
-export function payWords(cl, rule, arm) {
+// C. Who pays the fiscal cost. Title unchanged; why-line C1 to C3; the
+// stat pair is the age-45 transfer change under debt-neutral transfers,
+// and the public debt gap under the common rule.
+const NO_VALUE = 'households in the model do not value government consumption.';
+// a signed figure in pp, with a space before the unit
+export const ppText = (x, dp = 2) => (x == null ? 'n/a' : minus(`${x > 0 ? '+' : ''}${x.toFixed(dp)} pp`));
+export function payWords(cl, rule, arm, o = {}) {
   const c = cell(cl, rule, arm);
   const t = whyTokens(cl, rule, arm);
   if (rule === 'dn') {
-    const tr = windowIncomeOf(c).transfers;
+    const tr = o.transfers ?? windowIncomeOf(c).transfers;
     const gain = tr.every((v) => v > 0);
-    return gain
-      ? {
-          lead: `Households get the fiscal gain to ${t.lastFlowYear}; after that it goes to government consumption.`,
-          lines: [
-            `Under debt-neutral transfers, households gain through higher transfers, on net over ${t.shockYear}–${t.lastFlowYear}.`,
-            `From ${t.debtRuleYear} the gain goes to government consumption, which households in the model do not value.`,
-          ],
-        }
-      : {
-          lead: `Households pay the fiscal cost to ${t.lastFlowYear}; after that it falls on government consumption.`,
-          lines: [
-            `Under debt-neutral transfers, households pay through lower transfers, on net over ${t.shockYear}–${t.lastFlowYear}.`,
-            `From ${t.debtRuleYear} the cost falls on government consumption, which households in the model do not value.`,
-          ],
-        };
+    const fall = tr.every((v) => v < 0);
+    // transfers hold public debt on its path: the debt gap is 0 by the last flow year
+    const debt = 'debt' in o ? o.debt : gap('uk_central', SURPRISE_ARM[arm], cl, 'debt_gdp_pp', 'dn', t.lastFlowYear);
+    const held = debt != null && Math.abs(debt) < 0.005;
+    const dir = gain ? 'rise' : 'fall';
+    const why = gain || fall ? (held ? `Transfers ${dir} to keep public debt on its forecast path; ${NO_VALUE}` : `Transfers ${dir} to ${t.lastFlowYear}; ${NO_VALUE}`) : null;
+    const age = windowIncomeAge(c);
+    return {
+      lead: gain ? `Households get the fiscal gain to ${t.lastFlowYear}; after that it goes to government consumption.` : `Households pay the fiscal cost to ${t.lastFlowYear}; after that it falls on government consumption.`,
+      why,
+      stats: [
+        { key: 'bot', label: GROUP_LABELS[0], value: tr[0] },
+        { key: 'top', label: GROUP_LABELS[6], value: tr[6] },
+      ],
+      unit: `Change in transfers over ${t.shockYear}–${t.lastFlowYear}, at age ${age}, % of consumption`,
+      signed: true,
+    };
   }
-  const debt = gap('uk_central', SURPRISE_ARM[arm], cl, 'debt_gdp_pp', 'common', t.debtRuleYear);
-  const cost = debt != null && debt > 0;
+  const later = gap('uk_central', SURPRISE_ARM[arm], cl, 'debt_gdp_pp', 'common', t.debtRuleYear);
+  const cost = later != null && later > 0;
+  const d0 = gap('uk_central', SURPRISE_ARM[arm], cl, 'debt_gdp_pp', 'common', t.shockYear);
+  const d1 = gap('uk_central', SURPRISE_ARM[arm], cl, 'debt_gdp_pp', 'common', t.lastFlowYear);
   return {
     lead: cost ? 'No household pays the fiscal cost: public debt takes it, then government consumption.' : 'No household is charged: public debt takes the fiscal effect, then government consumption.',
-    lines: [
-      `Under the common fiscal rule, spending follows GDP and public debt takes the fiscal effect to ${t.lastFlowYear}.`,
-      `From ${t.debtRuleYear} the ${cost ? 'cost' : 'effect'} falls on government consumption, which households in the model do not value.`,
+    why: `Under the common fiscal rule, spending follows GDP; ${NO_VALUE}`,
+    // more debt is not a gain: no tone
+    stats: [
+      { key: 'start', label: String(t.shockYear), value: d0, text: ppText(d0) },
+      { key: 'last', label: String(t.lastFlowYear), value: d1, text: ppText(d1) },
     ],
+    unit: 'Public debt gap vs forecast path, pp of GDP; 0 is the path',
+    signed: false,
   };
 }
 
-// D. The stress test, by age.
-export function stressWords(cl, rule, arm) {
+// D. The stress test, by age. Why-line D1, D2 or none (D3), from the
+// stress test's own signs, not the version in view.
+export function stressWords(cl, rule, arm, o = {}) {
   const s = cell(cl, rule, 'stress');
-  const x = whySigns(cl, rule, arm);
+  const x = { ...whySigns(cl, rule, arm), ...o };
   const l = leastOf(s);
   const lead =
     l.who === 'youngest' ? `In the stress test, the youngest adults ${l.verb}.` : l.who === 'working' ? `In the stress test, the youngest working-age adults ${l.verb}.` : `In the stress test, adults around age ${l.age} ${l.verb}.`;
+  const wealth = 'wealthYoung' in o ? o.wealthYoung : wealthRatioAt(D.closures[cl], FIRST_AGE);
+  const d1 = l.who !== 'age' && x.stressW != null && x.stressW < 0 && wealth != null && wealth <= 0.25;
   // "further below" needs the main version below the path too
-  const s1 = x.stressW != null && x.tfpW != null && x.stressW < x.tfpW && x.tfpW < 0 ? 'With no output gain, the pay rate falls further below the forecast path than in the main version.' : null;
-  const s2 = l.who !== 'age' ? 'The youngest adults have their working life ahead and little wealth, so lower pay costs them most and the higher return helps them least.' : null;
+  const d2 = x.stressW != null && x.tfpW != null && x.stressW < x.tfpW && x.tfpW < 0;
+  const why = d1
+    ? 'The youngest adults have the most working years ahead and little wealth, so lower pay costs them most.'
+    : d2
+      ? 'With no output gain, the pay rate falls further below the forecast path than in the main version.'
+      : null;
   const xs = D.closures[cl].birth_year;
   const at = (age) => s.cev_all[xs.indexOf(D.shock_year - age)];
-  return { lead, lines: [s1, s2].filter(Boolean), young: at(FIRST_AGE), old: at(RULER_AGE) };
+  return { lead, why, young: at(FIRST_AGE), old: at(RULER_AGE) };
 }
 
 // Open the OG-UK settings pill (components/ui/Pill.jsx) at its Budget
@@ -706,13 +735,14 @@ function StatPair({ stats = [], signed = true }) {
   );
 }
 
-// One "what drives the result" card (push D, Q7a): one anatomy for all
-// four, in the Finding box's card style: the finding title (as modelled,
-// no full stop), at most two short bullets each led by an icon, a stat row
-// of two big numbers with small labels (none where the data have none),
-// one unit line, and one link row ending in an arrow. The link row sits at
-// the card's foot, so cards in a row line up.
-function WhyCard({ icon, lead, bullets = [], stats = [], unit, link, actions }) {
+// One "what drives the result" card (push D, Q7a; Who cards, Fable 5.2
+// ruling for Vahid): the finding title (as modelled, no full stop), one
+// why-line led by an icon (none in the branches with no line), a stat pair
+// of two big numbers with small labels, one unit line, and one link row
+// ending in an arrow at the card's foot, so cards in a row line up.
+// `signed` (default on) tones the pair's values by sign; off where more is
+// not a gain (card 3's public debt).
+function WhyCard({ icon, lead, why, stats = [], unit, link, actions, signed = true }) {
   return (
     <section className="finding why-card">
       <div className="finding-head">
@@ -721,14 +751,14 @@ function WhyCard({ icon, lead, bullets = [], stats = [], unit, link, actions }) 
         </IconLine>
         {actions ? <div className="finding-actions">{actions}</div> : null}
       </div>
-      <ul className="why-bullets">
-        {bullets.slice(0, 2).map((b) => (
-          <IconLine as="li" key={b.key} concept={b.icon} iconClassName="why-bullet-icon">
-            {b.text}
+      {why ? (
+        <ul className="why-bullets">
+          <IconLine as="li" concept={why.icon} iconClassName="why-bullet-icon">
+            {why.text}
           </IconLine>
-        ))}
-      </ul>
-      <StatPair stats={stats} />
+        </ul>
+      ) : null}
+      <StatPair stats={stats} signed={signed} />
       {unit ? (
         <p className="why-unit" data-axis-title="y">
           {unit}
@@ -739,62 +769,103 @@ function WhyCard({ icon, lead, bullets = [], stats = [], unit, link, actions }) 
   );
 }
 const Arrow = () => <Icon name="arrowRight" size={14} className="why-link-arrow" />;
-// A's bullets: the why, then the average's make-up where it holds; the
-// year consumption rises above the path is the second stat, so its line
-// shows only where there is no such year (still below at the horizon).
-const aBullets = (A, cl, rule, arm) => {
-  const above = whyTokens(cl, rule, arm).cAboveYear != null;
-  const [why, when, avg] = [A.lines[0], A.lines.find((l) => /forecast path (from|in)/.test(l)), A.lines.find((l) => l.startsWith('The average gain'))];
-  return [why, avg ?? (above ? null : when)].filter(Boolean);
-};
-// bullets from a block's lines (at most two), each with the icon of its
-// kind of statement (`iconOf(line)`)
-const bulletsOf = (lines, iconOf) => lines.slice(0, 2).map((text, i) => ({ key: `b${i}`, icon: iconOf(text), text }));
+// a why-line with the icon of its kind of statement
+const whyOf = (text, icon) => (text ? { text, icon } : null);
 
-// What drives the result (item-21-fable.md): four cards of one anatomy
-// (WhyCard, push D, Q7a), then the closed "More info" disclosure, full
-// width.
-function Why({ cl, rule, arm }) {
+// The More info panel under card 2 (Who cards, Fable 5.2 ruling for Vahid):
+// one lead callout, then four reasons of one shape (heading, one stat pair,
+// one unit line, at most one takeaway of 15 words or fewer), 2x2 at desktop
+// and one column on phones. Every heading and takeaway is gated on the data.
+export function moreInfoReasons(cl, rule, arm, o = {}) {
   const C = D.closures[cl];
   const c = cell(cl, rule, arm);
+  const prof = profileOf(C);
+  const x = { ...whySigns(cl, rule, arm), ...o };
+  const tr = o.transfers ?? (rule === 'dn' ? windowIncomeOf(c)?.transfers : null);
+  const gapOf = (y) => y.alive_by_group[0] - y.alive_by_group[6];
+  const narrows = 'narrows' in o ? o.narrows : rule === 'dn' && gapOf(c) > 0 && gapOf(c) < gapOf(cell(cl, 'common', arm));
+  const bot = GROUP_LABELS[0].toLowerCase();
+  const top = GROUP_LABELS[6].toLowerCase();
+  const wc = o.wc ?? C.wealth_concentration.top_tenth_pct;
+  const lessPay = prof.labour[0] < prof.labour[6];
+  const spread = prof.wealth_share[0] > prof.earnings_share[0];
+  const lessConc = wc < ONS_TOP_TENTH.pct;
+  return [
+    {
+      key: 'pay',
+      icon: 'pay',
+      head: lessPay ? `The ${bot} depend less on pay` : `Pay, ${bot} and ${top}`,
+      take: lessPay && x.w < 0 ? 'A lower pay rate takes a smaller share of the bottom group’s income.' : null,
+    },
+    {
+      key: 'wealth',
+      icon: 'capital',
+      head: spread ? 'Wealth is spread more evenly than earnings' : `Wealth and earnings of the ${bot}`,
+      take: spread && x.r > 0 ? 'So the higher return on capital reaches lower earners too.' : null,
+    },
+    {
+      key: 'transfers',
+      icon: 'benefits',
+      head: 'Transfers are the same amount per head',
+      take:
+        rule === 'dn' && tr && tr[0] < tr[6] && tr[6] < 0 && narrows
+          ? 'Lower transfers cost the bottom group more, narrowing the gap but not reversing it.'
+          : 'The same amount is a larger share of a lower earner’s income.',
+    },
+    {
+      key: 'ons',
+      icon: 'inequality',
+      head: lessConc ? 'Wealth is less concentrated than in ONS data' : 'Wealth concentration against ONS data',
+      take: lessConc ? 'Untested: with wealth as concentrated as in ONS data, the ranking could narrow or reverse.' : null,
+    },
+  ];
+}
+
+function MiHead({ r }) {
+  return (
+    <h4 className="ex-mi-head">
+      <Icon name={iconFor(r.icon)} size={16} className="ex-mi-head-icon" />
+      <span>{r.head}</span>
+    </h4>
+  );
+}
+const MiTake = ({ r }) => (r.take ? <p className="ex-mi-text">{r.take}</p> : null);
+
+// What drives the result (item-21-fable.md): four cards of one anatomy
+// (WhyCard), then the closed "More info" disclosure, full width.
+function Why({ cl, rule, arm }) {
+  const C = D.closures[cl];
   const prof = profileOf(C);
   const t = whyTokens(cl, rule, arm);
   const A = consumptionWords(cl, rule, arm);
   const B = earningsWords(cl, rule, arm);
   const Cw = payWords(cl, rule, arm);
   const Dw = stressWords(cl, rule, arm);
-  const tr = windowIncomeOf(c)?.transfers;
-  const age = windowIncomeAge(c);
-  const gapOf = (x) => x.alive_by_group[0] - x.alive_by_group[6];
-  const narrows = rule === 'dn' && gapOf(c) > 0 && gapOf(c) < gapOf(cell(cl, 'common', arm));
   const bot = GROUP_LABELS[0];
   const top = GROUP_LABELS[6];
   const wc = C.wealth_concentration.top_tenth_pct;
+  const R = Object.fromEntries(moreInfoReasons(cl, rule, arm).map((r) => [r.key, r]));
   return (
     <div className="ex-stack">
       <div className="ex-why2">
-        {/* A: the year consumption is above the path is in the stat pair,
-            so the bullets are the why and, where it holds, the average */}
         <WhyCard
           actions={<WhoSources />}
           icon="consumption"
           lead={A.lead}
-          bullets={bulletsOf(aBullets(A, cl, rule, arm), (l) => (l.startsWith('The average gain') ? 'bequests' : l.startsWith('Households') ? 'savings' : 'timing'))}
+          why={whyOf(A.why, 'savings')}
           stats={consumptionStats(cl, rule, arm)}
           unit={consumptionUnit(cl, rule, arm)}
           link={
-            A.link ? (
-              <JumpLink to="welfare-breakdown">
-                See the average, split by what changes <Arrow />
-              </JumpLink>
-            ) : null
+            <JumpLink to="welfare-breakdown">
+              See the average, split by what changes <Arrow />
+            </JumpLink>
           }
         />
         <WhyCard
           actions={<WhoSources />}
           icon="lifetimeEarnings"
           lead={B.lead}
-          bullets={bulletsOf(B.lines, (l) => (l.startsWith('This ranking') ? 'caveat' : 'capital'))}
+          why={whyOf(B.why, 'capital')}
           stats={[
             { key: 'bot', label: bot, value: B.bot },
             { key: 'top', label: top, value: B.top },
@@ -802,19 +873,20 @@ function Why({ cl, rule, arm }) {
           unit={<MeasureUnit />}
           link={
             <JumpLink to="who-model-households">
-              How the model’s households compare with the UK <Arrow />
+              Why this ranking depends on the model <Arrow />
             </JumpLink>
           }
         />
-        {/* C: no stat (the data carry no pair for it); the grid keeps the
-            row even (align-items stretch, the link row at the foot) */}
         <WhyCard
           icon="finances"
           lead={Cw.lead}
-          bullets={bulletsOf(Cw.lines, (l) => (l.startsWith('From ') ? 'timing' : 'rule'))}
+          why={whyOf(Cw.why, 'rule')}
+          stats={Cw.stats}
+          unit={Cw.unit}
+          signed={Cw.signed}
           link={
             <button type="button" className="ex-jump" onClick={openBudget}>
-              Change under Budget assumption <Arrow />
+              Change the budget assumption <Arrow />
             </button>
           }
         />
@@ -822,31 +894,32 @@ function Why({ cl, rule, arm }) {
           actions={<WhoSources />}
           icon="young"
           lead={Dw.lead}
-          bullets={bulletsOf(Dw.lines, (l) => (l.startsWith('With no output gain') ? 'pay' : 'young'))}
+          why={whyOf(Dw.why, Dw.why?.startsWith('With no output gain') ? 'pay' : 'young')}
           stats={[
             { key: 'young', label: `Age ${FIRST_AGE} in ${t.shockYear}`, value: Dw.young },
             { key: 'old', label: `Age ${RULER_AGE} in ${t.shockYear}`, value: Dw.old },
           ]}
           unit={<MeasureUnit />}
+          // the chart shows the version in view: a link to it reads as the
+          // stress test only when that is the version in view
+          link={
+            arm === 'stress' ? (
+              <JumpLink to="welfare-chart">
+                See every age in the chart <Arrow />
+              </JumpLink>
+            ) : null
+          }
         />
       </div>
       <div className="ex-mi-box">
         <Disclosure id="who-model-households" title="More info" preview="How the model’s households compare with the UK: pay, transfers and wealth by earnings group">
-          {/* push D, Q7b: an info callout, a 2x2 grid of small cards (one
-              column on phones), each an icon and heading, two numbers, a
-              muted unit line and its takeaway last; the closing caveat in
-              its own callout. Meaning unchanged. */}
           <div className="ex-mi">
             <Callout as="div" icon="model" className="ex-mi-callout">
               <p>The ranking by earnings group is a property of the model, not a finding about the UK.</p>
-              <p>It follows from how the model’s households are built.</p>
             </Callout>
             <div className="ex-mi-grid">
               <section className="ex-mi-card">
-                <h4 className="ex-mi-head">
-                  <Icon name={iconFor('pay')} size={16} className="ex-mi-head-icon" />
-                  <span>{prof.labour[0] < prof.labour[6] ? `The ${bot.toLowerCase()} depend less on pay` : `Pay, ${bot.toLowerCase()} and ${top.toLowerCase()}`}</span>
-                </h4>
+                <MiHead r={R.pay} />
                 <StatPair
                   signed={false}
                   stats={[
@@ -855,13 +928,10 @@ function Why({ cl, rule, arm }) {
                   ]}
                 />
                 <p className="ex-mi-unit">Pay as a share of gross income, {t.shockYear}</p>
-                {prof.labour[0] < prof.labour[6] ? <p className="ex-mi-text">A lower pay rate takes a smaller share of the bottom group’s income.</p> : null}
+                <MiTake r={R.pay} />
               </section>
               <section className="ex-mi-card">
-                <h4 className="ex-mi-head">
-                  <Icon name={iconFor('capital')} size={16} className="ex-mi-head-icon" />
-                  <span>{prof.wealth_share[0] > prof.earnings_share[0] ? 'Wealth is spread more evenly than earnings' : `Wealth and earnings of the ${bot.toLowerCase()}`}</span>
-                </h4>
+                <MiHead r={R.wealth} />
                 <StatPair
                   signed={false}
                   stats={[
@@ -872,13 +942,10 @@ function Why({ cl, rule, arm }) {
                 <p className="ex-mi-unit">
                   {bot} of lifetime earners, {t.shockYear}
                 </p>
-                {prof.wealth_share[0] > prof.earnings_share[0] ? <p className="ex-mi-text">So the higher return on capital reaches lower earners as well.</p> : null}
+                <MiTake r={R.wealth} />
               </section>
               <section className="ex-mi-card">
-                <h4 className="ex-mi-head">
-                  <Icon name={iconFor('benefits')} size={16} className="ex-mi-head-icon" />
-                  <span>Transfers are the same amount per head</span>
-                </h4>
+                <MiHead r={R.transfers} />
                 <StatPair
                   signed={false}
                   stats={[
@@ -887,29 +954,10 @@ function Why({ cl, rule, arm }) {
                   ]}
                 />
                 <p className="ex-mi-unit">Transfers as a share of gross income, {t.shockYear}</p>
-                {rule === 'dn' && tr && tr[0] < 0 && tr[6] < 0 ? (
-                  <>
-                    <p className="ex-mi-sub">
-                      Cost of lower transfers over {t.shockYear}–{t.lastFlowYear}, age {age}
-                    </p>
-                    <StatPair
-                      signed={false}
-                      stats={[
-                        { key: 'b', label: bot, value: Math.abs(tr[0]), text: plain(Math.abs(tr[0]), 1) },
-                        { key: 't', label: top, value: Math.abs(tr[6]), text: plain(Math.abs(tr[6]), 1) },
-                      ]}
-                    />
-                    <p className="ex-mi-unit">% of consumption</p>
-                  </>
-                ) : null}
-                <p className="ex-mi-text">The same amount is a larger share of a lower earner’s income.</p>
-                {rule === 'dn' && tr && tr[0] < 0 && tr[6] < 0 && narrows ? <p className="ex-mi-text">Lower transfers narrow the gap between the two groups and do not reverse it.</p> : null}
+                <MiTake r={R.transfers} />
               </section>
               <section className="ex-mi-card">
-                <h4 className="ex-mi-head">
-                  <Icon name={iconFor('inequality')} size={16} className="ex-mi-head-icon" />
-                  <span>{wc < ONS_TOP_TENTH.pct ? 'Wealth is less concentrated than in the UK' : 'Wealth concentration against the UK'}</span>
-                </h4>
+                <MiHead r={R.ons} />
                 <StatPair
                   signed={false}
                   stats={[
@@ -919,19 +967,14 @@ function Why({ cl, rule, arm }) {
                 />
                 <p className="ex-mi-unit">Share of wealth held by the top tenth</p>
                 <IconLine concept="limit" className="ex-mi-note">
-                  Not like for like: the ONS figure is for households in Great Britain. The model’s is for adults, ranked across age and earnings groups.
+                  Not like for like: ONS counts households in Great Britain; the model counts adults.
                 </IconLine>
                 <p className="ex-mi-src" data-cite="">
                   Source: {ext(ONS_TOP_TENTH.url, 'ONS, Household total wealth in Great Britain, April 2018 to March 2020')}
                 </p>
+                <MiTake r={R.ons} />
               </section>
             </div>
-            {wc < ONS_TOP_TENTH.pct ? (
-              <Callout as="div" icon="caveat" className="ex-mi-callout">
-                <p>With wealth as concentrated as in ONS data, more of the higher return would go to the top group; the ranking could narrow or reverse.</p>
-                <p>The runs do not test that.</p>
-              </Callout>
-            ) : null}
           </div>
         </Disclosure>
       </div>

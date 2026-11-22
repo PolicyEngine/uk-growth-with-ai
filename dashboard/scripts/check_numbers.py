@@ -241,13 +241,18 @@ def tiles(c, cl=None):
             for t in {lo, hi}:
                 exp[t] += 1
     return exp
-# What drives the result (item 21): the bottom and top earnings groups (box
-# B), the consumption card's two stats (box A: the first c_gap year, then
-# the year consumption first rises above the path, first_year_c_above, or
-# with no such year the last c_gap year's gap; CohortsTab consumptionStats)
-# and the stress test at ages 20 and 65 (box D). The crossing year is not a
-# percentage, so it is checked on its own below. The age-45 transfer pair
-# is inside the closed "More info" disclosure, so it is not read.
+# What drives the result (item 21; Who cards, Fable 5.2 ruling for Vahid):
+# the bottom and top earnings groups (box B), the consumption card's two
+# stats (box A: the first c_gap year, then the year consumption first rises
+# above the path, first_year_c_above, or with no such year the last c_gap
+# year's gap; CohortsTab consumptionStats), card 3's pair and the stress
+# test at ages 20 and 65 (box D). The crossing year is not a percentage, so
+# it is checked on its own below. Card 3's pair under debt-neutral
+# transfers is the age-45 transfer change over the window (the cell's
+# income_* key, as lib/dataKeys.js windowIncomeOf reads it: bottom 25% and
+# top 1%), now on the card's face; More info no longer prints it. Under the
+# common rule the pair is the public debt gap in pp ("+1.99 pp", with a
+# space, so NUM does not read it) and the default view is debt-neutral.
 def why(c, cl=C, rule='dn'):
     s = CO['closures'][cl]['rules'][rule]['stress']
     xs = CO['closures'][cl]['birth_year']
@@ -255,6 +260,9 @@ def why(c, cl=C, rule='dn'):
     vals = [c['alive_by_group'][0], c['alive_by_group'][6], c['c_gap'][ys[0]]]
     if c.get('first_year_c_above') is None:
         vals.append(c['c_gap'][ys[-1]])
+    if rule == 'dn':
+        inc = c[next(k for k in c if k.startswith('income_'))]
+        vals += [inc['transfers'][0], inc['transfers'][6]]
     vals += [s['cev_all'][xs.index(CO['shock_year'] - 20)], s['cev_all'][xs.index(CO['shock_year'] - 65)]]
     return Counter(signed(x, 2) + '%' for x in vals)
 c = CO['closures'][C]['rules']['dn']['tfp']
