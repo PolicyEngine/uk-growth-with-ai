@@ -8,7 +8,11 @@ import FoldGrid from './FoldGrid.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import PageIntro from '@/components/ui/PageIntro.jsx';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
-import { Items, WhyChain } from '@/components/story/Items.jsx';
+import { Items } from '@/components/story/Items.jsx';
+import IconLine from '@/components/ui/IconLine.jsx';
+import RefList from '@/components/ui/RefList.jsx';
+import CiteFoot from '@/components/ui/CiteFoot.jsx';
+import { MACRO_REFS } from '@/data/references.js';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from './IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
@@ -24,7 +28,9 @@ import Cohorts from './Cohorts.jsx';
 import { ArmsPart, ScenariosPart, SubHead, TimingPart } from './ScenariosSection.jsx';
 import { investStep } from './investStep.js';
 import UsedBy from './UsedBy.jsx';
-import { SRC } from './sources.js';
+import { SRC, code } from './sources.js';
+import SettingRow, { SettingHeads } from './SettingRow.jsx';
+import { ROWS, name, pc, pp } from './inputs.js';
 
 const cite = (k) => ext(SRC[k].url, SRC[k].label);
 
@@ -38,33 +44,30 @@ const overlapList = () => {
 };
 const CENTRAL_TFP = tfpInput('uk_central');
 
-// The macro model's method, one page (push D, Q9.2): an overview (the
-// model, many generations), what AI changes (the shock, the scenarios, the
-// three versions, the timing), every input and its source, closures and
-// income measures, fiscal rules and public finances, solving and checks,
-// limitations. Each fact has its one home here; chart
-// cards link to these sections by anchor, and each section lists the charts
-// that use it (UsedBy). Sources and published figures are on Evidence;
-// commands, vintages and the revision history on Data and code.
+// The macro model's method, one page in the model pages' one anatomy
+// (Method redesign, section 4; M5): what it is (the intro), how it works
+// (the flow from an AI scenario to a result, and the three versions), key
+// settings (eight rows, each opening to its detail), what the model leaves
+// out, and its sources. Each fact has its one home here; chart cards link
+// to the rows by anchor, and a link opens its row. Every input and its
+// source is on Inputs; published figures on Evidence; commands, vintages
+// and the revision history on Data and code.
 
 const DOC = (p) => `${REPO}/blob/${SET.branch}/docs/${p}`;
 const DOC_MAIN = (p) => `${REPO}/blob/main/docs/${p}`;
 const pct = (x, dp = 1) => `${(x * 100).toFixed(dp)}%`;
 
-// The reading order (push D, Q9.2; Vahid: "better organization"): what
-// the model is, what AI changes in it, every input, then closures, fiscal
-// rules, solving and limitations. The section ids are the old ones, so
-// every link from another page lands: #m-model (Overview), #m-shock (What
-// AI changes, with #m-scenarios, #m-arms and #m-timing inside it), #m-path
-// (Solving and checks). Every input and its source (#m-inputs, its rows
-// #in-…) is its own page, InputsPage.jsx; lib/nav.jsx sends those anchors there.
+// The reading order (Method redesign, 4; M18 supersedes push D, Q9.2):
+// every old id is kept, as a section (#m-model, #m-limits) or as a Key
+// settings row (#m-shock, #m-scenarios, #m-timing, #m-closures, #m-rules,
+// #m-generations, #m-tax, #m-path) or inside one. Every input and its
+// source (#m-inputs, its rows #in-…) is its own page, InputsPage.jsx;
+// lib/nav.jsx sends those anchors there.
 const SECTIONS = [
-  { id: METHOD.model.id, title: 'Overview', icon: iconFor('model') },
-  { id: METHOD.shock.id, title: 'What AI changes', icon: iconFor('shock') },
-  { id: METHOD.closures.id, title: METHOD.closures.label, icon: iconFor('closure') },
-  { id: METHOD.rules.id, title: METHOD.rules.label, icon: iconFor('finances') },
-  { id: 'm-path', title: 'Solving and checks', icon: iconFor('path') },
-  { id: METHOD.limits.id, title: METHOD.limits.label, icon: iconFor('limit') },
+  { id: METHOD.model.id, title: 'How it works', icon: iconFor('model') },
+  { id: 'm-settings', title: 'Key settings', icon: iconFor('rule') },
+  { id: METHOD.limits.id, title: 'What the model leaves out', icon: iconFor('limit') },
+  { id: 'm-sources', title: 'Sources', icon: iconFor('record') },
 ];
 
 function ClosureCards() {
@@ -358,6 +361,216 @@ function Limitations() {
 }
 
 
+// The bodies of the Key settings rows that were inline sections: each is
+// today's content, its wording unchanged (Method redesign, M5).
+function ShockCards() {
+  return (
+    <FoldGrid className="card-grid">
+      <InfoCard
+        icon={iconFor('ai')}
+        title="Automation"
+        className="mx-card"
+        more={
+          <Items
+            items={[
+              { icon: 'equation', text: <>Cobb-Douglas production: the labour share is exactly 1 &minus; &gamma;.</> },
+              { icon: 'scenario', text: <>A fall of f points sets &gamma; to 0.35 + f/100; 0.35 is the macro model&rsquo;s default ({cite('ogukParams')}).</> },
+              {
+                icon: 'code',
+                text: (
+                  <>
+                    The ramp needs a small OG-Core patch (<NavLink tab="method" sub="code" anchor="before">Data and code</NavLink>).
+                  </>
+                ),
+              },
+            ]}
+          />
+        }
+        moreTitle="How it maps"
+        morePreview="Labour share = 1 − γ"
+      >
+        <Items
+          items={[
+            { icon: 'capital', text: <>The capital share &gamma; rises.</> },
+            { icon: 'labour', text: 'The labour share falls by the same points.' },
+          ]}
+        />
+      </InfoCard>
+      <InfoCard
+        icon={iconFor('productivity')}
+        title="Productivity"
+        className="mx-card"
+        more={
+          <Items
+            items={[
+              { icon: 'measure', text: 'Z also absorbs the model’s arbitrary units of capital and labour.' },
+              { icon: 'caveat', text: 'So its level is not comparable across arms.' },
+              { icon: 'compare', text: 'Each arm fixes output at given inputs instead.' },
+            ]}
+          />
+        }
+        moreTitle="Why Z is not a percentage"
+        morePreview="Z is also a units constant"
+      >
+        <Items items={[{ icon: 'productivity', text: 'Z moves so output at fixed inputs changes by the scenario’s gain.' }]} />
+      </InfoCard>
+      <InfoCard
+        icon={iconFor('forecast')}
+        title="Everything else unchanged"
+        className="mx-card"
+        more={
+          <Items
+            items={[
+              { icon: 'forecast', text: <>Forecast path: the macro model&rsquo;s path, set to the OBR&rsquo;s central forecast, which already includes the OBR&rsquo;s own assumption about AI ({cite('bp9B14')}; {cite('efoOct127')}).</> },
+              { icon: 'ai', text: <>Its trend productivity growth is 1% a year, from the March 2026 EFO ({cite('efoMarPath')}).</> },
+              { icon: 'scenario', text: 'Each scenario’s sizes are published estimates of AI’s whole effect, against no AI. They are not net of the OBR’s own.' },
+              {
+                icon: 'path',
+                text: (
+                  <>
+                    The OBR&rsquo;s path already has about {pctRange(ADOPTION)} of AI productivity by year {ADOPTION_YEAR} of adoption ({cite('bp9B14')}, Chart B.4), and no labour-share shift ({cite('frs87')}). Over the calendar years {SURPRISE_YEAR}–{HEADLINE_YEAR} its curves add {pctRange(CALENDAR)}.
+                  </>
+                ),
+              },
+              { icon: 'compare', text: `So the labour-share shift is all extra to the OBR’s path. The productivity gain is only partly extra: on the adoption clock the path already has this share of each scenario’s input: ${overlapList()}.` },
+              { icon: 'debt', text: <>Spending is set so 2030 debt/GDP matches the OBR&rsquo;s March 2026 forecast ({cite('efoMarDebt')}; {cite('debtTarget')}).</> },
+              { icon: 'compare', text: 'Every gap is against that path, restarted without the scenario’s inputs.' },
+              { icon: 'range', text: `For the gap against the OBR’s own forecast, read between the main version and “technology unchanged”, which has the share shift and no productivity gain${CENTRAL_TFP != null ? `: for UK central that equals netting all of its +${CENTRAL_TFP.toFixed(1)}%` : ''}.` },
+            ]}
+          />
+        }
+        moreTitle="The forecast path"
+        morePreview="Forecast path, the restart"
+      >
+        <Items
+          items={[
+            { icon: 'generations', text: <>Demographics: {cite('unWpp')}, via OG-Core.</> },
+            { icon: 'model', text: <>Tax functions ({cite('peUk')}) and policy: as on the forecast path.</> },
+            { icon: 'forecast', text: <>Forecast path: built on the March EFO ({cite('efoMarPath')}).</> },
+          ]}
+        />
+      </InfoCard>
+    </FoldGrid>
+  );
+}
+
+// The labour tax card (its id is now the row's, #m-tax)
+function LabourTax({ nic }) {
+  return (
+    <InfoCard
+      icon={iconFor('tax')}
+      title="How labour is taxed"
+      className="mx-card"
+      more={
+        <Items
+          items={[
+            { icon: 'tax', text: 'Fitted functions already include employee NICs; adding them double-counts.' },
+            { icon: 'labour', text: 'Employer NICs: a payroll tax from the first pound, no allowance.' },
+            {
+              icon: 'data',
+              text: (
+                <>
+                  PolicyEngine UK, {nic.year}: <span data-path="methodFacts.nics.employer_avg_of_employment_income">{pct(nic.employer_avg_of_employment_income)}</span> of employment income;{' '}
+                  <span data-path="methodFacts.nics.employer_marginal">{pct(nic.employer_marginal)}</span> at the margin (
+                  {ext(`${REPO}/blob/${SET.branch}/analysis/nics/measure_nics.py`, 'measure_nics.py')}).
+                </>
+              ),
+            },
+          ]}
+        />
+      }
+      moreTitle="Employee and employer NICs"
+      morePreview="Fitted function, flat payroll tax"
+    >
+      <Items
+        items={[
+          { icon: 'labour', text: 'Employee NICs: inside the fitted income-tax function.' },
+          {
+            icon: 'link',
+            text: (
+              <>
+                Employer NICs: flat payroll tax; rate against average on{' '}
+                <NavLink tab="explore" sub="finances" anchor="tax-gap">
+                  Explore, Public finances
+                </NavLink>
+                .
+              </>
+            ),
+          },
+        ]}
+      />
+    </InfoCard>
+  );
+}
+
+function SolvingCards() {
+  return (
+    <FoldGrid className="card-grid cols-2">
+      <InfoCard
+        icon={iconFor('path')}
+        title="Steady state, then the path"
+        className="mx-card"
+        more={
+          <Items
+            items={[
+              { icon: 'path', text: 'Time path iteration guesses whole price paths.' },
+              { icon: 'generations', text: 'It solves every cohort, then updates the guess.' },
+              { icon: 'measure', text: <>Path tolerance 10<sup>−4</sup>: a solver setting, not from a published source.</> },
+              { icon: 'timing', text: <>Run times: <NavLink tab="method" sub="code">Data and code</NavLink>.</> },
+            ]}
+          />
+        }
+        moreTitle="Time path iteration"
+        morePreview="Nested fixed points"
+      >
+        <Items items={[{ icon: 'breakEven', text: 'Each run finds the long run, then the yearly path to it.' }]} />
+      </InfoCard>
+      <InfoCard
+        icon={iconFor('check')}
+        title="Gated before and after"
+        className="mx-card"
+        more={
+          <Items
+            items={[
+              {
+                icon: 'start',
+                text: (
+                  <>
+                    Restarted without the scenario’s inputs, the model must reproduce the OBR’s central forecast path, {SURPRISE_YEAR}–{LATE_YEAR}: within 10<sup>−4</sup> for GDP, capital and debt/GDP, 10<sup>−3</sup> for the rest.
+                  </>
+                ),
+              },
+              { icon: 'check', text: <>After each solve, a sanity check tests identities and the labour share ({cite('sanity')}).</> },
+              { icon: 'limit', text: 'Any failure stops the run.' },
+            ]}
+          />
+        }
+        moreTitle="The two gates"
+        morePreview="Continuation gate, sanity check"
+      >
+        <Items
+          items={[
+            { icon: 'check', text: 'A restart test and a sanity check guard every number.' },
+            { icon: 'code', text: <>Commands: <NavLink tab="method" sub="code" anchor="pipeline">Data and code</NavLink>.</> },
+          ]}
+        />
+      </InfoCard>
+    </FoldGrid>
+  );
+}
+
+// Key settings (Method redesign, 4.3): eight rows, each what the study
+// sets and what else was run; every value is bound to the data or a
+// constant. The generations row is said from the inputs table's row (its
+// label and value), so the figure has one home.
+const SCEN_OTHERS = ['uk_low', 'uk_high', 'korinek'];
+const HH_ROW = ROWS.find((r) => r.id === 'in-households-80-ages-seven-earnings-groups');
+const GENERATIONS = (() => {
+  const [ages, groups] = HH_ROW.input.replace(/^Households: /, '').split(', ');
+  return `${ages} (${HH_ROW.value.replace('–', ' to ')}), ${groups}`;
+})();
+const ZK_HALF = S.sensitivity?.['zk0.5']?.zeta_K;
+
 export default function MethodTab() {
   const nic = F.nics;
   return (
@@ -367,312 +580,151 @@ export default function MethodTab() {
         <PageIntro
           question="How does the macro model turn an AI scenario into these results?"
           answer={<IconText icon="model">{MACRO_ABOUT_CAP}. {MACRO_FOLLOWS}. Every market clears. Each result is a gap against the OBR’s central forecast path: the model’s own path on the OBR’s March 2026 productivity growth and debt target, restarted in {SURPRISE_YEAR} without the extra AI. Not a forecast.</IconText>}
-        >
-          <WhyChain
-            className="mx-chain"
-            label="From an AI scenario to a result"
-            links={[
-              { icon: 'scenario', text: 'An AI scenario' },
-              { icon: 'ai', text: 'Two production inputs change' },
-              { icon: 'model', text: 'Every market re-clears' },
-              { icon: 'path', text: 'Gap against the OBR’s central forecast path' },
-            ]}
-          />
-        </PageIntro>
+        />
         <section>
-          <SectionHeading id="m-model" icon={iconFor('model')} title="Overview">
-            <IconText icon="link">{ext(URLS.ogUkFork, 'OG-UK')}, the UK calibration of {ext(URLS.ogCore, 'OG-Core')}. Choose a block to light its flows.</IconText>
+          <SectionHeading id="m-model" icon={iconFor('model')} title="How it works">
+            <IconText icon="ai">The macro model has no AI parameter. AI changes two numbers in production.</IconText>
           </SectionHeading>
-          <UsedBy id="m-model" />
           <Card
             id="model-diagram"
             sources={[docItem('OG-UK, the UK calibration', URLS.ogUkFork, 'OG-UK'), docItem('OG-Core, the model it is built on', URLS.ogCore, 'OG-Core')]}
+            replication={{ code: code('uk_growth_with_ai/solve.py'), result: SRC.ogukParams.url }}
             icon={iconFor('model')}
-            title="The macro model in four blocks"
+            title="From an AI scenario to a result"
             finding={<IconText icon="breakEven">Households, firms, a government and the rest of the world, trading until every market clears.</IconText>}
             logo={false}
-            download={{ title: 'The macro model in four blocks', context: 'The flows between the blocks of the model', table: flowTable, svg: diagramSvg, legend: () => [] }}
+            download={{ title: 'From an AI scenario to a result', context: 'An AI scenario enters at firms; the flows between the blocks of the model; the result is read against the forecast path', table: flowTable, svg: diagramSvg, legend: () => [] }}
           >
             <ModelDiagram />
           </Card>
-          <FoldGrid className="card-grid cols-2 mx-gen-grid">
-            <div className="info-card mx-card mx-figure" id="m-generations">
-              <h3 className="info-card-title">
-                <Icon name={iconFor('generations')} size={18} />
-                <span>Many generations at once</span>
-                <SourceLine items={[docItem('OG-Core, the model it is built on', URLS.ogCore, 'OG-Core'), docItem('OG-UK, the UK calibration', URLS.ogUkFork, 'OG-UK')]} />
-              </h3>
-              <Cohorts />
-            </div>
-            <InfoCard
-              icon={iconFor('tax')}
-              title="How labour is taxed"
-              className="mx-card"
-              id="m-tax"
-              more={
-                <Items
-                  items={[
-                    { icon: 'tax', text: 'Fitted functions already include employee NICs; adding them double-counts.' },
-                    { icon: 'labour', text: 'Employer NICs: a payroll tax from the first pound, no allowance.' },
-                    {
-                      icon: 'data',
-                      text: (
-                        <>
-                          PolicyEngine UK, {nic.year}: <span data-path="methodFacts.nics.employer_avg_of_employment_income">{pct(nic.employer_avg_of_employment_income)}</span> of employment income;{' '}
-                          <span data-path="methodFacts.nics.employer_marginal">{pct(nic.employer_marginal)}</span> at the margin (
-                          {ext(`${REPO}/blob/${SET.branch}/analysis/nics/measure_nics.py`, 'measure_nics.py')}).
-                        </>
-                      ),
-                    },
-                  ]}
-                />
-              }
-              moreTitle="Employee and employer NICs"
-              morePreview="Fitted function, flat payroll tax"
-            >
-              <Items
-                items={[
-                  { icon: 'labour', text: 'Employee NICs: inside the fitted income-tax function.' },
-                  {
-                    icon: 'link',
-                    text: (
-                      <>
-                        Employer NICs: flat payroll tax; rate against average on{' '}
-                        <NavLink tab="explore" sub="finances" anchor="tax-gap">
-                          Explore, Public finances
-                        </NavLink>
-                        .
-                      </>
-                    ),
-                  },
-                ]}
-              />
-            </InfoCard>
-          </FoldGrid>
-        </section>
-
-        <section>
-          <SectionHeading id="m-shock" icon={iconFor('shock')} title="What AI changes">
-            <IconText icon="ai">The macro model has no AI parameter. AI changes two numbers in production.</IconText>
-          </SectionHeading>
-          <UsedBy id={['m-shock', 'm-scenarios']} />
-          <SubHead id="m-shock-head" title="The shock" />
-          <FoldGrid className="card-grid">
-            <InfoCard
-              icon={iconFor('ai')}
-              title="Automation"
-              className="mx-card"
-              more={
-                <Items
-                  items={[
-                    { icon: 'equation', text: <>Cobb-Douglas production: the labour share is exactly 1 &minus; &gamma;.</> },
-                    { icon: 'scenario', text: <>A fall of f points sets &gamma; to 0.35 + f/100; 0.35 is the macro model&rsquo;s default ({cite('ogukParams')}).</> },
-                    {
-                      icon: 'code',
-                      text: (
-                        <>
-                          The ramp needs a small OG-Core patch (<NavLink tab="method" sub="code" anchor="before">Data and code</NavLink>).
-                        </>
-                      ),
-                    },
-                  ]}
-                />
-              }
-              moreTitle="How it maps"
-              morePreview="Labour share = 1 − γ"
-            >
-              <Items
-                items={[
-                  { icon: 'capital', text: <>The capital share &gamma; rises.</> },
-                  { icon: 'labour', text: 'The labour share falls by the same points.' },
-                ]}
-              />
-            </InfoCard>
-            <InfoCard
-              icon={iconFor('productivity')}
-              title="Productivity"
-              className="mx-card"
-              more={
-                <Items
-                  items={[
-                    { icon: 'measure', text: 'Z also absorbs the model’s arbitrary units of capital and labour.' },
-                    { icon: 'caveat', text: 'So its level is not comparable across arms.' },
-                    { icon: 'compare', text: 'Each arm fixes output at given inputs instead.' },
-                  ]}
-                />
-              }
-              moreTitle="Why Z is not a percentage"
-              morePreview="Z is also a units constant"
-            >
-              <Items items={[{ icon: 'productivity', text: 'Z moves so output at fixed inputs changes by the scenario’s gain.' }]} />
-            </InfoCard>
-            <InfoCard
-              icon={iconFor('forecast')}
-              title="Everything else unchanged"
-              className="mx-card"
-              more={
-                <Items
-                  items={[
-                    { icon: 'forecast', text: <>Forecast path: the macro model&rsquo;s path, set to the OBR&rsquo;s central forecast, which already includes the OBR&rsquo;s own assumption about AI ({cite('bp9B14')}; {cite('efoOct127')}).</> },
-                    { icon: 'ai', text: <>Its trend productivity growth is 1% a year, from the March 2026 EFO ({cite('efoMarPath')}).</> },
-                    { icon: 'scenario', text: 'Each scenario’s sizes are published estimates of AI’s whole effect, against no AI. They are not net of the OBR’s own.' },
-                    {
-                      icon: 'path',
-                      text: (
-                        <>
-                          The OBR&rsquo;s path already has about {pctRange(ADOPTION)} of AI productivity by year {ADOPTION_YEAR} of adoption ({cite('bp9B14')}, Chart B.4), and no labour-share shift ({cite('frs87')}). Over the calendar years {SURPRISE_YEAR}–{HEADLINE_YEAR} its curves add {pctRange(CALENDAR)}.
-                        </>
-                      ),
-                    },
-                    { icon: 'compare', text: `So the labour-share shift is all extra to the OBR’s path. The productivity gain is only partly extra: on the adoption clock the path already has this share of each scenario’s input: ${overlapList()}.` },
-                    { icon: 'debt', text: <>Spending is set so 2030 debt/GDP matches the OBR&rsquo;s March 2026 forecast ({cite('efoMarDebt')}; {cite('debtTarget')}).</> },
-                    { icon: 'compare', text: 'Every gap is against that path, restarted without the scenario’s inputs.' },
-                    { icon: 'range', text: `For the gap against the OBR’s own forecast, read between the main version and “technology unchanged”, which has the share shift and no productivity gain${CENTRAL_TFP != null ? `: for UK central that equals netting all of its +${CENTRAL_TFP.toFixed(1)}%` : ''}.` },
-                  ]}
-                />
-              }
-              moreTitle="The forecast path"
-              morePreview="Forecast path, the restart"
-            >
-              <Items
-                items={[
-                  { icon: 'generations', text: <>Demographics: {cite('unWpp')}, via OG-Core.</> },
-                  { icon: 'model', text: <>Tax functions ({cite('peUk')}) and policy: as on the forecast path.</> },
-                  { icon: 'forecast', text: <>Forecast path: built on the March EFO ({cite('efoMarPath')}).</> },
-                ]}
-              />
-            </InfoCard>
-          </FoldGrid>
-          <ScenariosPart />
+          {/* the three versions, open at rest: the stress-test card prints
+              the page's two counted figures (check_numbers reads them) */}
           <ArmsPart />
-          <TimingPart />
         </section>
 
         <section>
-          <SectionHeading id="m-closures" icon={iconFor('closure')} title="Closures and income measures">
-            <IconText icon="capital">Who finances new capital, and which measure of income leads.</IconText>
+          <SectionHeading id="m-settings" icon={iconFor('rule')} title="Key settings">
+            <IconText icon="rule">What the study sets, and what else was run. Open a row for the detail.</IconText>
           </SectionHeading>
-          <UsedBy id="m-closures" />
-          <ClosureCards />
-          <div className="info-card mx-card mx-measures" id="m-measures">
-            <h3 className="info-card-title">
-              <Icon name={iconFor('measure')} size={18} />
-              <span>Three income measures</span>
-            </h3>
-            <div className="mx-measure-row">
-              {MEASURES.map((m, i) => (
-                <div key={m.k} className="mx-measure">
-                  <span className="mx-measure-k">
-                    <Icon name={iconFor(m.icon)} size={16} className="mx-measure-icon" />
-                    {m.k}
-                  </span>
-                  <span className="mx-measure-t">{m.t}</span>
-                  <span className="mx-measure-d">{m.href ? ext(m.href, m.d) : m.d}</span>
-                  {i < MEASURES.length - 1 ? (
-                    <span className="mx-measure-arrow" aria-hidden="true">
-                      →
-                    </span>
-                  ) : null}
+          <div className="mx-settings">
+            <SettingHeads />
+            <SettingRow id="m-shock" setting={METHOD.shock.label} uses="Capital share γ up; productivity Z up">
+              <SubHead id="m-shock-head" title="The shock" />
+              <ShockCards />
+              <UsedBy id="m-shock" />
+            </SettingRow>
+            <SettingRow id="m-scenarios" setting="Scenarios" uses={`${name('uk_central')}: ${pp('uk_central')} labour share, ${pc('uk_central')} output at fixed inputs`} also={SCEN_OTHERS.map(name).join(', ')}>
+              <ScenariosPart />
+              <UsedBy id="m-scenarios" />
+            </SettingRow>
+            <SettingRow id="m-timing" setting="When it happens" uses={`A surprise in ${SURPRISE_YEAR}; full weight by ${HEADLINE_YEAR}`}>
+              <TimingPart />
+            </SettingRow>
+            <SettingRow
+              id="m-closures"
+              setting={METHOD.closures.label}
+              uses={`Some foreign capital, ζK = ${ZETA[CENTRAL]}; national income (NNI) leads`}
+              also={`No foreign capital, ζK = ${ZETA[BOUND]}${ZK_HALF != null ? `; ζK = ${ZK_HALF}` : ''}`}
+            >
+              <p className="mx-setting-lead">
+                <IconText icon="capital">Who finances new capital, and which measure of income leads.</IconText>
+              </p>
+              <ClosureCards />
+              <div className="info-card mx-card mx-measures" id="m-measures">
+                <h3 className="info-card-title">
+                  <Icon name={iconFor('measure')} size={18} />
+                  <span>Three income measures</span>
+                </h3>
+                <div className="mx-measure-row">
+                  {MEASURES.map((m, i) => (
+                    <div key={m.k} className="mx-measure">
+                      <span className="mx-measure-k">
+                        <Icon name={iconFor(m.icon)} size={16} className="mx-measure-icon" />
+                        {m.k}
+                      </span>
+                      <span className="mx-measure-t">{m.t}</span>
+                      <span className="mx-measure-d">{m.href ? ext(m.href, m.d) : m.d}</span>
+                      {i < MEASURES.length - 1 ? (
+                        <span className="mx-measure-arrow" aria-hidden="true">
+                          →
+                        </span>
+                      ) : null}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+              <UsedBy id="m-closures" />
+            </SettingRow>
+            <SettingRow id="m-rules" setting={METHOD.rules.label} uses={`${RULE_NAMES[0].label}; debt rule from ${LATE_YEAR}`} also={`${RULE_NAMES[1].label}; ${RULE_NAMES[2].label}`}>
+              <p className="mx-setting-lead">
+                <IconText icon="rule">How the budget adjusts, and how debt responds to the interest rate.</IconText>
+              </p>
+              {/* the three rules and how debt is repriced: one template, one
+                  even 2 × 2 grid (push D, Q9.5) */}
+              <div className="card-grid cols-2 mx-rules">
+                {[...RULES, DEBT_CARD].map((r) => (
+                  <RuleCard key={r.id} r={r} />
+                ))}
+              </div>
+              <UsedBy id="m-rules" />
+            </SettingRow>
+            <SettingRow id="m-generations" setting={METHOD.welfare.label} uses={GENERATIONS}>
+              <div className="info-card mx-card mx-figure">
+                <h3 className="info-card-title">
+                  <Icon name={iconFor('generations')} size={18} />
+                  <span>Many generations at once</span>
+                  <SourceLine items={[docItem('OG-Core, the model it is built on', URLS.ogCore, 'OG-Core'), docItem('OG-UK, the UK calibration', URLS.ogUkFork, 'OG-UK')]} />
+                </h3>
+                <Cohorts />
+              </div>
+            </SettingRow>
+            <SettingRow id="m-tax" setting="How labour is taxed" uses="Fitted to PolicyEngine UK; employer NICs a flat payroll tax">
+              <LabourTax nic={nic} />
+            </SettingRow>
+            <SettingRow id="m-path" setting="Solving and checks" uses="Steady state, then the yearly path; two gates on every run">
+              <p className="mx-setting-lead">
+                <IconText icon="check">
+                  How each run is solved and checked. When the extra AI starts and how it ramps up is on{' '}
+                  <NavLink tab="method" sub="how" anchor="m-timing">
+                    Scenarios, when it happens
+                  </NavLink>
+                  .
+                </IconText>
+              </p>
+              <SolvingCards />
+              <UsedBy id="m-path" />
+            </SettingRow>
           </div>
         </section>
 
         <section>
-          <SectionHeading id="m-rules" icon={iconFor('finances')} title="Fiscal rules and public finances">
-            <IconText icon="rule">How the budget adjusts, and how debt responds to the interest rate.</IconText>
-          </SectionHeading>
-          <UsedBy id="m-rules" />
-          {/* the three rules and how debt is repriced: one template, one even
-              2 × 2 grid (push D, Q9.5) */}
-          <div className="card-grid cols-2 mx-rules">
-            {[...RULES, DEBT_CARD].map((r) => (
-              <RuleCard key={r.id} r={r} />
-            ))}
-          </div>
-        </section>
-
-        <section>
-          <SectionHeading id="m-path" icon={iconFor('path')} title="Solving and checks">
-            <IconText icon="check">How each run is solved and checked. When the extra AI starts and how it ramps up is on{' '}
-            <NavLink tab="method" sub="how" anchor="m-timing">
-              Scenarios, when it happens
-            </NavLink>
-            .</IconText>
-          </SectionHeading>
-          <UsedBy id="m-path" />
-          <FoldGrid className="card-grid cols-2">
-            <InfoCard
-              icon={iconFor('path')}
-              title="Steady state, then the path"
-              className="mx-card"
-              more={
-                <Items
-                  items={[
-                    { icon: 'path', text: 'Time path iteration guesses whole price paths.' },
-                    { icon: 'generations', text: 'It solves every cohort, then updates the guess.' },
-                    { icon: 'measure', text: <>Path tolerance 10<sup>−4</sup>: a solver setting, not from a published source.</> },
-                    { icon: 'timing', text: <>Run times: <NavLink tab="method" sub="code">Data and code</NavLink>.</> },
-                  ]}
-                />
-              }
-              moreTitle="Time path iteration"
-              morePreview="Nested fixed points"
-            >
-              <Items items={[{ icon: 'breakEven', text: 'Each run finds the long run, then the yearly path to it.' }]} />
-            </InfoCard>
-            <InfoCard
-              icon={iconFor('check')}
-              title="Gated before and after"
-              className="mx-card"
-              more={
-                <Items
-                  items={[
-                    {
-                      icon: 'start',
-                      text: (
-                        <>
-                          Restarted without the scenario’s inputs, the model must reproduce the OBR’s central forecast path, {SURPRISE_YEAR}–{LATE_YEAR}: within 10<sup>−4</sup> for GDP, capital and debt/GDP, 10<sup>−3</sup> for the rest.
-                        </>
-                      ),
-                    },
-                    { icon: 'check', text: <>After each solve, a sanity check tests identities and the labour share ({cite('sanity')}).</> },
-                    { icon: 'limit', text: 'Any failure stops the run.' },
-                  ]}
-                />
-              }
-              moreTitle="The two gates"
-              morePreview="Continuation gate, sanity check"
-            >
-              <Items
-                items={[
-                  { icon: 'check', text: 'A restart test and a sanity check guard every number.' },
-                  { icon: 'code', text: <>Commands: <NavLink tab="method" sub="code" anchor="pipeline">Data and code</NavLink>.</> },
-                ]}
-              />
-            </InfoCard>
-          </FoldGrid>
-
-        </section>
-
-        <section>
-          <SectionHeading id="m-limits" icon={iconFor('limit')} title="Limitations">
+          <SectionHeading id="m-limits" icon={iconFor('limit')} title="What the model leaves out">
             <IconText icon="excluded">What the model leaves out, each stated once.</IconText>
           </SectionHeading>
-          <UsedBy id="m-limits" />
           <Limitations />
         </section>
 
-        <p className="mx-moved" id="m-history" tabIndex={-1}>
-          <IconText icon="revision">
-            Revision history: one list with the changelog, on{' '}
-            <NavLink tab="method" sub="code" anchor="changelog">
-              Data and code
+        <section>
+          <SectionHeading id="m-sources" icon={iconFor('record')} title="Sources" />
+          <RefList ids={MACRO_REFS} compact />
+          <IconLine concept="link" className="mx-sources-line">
+            All sources, with where each figure is read:{' '}
+            <NavLink tab="method" sub="studies" anchor="sources">
+              Evidence, Sources
             </NavLink>
-            .
-          </IconText>
-        </p>
+          </IconLine>
+          <UsedBy id="m-limits" />
+          <CiteFoot />
+          <p className="mx-moved" id="m-history" tabIndex={-1}>
+            <IconText icon="revision">
+              Revision history: one list with the changelog, on{' '}
+              <NavLink tab="method" sub="code" anchor="changelog">
+                Data and code
+              </NavLink>
+              .
+            </IconText>
+          </p>
+        </section>
       </div>
     </div>
   );

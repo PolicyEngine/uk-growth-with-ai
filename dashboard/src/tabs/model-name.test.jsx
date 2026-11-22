@@ -35,7 +35,6 @@ const ALLOW = [
   ['tabs/code/CodeTab.jsx', 'cd OG-UK'],
   ['tabs/code/CodeTab.jsx', "'OG-UK')} documentation"],
   ['tabs/code/CodeTab.jsx', 'OG-Core 0.17.0, OG-UK d0e6ae5</span>'],
-  ['tabs/method/MethodTab.jsx', "ext(URLS.ogUkFork, 'OG-UK')"],
   ['tabs/method/MethodTab.jsx', "docItem('OG-UK, the UK calibration', URLS.ogUkFork, 'OG-UK')"],
   ['tabs/explore/SensitivityTable.jsx', "docItem('OG-UK default parameters', URLS.ogUkDefaults, 'OG-UK')"],
   ['tabs/story/part2/sources.jsx', "docItem('OG-UK, the model', SRC.ogUk, 'OG-UK')"],

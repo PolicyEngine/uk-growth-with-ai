@@ -48,23 +48,69 @@ describe('Scenarios direction icons', () => {
         <TimingPart />
       </>,
     );
-    for (const id of ['m-scenarios', 's-scenarios', 'm-arms', 's-arms', 'm-timing', 's-timing', 'arm-tfp', 'arm-tz', 'arm-ss', 'm-jump', 'scenario-map', 'timing'])
+    // #m-scenarios and #m-timing are the Key settings rows these sit in (MethodTab)
+    for (const id of ['s-scenarios', 'm-arms', 's-arms', 's-timing', 'arm-tfp', 'arm-tz', 'arm-ss', 'm-jump', 'scenario-map', 'timing'])
       expect(container.querySelector(`#${id}`), id).not.toBeNull();
     expect(container.textContent).toContain('A stress test, not a bound or a forecast');
     expect(container.textContent).not.toMatch(/NaN|undefined/);
   });
-  // push D, Q9.2: the reading order, every old anchor kept
-  it('Method reads in Vahid’s order, and every anchor other pages link to lands', () => {
+  // Method redesign (section 4; M18 supersedes push D, Q9.2): one anatomy,
+  // every old anchor kept, every Key settings row closed at rest
+  it('Method reads in the model pages’ anatomy, and every anchor other pages link to lands', () => {
     const { container } = render(<MethodTab />);
     const heads = [...container.querySelectorAll('.page-body > section > .section-heading h2')].map((h) => h.textContent);
-    expect(heads).toEqual(['Overview', 'What AI changes', 'Closures and income measures', 'Fiscal rules and public finances', 'Solving and checks', 'Limitations']);
-    const order = ['m-model', 'm-generations', 'm-shock', 'm-shock-head', 'm-scenarios', 'm-arms', 'm-timing', 'm-closures', 'm-rules', 'm-debt', 'm-path', 'm-limits', 'm-history'];
+    expect(heads).toEqual(['How it works', 'Key settings', 'What the model leaves out', 'Sources']);
+    const order = ['m-model', 'model-diagram', 'md-detail', 'm-arms', 's-arms', 'arm-tfp', 'arm-tz', 'arm-ss', 'm-settings', 'm-shock', 'm-shock-head', 'm-scenarios', 's-scenarios', 'scenario-map', 'm-timing', 's-timing', 'timing', 'm-jump', 'm-closures', 'closure-central', 'closure-bound', 'm-measures', 'm-rules', 'rule-default', 'rule-fixed', 'rule-dn', 'm-debt', 'm-generations', 'm-generations-more', 'm-tax', 'm-path', 'm-limits', 'm-sources', 'm-history'];
     const at = order.map((id) => container.querySelector(`#${id}`));
     at.forEach((el, i) => expect(el, order[i]).not.toBeNull());
     for (let i = 1; i < at.length; i++) expect(at[i - 1].compareDocumentPosition(at[i]) & Node.DOCUMENT_POSITION_FOLLOWING, `${order[i - 1]} before ${order[i]}`).toBeTruthy();
-    for (const id of ['s-scenarios', 's-arms', 's-timing', 'm-jump', 'm-tax', 'm-measures', 'scenario-map', 'timing']) expect(container.querySelector(`#${id}`), id).not.toBeNull();
+    for (const id of order) expect(container.querySelectorAll(`[id="${id}"]`), id).toHaveLength(1);
+    // the eight rows, closed at rest
+    const rows = [...container.querySelectorAll('.mx-setting')];
+    expect(rows.map((r) => r.id)).toEqual(['m-shock', 'm-scenarios', 'm-timing', 'm-closures', 'm-rules', 'm-generations', 'm-tax', 'm-path']);
+    for (const r of rows) {
+      expect(r.querySelector(':scope > button.mx-setting-head').getAttribute('aria-expanded'), r.id).toBe('false');
+      expect(r.querySelector(':scope > .mx-setting-body').hidden, r.id).toBe(true);
+      expect(r.closest('.card'), r.id).toBeNull();
+    }
     const nav = [...container.querySelectorAll('nav a, option')].map((a) => a.textContent.trim()).filter(Boolean);
-    for (const t of ['Overview', 'What AI changes', 'Solving and checks']) expect(nav, t).toContain(t);
+    for (const t of ['How it works', 'Key settings', 'What the model leaves out', 'Sources']) expect(nav, t).toContain(t);
+    expect(container.querySelector('.mx-chain, .story-chain')).toBeNull();
+  });
+  // M6: the three versions stay open at rest (the stress-test card's two
+  // figures are the page's counted ones)
+  it('keeps the arm cards visible at rest, outside every closed row', () => {
+    const { container } = render(<MethodTab />);
+    for (const id of ['arm-tfp', 'arm-tz', 'arm-ss']) expect(container.querySelector(`#${id}`).closest('[hidden]'), id).toBeNull();
+  });
+  it('opens a row when a link reveals it or anything inside it', async () => {
+    const { act } = await import('@testing-library/react');
+    const { container } = render(<MethodTab />);
+    const row = container.querySelector('#m-rules');
+    expect(row.querySelector('.mx-setting-body').hidden).toBe(true);
+    act(() => {
+      container.querySelector('#m-debt').dispatchEvent(new CustomEvent('reveal', { bubbles: true }));
+    });
+    expect(row.querySelector('.mx-setting-body').hidden).toBe(false);
+    expect(row.querySelector('.mx-setting-head').getAttribute('aria-expanded')).toBe('true');
+    // one row open does not close another
+    act(() => {
+      container.querySelector('#m-closures').dispatchEvent(new CustomEvent('reveal', { bubbles: true }));
+    });
+    expect(row.querySelector('.mx-setting-body').hidden).toBe(false);
+    expect(container.querySelector('#m-closures .mx-setting-body').hidden).toBe(false);
+  });
+  it('binds every Key settings cell to the data, each at most twelve words', async () => {
+    const { ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR } = await import('@/tabs/ai/surprise.js');
+    const { RULES } = await import('@/lib/labels.js');
+    const { container } = render(<MethodTab />);
+    const cell = (id, k) => container.querySelector(`#${id} .mx-setting-${k} .mx-setting-v`).textContent;
+    expect(cell('m-timing', 'uses')).toBe(`A surprise in ${SURPRISE_YEAR}; full weight by ${HEADLINE_YEAR}`);
+    expect(cell('m-closures', 'uses')).toContain(`ζK = ${ZETA[CENTRAL]}`);
+    expect(cell('m-closures', 'also')).toContain(`ζK = ${ZETA[BOUND]}`);
+    expect(cell('m-rules', 'uses')).toBe(`${RULES[0].label}; debt rule from ${LATE_YEAR}`);
+    expect(cell('m-generations', 'uses')).toBe('80 ages (20 to 99), seven earnings groups');
+    for (const v of container.querySelectorAll('.mx-setting-v')) expect(v.textContent.trim().split(/\s+/).length, v.textContent).toBeLessThanOrEqual(12);
   });
   // push D, Q9.3: no More info line that only repeats the card titles
   it('Method’s grid folds carry no preview of the card titles', () => {
@@ -75,18 +121,23 @@ describe('Scenarios direction icons', () => {
     }
     expect(container.querySelectorAll('.mx-foldgrid').length).toBeGreaterThan(0);
   });
-  // push D, Q9.4: one replicate row per section, a code icon first, right
-  // under the section's heading
-  it('gives each Method section one replicate row, under its heading, with a code icon', () => {
+  // Method redesign (M18 supersedes push D, Q9.4): the Replicate row sits
+  // at the foot of each Key settings row's body, at most one; with a code
+  // icon first
+  it('gives each Key settings row at most one replicate row, last in its body, with a code icon', () => {
     const { container } = render(<MethodTab />);
-    for (const sec of container.querySelectorAll('.page-body > section')) {
-      const rows = sec.querySelectorAll('.mx-uses');
-      const h = sec.querySelector(':scope > .section-heading').textContent;
-      expect(rows.length, h).toBe(1);
-      expect(rows[0].previousElementSibling.classList.contains('section-heading'), h).toBe(true);
+    for (const body of container.querySelectorAll('.mx-setting-body')) {
+      const rows = body.querySelectorAll('.mx-uses');
+      const id = body.parentElement.id;
+      expect(rows.length, id).toBeLessThanOrEqual(1);
+      if (!rows.length) continue;
+      expect(rows[0].parentElement, id).toBe(body);
+      expect(body.lastElementChild, id).toBe(rows[0]);
       const first = rows[0].firstElementChild;
-      expect(first.tagName.toLowerCase() === 'svg' || !!first.querySelector('svg'), h).toBe(true);
+      expect(first.tagName.toLowerCase() === 'svg' || !!first.querySelector('svg'), id).toBe(true);
     }
+    // no row under a section heading any more
+    for (const h of container.querySelectorAll('.page-body > section > .section-heading')) expect(h.nextElementSibling?.classList.contains('mx-uses'), h.id).toBeFalsy();
   });
   // push D, Q9.5: the fiscal rules and debt repricing share one template
   // in an even grid; the common rule shows its first-year step from the data
@@ -94,7 +145,7 @@ describe('Scenarios direction icons', () => {
     const { investStep } = await import('./investStep.js');
     const { signed, LATE_YEAR } = await import('@/tabs/ai/surprise.js');
     const { container } = render(<MethodTab />);
-    const grid = container.querySelector('#m-rules').closest('section').querySelector('.card-grid.mx-rules');
+    const grid = container.querySelector('#m-rules .card-grid.mx-rules');
     const cards = [...grid.children];
     expect(cards.map((c) => c.id)).toEqual(['rule-default', 'rule-fixed', 'rule-dn', 'm-debt']);
     for (const c of cards) expect(c.classList.contains('mx-rule-card'), c.id).toBe(true);
@@ -111,10 +162,11 @@ describe('Scenarios direction icons', () => {
   // push D, Q9.6: the twelve limitations under four headings with icons
   it('groups the limitations under four headings with icons, each item once', () => {
     const { container } = render(<MethodTab />);
-    const groups = [...container.querySelectorAll('.mx-limit-group')];
+    const limits = container.querySelector('#m-limits').closest('section');
+    const groups = [...limits.querySelectorAll('.mx-limit-group')];
     expect(groups.map((g) => g.querySelector('.mx-limit-head').textContent)).toEqual(['Structure', 'Behaviour', 'Inputs', 'Public finances']);
     for (const g of groups) expect(g.querySelector('.mx-limit-head svg'), g.dataset.group).not.toBeNull();
-    const titles = [...container.querySelectorAll('.mx-limit-group .mx-limit-title')].map((t) => t.textContent.replace(/:$/, ''));
+    const titles = [...limits.querySelectorAll('.mx-limit-group .mx-limit-title')].map((t) => t.textContent.replace(/:$/, ''));
     expect([...titles].sort()).toEqual(LIMIT_GROUPS.flatMap((g) => g.titles).sort());
     for (const g of groups) expect([...g.querySelectorAll('.mx-limit-title')].map((t) => t.textContent.replace(/:$/, '')).sort(), g.dataset.group).toEqual([...LIMIT_GROUPS.find((x) => x.key === g.dataset.group).titles].sort());
     expect(titles).toHaveLength(12);

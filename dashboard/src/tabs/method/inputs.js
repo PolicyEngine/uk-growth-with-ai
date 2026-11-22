@@ -8,9 +8,12 @@
 import { scenarioById, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, RAMP_WORD } from '@/tabs/ai/surprise.js';
 import { ADOPTION, ADOPTION_YEAR, OBR_B4_LEVEL, pctRange } from '@/lib/obrOverlap.js';
 
+// a scenario's name and its two inputs, as the table and the macro page's
+// Key settings print them
 const sc = (id) => scenarioById(id);
-const pp = (id) => `−${sc(id).labour_share_fall_pp.toFixed(1)}pp`;
-const pc = (id) => `+${sc(id).tfp_gain_pct.toFixed(1)}%`;
+export const name = (id) => sc(id).label;
+export const pp = (id) => `−${sc(id).labour_share_fall_pp.toFixed(1)}pp`;
+export const pc = (id) => `+${sc(id).tfp_gain_pct.toFixed(1)}%`;
 
 // `part`: which part of the study uses the input (the table's "Used by"
 // column and filter): the macro model (Part 2) or the household study (Part 3).

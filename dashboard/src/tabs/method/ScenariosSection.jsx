@@ -200,7 +200,8 @@ export function investJump() {
 export function ScenariosPart({ uses = null }) {
   return (
     <div className="mx-scenarios">
-      <SubHead id="m-scenarios" oldId="s-scenarios" title="Scenarios">
+      {/* #m-scenarios is the Key settings row this sits in (MethodTab) */}
+      <SubHead oldId="s-scenarios" title="Scenarios">
         <IconText icon="source">Each is a pair of inputs reached in {HEADLINE_YEAR}, derived from OBR and IMF figures (the upper case: taken from Korinek et al.).</IconText>
       </SubHead>
       {uses}
@@ -242,7 +243,8 @@ export function ArmsPart() {
 export function TimingPart() {
   return (
     <>
-      <SubHead id="m-timing" oldId="s-timing" title="When it happens">
+      {/* #m-timing is the Key settings row this sits in (MethodTab) */}
+      <SubHead oldId="s-timing" title="When it happens">
         <IconText icon="timing">One start in {FIRST_YEAR}, a surprise in {SURPRISE_YEAR}, full weight by {HEADLINE_YEAR}.</IconText>
       </SubHead>
       <Card

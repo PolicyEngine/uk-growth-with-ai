@@ -702,3 +702,198 @@ p.mx-axis-title.is-x {
 .hh-detail-card .hh-detail-sub {
   color: var(--pe-gray-600);
 }
+
+/* The model diagram's three stages (Method redesign, 4.2): the scenario
+   box over the firms column with the one arrow into the loop, the loop's
+   own head, then a dashed read-out line (no arrowhead) to the result */
+.md-stage {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--pe-surface);
+  border: 1px solid var(--pe-gray-300);
+  border-radius: var(--card-radius);
+}
+.md-stage-in {
+  margin-left: auto;
+  max-width: calc(2 * 100% / 3);
+  border-width: 2px;
+  border-color: var(--c-gain);
+}
+.md-stage-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: var(--fs-small);
+  line-height: 1.45;
+  color: var(--pe-gray-600);
+}
+.md-stage-text b {
+  font-size: var(--fs-body);
+  color: var(--pe-gray-800);
+}
+.md-stage-n {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: var(--t-meta);
+  font-weight: 600;
+  color: var(--pe-gray-700);
+  border: 1px solid var(--pe-gray-300);
+  border-radius: 999px;
+}
+.md-stage-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 8px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-800);
+}
+.md-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-700);
+}
+.md-link-in {
+  justify-content: flex-end;
+  padding-right: calc(100% / 6 - 40px);
+}
+.md-link-in .md-arrow {
+  color: var(--c-gain);
+}
+.md-link-out {
+  justify-content: center;
+  color: var(--pe-gray-600);
+}
+.md-dash {
+  display: inline-block;
+  width: 0;
+  height: 28px;
+  border-left: 2px dashed var(--pe-gray-400);
+}
+@media (max-width: 760px) {
+  .md-stage-in { max-width: none; margin-left: 0; }
+  .md-link-in { justify-content: flex-start; padding-right: 0; }
+  .md-link-out { justify-content: flex-start; }
+  .md-dash { display: none; }
+}
+
+/* Key settings (Method redesign, 4.3): a list of rows, each a button of
+   three columns (setting, what the study uses, what else was run) and a
+   chevron, its body below. The column heads print once above the list;
+   at 600px and below each header stacks and the labels print inline. */
+.mx-settings {
+  margin-top: 12px;
+  border-top: 1px solid var(--card-border);
+}
+.mx-setting-heads,
+.mx-setting-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.6fr) minmax(0, 1.3fr) 24px;
+  gap: 16px;
+  align-items: start;
+}
+.mx-setting-heads {
+  padding: 8px 12px;
+  font-size: var(--t-meta);
+  font-weight: 600;
+  color: var(--pe-gray-500);
+  border-bottom: 1px solid var(--card-border);
+}
+.mx-setting {
+  border-bottom: 1px solid var(--card-border);
+}
+.mx-setting-head {
+  width: 100%;
+  min-height: 44px;
+  padding: 12px;
+  font: inherit;
+  font-size: var(--chart-fs-label);
+  line-height: 1.45;
+  text-align: left;
+  color: var(--pe-gray-700);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.mx-setting-head:hover {
+  background: var(--pe-gray-50);
+}
+.mx-setting-head:focus-visible {
+  outline: 2px solid var(--c-gain-text);
+  outline-offset: -2px;
+}
+.mx-setting-name {
+  font-weight: 600;
+  color: var(--pe-gray-800);
+}
+.mx-setting-also.is-none {
+  color: var(--pe-gray-400);
+}
+.mx-setting-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.mx-setting-chev {
+  justify-self: end;
+  margin-top: 2px;
+  color: var(--pe-gray-500);
+  transition: transform 0.2s;
+}
+.mx-setting.is-open .mx-setting-chev {
+  transform: rotate(180deg);
+}
+.mx-setting-body {
+  padding: 4px 12px 20px;
+}
+.mx-setting-body > .card-grid:first-child,
+.mx-setting-body > .mx-subhead:first-child,
+.mx-setting-body > .mx-scenarios:first-child .mx-subhead:first-child {
+  margin-top: 0;
+}
+.mx-setting-lead {
+  margin: 0 0 8px;
+  color: var(--pe-gray-600);
+}
+.mx-setting-body > .mx-uses:last-child {
+  margin-top: 16px;
+}
+@media (max-width: 600px) {
+  .mx-setting-heads { display: none; }
+  .mx-setting-head {
+    grid-template-columns: minmax(0, 1fr) 24px;
+    gap: 4px 8px;
+  }
+  .mx-setting-name { grid-column: 1; }
+  .mx-setting-uses,
+  .mx-setting-also { grid-column: 1; }
+  .mx-setting-chev { grid-column: 2; grid-row: 1; }
+  .mx-setting-also.is-none { display: none; }
+  .mx-setting-label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    font-weight: 600;
+    color: var(--pe-gray-500);
+  }
+  .mx-setting-body { padding: 4px 0 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mx-setting-chev { transition: none; }
+}
