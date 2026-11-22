@@ -2758,11 +2758,8 @@
 .ex-stack > .wg-closure + .wg-closure {
   margin-top: 0;
 }
-/* one frame: the Card's border, radius and padding */
-[id^="explore-sub-"] :is(.card, .stat-tile, .finding, .ex-mi-box) {
-  border: 1px solid var(--card-border);
-  border-radius: var(--card-radius);
-}
+/* one frame: every box already takes the Card's border and radius tokens;
+   the padding is the Card's too */
 [id^="explore-sub-"] :is(.ex-who-tiles .stat-tile, .ex-stack .finding, .ex-why2 .finding, .ex-mi-box) {
   padding: var(--card-padding);
 }

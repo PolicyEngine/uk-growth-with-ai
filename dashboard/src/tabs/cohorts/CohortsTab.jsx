@@ -488,9 +488,10 @@ export function earningsWords(cl, rule, arm, o = {}) {
     else if (b === 'gain' && t === null) lead = `As modelled, ${who} gain and ${top1} are unchanged.`;
   }
   const ranked = lead != null;
-  const labour = o.labour ?? prof.labour;
+  const pr = { ...prof, ...(o.prof ?? {}) };
+  const labour = o.labour ?? pr.labour;
   const why =
-    ranked && labour[0] < labour[6] && rising(labour) && prof.wealth_share[0] > prof.earnings_share[0] && x.r > 0 && x.w < 0
+    ranked && labour[0] < labour[6] && rising(labour) && pr.wealth_share[0] > pr.earnings_share[0] && x.r > 0 && x.w < 0
       ? 'Lower earners get less of their income from pay, and the higher return on capital reaches them too.'
       : null;
   return { lead: lead ?? `By lifetime earnings: the ${GROUP_LABELS[0].toLowerCase()} and the ${GROUP_LABELS[6].toLowerCase()}.`, why, bot, top };
@@ -552,7 +553,8 @@ export function stressWords(cl, rule, arm, o = {}) {
   const lead =
     l.who === 'youngest' ? `In the stress test, the youngest adults ${l.verb}.` : l.who === 'working' ? `In the stress test, the youngest working-age adults ${l.verb}.` : `In the stress test, adults around age ${l.age} ${l.verb}.`;
   const wealth = 'wealthYoung' in o ? o.wealthYoung : wealthRatioAt(D.closures[cl], FIRST_AGE);
-  const d1 = l.who !== 'age' && x.stressW != null && x.stressW < 0 && wealth != null && wealth <= 0.25;
+  const who = o.who ?? l.who;
+  const d1 = who !== 'age' && x.stressW != null && x.stressW < 0 && wealth != null && wealth <= 0.25;
   // "further below" needs the main version below the path too
   const d2 = x.stressW != null && x.tfpW != null && x.stressW < x.tfpW && x.tfpW < 0;
   const why = d1
@@ -779,7 +781,7 @@ const whyOf = (text, icon) => (text ? { text, icon } : null);
 export function moreInfoReasons(cl, rule, arm, o = {}) {
   const C = D.closures[cl];
   const c = cell(cl, rule, arm);
-  const prof = profileOf(C);
+  const prof = { ...profileOf(C), ...(o.prof ?? {}) };
   const x = { ...whySigns(cl, rule, arm), ...o };
   const tr = o.transfers ?? (rule === 'dn' ? windowIncomeOf(c)?.transfers : null);
   const gapOf = (y) => y.alive_by_group[0] - y.alive_by_group[6];
