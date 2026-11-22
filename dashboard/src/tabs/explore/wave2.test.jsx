@@ -113,9 +113,15 @@ describe('some foreign capital to no foreign capital', () => {
           if (c != null) want.push(one(c));
           if (c != null && b != null) want.push(one(b));
         }
-      const txt = container.textContent;
-      const seg = txt.slice(txt.indexOf('Forecast path'), txt.indexOf('Each row shows'));
-      expect((seg.match(/(?<![\d.])[+\u2212]?\d+\.\d(?![\d%p])/g) ?? []).slice(0, want.length)).toEqual(want);
+      // (the dump leaves the data-axis text out: the zero line's name, the ticks)
+      const copy = container.cloneNode(true);
+      copy.querySelectorAll('[data-axis]').forEach((e) => e.remove());
+      const txt = copy.textContent;
+      const k = txt.indexOf('Each row shows');
+      const seg = txt.slice(txt.lastIndexOf('Some foreign capital to no foreign capital', k), k);
+      expect(seg.match(/(?<![\d.])[+\u2212]?\d+\.\d(?![\d%p])/g) ?? []).toEqual(want);
+      // the selected version, the main one by default, is the coloured row
+      for (const row of container.querySelectorAll('.ex-fc-row[data-arm]')) expect(row.classList.contains('is-sel')).toBe(row.dataset.arm === 'tfp');
       // the zero line is named, and the note under the figure takes its year from the data
       expect(container.querySelector('.ex-fc-zero-label').textContent).toBe('Forecast path');
       const foot = container.querySelector('.ex-fc-foot');

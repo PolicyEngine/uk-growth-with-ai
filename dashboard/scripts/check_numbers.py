@@ -189,10 +189,11 @@ print('raw-solve recompute mismatches:', raw_bad, f'({raw_run} done cells checke
 # ClosureSlope.jsx): a row per measure and version, each with its some- and
 # no-foreign-capital value at the headline year to one decimal and no unit
 # (so outside NUM and the multiset above). The card's text runs from its
-# zero-line name ("Forecast path") to its note ("Each row shows"); its
-# one-decimal figures there, in order, are the rows' values (GDP, NNI, GNI,
-# pay rate; versions in data order; some, then none; a missing value prints
-# no figure), then the axis ticks.
+# title to its note under the figure ("Each row shows"); its one-decimal
+# figures there, in order, are the rows' values (GDP, NNI, GNI, pay rate;
+# versions in data order; some, then none; a missing value prints no
+# figure). The axis ("Forecast path", the ticks) is data-axis, which the
+# dump leaves out. A scenario with no main-case value shows no figure.
 SLOPE_TITLE = 'Some foreign capital to no foreign capital'
 ONE_DP = re.compile(r"(?<![\d.])[+−]?\d+\.\d(?![\d%p])")
 def end_text(x):
@@ -201,11 +202,8 @@ def end_text(x):
 for sid in dump:
     for mode in ('', ':closed', ':both'):
         t = dump[sid].get(f'results:income{mode}', '')
-        i = t.find(SLOPE_TITLE)
-        j = t.find('Forecast path', i) if i >= 0 else -1
-        k = t.find('Each row shows', j) if j >= 0 else -1
-        if k < 0:
-            bad += 1; print(sid, mode or 'central', 'foreign-capital dumbbells not found on Income'); continue
+        k = t.find('Each row shows')
+        j = t.rfind(SLOPE_TITLE, 0, k) if k >= 0 else -1
         want = []
         for v in ['Y', 'NNI', 'GNI', 'w']:
             for arm in ARMS:
@@ -214,9 +212,13 @@ for sid in dump:
                     want.append(end_text(c))
                     if b_ is not None:
                         want.append(end_text(b_))
+        if j < 0:
+            if want:
+                bad += 1; print(sid, mode or 'central', 'foreign-capital dumbbells not found on Income')
+            continue
         got = ONE_DP.findall(t[j:k])
-        if got[:len(want)] != want:
-            bad += 1; print(sid, mode or 'central', 'foreign-capital dumbbells: expected', want, 'got', got[:len(want)])
+        if got != want:
+            bad += 1; print(sid, mode or 'central', 'foreign-capital dumbbells: expected', want, 'got', got)
         else:
             print(sid, mode or 'central', 'foreign-capital dumbbells ok:', len(want), 'values')
 
