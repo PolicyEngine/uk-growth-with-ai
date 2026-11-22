@@ -61,7 +61,7 @@ const MORE_CARDS = [
     icon: iconFor('source'),
     line: 'Every scenario input and model parameter: its value, where it comes from and which part uses it.',
     meta: `${ROWS.length} inputs`,
-    link: { text: 'Inputs and sources', tab: 'method', anchor: 'm-inputs' },
+    link: { text: 'Inputs and sources', tab: 'method', sub: 'inputs' },
   },
   {
     id: 'studies',

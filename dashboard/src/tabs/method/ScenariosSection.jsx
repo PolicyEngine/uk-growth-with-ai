@@ -13,7 +13,6 @@ import { OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import { ext } from '../shared/ui.jsx';
 import Timeline, { timelineTable, timelineSvg } from './Timeline.jsx';
 import { SRC } from './sources.js';
-import InputsTable, { inputsTable } from './InputsTable.jsx';
 import ScenarioMap, { scenarioTable } from './ScenarioMap.jsx';
 
 // Scenarios: what is assumed. The four scenarios (three UK, one US upper
@@ -193,9 +192,9 @@ export function investJump() {
   return `${inv} Hours jump in ${SURPRISE_YEAR} only.`;
 }
 
-// Method's "What AI changes" and "Inputs and sources" (push D, Q9.2):
-// the scenarios, the three versions and the timing are parts of what AI
-// changes; every input and its source is its own section. Each part keeps
+// Method's "What AI changes" (push D, Q9.2): the scenarios, the three
+// versions and the timing are parts of what AI changes. Every input and
+// its source is its own page (InputsPage.jsx, Method redesign). Each part keeps
 // its anchors: #m-scenarios (nav.jsx's ?tab=scenarios) and the old h3 ids
 // #s-scenarios, #s-arms and #s-timing.
 export function ScenariosPart({ uses = null }) {
@@ -214,7 +213,7 @@ export function ScenariosPart({ uses = null }) {
           { label: 'Measure', text: 'The labour-share fall is drawn downwards; the output gain is at fixed inputs.' },
           { label: 'Period', text: `Both inputs are reached in ${HEADLINE_YEAR}.` },
         ]}
-        download={{ title: `Scenario inputs, ${HEADLINE_YEAR}`, context: 'Inputs imposed in each run; sources in the inputs table below', table: scenarioTable }}
+        download={{ title: `Scenario inputs, ${HEADLINE_YEAR}`, context: 'Inputs imposed in each run; each input’s source is on Inputs and sources', table: scenarioTable }}
         replication={{ code: SRC.ukTargets.url, result: SRC.ukTargets.url }}
       >
         <ScenarioMap caption={false} />
@@ -226,23 +225,6 @@ export function ScenariosPart({ uses = null }) {
         </NavLink>
       </p>
     </div>
-  );
-}
-
-export function InputsPart() {
-  return (
-    <>
-      <Card
-        id="inputs-table"
-        icon={iconFor('source')}
-        title="Scenario inputs and model parameters"
-        replication={{ code: SRC.ukTargets.url, result: SRC.ogukParams.url }}
-        more={[{ label: 'Measure', text: '“Derived”: computed by this study from OBR or IMF figures, by a rule they do not publish.' }]}
-        download={{ title: 'Scenario inputs and model parameters', context: 'Each input, the value the model used, its kind of source and the source', table: inputsTable }}
-      >
-        <InputsTable />
-      </Card>
-    </>
   );
 }
 

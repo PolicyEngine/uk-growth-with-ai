@@ -9,6 +9,7 @@ import StoryTab from '@/tabs/story/StoryTab.jsx';
 import ExploreTab from '@/tabs/explore/ExploreTab.jsx';
 import MethodTab from '@/tabs/method/MethodTab.jsx';
 import MethodOverview from '@/tabs/method/MethodOverview.jsx';
+import InputsPage from '@/tabs/method/InputsPage.jsx';
 import StudiesTab from '@/tabs/literature/LiteratureTab.jsx';
 import CodeTab from '@/tabs/code/CodeTab.jsx';
 
@@ -23,6 +24,7 @@ export const PAGES = [
   ['data and code', 'tab=code', CodeTab],
   // appended (the probes index PAGES by position): the Method landing
   ['method overview', 'tab=method', MethodOverview],
+  ['method inputs', 'tab=method&sub=inputs', InputsPage],
 ];
 
 export function renderPage([, query, Page]) {

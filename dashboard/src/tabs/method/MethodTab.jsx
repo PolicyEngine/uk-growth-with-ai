@@ -21,7 +21,7 @@ import { METHOD_FACTS as F } from '@/lib/dataKeys.js';
 import { ext } from '../shared/ui.jsx';
 import ModelDiagram, { flowTable, diagramSvg } from './ModelDiagram.jsx';
 import Cohorts from './Cohorts.jsx';
-import { ArmsPart, InputsPart, ScenariosPart, SubHead, TimingPart } from './ScenariosSection.jsx';
+import { ArmsPart, ScenariosPart, SubHead, TimingPart } from './ScenariosSection.jsx';
 import { investStep } from './investStep.js';
 import UsedBy from './UsedBy.jsx';
 import { SRC } from './sources.js';
@@ -56,11 +56,11 @@ const pct = (x, dp = 1) => `${(x * 100).toFixed(dp)}%`;
 // rules, solving and limitations. The section ids are the old ones, so
 // every link from another page lands: #m-model (Overview), #m-shock (What
 // AI changes, with #m-scenarios, #m-arms and #m-timing inside it), #m-path
-// (Solving and checks). #m-inputs is new; #m-inputs-head stays inside it.
+// (Solving and checks). Every input and its source (#m-inputs, its rows
+// #in-…) is its own page, InputsPage.jsx; lib/nav.jsx sends those anchors there.
 const SECTIONS = [
   { id: METHOD.model.id, title: 'Overview', icon: iconFor('model') },
   { id: METHOD.shock.id, title: 'What AI changes', icon: iconFor('shock') },
-  { id: 'm-inputs', title: 'Inputs and sources', icon: iconFor('source') },
   { id: METHOD.closures.id, title: METHOD.closures.label, icon: iconFor('closure') },
   { id: METHOD.rules.id, title: METHOD.rules.label, icon: iconFor('finances') },
   { id: 'm-path', title: 'Solving and checks', icon: iconFor('path') },
@@ -546,16 +546,6 @@ export default function MethodTab() {
           <ScenariosPart />
           <ArmsPart />
           <TimingPart />
-        </section>
-
-        <section>
-          <SectionHeading id="m-inputs" icon={iconFor('source')} title="Inputs and sources">
-            <IconText icon="source">Published, derived by this study, the macro model&rsquo;s default, or a modelling choice: each row says which, and links it.</IconText>
-          </SectionHeading>
-          <UsedBy id="m-inputs" />
-          {/* the old sub-heading, with its anchor */}
-          <SubHead id="m-inputs-head" title="Every input and its source" />
-          <InputsPart />
         </section>
 
         <section>

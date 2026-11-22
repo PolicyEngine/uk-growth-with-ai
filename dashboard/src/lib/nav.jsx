@@ -125,6 +125,9 @@ const ALIAS = {
   literature: (sub, anchor) => ['method', 'studies', anchor ?? STUDY_SUBS[sub] ?? null],
   code: (sub, anchor) => ['method', 'code', anchor],
 };
+// The anchors that live on Inputs (they were on the macro model's page):
+// the section, its old sub-heading, the table, its groups and its rows.
+const INPUT_ANCHOR = /^(m-inputs(-head)?|inputs-table|mx-group-[a-z-]+|in-[a-z0-9-]+)$/;
 const own = (o, k) => (k != null && Object.hasOwn(o, k) ? o[k] : undefined);
 
 // One step from any named place to a current one. An anchor on Method and
@@ -140,6 +143,7 @@ export function resolve(tab, sub = null, anchor = null) {
   if (tab === 'method' && anchor === 'm-history') [sub, anchor] = ['code', 'changelog'];
   // moved anchors: the income charts are the Economy wall
   if (tab === 'explore' && anchor === 'income') anchor = 'economy-wall';
+  if (tab === 'method' && anchor && (!sub || sub === 'how') && INPUT_ANCHOR.test(anchor)) sub = 'inputs';
   if (tab === 'method' && anchor && !sub) sub = 'how';
   return [tab, sub, anchor];
 }

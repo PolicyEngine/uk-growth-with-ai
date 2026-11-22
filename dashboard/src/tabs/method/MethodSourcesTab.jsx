@@ -2,6 +2,7 @@
 
 import MethodOverview from '@/tabs/method/MethodOverview.jsx';
 import MethodTab from '@/tabs/method/MethodTab.jsx';
+import InputsPage from '@/tabs/method/InputsPage.jsx';
 import StudiesTab from '@/tabs/literature/LiteratureTab.jsx';
 import CodeTab from '@/tabs/code/CodeTab.jsx';
 import HouseholdsMethod from '@/tabs/households/HouseholdsMethod.jsx';
@@ -13,7 +14,7 @@ import { useNav, subOf } from '@/lib/nav.jsx';
 // Data and code, and Detail and sources (the household study's result
 // files and commit, moved from Explore > Households). The Scenarios sub-tab folded into OG-UK method (lib/nav.jsx
 // sends its addresses to #m-scenarios).
-const PANELS = { overview: MethodOverview, how: MethodTab, households: HouseholdsMethod, studies: StudiesTab, code: CodeTab, detail: HouseholdsDetail };
+const PANELS = { overview: MethodOverview, how: MethodTab, households: HouseholdsMethod, inputs: InputsPage, studies: StudiesTab, code: CodeTab, detail: HouseholdsDetail };
 
 export default function MethodSourcesTab() {
   const { st } = useNav();

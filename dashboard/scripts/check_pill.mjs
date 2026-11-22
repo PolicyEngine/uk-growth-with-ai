@@ -51,6 +51,7 @@ const PAGES = {
   households: '/?tab=explore&sub=households',
   how: '/?tab=method&sub=how',
   overview: '/?tab=method',
+  inputs: '/?tab=method&sub=inputs',
   mhh: '/?tab=method&sub=households',
   studies: '/?tab=method&sub=studies',
   code: '/?tab=method&sub=code',

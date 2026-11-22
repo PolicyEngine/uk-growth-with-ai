@@ -36,6 +36,7 @@ const OTHER = {
   households: '/?tab=explore&sub=households',
   method: '/?tab=method&sub=how',
   overview: '/?tab=method',
+  inputs: '/?tab=method&sub=inputs',
   'household-method': '/?tab=method&sub=households',
   detail: '/?tab=method&sub=detail',
 };

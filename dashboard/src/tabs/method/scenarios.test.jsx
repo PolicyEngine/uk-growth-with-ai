@@ -4,7 +4,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
 import { SCENARIOS, CLOSURES, fixedInputVsTz, gap } from '@/tabs/ai/surprise.js';
-import { ArmsPart, InputsPart, ScenariosPart, TimingPart, stressMove, tzGdpMove, stressItems, tzGdpItems } from './ScenariosSection.jsx';
+import { ArmsPart, ScenariosPart, TimingPart, stressMove, tzGdpMove, stressItems, tzGdpItems } from './ScenariosSection.jsx';
 import MethodTab, { LIMIT_GROUPS } from './MethodTab.jsx';
 
 afterEach(cleanup);
@@ -46,10 +46,9 @@ describe('Scenarios direction icons', () => {
         <ScenariosPart />
         <ArmsPart />
         <TimingPart />
-        <InputsPart />
       </>,
     );
-    for (const id of ['m-scenarios', 's-scenarios', 'm-arms', 's-arms', 'm-timing', 's-timing', 'arm-tfp', 'arm-tz', 'arm-ss', 'm-jump', 'scenario-map', 'timing', 'inputs-table'])
+    for (const id of ['m-scenarios', 's-scenarios', 'm-arms', 's-arms', 'm-timing', 's-timing', 'arm-tfp', 'arm-tz', 'arm-ss', 'm-jump', 'scenario-map', 'timing'])
       expect(container.querySelector(`#${id}`), id).not.toBeNull();
     expect(container.textContent).toContain('A stress test, not a bound or a forecast');
     expect(container.textContent).not.toMatch(/NaN|undefined/);
@@ -58,48 +57,14 @@ describe('Scenarios direction icons', () => {
   it('Method reads in Vahid’s order, and every anchor other pages link to lands', () => {
     const { container } = render(<MethodTab />);
     const heads = [...container.querySelectorAll('.page-body > section > .section-heading h2')].map((h) => h.textContent);
-    expect(heads).toEqual(['Overview', 'What AI changes', 'Inputs and sources', 'Closures and income measures', 'Fiscal rules and public finances', 'Solving and checks', 'Limitations']);
-    const order = ['m-model', 'm-generations', 'm-shock', 'm-shock-head', 'm-scenarios', 'm-arms', 'm-timing', 'm-inputs', 'm-inputs-head', 'inputs-table', 'm-closures', 'm-rules', 'm-debt', 'm-path', 'm-limits', 'm-history'];
+    expect(heads).toEqual(['Overview', 'What AI changes', 'Closures and income measures', 'Fiscal rules and public finances', 'Solving and checks', 'Limitations']);
+    const order = ['m-model', 'm-generations', 'm-shock', 'm-shock-head', 'm-scenarios', 'm-arms', 'm-timing', 'm-closures', 'm-rules', 'm-debt', 'm-path', 'm-limits', 'm-history'];
     const at = order.map((id) => container.querySelector(`#${id}`));
     at.forEach((el, i) => expect(el, order[i]).not.toBeNull());
     for (let i = 1; i < at.length; i++) expect(at[i - 1].compareDocumentPosition(at[i]) & Node.DOCUMENT_POSITION_FOLLOWING, `${order[i - 1]} before ${order[i]}`).toBeTruthy();
     for (const id of ['s-scenarios', 's-arms', 's-timing', 'm-jump', 'm-tax', 'm-measures', 'scenario-map', 'timing']) expect(container.querySelector(`#${id}`), id).not.toBeNull();
     const nav = [...container.querySelectorAll('nav a, option')].map((a) => a.textContent.trim()).filter(Boolean);
-    for (const t of ['Overview', 'What AI changes', 'Inputs and sources', 'Solving and checks']) expect(nav, t).toContain(t);
-  });
-  // push D, Q9.2c: every input group closed under a header with its count;
-  // a closed group shows its key rows, the rest one click away
-  it('groups the inputs, each closed with a count, key rows shown', async () => {
-    const { fireEvent } = await import('@testing-library/react');
-    const { ROWS } = await import('./inputs.js');
-    const { container } = render(<InputsPart />);
-    const groups = [...new Set(ROWS.map((r) => r.group))];
-    expect(groups).toEqual(['Scenarios', 'Timing', 'Baseline', 'Model parameters', 'Fiscal rules and solver', 'Household study']);
-    for (const g of groups) {
-      const all = ROWS.filter((r) => r.group === g);
-      expect(all.some((r) => r.key), g).toBe(true);
-      const head = [...container.querySelectorAll('.mx-inputs-group th')].find((th) => th.textContent.startsWith(g));
-      expect(head.textContent, g).toContain(`(${all.length})`);
-      for (const r of all) expect(container.querySelector(`#${r.id}`).hidden, r.id).toBe(!r.key && !all.every((x) => x.key));
-      const btn = head.querySelector('button.mx-group-toggle');
-      if (btn) {
-        expect(btn.getAttribute('aria-expanded')).toBe('false');
-        fireEvent.click(btn);
-        for (const r of all) expect(container.querySelector(`#${r.id}`).hidden, r.id).toBe(false);
-      }
-    }
-    expect(container.textContent).toContain('Open a row for its arithmetic');
-  });
-  it('opens a closed input group when a link reveals one of its rows', async () => {
-    const { act } = await import('@testing-library/react');
-    const { ROWS } = await import('./inputs.js');
-    const { container } = render(<InputsPart />);
-    const r = ROWS.find((x) => !x.key && !ROWS.filter((y) => y.group === x.group).every((y) => y.key));
-    expect(container.querySelector(`#${r.id}`).hidden).toBe(true);
-    act(() => {
-      container.querySelector(`#${r.id}`).dispatchEvent(new CustomEvent('reveal', { bubbles: true }));
-    });
-    expect(container.querySelector(`#${r.id}`).hidden).toBe(false);
+    for (const t of ['Overview', 'What AI changes', 'Solving and checks']) expect(nav, t).toContain(t);
   });
   // push D, Q9.3: no More info line that only repeats the card titles
   it('Method’s grid folds carry no preview of the card titles', () => {

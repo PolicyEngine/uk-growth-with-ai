@@ -49,6 +49,14 @@ describe('address', () => {
     expect(parseUrl('?tab=explore', '#income')).toMatchObject({ tab: 'explore', sub: null, anchor: 'economy-wall' });
     expect(parseUrl('?tab=method&sub=history')).toMatchObject({ tab: 'method', sub: 'code', anchor: 'changelog' });
     expect(parseUrl('?tab=method', '#m-history')).toMatchObject({ tab: 'method', sub: 'code', anchor: 'changelog' });
+    // the inputs anchors moved to their own page (Method redesign, 2.2)
+    expect(parseUrl('?tab=method', '#m-inputs')).toMatchObject({ tab: 'method', sub: 'inputs', anchor: 'm-inputs' });
+    expect(parseUrl('?tab=method&sub=how', '#m-inputs-head')).toMatchObject({ tab: 'method', sub: 'inputs', anchor: 'm-inputs-head' });
+    expect(parseUrl('?tab=method', '#inputs-table')).toMatchObject({ tab: 'method', sub: 'inputs', anchor: 'inputs-table' });
+    expect(parseUrl('?tab=method', '#in-trend-productivity-growth')).toMatchObject({ tab: 'method', sub: 'inputs', anchor: 'in-trend-productivity-growth' });
+    expect(parseUrl('?tab=method', '#mx-group-model-parameters')).toMatchObject({ tab: 'method', sub: 'inputs' });
+    expect(parseUrl('?tab=method&sub=inputs')).toMatchObject({ tab: 'method', sub: 'inputs', anchor: null });
+    expect(parseUrl('?tab=method&sub=studies', '#in-sources')).toMatchObject({ tab: 'method', sub: 'studies' });
     expect(parseUrl('?tab=method&sub=limits')).toMatchObject({ tab: 'method', sub: 'how', anchor: 'm-limits' });
     expect(parseUrl('?tab=results&sub=variables&s=uk_high')).toMatchObject({ tab: 'explore', sub: null, anchor: 'explore-part-economy', s: 'uk_high' });
     expect(parseUrl('?tab=results&sub=overview')).toMatchObject({ tab: 'story', sub: null });
