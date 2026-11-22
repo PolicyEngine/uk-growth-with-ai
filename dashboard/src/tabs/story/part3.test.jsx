@@ -484,7 +484,7 @@ describe('Part3', () => {
     ]);
     // "Method and sources" opens the tab's landing (Method redesign, 10)
     expect(links.map((a) => a.querySelector('strong').textContent)).toEqual(['Explore', 'Method and sources', 'Data and code']);
-    expect(CLOSE_NEXT.map((l) => l.sub)).toEqual(['economy', undefined, 'code']);
+    expect(CLOSE_NEXT.map((l) => l.sub)).toEqual(['economy', 'overview', 'code']);
     expect(links.map((a) => a.querySelector('.close-next-desc').textContent)).toEqual([
       'Results by topic: economy, public finances, who gains, households',
       'How each model works, every input and its source',

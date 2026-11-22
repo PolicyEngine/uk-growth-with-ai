@@ -149,7 +149,8 @@ const sub = (t, id) => tab(t).subs.find((x) => x.id === id);
 // words or fewer, and a trailing arrow. Same hrefs as before.
 export const CLOSE_NEXT = [
   { tab: 'explore', sub: tab('explore').subs[0].id, icon: tab('explore').icon, name: 'Explore', rest: 'Results by topic: economy, public finances, who gains, households' },
-  { tab: 'method', icon: tab('method').icon, name: 'Method and sources', rest: 'How each model works, every input and its source' },
+  // the landing (M2): named, so the link does not fall back to the last sub-tab read
+  { tab: 'method', sub: tab('method').subs[0].id, icon: tab('method').icon, name: 'Method and sources', rest: 'How each model works, every input and its source' },
   { tab: 'method', sub: 'code', icon: sub('method', 'code').icon, name: 'Data and code', rest: 'The data files, the model code and how to rerun it' },
 ];
 
