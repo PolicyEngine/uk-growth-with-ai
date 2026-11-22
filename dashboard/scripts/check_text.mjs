@@ -3,7 +3,9 @@
 // Length, on every tab: every rendered leaf text block (p, li, dd,
 // figcaption, summary, blockquote) is short: at most 12 words for a list
 // item, 25 for any other block and for a Finding box's line (.finding-lines
-// li, a sentence: it also needs a final full stop and no svg). Exempt from length: source citations
+// li, a sentence: it also needs a final full stop and no svg). A Who
+// why-bullet (.why-bullets li) is an icon-led sentence, capped at 25 words
+// too. Exempt from length: source citations
 // (.story-source, [data-cite]) and reference lists ([data-reference]).
 //
 // Icons, on the Story only (Explore and Method no longer fail for a
@@ -126,9 +128,11 @@ for (const [name, path] of Object.entries(PAGES)) {
         // a Finding box's line is a sentence, not a list item (item 18): at
         // most 25 words, a final full stop, no icon
         const line = el.tagName === 'LI' && el.parentElement?.classList.contains('finding-lines');
-        // the close's recap and What's next lines (item 34) are sentences led
-        // by an icon, each one line of a two- or three-line list: capped as a paragraph
-        const sentence = el.tagName === 'LI' && el.parentElement?.matches('.close-recap, .close-next-list');
+        // the close's recap and What's next lines (item 34) and the Who
+        // cards' why-bullets (the sentences once shown as finding lines) are
+        // sentences led by an icon, each one line of a short list: capped
+        // as a paragraph
+        const sentence = el.tagName === 'LI' && el.parentElement?.matches('.close-recap, .close-next-list, .why-bullets');
         const max = el.tagName === 'LI' && !line && !sentence ? 12 : 25;
         const why = [];
         if (!cite && words > max) why.push(`${words} words`);
