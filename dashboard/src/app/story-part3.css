@@ -750,7 +750,7 @@ svg.p3-dim {
 }
 .p3-tile-head-out {
   opacity: 0;
-  transition: opacity 300ms var(--story-ease) 800ms;
+  transition: opacity 300ms var(--story-ease) 300ms;
 }
 .p3-scene.is-on .p3-tile-head-out {
   opacity: 1;
@@ -764,7 +764,6 @@ svg.p3-dim {
   .p3-wf-row .p3-row-label,
   .p3-wf-link,
   .p3-dp-row,
-  .p3-db-val,
   .p3-db-mark .p3-db-dot,
   .p3-db-seg,
   .p3-sankey .sankey-node,
@@ -794,20 +793,18 @@ svg.p3-dim {
 /* entry rows: a 12px slide and fade, staggered by --beat */
 .p3-wf-row .p3-row-value,
 .p3-wf-row .p3-row-label,
-.p3-dp-row,
-.p3-db-val {
+.p3-dp-row {
   opacity: 0;
   transition:
-    opacity 300ms var(--story-ease) var(--beat, 0ms),
-    transform 300ms var(--story-ease) var(--beat, 0ms);
+    opacity 300ms var(--story-ease) min(var(--beat, 0ms), 300ms),
+    transform 300ms var(--story-ease) min(var(--beat, 0ms), 300ms);
 }
 .p3-dp-row {
   transform: translateY(12px);
 }
 .p3-scene.is-on .p3-wf-row .p3-row-value,
 .p3-scene.is-on .p3-wf-row .p3-row-label,
-.p3-scene.is-on .p3-dp-row,
-.p3-scene.is-on .p3-db-val {
+.p3-scene.is-on .p3-dp-row {
   opacity: 1;
   transform: none;
 }
@@ -1047,8 +1044,7 @@ svg.p3-dim {
   transition: opacity 300ms var(--story-ease) var(--beat, 0ms);
 }
 .p3-db-mark.is-second .p3-db-dot,
-.p3-db-mark.is-second .p3-db-seg,
-.p3-db-mark.is-second .p3-db-val {
+.p3-db-mark.is-second .p3-db-seg {
   transition-delay: calc(var(--beat, 0ms) + 500ms);
 }
 .p3-scene.is-on .p3-db-link {
@@ -1069,39 +1065,12 @@ svg.p3-dim {
   background: var(--rank-1);
   border-radius: 0 2px 2px 0;
 }
-.p3-db-val {
-  position: absolute;
-  top: 16px;
-  transform: translateX(-50%);
-  font-size: var(--t-meta);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  color: var(--pe-gray-900);
-}
-.p3-db-val.is-left,
-.p3-scene.is-on .p3-db-val.is-left {
-  transform: translateX(-100%);
-}
-/* a centred value never leaves its track: it slides left by what would
-   cross the right edge (or right by what would cross the left) */
 .p3-db-track {
   container-type: inline-size;
-}
-.p3-db-val:not(.is-left),
-.p3-scene.is-on .p3-db-val:not(.is-left) {
-  transform: translateX(max(calc(var(--x, 50) * -1cqw), min(-50%, calc((100 - var(--x, 50)) * 1cqw - 100%))));
-}
-.p3-db-mark.is-cut .p3-db-val {
-  top: auto;
-  bottom: 16px;
 }
 .p3-db-mark.is-dim .p3-db-dot,
 .p3-db-mark.is-dim .p3-db-seg {
   opacity: 0.25 !important;
-}
-.p3-db-mark.is-dim .p3-db-val {
-  color: var(--pe-gray-600);
 }
 /* the emphasis moves to group B once it draws */
 .p3-margin .p3-db-group.is-a .p3-db-track {
@@ -1643,9 +1612,7 @@ svg.p3-dim {
   background: var(--pe-surface);
   border-color: color-mix(in srgb, var(--pe-gray-500) 40%, var(--pe-surface));
 }
-#p3-changes [data-hl] [data-mark]:not([data-on]) .p3-dot-val,
-#p3-changes [data-hl] [data-mark]:not([data-on]) .p3-db-val,
-#p3-changes .p3-db-val .p3-muted {
+#p3-changes [data-hl] [data-mark]:not([data-on]) .p3-dot-val {
   color: var(--t-muted);
 }
 #p3-changes [data-hl] [data-mark]:not([data-on]) .p3-db-dot,
@@ -1725,13 +1692,6 @@ svg.p3-dim {
 .p3-ch .p3-db-track.is-on .p3-db-dot,
 .p3-ch .p3-db-track.is-on .p3-db-seg {
   opacity: 1;
-}
-.p3-ch .p3-db-val {
-  font-weight: 400;
-  color: var(--pe-gray-700);
-}
-.p3-ch .p3-db-val::first-line {
-  font-weight: 600;
 }
 .p3-db-name {
   font-weight: 600;
@@ -1829,8 +1789,7 @@ svg.p3-dim {
 #p3-changes .p3-ch.is-all [data-mark]:not([data-on]) .p3-db-seg {
   opacity: 1;
 }
-#p3-changes .p3-ch.is-all [data-mark]:not([data-on]) .p3-dot-val,
-#p3-changes .p3-ch.is-all [data-mark]:not([data-on]) .p3-db-val {
+#p3-changes .p3-ch.is-all [data-mark]:not([data-on]) .p3-dot-val {
   color: var(--pe-gray-700);
 }
 @media (max-width: 599px) {
@@ -2105,7 +2064,7 @@ svg.p3-dim {
   border-radius: 3px;
   outline-offset: 2px;
   opacity: 0;
-  transition: opacity 300ms var(--story-ease) calc(var(--beat, 0ms) + 300ms);
+  transition: opacity 300ms var(--story-ease) var(--beat, 0ms);
   cursor: default;
 }
 .p3-plane-label.is-central,
@@ -2499,13 +2458,20 @@ a.lens-pay-num:hover {
   margin: 8px auto 0;
   text-align: end;
 }
-/* motion: from the sides, then the chips, the overlap, the pay row (it
-   fades in place, no rise: item 35, so it moves with the page) */
+/* motion: the rings from the sides (900ms); the text (chips, overlap,
+   outside, pay row) in within 600ms, ahead of the rings (the in-figure
+   text cap). The pay row fades in place, no rise: item 35, so it moves
+   with the page */
 @media screen and (prefers-reduced-motion: no-preference) {
   .lens-fig :is(.lens-ring, .lens-circle, .lens-chip-li, .lens-overlap, .lens-outside, .lens-pay) {
     transition:
       transform 900ms cubic-bezier(0.2, 0.8, 0.2, 1),
       opacity 600ms ease;
+  }
+  .lens-fig :is(.lens-chip-li, .lens-overlap, .lens-outside, .lens-pay) {
+    transition:
+      transform 600ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity 300ms ease;
   }
   .lens-fig:not(.is-in) :is(.lens-ring, .lens-circle, .lens-chip-li, .lens-overlap, .lens-outside, .lens-pay) {
     opacity: 0;
@@ -2520,16 +2486,16 @@ a.lens-pay-num:hover {
     transform: translateY(6px);
   }
   .lens-fig.is-in .lens-chip-li {
-    transition-delay: calc(1000ms + var(--i, 0) * 120ms);
+    transition-delay: min(calc(var(--i, 0) * 60ms), 300ms);
   }
   .lens-fig.is-in .lens-overlap {
-    transition-delay: 900ms;
+    transition-delay: 150ms;
   }
   .lens-fig.is-in .lens-outside {
-    transition-delay: 1400ms;
+    transition-delay: 300ms;
   }
   .lens-fig.is-in .lens-pay {
-    transition-delay: 1500ms;
+    transition-delay: 300ms;
   }
   .lens-fig.is-snap :is(.lens-ring, .lens-circle, .lens-chip-li, .lens-overlap, .lens-outside, .lens-pay) {
     transition: none !important;
@@ -2883,7 +2849,7 @@ a.lens-pay-num:hover {
 }
 @media screen and (prefers-reduced-motion: no-preference) {
   .p3-close-card .p3-out-group {
-    transition: opacity 400ms ease calc(var(--i, 0) * 120ms);
+    transition: opacity 300ms ease min(calc(var(--i, 0) * 100ms), 300ms);
   }
   .p3-close-card:not(.is-in) .p3-out-group {
     opacity: 0;

@@ -34,10 +34,10 @@ import { ChartHover } from '@/components/story/chart/index.js';
 // leader's depth. `short`: the phone label (600px and below). What each
 // rule assumes, and its citation, is in the figure's notes (rulesNotes).
 const RULES = [
-  { id: 'uniform', label: 'Uniform', place: { side: 'below', anchor: 'start', lead: 16 }, beat: 400 },
-  { id: 'junior', label: 'Ages 16 to 24', place: { side: 'below', anchor: 'end', lead: 58 }, beat: 800 },
+  { id: 'uniform', label: 'Uniform', place: { side: 'below', anchor: 'start', lead: 16 }, beat: 100 },
+  { id: 'junior', label: 'Ages 16 to 24', place: { side: 'below', anchor: 'end', lead: 58 }, beat: 200 },
   { id: 'exposure', label: 'Main: by AI exposure', short: 'Main: AI exposure', central: true, place: { side: 'below', anchor: 'start', lead: 16 }, beat: 0 },
-  { id: 'compression', label: 'Exposed higher earners', place: { side: 'above', anchor: 'end', lead: 16 }, beat: 1200 },
+  { id: 'compression', label: 'Exposed higher earners', place: { side: 'above', anchor: 'end', lead: 16 }, beat: 300 },
 ];
 // the panel head is a finding (story-finding-titles-fable.md): the main
 // rule's cost is neither the cheapest nor the dearest of the four
@@ -160,8 +160,10 @@ function Ticks({ max, fmt }) {
 // Panel A: the plane. Positions are a pure function of `on` (the beat):
 // before it, every dot sits on the central ring and only the central label
 // shows; then the others slide out along their connectors in turn
-// (--beat), and the stress-test note fades in last. Final state on a jump
-// or reload, replay on scroll-back, static under reduced motion (CSS).
+// (--beat), each label with its dot, and the stress-test note fades in
+// with the last: all text within 600ms (the in-figure text cap). Final
+// state on a jump or reload, replay on scroll-back, static under reduced
+// motion (CSS).
 // The list items are the hover targets; the one tooltip (ChartHover, M4)
 // mounts only while one is hovered, tapped or reached by the arrow keys.
 function RulesPanel({ on }) {
@@ -179,7 +181,7 @@ function RulesPanel({ on }) {
         <span data-mark="r-poverty" className="p3-plane-ytitle">
           <AxisTitle axis="y">Absolute poverty rise, pp</AxisTitle>
         </span>
-        <span className="p3-plane-stress" style={{ '--beat': '1700ms' }}>
+        <span className="p3-plane-stress" style={{ '--beat': '300ms' }}>
           <span className="p3-long">Top-loaded extreme case: off the scale</span>
           <span className="p3-short">Extreme case: off scale</span>
           <Icon name="arrowRight" size={14} />

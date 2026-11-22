@@ -168,7 +168,7 @@ export function Plane({ points, arrows = [], xMax, yMax, yMin = 0, yStep = 0.5, 
           <span
             key={`l-${p.id}`}
             className={`hh-pt-lab ${narrow ? `is-num is-${p.npos ?? 'r'}` : `is-${p.pos ?? 'r'}`}${on ? ' is-on' : ''}`}
-            style={{ left: X(p.x), top: Y(p.y), transitionDelay: `${300 + i * 90}ms` }}
+            style={{ left: X(p.x), top: Y(p.y), transitionDelay: `${Math.min(i * 60, 300)}ms` }}
             aria-hidden="true"
           >
             {narrow ? p.n : p.lab}
