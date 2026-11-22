@@ -52,29 +52,40 @@ describe('a topic shows its question once', () => {
   });
 });
 
-// Fable 5.2, fix list 10: the landing guard (is-landed) is paint only; the
-// header's layout (data-head-shown) follows it only when nothing in view
-// can move: a hard jump, or the stage's foot below the viewport.
+// Fable 5.2, fix list 10, and Vahid's jump ruling (22 Nov): the landing
+// guard (is-landed) is paint only; the header's layout (data-head-shown)
+// follows it only while the stage's foot is below the viewport, so nothing
+// in view or above it moves, on a slow walk or a jump.
 describe('the header layout state (nextHead)', () => {
+  const story = readFileSync('src/app/story.css', 'utf8');
   it('the layout rules key on data-head-shown; is-landed keeps paint only', () => {
     expect(css).not.toMatch(/:not\(\.is-landed\)/);
     expect(css.match(/\.q-stage:not\(\[data-head-shown\]\)/g)).toHaveLength(4);
-    expect(css).toMatch(/\.q-stage\.is-landed::before \{ content: none; \}/);
+  });
+  it('a landed stage drops its band and card only while its header shows the question', () => {
+    expect(css).toMatch(/\.q-stage\.is-landed\[data-head-shown\]::before \{ content: none; \}/);
+    expect(css).not.toMatch(/\.q-stage\.is-landed::before/);
+    expect(story).toMatch(/\.q-stage\.is-landed\[data-head-shown\] \.q-stage-card \{\s*visibility: hidden;/);
+    expect(story).not.toMatch(/\.q-stage\.is-landed \.q-stage-card/);
   });
   it('a fast-scroll landing with the stage\'s foot above the viewport\'s foot leaves it unchanged', () => {
-    expect(nextHead({ head: false, skip: true, hard: false, below: false })).toBe(false);
+    expect(nextHead({ head: false, skip: true, below: false })).toBe(false);
   });
-  it('the same landing in mid-stage (foot below the viewport) raises it', () => {
-    expect(nextHead({ head: false, skip: true, hard: false, below: true })).toBe(true);
+  it('a landing in mid-stage (foot below the viewport) raises it', () => {
+    expect(nextHead({ head: false, skip: true, below: true })).toBe(true);
   });
-  it('a hard jump past the start raises it', () => {
-    expect(nextHead({ head: false, skip: true, hard: true, below: false })).toBe(true);
+  it('a hard jump with the stage\'s foot in view leaves it unchanged (the target lands where aimed)', () => {
+    expect(nextHead({ head: false, skip: true, below: false })).toBe(false);
+  });
+  it('a hard jump past a stage wholly above the viewport leaves it unchanged', () => {
+    expect(nextHead({ head: false, skip: true, below: false })).toBe(false);
+    expect(nextHead({ head: true, skip: false, below: false })).toBe(true);
   });
   it('an upward move with the stage above the viewport leaves it raised', () => {
     // the guard lifts on the way up (skip false), the foot is above the viewport's foot
-    expect(nextHead({ head: true, skip: false, hard: false, below: false })).toBe(true);
+    expect(nextHead({ head: true, skip: false, below: false })).toBe(true);
   });
   it('it drops once the guard is down and the stage\'s foot is below the viewport', () => {
-    expect(nextHead({ head: true, skip: false, hard: false, below: true })).toBe(false);
+    expect(nextHead({ head: true, skip: false, below: true })).toBe(false);
   });
 });

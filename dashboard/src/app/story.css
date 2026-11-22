@@ -370,10 +370,12 @@
      scrolls away with the stage's foot. --qa and --qm still set the phase
      (QStage stagePhase) and the chart's reveal; they no longer size it. */
 }
-/* landed past the start (the landing guard; story-bands.css drops the
-   navy band): the white question would sit on the white sheet, so the card
-   is hidden until the guard lifts */
-.q-stage.is-landed .q-stage-card {
+/* landed past the start (the landing guard) with its header showing the
+   question (story-bands.css drops the navy band): the white question
+   would sit on the white sheet, so the card is hidden until the guard
+   lifts. With its header collapsed the band and the card stay: the
+   question's one copy */
+.q-stage.is-landed[data-head-shown] .q-stage-card {
   visibility: hidden;
 }
 .q-stage-icon {

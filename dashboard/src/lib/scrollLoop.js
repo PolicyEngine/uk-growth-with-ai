@@ -8,13 +8,12 @@
 //
 //   const off = subscribe({ el, read(f) { return data }, write(data, f) {} });
 //
-// f = { y, dy, V, jumped, hard, up, rail() }: the page's scroll position, the
-// move since the last frame, the viewport height, `jumped` (the first run of
-// a subscriber, a move of more than half a screen in one frame, a nav link
-// in the last 1.5s, or a fast scroll: more than half a screen within 150ms),
-// `hard` (`jumped` without the fast scroll: a real jump, where the page may
-// move under the reader), `up` (scrolled up by hand, not a jump) and rail()
-// (the story rail's bottom, read once per frame).
+// f = { y, dy, V, jumped, up, rail() }: the page's scroll position, the move
+// since the last frame, the viewport height, `jumped` (the first run of a
+// subscriber, a move of more than half a screen in one frame, a nav link in
+// the last 1.5s, or a fast scroll: more than half a screen within 150ms),
+// `up` (scrolled up by hand, not a jump) and rail() (the story rail's
+// bottom, read once per frame).
 //
 // `el` (optional): the subscriber only works while el is within a screen of
 // the viewport (an IntersectionObserver gate). It also runs once on each
@@ -90,9 +89,8 @@ function frameInfo(first) {
   const y = window.scrollY;
   const V = window.innerHeight;
   const dy = y - lastY;
-  const hard = first || Math.abs(dy) > 0.5 * V || navRecent() || (dy !== 0 && restoring());
-  const jumped = hard || fastRecent(V);
-  return { y, dy, V, jumped, hard, up: dy < 0 && !jumped, rail: railReader() };
+  const jumped = first || Math.abs(dy) > 0.5 * V || navRecent() || fastRecent(V) || (dy !== 0 && restoring());
+  return { y, dy, V, jumped, up: dy < 0 && !jumped, rail: railReader() };
 }
 
 function frame(time) {

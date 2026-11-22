@@ -121,9 +121,13 @@
   /* landed past the start (reload, jump; QStage toggles is-landed with
      the landing guard): 7a's fallback. Showing the question at rest made
      the card jump 72-130px and vanish when the guard lifted on scrolling
-     back (measured at 1280 and 390, Chrome and WebKit), so a landed stage
-     drops its band instead: no empty band slab, the white sheet as before */
-  .q-stage.is-landed::before { content: none; }
+     back (measured at 1280 and 390, Chrome and WebKit, before the card was
+     fixed in its box, 6ff01fd), so a landed stage drops its band instead:
+     no empty band slab, the white sheet as before. Only while its header
+     shows the question (data-head-shown): a landed stage whose header
+     stays collapsed (it never grows in view or above it, so a jump lands
+     where it was aimed) keeps its band and card, the question's one copy */
+  .q-stage.is-landed[data-head-shown]::before { content: none; }
 }
 
 /* 3. the part openers: on the white sheet, dark text, no band and no
@@ -196,8 +200,8 @@
    foot margin takes back the 16px row gap the empty row leaves, so the
    chart sits where the header did. These rules key on data-head-shown,
    not is-landed (Fable 5.2, fix list 10): QStage raises and lowers it
-   with the guard only on a hard jump or with the stage's foot below the
-   viewport, so the header never grows or shrinks in view. */
+   with the guard only while the stage's foot is below the viewport, so
+   the header never grows or shrinks in view or above it, on a jump too. */
 @media screen and (prefers-reduced-motion: no-preference) {
   .story .q-stage:not([data-head-shown]) + .scene-head.scene-head {
     height: 0;

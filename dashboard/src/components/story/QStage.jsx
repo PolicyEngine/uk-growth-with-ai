@@ -33,13 +33,17 @@ import { setStyle, subscribe } from '@/lib/scrollLoop.js';
 // guard lifts when the reader scrolls up by hand or the frame is back
 // before its start, so the sequence replays from there.
 //
-// The guard is paint only (is-landed: the band, the card's visibility).
-// The header's layout (story-bands.css section 5: its height, its
-// question's box, the stage's foot margin) follows a second state,
-// data-head-shown (nextHead), which changes only when nothing in view can
-// move: on a hard jump, or with the stage's foot below the viewport
-// (Fable 5.2, fix list 10: a fast-scroll landing, or the guard lifting on
-// the way up, moved the page by up to 42px).
+// The guard is paint only (is-landed). The header's layout (story-bands.css
+// section 5: its height, its question's box, the stage's foot margin)
+// follows a second state, data-head-shown (nextHead), which follows the
+// guard only while the stage's foot is below the viewport, so nothing in
+// view or above it ever moves (Fable 5.2, fix list 10: a fast-scroll
+// landing, or the guard lifting on the way up, moved the page by up to
+// 42px; Vahid, 22 Nov: a jump, a rail link or a reload with a hash must
+// land where it was aimed, so no header above or in view grows on a jump
+// either). A landed stage hides its band and card only while its header
+// is shown (story-bands.css, story.css): one copy of the question either
+// way.
 //
 // The question copies are aria-hidden, inert and data-axis (the header,
 // id="q-<block>", prints it once). Reduced motion and print: neither
@@ -97,12 +101,13 @@ export function nextSkip({ skip, jumped, past, before, up }) {
   return skip;
 }
 
-// the header's layout state: raised and lowered only when nothing in view moves
-export function nextHead({ head, skip, hard, below }) {
-  // a real jump, or the stage's foot (and so its header) under the
-  // viewport: nothing in view can move, so follow the guard
-  if (hard || below) return skip;
-  return head; // otherwise unchanged
+// the header's layout state: raised and lowered only when nothing in view
+// or above it moves
+export function nextHead({ head, skip, below }) {
+  // the stage's foot (and so its header) under the viewport: a change
+  // there moves nothing in view and nothing a jump aimed at, so follow the
+  // guard; otherwise (in view or above, on a jump too) unchanged
+  return below ? skip : head;
 }
 
 // The question's visual: a plain icon, the words (key word marked), hint.
@@ -150,7 +155,7 @@ function usePhase(onPhase) {
 
 // Run `read(el, f)` then `write(el, data, f)` in the page's one scroll loop
 // (lib/scrollLoop.js: all reads, then all writes, one rAF per frame), while
-// the element is within a screen of the viewport. f: { V, jumped, hard, up, rail }.
+// the element is within a screen of the viewport. f: { V, jumped, up, rail }.
 function useScrollDriver(ref, read, write, deps) {
   useEffect(() => {
     const el = ref.current;
@@ -200,12 +205,14 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
       }
       const { p } = d;
       skip.current = nextSkip({ skip: skip.current, jumped: f.jumped, past: p.qm > 0, before: p.qm === 0, up: f.up });
-      // landed past the start (a reload, a jump): the stage drops its navy
-      // (story-bands.css), so no empty navy slab shows under the rail
-      // (navy-sections-fable.md 7a, its fallback); it goes with the guard
+      // landed past the start (a reload, a jump): with its header shown the
+      // stage drops its navy and card (story-bands.css, story.css), so no
+      // empty navy slab shows under the rail (navy-sections-fable.md 7a, its
+      // fallback); it goes with the guard
       el.classList.toggle('is-landed', skip.current);
-      // the header's layout follows the guard only when nothing in view moves
-      head.current = nextHead({ head: head.current, skip: skip.current, hard: f.hard, below: d.below });
+      // the header's layout follows the guard only while the stage's foot is
+      // below the viewport: nothing in view or above it moves
+      head.current = nextHead({ head: head.current, skip: skip.current, below: d.below });
       el.toggleAttribute('data-head-shown', head.current);
       setStyle(el, '--q-top', `${d.qt}px`);
       if (skip.current) {
@@ -262,7 +269,7 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
       }
       const { p } = d;
       skip.current = nextSkip({ skip: skip.current, jumped: f.jumped, past: d.past, before: !d.past, up: f.up });
-      head.current = nextHead({ head: head.current, skip: skip.current, hard: f.hard, below: d.below });
+      head.current = nextHead({ head: head.current, skip: skip.current, below: d.below });
       el.toggleAttribute('data-head-shown', head.current);
       if (skip.current) {
         setVars(el, 1, 1);
