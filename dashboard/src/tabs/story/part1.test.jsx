@@ -115,7 +115,8 @@ describe('story part 1, real data', () => {
     expect(gdp.querySelector('#p1-quarters')).not.toBeNull();
     expect(gdp.textContent).toContain(q.replace(/^(\d{4}) (Q\d)$/, '$2 $1'));
     expect(gdp.querySelector('.p1-vital-flag').textContent).toBe('first estimate');
-    expect(el.querySelector('#p1-vitals [data-source-notes] [data-path="facts.gdp_quarterly_yoy.value"]').textContent).toBe(pct1(real.facts.gdp_quarterly_yoy.value));
+    // the panel's notes are part 1's "About this model" (part openings, 22 Nov)
+    expect(el.querySelector('.part-opener-about [data-source-notes] [data-path="facts.gdp_quarterly_yoy.value"]').textContent).toBe(pct1(real.facts.gdp_quarterly_yoy.value));
   });
 
   it('labels the OBR forecast with its vintage, from the data file', () => {
@@ -249,7 +250,7 @@ describe('story part 1, real data', () => {
     for (const f of checks.figures) expect(f.page).toMatch(/^https:\/\//);
   });
 
-  it('opens with a UK vitals panel: six metrics of label, value, sparkline and one sub-line; one quiet sources button', () => {
+  it('opens with a UK vitals panel: six metrics of label, value, sparkline and one sub-line; its sources in the opener\'s About', () => {
     const el = show(Part1Real);
     const tiles = el.querySelectorAll('#p1-vitals .p1-vital');
     expect([...tiles].map((t) => t.dataset.vital)).toEqual(['gdp', 'productivity', 'employment', 'unemployment', 'pay', 'share']);
@@ -264,14 +265,15 @@ describe('story part 1, real data', () => {
     // the first estimate is said in words, from the fact's note
     expect(el.querySelector('#p1-vital-gdp .p1-vital-sub').textContent).toContain('first estimate');
     expect(el.querySelector('#p1-vital-employment .p1-vital-sub').textContent).not.toContain('first estimate');
-    // one sources button; each series linked to its readable page behind it
-    const btns = el.querySelectorAll('#p1-vitals button.src-line-btn');
-    expect(btns).toHaveLength(1);
-    fireEvent.click(btns[0]);
-    const links = [...document.querySelectorAll('.src-pop .src-pop-list a')];
+    // no sources button on the panel: each series is linked, in a new tab,
+    // from part 1's "About this model" (part openings, approved 22 Nov)
+    expect(el.querySelectorAll('#p1-vitals button.src-line-btn')).toHaveLength(0);
+    const links = [...el.querySelectorAll('.part-opener-about .part-opener-sources a')];
     expect(links).toHaveLength(7);
-    links.forEach((a) => expect(a.getAttribute('href')).toMatch(/^https:\/\//));
-    fireEvent.click(btns[0]);
+    links.forEach((a) => {
+      expect(a.getAttribute('href')).toMatch(/^https:\/\//);
+      expect(a.getAttribute('target')).toBe('_blank');
+    });
     // at rest the panel prints no codes, downloads or dates beyond the period
     // (the release dates show on hover or focus only)
     const rest = el.querySelector('#p1-vitals').cloneNode(true);

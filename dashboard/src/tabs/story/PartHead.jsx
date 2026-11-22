@@ -6,7 +6,7 @@ import { MACRO_ABOUT_CAP, MACRO_FOLLOWS } from '@/lib/labels.js';
 
 // The chapter opener of a story part (Fable's part-opener ruling, 17 Nov):
 // one thin rule above it, then
-//   kicker: "Part n · <model>", 12px muted, the page's one kicker above a
+//   kicker: "Part n · <model>: <what it is>", 12px muted, the page's one kicker above a
 //           heading; the model label opens one line saying which model
 //           this is (story-beats-fable.md section 8: a TipTarget, dotted
 //           underline, no icon)
@@ -47,6 +47,8 @@ export function PartOpener({ part, question, about }) {
           <>
             {' · '}
             <ModelTip model={part.model} />
+            {/* what the part is, plainly (part openings, approved 22 Nov) */}
+            {part.what ? `: ${part.what}` : null}
           </>
         ) : null}
       </p>

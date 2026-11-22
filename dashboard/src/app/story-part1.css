@@ -1229,3 +1229,66 @@ p.hero-sub {
   color: var(--t-muted);
 }
 
+
+/* Part 1's lead stat block (part openings, approved 22 Nov): the six
+   vitals in the stat-row shape, one row each: the name (label) and its
+   unit and period line (gloss) on the left, the sparkline and the value on
+   the right, a hairline between rows. Two columns of three rows from 901px,
+   one column below. Overrides the instrument-panel grid above. */
+.p1-vitals {
+  margin: 0 0 16px;
+}
+.p1-vitals-grid {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: none;
+  grid-auto-rows: auto;
+  column-gap: 32px;
+  row-gap: 0;
+  padding: 4px 16px;
+}
+@media (min-width: 901px) {
+  .p1-vitals-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-flow: row;
+  }
+}
+.p1-vitals-grid > .p1-vital {
+  grid-row: auto;
+  grid-template-rows: auto auto;
+  grid-template-columns: minmax(0, 1fr) 64px auto;
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: center;
+  padding: 10px 0;
+  border-left: 0;
+  border-top: 1px solid color-mix(in srgb, var(--pe-teal-700, #0f766e) 16%, #fff);
+  border-radius: 0;
+  text-align: start;
+}
+.p1-vitals-grid > .p1-vital:nth-child(1),
+.p1-vitals-grid > .p1-vital:nth-child(2) {
+  border-top: 0;
+}
+@media (max-width: 900px) {
+  .p1-vitals-grid > .p1-vital:nth-child(2) {
+    border-top: 1px solid color-mix(in srgb, var(--pe-teal-700, #0f766e) 16%, #fff);
+  }
+}
+.p1-vitals-grid > .p1-vital > .p1-vital-name {
+  grid-area: 1 / 1;
+  font-size: var(--t-ui);
+  color: var(--t-ink);
+}
+.p1-vitals-grid > .p1-vital > .p1-vital-sub {
+  grid-area: 2 / 1;
+}
+.p1-vitals-grid > .p1-vital > .p1-spark {
+  grid-area: 1 / 2 / 3 / 3;
+  height: 24px;
+}
+.p1-vitals-grid > .p1-vital > .p1-vital-value {
+  grid-area: 1 / 3 / 3 / 4;
+  align-self: center;
+  justify-self: end;
+  font-size: 22px;
+}

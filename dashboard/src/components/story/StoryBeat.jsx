@@ -37,11 +37,14 @@ export function beatPhase({ top, bottom, V }) {
 // `icon`: a beat with no numeral (part 3's OBR-sized run, push D Q3) leads
 // its headline with this concept's icon instead, at the full beat size, so
 // no empty numeral slot is left.
-export default function StoryBeat({ id, num, head, line, cite = null, from = 'below', numProps = {}, icon = null }) {
+// `lead`: the part's lead stat block (part openings, approved 22 Nov):
+// right under the opener, in the stat-row shape (value, gloss, one note
+// line), static: no rule and no scroll phase.
+export default function StoryBeat({ id, num, head, line, cite = null, from = 'below', numProps = {}, icon = null, lead = false }) {
   const ref = useRef(null);
   useEffect(() => {
     const el = ref.current;
-    if (!el || typeof window === 'undefined') return undefined;
+    if (lead || !el || typeof window === 'undefined') return undefined;
     return subscribe({
       el,
       read: (f) => {
@@ -54,12 +57,12 @@ export default function StoryBeat({ id, num, head, line, cite = null, from = 'be
         setStyle(el, '--bh', p.bh.toFixed(3));
       },
     });
-  }, []);
+  }, [lead]);
   return (
-    <aside ref={ref} className={`story-beat is-from-${from}${num == null && icon ? ' has-icon' : ''}`} id={`beat-${id}`} aria-label={num != null ? `${num}: ${head}` : head} data-gap-exempt="">
+    <aside ref={ref} className={`story-beat is-from-${from}${num == null && icon ? ' has-icon' : ''}${lead ? ' is-lead' : ''}`} id={`beat-${id}`} aria-label={num != null ? `${num}: ${head}` : head} data-gap-exempt="">
       <div className="story-beat-card">
         {/* the rule sits above a numeral only; an icon beat has none (fix list 17) */}
-        {num != null ? <span className="beat-rule" aria-hidden="true" /> : null}
+        {num != null && !lead ? <span className="beat-rule" aria-hidden="true" /> : null}
         {num != null ? (
           <p className="beat-num" {...numProps}>
             {num}

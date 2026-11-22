@@ -228,3 +228,76 @@
 @media screen and (prefers-reduced-motion: no-preference) and (max-width: 900px) {
   .scrolly > .q-stage:not([data-head-shown]) { margin-bottom: calc(var(--q-clear) - 16px); }
 }
+
+/* ---- Part openings (approved by Vahid, 22 Nov): eyebrow, question, one
+   subline, "About this model", then one lead stat block, read as one
+   block; no bridge above parts 2 and 3, only the divider that ends the
+   part before. ---- */
+.story-part > hr.part-divider {
+  height: 0;
+  margin: 32px 0 0;
+  border: 0;
+  border-top: 1px solid var(--card-border);
+}
+/* the opener's own white above its eyebrow: less, as the divider sits
+   right above it */
+.story-part[data-part] > .part-opener {
+  padding-top: 32px;
+  padding-bottom: 0;
+  margin-bottom: 16px;
+}
+@media (max-width: 900px) {
+  .story-part[data-part] > .part-opener {
+    padding-top: 24px;
+    margin-bottom: 12px;
+  }
+}
+/* the opener's sources line (part 3's About, part 1's vitals notes) */
+.part-opener-sources {
+  margin: 6px 0 0;
+  font-size: var(--t-meta, 12px);
+  color: var(--pe-gray-600);
+}
+.p1-vitals-about p {
+  margin: 0 0 6px;
+}
+/* the lead stat block (StoryBeat lead): value and gloss on one line, the
+   one note line under them, centred under the opener; static (no rule,
+   no scroll phase), so the numeral is at full strength */
+.story-beat.is-lead .story-beat-card {
+  grid-template-columns: auto minmax(0, max-content);
+  justify-content: center;
+  align-items: baseline;
+  column-gap: 12px;
+  row-gap: 4px;
+  padding: 0 16px 8px;
+  text-align: start;
+}
+.story-beat.is-lead .beat-num {
+  font-size: 40px;
+  opacity: 1;
+  transform: none;
+}
+.story-beat.is-lead .beat-text {
+  display: contents;
+}
+.story-beat.is-lead .beat-head {
+  font-size: var(--t-title, 20px);
+}
+.story-beat.is-lead .beat-line {
+  grid-column: 1 / -1;
+  justify-self: center;
+  max-width: 60ch;
+  font-size: var(--t-ui);
+  line-height: 1.45;
+  color: var(--t-muted);
+  text-align: center;
+}
+@media (max-width: 900px) {
+  .story-beat.is-lead .beat-num {
+    font-size: 32px;
+  }
+  .story-beat.is-lead .beat-head {
+    font-size: 18px;
+  }
+}

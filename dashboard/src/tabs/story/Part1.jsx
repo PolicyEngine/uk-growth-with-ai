@@ -8,7 +8,7 @@ import PartHead from './PartHead.jsx';
 import { DSIT_AROUND, EXPOSURE_GROUPS, FACTS, LINKS, MODEL_BASE_VINTAGE, OBR, OBR_LABEL, OBR_VINTAGE, SERIES, SOURCES, pageOf } from './part1/data.js';
 import { AiUseChart, ExposureTiles, LabourBoard, OBR_NAMED, OutputCanvas, P1_MARKS } from './part1/charts.jsx';
 import { Ext, SourceLine, Swap } from './part1/frame.jsx';
-import Vitals from './part1/vitals.jsx';
+import Vitals, { VitalsAbout } from './part1/vitals.jsx';
 import { dateLong, pct1, share0 } from './part1/format.js';
 import { employmentSay, paySay, productivitySay } from './part1/findings.js';
 import { SURPRISE_YEAR } from '@/tabs/ai/surprise.js';
@@ -422,7 +422,9 @@ export default function Part1({ part }) {
   const workN = workNotes();
   return (
     <MarkProvider marks={P1_MARKS}>
-      <PartHead part={part}>The UK economy and labour market before the scenario begins, from official statistics only.</PartHead>
+      {/* "About this model" holds the vitals' sources and notes (part
+          openings, approved 22 Nov); the vitals are the lead stat block */}
+      <PartHead part={{ ...part, about: part.about ?? <VitalsAbout /> }} />
       <Vitals />
       <Scrolly
         id="p1-output"

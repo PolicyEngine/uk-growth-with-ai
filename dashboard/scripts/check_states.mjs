@@ -438,7 +438,8 @@ for (const [W, H] of process.env.HEADERS === '0' || JUMP === 'only' || process.e
   // (NextPart, nav.story-next) is centred on its part's column, measured on
   // the ink of its words (the kicker's and the title's text nodes, every
   // wrapped line; not the link's or the row's box), within 4px; its link at
-  // least 44px tall at 900px and below. Fewer than three bridges is a miss.
+  // least 44px tall at 900px and below. One bridge is left, into part 4
+  // (part openings, 22 Nov: no bridge above parts 2 and 3); none is a miss.
   // Item dc-B: the Part 3 leaves-out block too (missing is a miss).
   // HEADERS=centre runs only these centring checks.
   const br = await page.evaluate(() => {
@@ -483,7 +484,7 @@ for (const [W, H] of process.env.HEADERS === '0' || JUMP === 'only' || process.e
   });
   const brBad = br.filter((o) => Math.abs(o.d) > 4 || (W <= 900 && o.h != null && o.h < 44));
   const nBridge = br.filter((o) => o.id.startsWith('bridge')).length;
-  const brMiss = brBad.length > 0 || nBridge < 3 || !br.some((o) => o.id === 'leaves-out block');
+  const brMiss = brBad.length > 0 || nBridge < 1 || !br.some((o) => o.id === 'leaves-out block');
   if (brMiss) hmiss++;
   hlines.push(`  ${brMiss ? 'MISS' : 'ok  '} ${W}x${H} ${nBridge} part bridges and the leaves-out block centred on their column: ${br.map((o) => `${o.id} ${o.d}px${o.h != null ? ` (link ${o.h}px tall)` : ''}`).join(', ')}`);
   if (process.env.HEADERS === 'centre') {

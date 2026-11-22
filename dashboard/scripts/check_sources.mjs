@@ -154,11 +154,13 @@ async function openAll(page) {
 
 // Named external links (checks-words2.md, item 8): each is on the Story
 // once, visible, with its expected text, opening a new tab with noopener.
+// The 7%'s three sources are in part 3's "About this model" (part
+// openings, approved 22 Nov): the check opens that fold to see them.
 // Their URLs were checked by hand (curl, status 200, the right document).
 const EXTERNAL = [
-  { where: '#beat-7pct', text: 'Doorley et al. (2026)', href: 'https://doi.org/10.26504/jr16' },
-  { where: '#beat-7pct', text: 'Briggs and Kodnani (2023)', href: 'https://www.gspublishing.com/content/research/en/reports/2023/03/27/d64e052b-0f6e-45d7-967b-d7be35fabd16.pdf' },
-  { where: '#beat-7pct', text: 'Ahmadi (2026)', href: /^https:\/\/github\.com\/PolicyEngine\/uk-ai-study\/blob\/[0-9a-f]{40}\/paper\/main\.pdf$/ },
+  { where: '#story-part-3 .part-opener-about', text: 'Doorley et al. (2026)', href: 'https://doi.org/10.26504/jr16' },
+  { where: '#story-part-3 .part-opener-about', text: 'Briggs and Kodnani (2023)', href: 'https://www.gspublishing.com/content/research/en/reports/2023/03/27/d64e052b-0f6e-45d7-967b-d7be35fabd16.pdf' },
+  { where: '#story-part-3 .part-opener-about', text: 'Ahmadi (2026)', href: /^https:\/\/github\.com\/PolicyEngine\/uk-ai-study\/blob\/[0-9a-f]{40}\/paper\/main\.pdf$/ },
 ];
 for (const [w, h] of SIZES) {
   const page = await (await browser.newContext({ viewport: { width: w, height: h }, reducedMotion: 'reduce' })).newPage();
@@ -169,6 +171,9 @@ for (const [w, h] of SIZES) {
       const as = [...document.querySelectorAll(`${where} a`)].filter((a) => a.textContent.trim() === text);
       const a = as[0];
       if (!a) return { n: 0 };
+      // a link in a closed fold: open it first
+      const fold = a.closest('details');
+      if (fold && !fold.open) fold.open = true;
       a.scrollIntoView({ block: 'center' });
       const b = a.getBoundingClientRect();
       return { n: as.length, href: a.getAttribute('href'), target: a.getAttribute('target'), rel: a.getAttribute('rel') ?? '', shown: b.width > 0 && b.height > 0 };

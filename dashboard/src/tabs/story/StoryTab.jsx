@@ -12,7 +12,8 @@ import { Items } from '@/components/story/Items.jsx';
 import { Hy } from '@/components/story/Hy.jsx';
 import { URLS } from '@/tabs/ai/links.js';
 import { MACRO_ABOUT } from '@/lib/labels.js';
-import { SURPRISE_YEAR, HEADLINE_YEAR, RAMP_WORD } from '@/tabs/ai/surprise.js';
+import { SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, RAMP_WORD } from '@/tabs/ai/surprise.js';
+import { Ref } from './part3/sources.jsx';
 import { MODEL_BASE_VINTAGE, OBR_MARCH_2026, OBR_VINTAGE } from './part1/data.js';
 
 // The story: a hero, then three parts, each a run of scrolly blocks.
@@ -37,14 +38,19 @@ export const PARTS = [
     kicker: 'Part 1',
     title: 'Where the UK stands',
     model: 'official',
+    what: 'the UK economy and jobs so far',
     question: 'Where do the UK economy and its labour market stand today?',
+    line: 'Published statistics only; the one forecast shown is the OBR’s.',
+    // `about`: the vitals panel's sources and notes, set by Part1.jsx
+    // (VitalsAbout, part1/vitals.jsx), the lead stat block's home
   },
   {
     id: 'story-part-2',
     n: 2,
     kicker: 'Part 2',
-    title: 'What a model of the whole economy projects',
+    title: 'The whole UK economy, year by year',
     model: 'oguk',
+    what: `the whole UK economy, year by year to ${LATE_YEAR}`,
     question: `What happens to output, incomes and the public finances if, from ${SURPRISE_YEAR}, AI does more than the OBR already expects?`,
     line: 'No unemployment: the shock shows up in pay rates, not in job losses.',
     about: (
@@ -82,18 +88,26 @@ export const PARTS = [
     id: 'story-part-3',
     n: 3,
     kicker: 'Part 3',
-    title: 'Jobs, incomes and the public finances',
+    title: 'One year of job loss, household by household',
     model: 'aistudy',
+    what: 'one year of assumed job loss, household by household',
     question: 'What happens to the public finances, poverty and incomes if some employees lose their jobs to AI?',
     line: 'One year only, with no change in behaviour.',
     about: (
-      <Items
-        items={[
-          { icon: 'data', text: <Hy>PolicyEngine UK on Microcosm UK survey data</Hy> },
-          { icon: 'jobLoss', text: 'Here people lose jobs; the macro model has no unemployment' },
-          { icon: 'compare', text: 'Its figures are not added to or compared with part 2’s' },
-        ]}
-      />
+      <>
+        <Items
+          items={[
+            { icon: 'data', text: <Hy>PolicyEngine UK on Microcosm UK survey data</Hy> },
+            { icon: 'jobLoss', text: 'Here people lose jobs; the macro model has no unemployment' },
+            { icon: 'compare', text: 'Its figures are not added to or compared with part 2’s' },
+          ]}
+        />
+        {/* the lead stat's sources (the 7% beat, #beat-7pct); check_sources
+            finds them here with the fold closed */}
+        <p className="part-opener-sources" data-cite="">
+          Sources: <Ref id="doorley" />, after <Ref id="briggs" />. Household modelling: <Ref id="ahmadi" />.
+        </p>
+      </>
     ),
   },
 ];
@@ -105,10 +119,10 @@ const RAIL = [
   { id: 'story-close', short: '4', icon: 'compare', title: 'Two lenses' },
 ];
 
-// The bridge at the end of each part (consolidated design, bridge pattern):
-// NextPart's line, "Next: part n" and the next part's name, linked to its
-// opener; no deep links. All three are one line (push B sign-off, ruling 1:
-// the Part 4 band right under the bridge asks the close's question).
+// The bridge into part 4 (consolidated design, bridge pattern): NextPart's
+// line, "Next: part 4" and the close's name, linked to its opener. Parts 2
+// and 3 have no bridge (part openings, approved 22 Nov): a divider ends
+// the part and the next opener's eyebrow names the part.
 
 export default function StoryTab() {
   return (
@@ -117,11 +131,13 @@ export default function StoryTab() {
       <Hero />
       <section className="story-part" data-part="1" id={PARTS[0].id} aria-labelledby={`${PARTS[0].id}-h`}>
         <Part1 part={PARTS[0]} />
-        <NextPart show n={2} title={PARTS[1].title} to={PARTS[1].id} />
+        {/* the bridges above parts 2 and 3 are gone (part openings, 22
+            Nov): the next part's eyebrow names it; the divider stays */}
+        <hr className="part-divider" />
       </section>
       <section className="story-part" data-part="2" id={PARTS[1].id} aria-labelledby={`${PARTS[1].id}-h`}>
         <Part2 part={PARTS[1]} />
-        <NextPart show n={3} title={PARTS[2].title} to={PARTS[2].id} />
+        <hr className="part-divider" />
       </section>
       <section className="story-part" data-part="3" id={PARTS[2].id} aria-labelledby={`${PARTS[2].id}-h`}>
         <Part3 part={PARTS[2]} />

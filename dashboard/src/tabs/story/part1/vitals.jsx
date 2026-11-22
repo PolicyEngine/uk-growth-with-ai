@@ -5,7 +5,8 @@ import { NavLink } from '@/lib/nav.jsx';
 import { useEnterState, useEntry } from '@/components/story/motion.js';
 import { fmtDate } from '@/components/ui/SourceLine.jsx';
 import { FACTS, LINKS, OPH_BASE, SERIES, SOURCES } from './data.js';
-import { Ext, SourceLine } from './frame.jsx';
+import { Ext } from './frame.jsx';
+import { ukItem } from '@/lib/sourceItems.js';
 import { idx1, pct1 } from './format.js';
 
 // The UK vitals panel that opens part 1: one instrument panel (a single
@@ -234,15 +235,42 @@ const SRC = [
   { id: FACTS.labour_share_latest.source, name: 'compensation of employees' },
 ];
 
+// Part 1's "About this model" (StoryTab PARTS): the vitals' notes, then
+// one link per series. In the DOM with the fold closed, so GDP's
+// year-on-year growth keeps its home (data-path) for the number check.
+export function VitalsAbout() {
+  return (
+    <div className="p1-vitals-about" data-source-notes="">
+      {NOTES.map((n, i) => (
+        <p key={i}>{n}</p>
+      ))}
+      <p className="part-opener-sources" data-cite="">
+        Sources:{' '}
+        {SRC.map((x, i) => {
+          const it = ukItem(x.id, x.name);
+          return it ? (
+            <span key={x.name}>
+              {i ? ', ' : null}
+              <Ext href={it.url}>{x.name}</Ext>
+            </span>
+          ) : null;
+        })}
+        .
+      </p>
+    </div>
+  );
+}
+
 export default function Vitals() {
   const [ref, entry] = useEntry();
   // drawn once entered (at once when landed by a jump, or reduced motion)
   const drawn = useEnterState(false, true, entry.entered, 150) || (entry.entered && entry.instant);
   return (
     <section id="p1-vitals" ref={ref} className="p1-vitals" aria-labelledby="p1-vitals-title">
+      {/* the panel's sources and notes are in part 1's "About this model"
+          (VitalsAbout; part openings, approved 22 Nov) */}
       <h3 id="p1-vitals-title" className="p1-vitals-title">
         <span>Latest official figures</span>
-        <SourceLine items={SRC} notes={NOTES} />
       </h3>
       <ul className="p1-vitals-grid">
         {VITALS.map((v) => (

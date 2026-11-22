@@ -10,7 +10,7 @@ import Deciles from './part3/Deciles.jsx';
 import Pound from './part3/Pound.jsx';
 import Changes from './part3/Changes.jsx';
 import { MODEL_YEAR, PAPER_URL } from './part3/shared.jsx';
-import { REFS, Ref } from './part3/sources.jsx';
+import { REFS } from './part3/sources.jsx';
 
 // Part 3: a model of households, the uk-ai-study PolicyEngine UK
 // microsimulation of AI job displacement for one year, from
@@ -36,16 +36,14 @@ export default function Part3({ part }) {
       {/* beat B4: the rate is its home (data-path, data-input: a quoted
           input); no beat while the rate is unknown */}
       {CENTRAL_RATE != null ? (
+        // the part's lead stat block (part openings, approved 22 Nov); its
+        // sources are in the opener's "About this model" (StoryTab PARTS)
         <StoryBeat
+          lead
           id="7pct"
           num={fmtInputPct(CENTRAL_RATE)}
-          head="of employees assumed jobless for a year"
-          line="The size comes from an Irish study: a Goldman Sachs scenario of about a decade’s adoption, applied in one year. AI-exposed jobs are hit more."
-          cite={
-            <>
-              Sources: <Ref id="doorley" />, after <Ref id="briggs" />. Household modelling: <Ref id="ahmadi" />
-            </>
-          }
+          head="of employees jobless for a year"
+          line="Sized from an Irish study: a decade of AI adoption (Goldman Sachs) applied in one year; AI-exposed jobs are hit more."
           numProps={{ 'data-input': '', 'data-path': 'headline.central_displaced.note' }}
         />
       ) : null}

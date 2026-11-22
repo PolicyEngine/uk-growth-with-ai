@@ -113,6 +113,9 @@ export default function Part2({ part }) {
     <MarkProvider marks={marks}>
       {/* the part's model line is StoryTab's (PARTS[1].modelLine) */}
       <PartHead part={part} />
+      {/* the part's lead stat block (part openings, approved 22 Nov): the
+          surprise year, moved up from after the shock scene */}
+      <StoryBeat lead id={String(SURPRISE_YEAR)} num={SURPRISE_YEAR} head="More AI, sooner, as a surprise" line={`The economy follows the forecast path until ${SURPRISE_YEAR}.`} />
 
       <Scrolly
         id="p2-shock"
@@ -121,13 +124,6 @@ export default function Part2({ part }) {
         label="The shock in two moves"
         steps={shockSteps(sid, closure)}
         graphic={(i, reduce, ctx) => <ShockTiles state={i} shock={shock} sid={sid} both={closure === 'both'} ctx={ctx} />}
-      />
-
-      <StoryBeat
-        id={String(SURPRISE_YEAR)}
-        num={SURPRISE_YEAR}
-        head="More AI, sooner, as a surprise"
-        line={`In every scenario, AI does more, sooner, than the OBR expects. Nobody planned for it, so the economy follows the forecast path until ${SURPRISE_YEAR}.`}
       />
 
       {/* the GDP scene: the gap, the four scenarios, then the headline

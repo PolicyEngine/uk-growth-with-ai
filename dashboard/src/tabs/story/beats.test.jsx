@@ -40,9 +40,11 @@ describe('story beats', () => {
     expect(b4.hasAttribute('data-input')).toBe(true);
     expect(b4.dataset.path).toBe('headline.central_displaced.note');
     expect(beats[3].closest('#story-part-3')).not.toBeNull();
-    // its sources line: Doorley et al., Briggs and Kodnani, the study paper,
-    // each a new-tab link with noopener; the only beat with one
-    const cite = beats[3].querySelector('.beat-cite');
+    // its sources (Doorley et al., Briggs and Kodnani, the study paper,
+    // each a new-tab link with noopener) are in part 3's "About this
+    // model", in the DOM with the fold closed (part openings, 22 Nov)
+    expect(el.querySelectorAll('.beat-cite')).toHaveLength(0);
+    const cite = el.querySelector('#story-part-3 .part-opener-about .part-opener-sources');
     expect(cite.hasAttribute('data-cite')).toBe(true);
     const links = [...cite.querySelectorAll('a')];
     expect(links.map((a) => a.textContent.trim())).toEqual(['Doorley et al. (2026)', 'Briggs and Kodnani (2023)', 'Ahmadi (2026)']);
@@ -57,7 +59,15 @@ describe('story beats', () => {
       expect(a.getAttribute('target')).toBe('_blank');
       expect(a.getAttribute('rel')).toContain('noopener');
     }
-    expect(el.querySelectorAll('.beat-cite')).toHaveLength(1);
+    // the surprise-year and 7% beats are their parts' lead stat blocks,
+    // right after the opener
+    for (const id of [`beat-${S.surprise_year}`, 'beat-7pct']) {
+      const b = el.querySelector(`#${id}`);
+      expect(b.classList.contains('is-lead')).toBe(true);
+      expect(b.previousElementSibling.matches('header.part-opener')).toBe(true);
+    }
+    expect(el.querySelector(`#beat-${S.surprise_year} .beat-line`).textContent).toBe(`The economy follows the forecast path until ${S.surprise_year}.`);
+    expect(el.querySelector('#beat-7pct .beat-head').textContent).toBe('of employees jobless for a year');
     for (const b of beats) {
       // real text, never hidden, not a heading, no icon, no signed figure
       expect(b.getAttribute('aria-hidden')).toBeNull();
@@ -123,14 +133,21 @@ describe('part openers', () => {
     expect(MODELS.aistudy.tip).not.toMatch(/added/);
   });
 
-  it('bridge each part to the next with one NextPart line, no deep links and no second line', () => {
+  it('bridge only into part 4: parts 2 and 3 open after a divider, named by their eyebrow', () => {
     const el = story();
     const bridges = [...el.querySelectorAll('nav.part-links.story-next')];
-    expect(bridges.map((b) => b.querySelector('.part-links-kicker').textContent)).toEqual(['Next: part 2', 'Next: part 3', 'Next: part 4']);
+    expect(bridges.map((b) => b.querySelector('.part-links-kicker').textContent)).toEqual(['Next: part 4']);
     // part 4's bridge follows the leaves-out section after part 3 (push D, Q4)
-    expect(bridges.map((b) => b.closest('section').id)).toEqual(['story-part-1', 'story-part-2', 'story-leaves-out']);
-    expect(bridges.map((b) => b.querySelector('a').getAttribute('href'))).toEqual(['#story-part-2', '#story-part-3', '#story-close']);
+    expect(bridges.map((b) => b.closest('section').id)).toEqual(['story-leaves-out']);
+    expect(bridges.map((b) => b.querySelector('a').getAttribute('href'))).toEqual(['#story-close']);
     for (const b of bridges) expect(b.querySelector('.part-links-row')).toBeNull();
     for (const b of bridges) expect(b.querySelector('.part-links-lead')).toBeNull();
+    // parts 1 and 2 end in a divider; the eyebrows say what each part is
+    expect(el.querySelectorAll('#story-part-1 > hr.part-divider, #story-part-2 > hr.part-divider')).toHaveLength(2);
+    const eyebrow = (n) => el.querySelector(`#story-part-${n} .part-opener-meta`).textContent;
+    expect(eyebrow(1)).toBe('Part 1 · Official statistics: the UK economy and jobs so far');
+    expect(eyebrow(2)).toBe(`Part 2 · Macro model: the whole UK economy, year by year to ${S.late_year}`);
+    expect(eyebrow(3)).toBe('Part 3 · Household study: one year of assumed job loss, household by household');
+    for (const n of [1, 2, 3]) expect(eyebrow(n).split(/\s+/).length - 4).toBeLessThanOrEqual(12);
   });
 });

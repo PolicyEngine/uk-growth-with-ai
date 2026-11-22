@@ -119,7 +119,9 @@ def shock_block(text):
     a = text.find('What does the AI shock change?')
     if a < 0:
         return None
-    b = text.find('More AI, sooner, as a surprise', a)
+    # the surprise-year beat now leads the part (part openings, 22 Nov), so
+    # the block ends at the next scene's question
+    b = text.find('How far does GDP move?', a)
     return text[a:b] if b > 0 else None
 
 
