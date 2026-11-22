@@ -2756,9 +2756,9 @@
 }
 
 /* Without JavaScript every scroll-in fade shows at once: the closing
-   lines, the leaves-out panel and its groups (Part 3), the fade groups and
-   the Two lenses figure. Print and reduced motion are covered where each
-   is defined. */
+   lines, the leaves-out panel and its groups (Part 3), the fade groups,
+   the Two lenses figure and the shared draw-ins. Print and reduced
+   motion are covered where each is defined. */
 @media (scripting: none) {
   .p3-close-panel,
   .p3-close-card .p3-out-group,
@@ -2767,6 +2767,24 @@
   .fade-g,
   .lens-fig :is(.lens-ring, .lens-circle, .lens-chip-li, .lens-overlap, .lens-outside, .lens-pay) {
     opacity: 1 !important;
+    transform: none !important;
+  }
+  /* the shared draw-ins, as in print: lines, their ends and areas, and
+     the grown bars */
+  .draw-end,
+  .ch-end,
+  .ch-area,
+  .ch-line.is-dashed {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .draw-path,
+  .ch-line {
+    stroke-dasharray: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+  .grow-rect,
+  .ch-bar {
     transform: none !important;
   }
 }
