@@ -477,9 +477,12 @@
   font-size: var(--fs-micro);
   color: var(--pe-gray-500);
 }
-/* Who gains' four tiles, each with its own small chart: two a row at every
-   width (review round 1, R1-24; at most two panels a row). Three classes,
-   so it wins over .stat-row.cols-4 in every media query. */
+/* Who gains' four tiles, each with its own small chart: two a row above
+   560px, one a row at 560px and below, where the values may wrap (review
+   round 1, R1-24: at most two panels a row; Fable 5.2, fix list 14: at 390
+   "Under 1% to 45%" overflowed a half-width tile). Three classes, so it
+   wins over .stat-row.cols-4 in every media query; four for the values,
+   over .stat-row.cols-4 .stat-value (v2.css). */
 .stat-row.cols-4.ex-who-tiles {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -493,6 +496,10 @@
 .ex-who-tiles .stat-value {
   font-size: clamp(1.25rem, 2.2vw, 1.75rem);
   white-space: nowrap;
+}
+@media (max-width: 560px) {
+  .stat-row.cols-4.ex-who-tiles { grid-template-columns: minmax(0, 1fr); }
+  .stat-row.cols-4.ex-who-tiles .stat-value { white-space: normal; text-wrap: balance; }
 }
 .ex-bars {
   display: grid;
