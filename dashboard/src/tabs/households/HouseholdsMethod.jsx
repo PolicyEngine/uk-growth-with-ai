@@ -329,7 +329,7 @@ export default function HouseholdsMethod() {
             {[
               ['excluded', 'No re-employment, partners’ hours, redundancy pay or drawing on savings.'],
               ['timing', 'A one-year stock of job loss.'],
-              ['model', 'Not linked to the macro model: no prices, wages or interest rates from it.'],
+              ['model', 'Not linked to the macro model: no prices, wages or interest rates.'],
               ['tax', 'No corporation tax, VAT or other indirect taxes.'],
               ['finances', 'The public-sector pay bill of the displaced is outside the balance.'],
               ['benefits', 'Council tax reduction does not respond to the lost earnings.'],

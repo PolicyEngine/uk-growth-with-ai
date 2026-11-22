@@ -23,7 +23,7 @@ import IconText from '@/tabs/method/IconText.jsx';
 import { SRC } from '@/tabs/method/sources.js';
 import { CENTRAL, HEADLINE_YEAR, SURPRISE_YEAR, gap } from '@/tabs/ai/surprise.js';
 import { SET } from '@/lib/dataKeys.js';
-import { MACRO_ABOUT } from '@/lib/labels.js';
+import { MACRO_ABOUT, MACRO_FOLLOWS } from '@/lib/labels.js';
 
 // Why UK central's GDP gap is below the IMF's for the same productivity gain
 // (results sanity audit, SET.sanityDoc section 7). The IMF
@@ -356,7 +356,7 @@ export default function StudiesTab() {
         <PageIntro
           icon={iconFor('source')}
           question="How do the macro model’s results compare with other work on AI and the UK economy?"
-          answer={<IconText icon="compare">The macro model is {MACRO_ABOUT}. The sources model different channels, from households by age to jobs, tasks or the world economy. Each published figure keeps its own baseline.</IconText>}
+          answer={<IconText icon="compare">The macro model is {MACRO_ABOUT}. {MACRO_FOLLOWS}. The sources model different channels, from households by age to jobs, tasks or the world economy. Each published figure keeps its own baseline.</IconText>}
         />
         <SectionHeading id="coverage" icon={iconFor('coverage')} title="What each source can represent">
             <IconText icon="coverage">Nine channels against five sources. The macro model is the first column.</IconText>

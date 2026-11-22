@@ -11,15 +11,20 @@ export const PAGE_TITLE = 'AI and the UK economy: Beyond the forecast';
 // The macro model's one name and its plain-words account (push D, Q1;
 // Vahid: not "OG-UK"). Readers meet "the macro model" (MACRO), or "the
 // overlapping-generations model" where the generational point matters;
-// the package name stays only on links to its code. MACRO_ABOUT is said
-// once on each tab, at its first mention; it claims only what Method's
-// own account does (the four blocks: households by age, firms, a
-// government and the rest of the world; Many generations at once: work,
-// save, retire).
+// the package name stays only on links to its code. MACRO_ABOUT (the kind,
+// 7 words) is said once on each tab, at its first mention. MACRO_FOLLOWS
+// (what it follows, a sentence with no final stop: callers add it) goes
+// with it where the text is not a list item: the Story and Explore tip,
+// Method's and Evidence's intros (Fable 5.2, fix list 5: list items and
+// short notes keep the kind only). Both claim only what Method's own
+// account does (the four blocks: households by age, firms, a government
+// and the rest of the world; Many generations at once: work, save,
+// retire).
 export const MACRO = 'the macro model';
 export const MACRO_CAP = 'The macro model';
-export const MACRO_ABOUT = 'an overlapping-generations model of the UK economy, which follows households of each age as they work, save and retire, alongside firms, the government and the rest of the world';
+export const MACRO_ABOUT = 'an overlapping-generations model of the UK economy';
 export const MACRO_ABOUT_CAP = MACRO_ABOUT[0].toUpperCase() + MACRO_ABOUT.slice(1);
+export const MACRO_FOLLOWS = 'It follows households of each age as they work, save and retire, alongside firms, the government and the rest of the world';
 
 // Tabs, in order, and their sub-tabs. `scenario` / `closure` / `arm` /
 // `rule`: whether that section is in the page's settings pill ('locked' =

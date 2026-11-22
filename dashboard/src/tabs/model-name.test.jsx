@@ -15,7 +15,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent } from '@testing-library/react';
 import { PAGES, renderPage } from '@/lib/probeTestUtils.jsx';
 import MethodSourcesTab from '@/tabs/method/MethodSourcesTab.jsx';
-import { MACRO_ABOUT } from '@/lib/labels.js';
+import { MACRO_ABOUT, MACRO_FOLLOWS } from '@/lib/labels.js';
 
 afterEach(cleanup);
 
@@ -148,6 +148,23 @@ describe('the macro model is not called OG-UK', () => {
       if (tip) fireEvent.focus(tip);
       const t = container.textContent;
       if (/macro model|overlapping-generations model/i.test(t)) expect(t.toLowerCase(), p[0]).toContain(MACRO_ABOUT.toLowerCase());
+      unmount();
+    }
+  }, 60000);
+
+  // the fuller account (what the model follows) where the text is not a
+  // list item: the Story and Explore tip, Method's and Evidence's intros
+  it('the Story, Explore, Method and Evidence also say what the model follows', () => {
+    for (const p of [PAGES[0], PAGES[1], PAGES[5], PAGES[6]]) {
+      const { container, unmount } = renderPage(p);
+      // Explore's scope tip; the Story's part opener tips, each opened in turn
+      let t = container.textContent;
+      for (const tip of container.querySelectorAll('.model-scope .tip-target, .part-opener-model-tip')) {
+        fireEvent.focus(tip);
+        t += container.textContent;
+        fireEvent.blur(tip);
+      }
+      expect(t, p[0]).toContain(MACRO_FOLLOWS);
       unmount();
     }
   }, 60000);

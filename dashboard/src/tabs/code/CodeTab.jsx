@@ -683,7 +683,7 @@ export default function CodeTab() {
         </PageIntro>
         <section>
           <SectionHeading id="before" icon={iconFor('prerequisite')} title="Reproduce the results">
-            <IconText icon="code">Everything here comes from {ext(REPO, 'uk-growth-with-ai')}. The macro model is {MACRO_ABOUT}; its solves are committed, so the pages rebuild without it.</IconText>
+            <IconText icon="code">Everything here comes from {ext(REPO, 'uk-growth-with-ai')}. The macro model is {MACRO_ABOUT}; its solves are committed, so pages rebuild without it.</IconText>
           </SectionHeading>
           <BeforeYouStart />
         </section>
