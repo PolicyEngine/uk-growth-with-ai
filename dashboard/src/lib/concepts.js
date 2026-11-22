@@ -138,6 +138,7 @@ export const CONCEPT_ICON = {
   takeaway: 'bookmark', // a topic's key takeaway
   recap: 'blocks', // what you just learned (round 1: not a tick, which read as "done")
   copyLink: 'share', // copy a link to this chart
+  enlarge: 'maximize2', // open a chart larger (the wall's titles)
   copyImage: 'copy', // copy the chart as an image
   saveImage: 'imageDown', // download the chart as an image
   asOf: 'calendarCheck', // the data's as-of date

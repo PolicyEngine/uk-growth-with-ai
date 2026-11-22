@@ -499,7 +499,7 @@ const wallVersionItems = (arms) => ARMS.filter((a) => arms.includes(a.id)).map((
 export const WALL_HINTS = [
   { key: 'zero', icon: iconFor('onPath'), text: 'Zero line: the OBR’s central forecast path' },
   { key: 'years', icon: iconFor('shock'), text: `Dotted: ${SURPRISE_YEAR}, extra AI starts; shaded: ${HEADLINE_YEAR}` },
-  { key: 'open', icon: 'arrowUpRight', text: 'Click or tap a title to enlarge' },
+  { key: 'open', icon: iconFor('enlarge'), text: 'Click or tap a title to enlarge' },
 ];
 function WallHints() {
   return (
