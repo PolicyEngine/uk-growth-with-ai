@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { TALL_CAP } from './Scrolly.jsx';
+import { CARD_ROOM, STUCK_TOP, TALL_CAP } from './Scrolly.jsx';
 
 const root = join(__dirname, '..', '..');
 const files = (d) => readdirSync(d).flatMap((f) => (statSync(join(d, f)).isDirectory() ? files(join(d, f)) : /\.jsx$/.test(f) && !/\.test\./.test(f) ? [join(d, f)] : []));
@@ -27,6 +27,16 @@ describe('phones: one step at a time', () => {
   });
   it('a scene pins up to 70% of the screen before it is drawn once', () => {
     expect(TALL_CAP).toBe(0.7);
+  });
+  it('a scene above capFor pins only while CARD_ROOM (104px) is left under it for a card (Fable push E, fix 4)', () => {
+    expect(CARD_ROOM).toBe(104);
+    expect(STUCK_TOP).toBeGreaterThan(0);
+    const src = readFileSync(join(root, 'components', 'story', 'Scrolly.jsx'), 'utf8');
+    const line = /const tooTall = [^\n]*/.exec(src)?.[0] ?? '';
+    expect(line).toMatch(/TALL_CAP/);
+    expect(line).toMatch(/STUCK_TOP/);
+    expect(line).toMatch(/CARD_ROOM/);
+    expect(line).toMatch(/capFor\(/);
   });
   it('the steps draw no list numbering', () => {
     const css = readFileSync(join(root, 'app', 'story.css'), 'utf8');

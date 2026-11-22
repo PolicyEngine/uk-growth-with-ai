@@ -18,13 +18,24 @@ import { NotesSlot } from './FigNotes.jsx';
 // whether the card fits the room left, and the chart type scale's phone
 // sizes (item 9) took every scene over 45%.
 const capFor = (w) => (w <= 600 ? 0.55 : 0.45);
-// A scene taller than that cap still pins, up to this share of the screen
+// A scene taller than that cap still pins, up to TALL_CAP (70%) of the
+// screen, and only while CARD_ROOM (104px) is left under it for a card
 // (Vahid, 22 Nov: at 900px and below #p3-central and #p3-channels stacked
 // both numbered steps under a figure drawn once; one step at a time is
-// wanted). The cards then hold in the room under it (a card taller than
-// the room is not stuck, story.css [data-tall]). Only a scene taller than
-// this falls back to the figure once. Scenes that fit capFor are as before.
+// wanted. Fable push E, B6: the 70% holds only while a card still fits).
+// The room is the small viewport height less STUCK_TOP (the bars and the
+// question header above the stuck figure, with their gaps) and the figure.
+// A card taller than the room is not stuck (story.css [data-tall]). A scene
+// above both falls back to the figure once. Scenes that fit capFor are as
+// before.
 export const TALL_CAP = 0.7;
+// 134px of bars and question header, 10px and 8px of gaps
+// (phone-sticky-cap-fable.md, 18 Nov). Not re-measured since 337c6e4
+// shortened the question boxes: the browser check measures it at 390 (a
+// one-line and a two-line question) and sets the larger value plus 18.
+export const STUCK_TOP = 152;
+// the room a card needs under a pinned figure (the Part 3 cards: 74 to 99px)
+export const CARD_ROOM = 104;
 let svhPx = 0;
 const svh = () => {
   if (svhPx) return svhPx;
@@ -105,7 +116,8 @@ const lineGap = (room) => Math.min(0.4 * Math.max(0, room), 72);
 // backing, cards scroll beneath it, and its box keeps the height of its
 // tallest state (no layout shift). A scene whose tallest state is more than
 // TALL_CAP of the screen (70%; it was capFor's 55% on phones, 45% on
-// tablets) falls back to the figure once. `phone="steps"` instead
+// tablets), or that leaves under CARD_ROOM (104px) for a card below the
+// stuck top, falls back to the figure once. `phone="steps"` instead
 // gives each step its own copy of the figure (`is-inline`), for blocks whose
 // states are different figures. `graphic(active, reduce, ctx)` draws the
 // state for the active step; every state must be readable on its own (a
@@ -218,7 +230,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   const measuring = reserve && measured.w !== mkey;
   const minH = reserve && measured.w === mkey ? measured.h : 0;
   // too tall to stick on a phone
-  const tooTall = reserve && minH > 0 && typeof window !== 'undefined' && minH > svh() * Math.max(capFor(window.innerWidth), TALL_CAP);
+  const tooTall = reserve && minH > 0 && typeof window !== 'undefined' && minH > Math.max(svh() * capFor(window.innerWidth), Math.min(svh() * TALL_CAP, svh() - STUCK_TOP - CARD_ROOM));
   const flat = phone && !single && (!scene || tooTall);
   // phone="steps": each step carries its own copy of the figure (for blocks
   // whose states are different figures); otherwise one figure, then the cards
