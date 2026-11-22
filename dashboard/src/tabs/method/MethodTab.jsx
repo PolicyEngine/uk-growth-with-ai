@@ -243,6 +243,7 @@ function RuleCard({ r }) {
               <dd className="why-stat-value">{signed(st.dLate, 1)}pp</dd>
             </div>
           </dl>
+          <p className="why-unit">Gaps against the forecast path: investment, %; debt, pp of GDP</p>
         </div>
       ) : null}
       {r.items?.length ? <Items items={r.items.filter((it) => !longItem(it))} /> : null}
@@ -552,8 +553,8 @@ export default function MethodTab() {
             <IconText icon="source">Published, derived by this study, the macro model&rsquo;s default, or a modelling choice: each row says which, and links it.</IconText>
           </SectionHeading>
           <UsedBy id="m-inputs" />
-          {/* the old sub-heading's anchor, kept so links to it land */}
-          <span id="m-inputs-head" className="mx-alias" aria-hidden="true" />
+          {/* the old sub-heading, with its anchor */}
+          <SubHead id="m-inputs-head" title="Every input and its source" />
           <InputsPart />
         </section>
 

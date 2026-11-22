@@ -90,6 +90,17 @@ describe('Scenarios direction icons', () => {
     }
     expect(container.textContent).toContain('Open a row for its arithmetic');
   });
+  it('opens a closed input group when a link reveals one of its rows', async () => {
+    const { act } = await import('@testing-library/react');
+    const { ROWS } = await import('./inputs.js');
+    const { container } = render(<InputsPart />);
+    const r = ROWS.find((x) => !x.key && !ROWS.filter((y) => y.group === x.group).every((y) => y.key));
+    expect(container.querySelector(`#${r.id}`).hidden).toBe(true);
+    act(() => {
+      container.querySelector(`#${r.id}`).dispatchEvent(new CustomEvent('reveal', { bubbles: true }));
+    });
+    expect(container.querySelector(`#${r.id}`).hidden).toBe(false);
+  });
   // push D, Q9.3: no More info line that only repeats the card titles
   it('Method’s grid folds carry no preview of the card titles', () => {
     const { container } = render(<MethodTab />);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import Pill from '@/components/ui/Pill.jsx';
 import S from '@/lib/activeData.js';
@@ -53,6 +53,7 @@ export default function InputsTable() {
   const [kind, setKind] = useState(null);
   const [open, setOpen] = useState(() => new Set());
   const [groups, setGroups] = useState(() => new Set());
+  const root = useRef(null);
   // a link to a row (#in-…) opens its detail
   useEffect(() => {
     const go = () => {
@@ -66,7 +67,24 @@ export default function InputsTable() {
     };
     go();
     window.addEventListener('hashchange', go);
-    return () => window.removeEventListener('hashchange', go);
+    // the site's in-page links (lib/scroll.js revealAnchor) send a bubbling
+    // "reveal" from the target: a row in a closed group opens its group,
+    // so the scroll that follows finds it
+    const el = root.current;
+    const onReveal = (e) => {
+      const tr = e.target?.closest?.('tr.mx-inputs-row');
+      const row = tr && ROWS.find((r) => r.id === tr.id);
+      if (row) {
+        setKind(null);
+        setOpen((o) => new Set(o).add(row.id));
+        setGroups((o) => new Set(o).add(row.group));
+      }
+    };
+    el?.addEventListener('reveal', onReveal);
+    return () => {
+      window.removeEventListener('hashchange', go);
+      el?.removeEventListener('reveal', onReveal);
+    };
   }, []);
   const toggle = (id) =>
     setOpen((o) => {
@@ -77,7 +95,7 @@ export default function InputsTable() {
     });
   const shown = ROWS.filter((r) => !kind || r.kind === kind);
   return (
-    <div className="mx-inputs" data-no-axes="A table of inputs">
+    <div className="mx-inputs" data-no-axes="A table of inputs" ref={root}>
       <div className="mx-inputs-filter">
         <Pill
           className="is-card"
