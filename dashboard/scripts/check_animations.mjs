@@ -244,7 +244,9 @@ for (const sel of TEXT === 'only' ? [] : ['#p3-pound', '#p2-output']) {
 //    settled (3s): so text a step hides stays out of the count. 1000ms
 //    for #p1-output's third step (the zoom to quarters) and the morph
 //    axes (.p2-mo-axis, .p2-mo-x, .p2-mo-fade). A run cut by the next
-//    trigger inside its 3s is skipped and named.
+//    trigger inside its 3s is skipped and named. Fewer runs than the
+//    entry plus each later card is a miss, as is a motion-on entry where
+//    neither text nor marks changed.
 //  - reduced motion: nothing may animate, so the same at 100ms.
 //  - lead (not a miss, for Vahid's eye): a run whose marks settle more
 //    than 1s after its text prints LEAD; with SHOT=dir it also saves a
@@ -349,7 +351,8 @@ async function textProbe() {
       for (let k = 1; k < run.samples.length; k++) if (run.samples[k][key].some((v, j) => v !== run.samples[k - 1][key][j])) last = run.samples[k].t;
       return Math.round(last);
     };
-    return { kind: run.kind, cut: Boolean(run.cut), done: Boolean(run.done), bad, text: settle('text'), marks: settle('marks') };
+    const moved = run.samples.some((s, k) => k > 0 && ['text', 'marks'].some((key) => s[key].some((v, j) => v !== run.samples[k - 1][key][j])));
+    return { kind: run.kind, cut: Boolean(run.cut), done: Boolean(run.done), moved, bad, text: settle('text'), marks: settle('marks') };
   };
   for (const rm of ['no-preference', 'reduce']) {
     const c = await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: rm });
@@ -389,7 +392,9 @@ async function textProbe() {
         return false;
       };
       const stopAt = geo.figTop - 0.3 * H;
-      await wheelUntil((y) => scrollY >= y || window.__tp.seen, stopAt);
+      // on to the entry probe's stop (the figure's top at 30% of the screen),
+      // so the entry run sees the draw, not only the first class change
+      await wheelUntil((y) => scrollY >= y, stopAt);
       const shoot = async (label) => {
         if (!process.env.SHOT) return;
         const t0 = await page.evaluate(() => window.__tp.runs.at(-1)?.t0 ?? performance.now());
@@ -413,7 +418,10 @@ async function textProbe() {
         await page.waitForTimeout(3200);
       }
       const n = await page.evaluate(() => window.__tp.runs.length);
-      if (!n) say(false, `${name} (${tag})`, 'no trigger seen (the figure never came into view)');
+      // the entry and one run per later card: a step that never triggers
+      // must not pass by printing nothing
+      const want = 1 + Math.max(0, info.cards - 1);
+      if (n < want) say(false, `${name} (${tag})`, `${n} trigger(s) seen of ${want} (the entry and each later card)`);
       for (let i = 0; i < n; i++) {
         const r = await page.evaluate(ANALYSE, { i, early: rm === 'reduce' ? 100 : null, block });
         const label = `${name} ${r.kind} (${tag})`;
@@ -422,6 +430,9 @@ async function textProbe() {
           continue;
         }
         say(!r.bad.length, label, r.bad.length ? `${r.bad.length} text element(s) not settled: ${r.bad.slice(0, 3).join('; ')}` : `text settled by ${r.text}ms, marks by ${r.marks}ms`);
+        // an entry with motion on where nothing changed: drawn before its
+        // trigger, or never drawn; the 700ms check above would pass it
+        if (rm !== 'reduce' && r.kind === 'entry' && !r.moved) say(false, label, 'neither text nor marks changed after the trigger');
         if (rm !== 'reduce' && r.marks - r.text > 1000) console.log(`LEAD text ${label}: text settled at ${r.text}ms, marks at ${r.marks}ms`);
       }
       await page.close();
@@ -450,7 +461,17 @@ async function textProbe() {
     need('board focus line and end', '.p1-board-series.is-focus :is(.p1-board-line, .p1-board-end)', full);
     need('AI lines', '.p1-ai-svg .p1-ai-line', (el) => dash0(el) && full(el));
     need('AI dots, area, end labels', '.p1-ai-svg :is(.p1-ai-dot, .p1-ai-area, .p1-end-label)', full);
-    need('step cards', '.scrolly .scrolly-steps .scrolly-step .scrolly-card', (el) => Number(getComputedStyle(el).opacity) > 0.99);
+    // the card's opacity times its ancestors' up to the scene, so a dimmed
+    // step item is caught too
+    const upTo = (el) => {
+      let o = 1;
+      for (let n = el; n; n = n.parentElement) {
+        o *= Number(getComputedStyle(n).opacity);
+        if (n.classList.contains('scrolly')) break;
+      }
+      return o;
+    };
+    need('step cards', '.scrolly .scrolly-steps .scrolly-step .scrolly-card', (el) => upTo(el) > 0.99);
     if (nojs) {
       const tiles = [...document.querySelectorAll('.p1-swap-layer')].filter((l) => l.querySelector('.p1-tiles, .p1-exposure'));
       if (tiles.some((l) => eff(l) > 0.01)) out.push('tiles layer shown with no JavaScript');
