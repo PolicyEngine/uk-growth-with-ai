@@ -38,6 +38,9 @@ const tabs = [
 // ([data-more-info], components/ui/MoreInfo.jsx; item-36-fable.md §1.3): a
 // definition, a draw count or a period may have its one home there. An
 // open fold is already in innerText and is not read twice.
+// A closed table fold ([data-table-fold], households TableFold.jsx; the
+// Households redesign) is read before the mark: a table fold is a figure's
+// home; More info only restates.
 // check_numbers.py counts the printed figures before the mark.
 const MORE_MARK = '[[more info]]';
 function readTab([id, hide, mark]) {
@@ -50,8 +53,9 @@ function readTab([id, hide, mark]) {
     return c.textContent.replace(/\s+/g, ' ').trim();
   };
   const notes = [...el.querySelectorAll('[data-source-notes]')].map(flat);
+  const folds = [...el.querySelectorAll('[data-table-fold] .disclosure-content[hidden]')].map(flat).filter(Boolean);
   const more = [...el.querySelectorAll('[data-more-info]')].filter((n) => n.closest('[hidden]')).map(flat).filter(Boolean);
-  return [el.innerText, ...notes, ...(more.length ? [mark, ...more] : [])].join('\n');
+  return [el.innerText, ...notes, ...folds, ...(more.length ? [mark, ...more] : [])].join('\n');
 }
 const res = {};
 for (const s of ['uk_low', 'uk_central', 'uk_high', 'korinek']) {

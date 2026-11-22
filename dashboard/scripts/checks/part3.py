@@ -134,11 +134,20 @@ def sankey_failures():
     return bad
 
 
+def waterfall_failures():
+    """The cost lines sum to the net (Explore > Households, card 1's waterfall: each line starts where the one above ends)."""
+    cc = AI['cost_components']
+    tot = sum(r['cost_bn'] for r in cc['rows'])
+    return [] if abs(tot - cc['total_bn']) <= 1e-3 else [f"cost lines sum to {tot:.4f}, net {cc['total_bn']:.4f}"]
+
+
 def check(dump):
     """Return the number of failures for story part 3 and the households views."""
     bad = 0
     for msg in sankey_failures():
         bad += 1; print("Households Sankey:", msg)
+    for msg in waterfall_failures():
+        bad += 1; print("Households waterfall:", msg)
     for sid in dump:
         t = dump[sid].get('story:part3')
         e = dump[sid].get('explore:households')
