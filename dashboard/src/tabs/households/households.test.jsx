@@ -314,6 +314,23 @@ describe('HouseholdsExplore', () => {
     const card = container.querySelector('#hh-rankings');
     const d1 = card.querySelector('[data-decile="1"]');
     expect(d1.querySelectorAll('.p3-fill-muted')).toHaveLength(D.rankings.length);
+    // a bar for the study's ranking and two dots per decile (Households
+    // redesign, R9); the range line is gone; decile 1 all muted
+    expect(card.querySelectorAll('.hh-db-bar')).toHaveLength(10);
+    expect(card.querySelectorAll('.hh-db-dot')).toHaveLength(20);
+    expect(card.querySelector('.hh-db-line')).toBeNull();
+    expect(d1.querySelector('.hh-db-bar').classList.contains('p3-fill-muted')).toBe(true);
+    expect([...d1.querySelectorAll('.hh-db-dot')].every((x) => x.classList.contains('p3-fill-muted'))).toBe(true);
+    // each bar runs from zero to the study's value (left edge at zero, or
+    // ending at zero when negative)
+    const zero = parseFloat(card.querySelector('[data-decile="2"] .hh-db-zero').style.left);
+    for (let i = 0; i < 10; i += 1) {
+      const b = card.querySelector(`[data-decile="${i + 1}"] .hh-db-bar`);
+      const v = D.rankings[0].values[i];
+      const [l, w] = [parseFloat(b.style.left), parseFloat(b.style.width)];
+      if (v >= 0) expect(l).toBeCloseTo(zero, 6);
+      else expect(l + w).toBeCloseTo(zero, 6);
+    }
     expect(d1.querySelector('.hh-db-val').classList.contains('hh-muted')).toBe(true);
     expect(card.querySelector('[data-caveat="bottom-decile"]').textContent).toContain('so no conclusion is drawn');
     const vals = [...card.querySelectorAll('.hh-db-val')];

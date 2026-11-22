@@ -1713,12 +1713,28 @@
   bottom: 0;
   border-left: 1px solid var(--c-zero-line);
 }
-.hh-db-line {
+/* the study's ranking as a bar from zero (Households redesign, R9); at
+   least 2px wide, so a value near zero still leaves a mark */
+.hh-db-bar {
   position: absolute;
   top: 50%;
-  height: 2px;
-  margin-top: -1px;
-  background: var(--pe-gray-300);
+  min-width: 2px;
+  height: 8px;
+  margin-top: -4px;
+  border-radius: 0 2px 2px 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 400ms var(--story-ease) var(--beat, 0ms);
+}
+.hh-db-bar.is-neg {
+  border-radius: 2px 0 0 2px;
+  transform-origin: right center;
+}
+.hh-db-bar.p3-fill-muted {
+  background: var(--pe-gray-400);
+}
+.hh-db.is-on .hh-db-bar {
+  transform: none;
 }
 .hh-db-dot {
   position: absolute;
@@ -1761,6 +1777,7 @@
   .hh-page .hh-funnel-bar,
   .hh-page .hh-reason,
   .hh-page .hh-db-dot,
+  .hh-page .hh-db-bar,
   .hh-page .hh-pol-bar,
   .hh-page .hh-uc-bar,
   .hh-page .hh-uc-vals .hh-val {
@@ -1771,6 +1788,7 @@
   .hh-page .hh-wf-bar,
   .hh-page .hh-pence-seg,
   .hh-page .hh-funnel-bar,
+  .hh-page .hh-db-bar,
   .hh-page .hh-pol-bar {
     transform: none;
   }

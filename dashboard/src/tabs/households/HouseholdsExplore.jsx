@@ -846,8 +846,9 @@ function Rankings() {
       title={rankingsWords(R)}
       lead={lead ? <Lead>{lead}</Lead> : null}
       unit={<span data-axis-title="y">% change in disposable income, by decile</span>}
-      legend={<Legend label="Rankings" items={R.map((r, i) => ({ key: r.id, label: RANK_SHORT[r.id] ?? r.label, kind: 'dot', color: RANK_COLOR[i] }))} />}
+      legend={<Legend label="Rankings" items={R.map((r, i) => ({ key: r.id, label: RANK_SHORT[r.id] ?? r.label, kind: i ? 'dot' : 'block', color: RANK_COLOR[i] }))} />}
       more={[
+        { label: 'How to read', text: 'The bar is the study’s ranking; the dots are the two other rankings.' },
         { label: 'Measure', text: 'Disposable income before housing costs.' },
         { label: 'Settings', text: 'The main case.' },
         { label: 'Sample', text: `${D.deciles.draws} draws.` },
@@ -907,11 +908,17 @@ function Rankings() {
                 <span role="rowheader" className="hh-db-label">
                   {i === 0 ? '1 (bottom)' : i === 9 ? '10 (top)' : i + 1}
                 </span>{' '}
+                {/* a diverging bar from zero for the study's ranking, the
+                    two other rankings as dots on the same row (Households
+                    redesign, R9: no toggle, so decile 1's sign change shows) */}
                 <span className="hh-db-track" aria-hidden="true">
                   <span className="hh-db-zero" style={{ left: `${X(0)}%` }} />
-                  <span className="hh-db-line" style={{ left: `${X(Math.min(...vs))}%`, width: `${X(Math.max(...vs)) - X(Math.min(...vs))}%` }} />
-                  {vs.map((v, k) => (
-                    <span key={k} className={`hh-db-dot ${first ? 'p3-fill-muted' : RANK_FILL[k]}`} style={{ left: `${X(v)}%` }} />
+                  <span
+                    className={`hh-db-bar ${first ? 'p3-fill-muted' : RANK_FILL[0]}${vs[0] < 0 ? ' is-neg' : ''}`}
+                    style={{ left: `${X(Math.min(0, vs[0]))}%`, width: `${Math.abs(X(vs[0]) - X(0))}%` }}
+                  />
+                  {vs.slice(1).map((v, k) => (
+                    <span key={k} className={`hh-db-dot ${first ? 'p3-fill-muted' : RANK_FILL[k + 1]}`} style={{ left: `${X(v)}%` }} />
                   ))}
                 </span>{' '}
                 {/* the study's ranking, restated from the Story's deciles step
