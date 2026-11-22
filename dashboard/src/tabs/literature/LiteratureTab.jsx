@@ -82,7 +82,7 @@ function ImfGap() {
             text: (
               <>
                 Here the return on capital rises as capital grows (
-                <NavLink tab="explore" sub="economy" anchor="explore-part-economy" patch={{ s: 'uk_central' }}>Explore, Economy</NavLink>).
+                <NavLink tab="explore" sub="economy" anchor="explore-part-economy" patch={{ s: 'uk_central' }}>Explore, economy</NavLink>).
               </>
             ),
           },

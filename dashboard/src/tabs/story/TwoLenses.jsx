@@ -347,9 +347,7 @@ export default function TwoLenses() {
                   <strong>{l.name}</strong>
                 </IconLine>
                 <span className="close-next-desc">{l.rest}</span>
-                <span className="close-next-arrow" aria-hidden="true">
-                  →
-                </span>
+                <Icon name="arrowRight" size={16} className="plain-icon close-next-arrow" />
               </NavLink>
             </li>
           ))}

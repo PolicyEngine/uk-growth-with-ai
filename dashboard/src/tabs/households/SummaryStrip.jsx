@@ -1,6 +1,6 @@
 'use client';
 
-import Icon from '@/components/ab/Icon.jsx';
+import IconLine from '@/components/ui/IconLine.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { D } from '@/tabs/story/part3/shared.jsx';
@@ -48,10 +48,9 @@ export default function SummaryStrip() {
         {tiles.map((t) => (
           <li key={t.key}>
             <NavLink tab="explore" sub="households" anchor={t.anchor} className="hh-tile">
-              <span className="hh-tile-label">
-                <Icon name={t.icon} size={16} />
-                <span>{t.label}</span>
-              </span>{' '}
+              <IconLine as="span" icon={t.icon} tier="ui" className="hh-tile-label">
+                {t.label}
+              </IconLine>{' '}
               {/* spaces between the parts, so the text never runs a label
                   into its figure (label-joins) */}
               <span className="hh-tile-value" data-axis="">

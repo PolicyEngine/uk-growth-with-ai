@@ -495,7 +495,7 @@ describe('Part3', () => {
       expect(a.classList.contains('close-next-card')).toBe(true);
       expect(a.querySelector('.close-next-title.icon-line > .icon-line-icon svg')).not.toBeNull();
       expect(a.querySelector('.close-next-desc').textContent.split(/\s+/).length).toBeLessThanOrEqual(12);
-      expect(a.querySelector('.close-next-arrow').textContent.trim()).toBe('→');
+      expect(a.querySelector('.close-next-arrow svg')).not.toBeNull();
     }
     expect(nav.querySelector('.story-panel, .story-frame')).toBeNull();
   });

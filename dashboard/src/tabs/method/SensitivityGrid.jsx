@@ -104,17 +104,17 @@ export default function SensitivityGrid() {
         <div className="mx-sens-links">
           <IconLine concept="link">
             <NavLink tab="explore" sub="economy">
-              Foreign capital, as a chart: Explore, Economy
+              Foreign capital, as a chart: Explore, economy
             </NavLink>
           </IconLine>
           <IconLine concept="link">
             <NavLink tab="explore" sub="finances" anchor="fiscal-rule">
-              Budget rules, year by year: Explore, Public finances
+              Budget rules, year by year: Explore, public finances
             </NavLink>
           </IconLine>
           <IconLine concept="link">
             <NavLink tab="explore" sub="finances">
-              Debt repriced at the OBR’s speed: Explore, Public finances
+              Debt repriced at the OBR’s speed: Explore, public finances
             </NavLink>
           </IconLine>
         </div>

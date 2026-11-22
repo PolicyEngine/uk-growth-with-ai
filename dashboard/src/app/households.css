@@ -39,21 +39,14 @@
 .hh-tile:focus-visible {
   border-color: var(--pe-gray-400);
 }
-.hh-tile:hover .hh-tile-label > span,
-.hh-tile:focus-visible .hh-tile-label > span {
+.hh-tile:hover .hh-tile-label > .icon-line-text,
+.hh-tile:focus-visible .hh-tile-label > .icon-line-text {
   text-decoration: underline;
 }
+/* an IconLine (ui tier): the icon on the label's first line */
 .hh-tile-label {
-  display: flex;
-  gap: 6px;
-  align-items: center;
   font-size: var(--chart-fs-tick);
   color: var(--pe-gray-600);
-}
-.hh-tile-label > .plain-icon {
-  display: inline-flex;
-  flex: none;
-  color: var(--pe-gray-500);
 }
 .hh-tile-value {
   font-size: var(--chart-fs-title);

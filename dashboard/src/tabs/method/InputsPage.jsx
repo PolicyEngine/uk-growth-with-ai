@@ -62,7 +62,7 @@ export default function InputsPage() {
           <IconLine concept="link" className="mx-sources-line">
             Each row links its own source. The full list, with where each figure is read, is on Evidence.{' '}
             <NavLink tab="method" sub="studies" anchor="sources">
-              Evidence, Sources
+              Evidence, sources
             </NavLink>
           </IconLine>
           <UsedBy id="m-inputs" />

@@ -97,7 +97,7 @@ describe('Inputs and sources', () => {
     for (const id of ['m-inputs', 'm-inputs-head', 'inputs-table', 'in-sources', ...ROWS.map((r) => r.id)]) expect(container.querySelector(`#${id}`), id).not.toBeNull();
     expect(container.querySelector('#m-inputs-head').closest('#m-inputs')).not.toBeNull();
     expect(container.querySelector('#in-sources').compareDocumentPosition(container.querySelector('.mx-uses')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    const ev = [...container.querySelectorAll('#in-sources ~ * a, .mx-sources-line a')].find((a) => a.textContent === 'Evidence, Sources');
+    const ev = [...container.querySelectorAll('#in-sources ~ * a, .mx-sources-line a')].find((a) => a.textContent === 'Evidence, sources');
     expect(ev.getAttribute('href')).toMatch(/tab=method&sub=studies#sources$/);
   });
   // Method redesign, 6.1: search, the "Used by" filter and the count line

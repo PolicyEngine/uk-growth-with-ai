@@ -495,7 +495,7 @@ function LabourTax({ nic }) {
               <>
                 Employer NICs: flat payroll tax; rate against average on{' '}
                 <NavLink tab="explore" sub="finances" anchor="tax-gap">
-                  Explore, Public finances
+                  Explore, public finances
                 </NavLink>
                 .
               </>
@@ -726,7 +726,7 @@ export default function MethodTab() {
           <IconLine concept="link" className="mx-sources-line">
             All sources, with where each figure is read:{' '}
             <NavLink tab="method" sub="studies" anchor="sources">
-              Evidence, Sources
+              Evidence, sources
             </NavLink>
           </IconLine>
           <UsedBy id="m-limits" />

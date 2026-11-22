@@ -1,11 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Icon from '@/components/ab/Icon.jsx';
 import IconLine from '@/components/ui/IconLine.jsx';
 import { hy } from '@/components/story/Hy.jsx';
 import { useEntry, useSnap } from '@/components/story/motion.js';
-import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
 
 // After part 3, its own section (StoryTab, push D Q4: a full-width band
@@ -76,10 +74,9 @@ export default function Closing() {
           </div>
           {OUT_GROUPS.map((g, i) => (
             <section key={g.id} className="p3-out-group" data-group={g.id} aria-labelledby={`p3-out-${g.id}`} style={{ '--i': i }}>
-              <h4 className="p3-out-group-h" id={`p3-out-${g.id}`}>
-                <Icon name={iconFor(g.icon)} size={16} />
+              <IconLine as="h4" concept={g.icon} tier="ui" className="p3-out-group-h" id={`p3-out-${g.id}`}>
                 {g.title}
-              </h4>
+              </IconLine>
               <dl className="p3-out-rows">
                 {LEFT_OUT.filter((t) => t.group === g.id).map((t) => (
                   <div key={t.id} className="p3-out-row" data-item={t.id}>

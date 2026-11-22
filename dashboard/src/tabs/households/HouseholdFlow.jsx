@@ -1,7 +1,6 @@
 'use client';
 
-import Icon from '@/components/ab/Icon.jsx';
-import { iconFor } from '@/lib/concepts.js';
+import IconLine from '@/components/ui/IconLine.jsx';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { esc } from '@/lib/download.js';
 import { Arrow } from '@/tabs/method/ModelDiagram.jsx';
@@ -61,10 +60,9 @@ export function flowSvg({ boxes, links, tag }) {
 function Box({ k, b }) {
   return (
     <div className={`hf-box hf-${k}`}>
-      <span className="hf-box-head">
-        <Icon name={iconFor(b.icon)} size={18} />
+      <IconLine as="span" concept={b.icon} tier="body" className="hf-box-head">
         <b>{b.title}</b>
-      </span>
+      </IconLine>
       <span className="hf-box-line">{b.line}</span>
     </div>
   );
@@ -98,10 +96,9 @@ export default function HouseholdFlow({ boxes, links, tag }) {
         <Box k="a" b={boxes.a} />
         <Box k="b" b={boxes.b} />
         <Link l={link('bc')} boxes={boxes} />
-        <p className="hf-tag">
-          <Icon name={iconFor('draws')} size={14} />
-          <span>{tag}</span>
-        </p>
+        <IconLine concept="draws" tier="meta" className="hf-tag">
+          {tag}
+        </IconLine>
         <Box k="c" b={boxes.c} />
         <Link l={link('cd')} boxes={boxes} />
         <Link l={link('ad')} boxes={boxes} />

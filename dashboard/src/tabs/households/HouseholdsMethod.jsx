@@ -393,7 +393,7 @@ export default function HouseholdsMethod() {
           <IconLine concept="link" className="mx-sources-line">
             All sources, with where each figure is read:{' '}
             <NavLink tab="method" sub="studies" anchor="sources">
-              Evidence, Sources
+              Evidence, sources
             </NavLink>
           </IconLine>
           <p className="mx-moved" id="hm-vintage" tabIndex={-1}>

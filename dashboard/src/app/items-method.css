@@ -1019,15 +1019,9 @@ p.mx-axis-title.is-x {
   border-color: var(--c-gain);
 }
 .hf-box-head {
-  display: flex;
-  align-items: center;
-  gap: 6px;
   font-size: var(--fs-small);
   color: var(--pe-gray-800);
-}
-.hf-box-head .plain-icon {
-  display: inline-flex;
-  color: var(--c-gain-text);
+  --il-color: var(--c-gain-text);
 }
 .hf-box-line {
   font-size: var(--fs-caption);
@@ -1057,9 +1051,6 @@ p.mx-axis-title.is-x {
   white-space: nowrap;
 }
 .hf-tag {
-  display: flex;
-  align-items: center;
-  gap: 6px;
   margin: 0;
   padding-bottom: 4px;
   font-size: var(--fs-caption);

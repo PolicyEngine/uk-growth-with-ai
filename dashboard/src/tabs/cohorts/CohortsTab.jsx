@@ -825,10 +825,9 @@ export function moreInfoReasons(cl, rule, arm, o = {}) {
 
 function MiHead({ r }) {
   return (
-    <h4 className="ex-mi-head">
-      <Icon name={iconFor(r.icon)} size={16} className="ex-mi-head-icon" />
-      <span>{r.head}</span>
-    </h4>
+    <IconLine as="h4" concept={r.icon} tier="ui" className="ex-mi-head">
+      {r.head}
+    </IconLine>
   );
 }
 const MiTake = ({ r }) => (r.take ? <p className="ex-mi-text">{r.take}</p> : null);

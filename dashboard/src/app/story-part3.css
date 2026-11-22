@@ -2825,9 +2825,6 @@ a.lens-pay-num:hover {
   margin-top: 18px;
 }
 .p3-out-group-h {
-  display: flex;
-  gap: 8px;
-  align-items: center;
   margin: 0;
   padding-bottom: 8px;
   font-size: var(--chart-fs-head);
@@ -2836,10 +2833,8 @@ a.lens-pay-num:hover {
   color: var(--t-ink);
   border-bottom: 1px solid var(--card-border);
 }
-.p3-out-group-h .plain-icon {
-  display: inline-flex;
-  flex: none;
-  color: var(--part-accent, var(--c-highlight));
+.p3-out-group-h {
+  --il-color: var(--part-accent, var(--c-highlight));
 }
 .p3-out-rows {
   display: grid;

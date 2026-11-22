@@ -2537,17 +2537,6 @@
   border: 1px solid var(--card-border);
   border-radius: var(--card-radius, 12px);
 }
-.ex-mi-head {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-}
-.ex-mi-head-icon {
-  display: inline-flex;
-  flex: none;
-  margin-top: 2px;
-  color: var(--pe-gray-500);
-}
 .ex-mi-unit {
   margin: 0;
   font-size: var(--fs-caption);
@@ -2592,8 +2581,7 @@
     font-size: var(--chart-fs-tick);
   }
   .ex-mi-lead,
-  .ex-mi-text,
-  .ex-mi-head {
+  .ex-mi-text {
     font-size: 14px;
   }
   .ex-bars2-list {
@@ -2854,8 +2842,4 @@
 }
 [id^="explore-sub-"] :is(.ex-mi-unit, .ex-mi-note, .ex-mi-src) {
   font-size: var(--chart-fs-tick);
-}
-/* the 16px icon centred on the 18px heading's first line (24px box) */
-[id^="explore-sub-"] .ex-mi-head-icon {
-  margin-top: 4px;
 }
