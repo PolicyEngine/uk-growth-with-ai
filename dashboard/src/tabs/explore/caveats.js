@@ -30,7 +30,7 @@ export function wageByClosure(sid) {
 }
 
 // The same in words, one short line per run of equal sides, e.g. ["Wage
-// rate below the path at ζK 0 and 0.1", "Above it at ζK 0.5: the sign
+// rate below the path at ζK = 0 and 0.1", "Above it at ζK = 0.5: the sign
 // depends on the closure"]; null when every closure gives one side.
 export function wageClosureLines(sid) {
   const xs = wageByClosure(sid);
@@ -44,8 +44,8 @@ export function wageClosureLines(sid) {
   const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
   return groups.map((g, i) =>
     i === 0
-      ? `Pay rate ${g.side === 'on' ? 'on the forecast path' : `${g.side} the forecast path`} at ζK ${g.z.join(' and ')}`
-      : `${cap(g.side === 'on' ? 'on it' : `${g.side} it`)} at ζK ${g.z.join(' and ')}${i === groups.length - 1 ? ': the sign depends on foreign capital' : ''}`,
+      ? `Pay rate ${g.side === 'on' ? 'on the forecast path' : `${g.side} the forecast path`} at ζK = ${g.z.join(' and ')}`
+      : `${cap(g.side === 'on' ? 'on it' : `${g.side} it`)} at ζK = ${g.z.join(' and ')}${i === groups.length - 1 ? ': the sign depends on foreign capital' : ''}`,
   );
 }
 

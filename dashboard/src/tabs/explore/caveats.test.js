@@ -28,7 +28,7 @@ describe('economics review caveats, read from the active data file', () => {
     if (!PINNED) return;
     // below at 0 and 0.1, above at 0.5 in the data this was written against
     expect(xs.map((c) => c.side)).toEqual(['below', 'below', 'above']);
-    expect(lines).toEqual(['Pay rate below the forecast path at ζK 0 and 0.1', 'Above it at ζK 0.5: the sign depends on foreign capital']);
+    expect(lines).toEqual(['Pay rate below the forecast path at ζK = 0 and 0.1', 'Above it at ζK = 0.5: the sign depends on foreign capital']);
     lines.forEach((t) => expect(t.split(' ').length).toBeLessThanOrEqual(12));
   });
 

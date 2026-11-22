@@ -213,8 +213,8 @@ describe('the investment caveat names the cell on screen', () => {
         const want = cls
           .map((cl) => ({ cl, r: S.results[s.id].tfp[cl] }))
           .filter(({ r }) => r.status === 'done' && r.gaps.I[i] >= I_RECORD_PCT)
-          .map(({ cl, r }) => `This scenario, main version, ζK ${S.closures[cl].zeta_K}: +${Math.round(r.gaps.I[i])}% in ${S.surprise_year}${r.gaps.I[i] > I_FLAG_PCT ? '' : ', larger than any year on record'}`);
-        const got = shownInvestFlags(s.id, closure, 'common').map((f) => `This scenario, main version, ζK ${f.zeta}: +${Math.round(f.x)}% in ${S.surprise_year}${f.record ? ', larger than any year on record' : ''}`);
+          .map(({ cl, r }) => `This scenario, main version, ζK = ${S.closures[cl].zeta_K}: +${Math.round(r.gaps.I[i])}% in ${S.surprise_year}${r.gaps.I[i] > I_FLAG_PCT ? '' : ', larger than any year on record'}`);
+        const got = shownInvestFlags(s.id, closure, 'common').map((f) => `This scenario, main version, ζK = ${f.zeta}: +${Math.round(f.x)}% in ${S.surprise_year}${f.record ? ', larger than any year on record' : ''}`);
         expect(got.sort()).toEqual(want.sort());
         expect(shownInvestFlags(s.id, closure, 'dn')).toEqual([]);
         const { container, unmount } = wrap(<ResultsTab sub="economy" />, `tab=explore&s=${s.id}&closure=${closure}`);

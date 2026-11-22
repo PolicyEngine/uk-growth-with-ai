@@ -13,7 +13,7 @@ import { SCEN_NAME } from '@/tabs/ai/surprise.js';
 // assembles them, the scenario's input file, any extra documents and the
 // Method section that explains the chart.
 
-const CLOSURE_DIR = { 'zk0.1': 'some foreign capital', zk0: 'no foreign capital', 'zk0.5': 'ζK 0.5 sensitivity' };
+const CLOSURE_DIR = { 'zk0.1': 'some foreign capital', zk0: 'no foreign capital', 'zk0.5': 'ζK = 0.5 sensitivity' };
 
 export const methodLink = (key, text) => {
   const m = METHOD[key];

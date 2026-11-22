@@ -17,7 +17,7 @@ import { OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import { NavLink } from '@/lib/nav.jsx';
 import ChartHover from '@/components/story/chart/ChartHover.jsx';
 import { fracWord } from '@/tabs/story/part2/caveats.js';
-import MathSym, { mathNodes } from '@/components/ui/MathSym.jsx';
+import MathSym, { mathNodes, symText } from '@/components/ui/MathSym.jsx';
 
 // The foreign-owned share of the added capital in the headline year: the
 // data file's foreign-share key (lib/dataKeys.js) for UK central's main version, the same
@@ -176,16 +176,16 @@ function SensGrid({ res }) {
       head: `${s.label}, ${c.label}`,
       rows: [
         { name: 'Version', value: a.short || a.label, color: ARM_COLOR[a.id] },
-        { name: 'Foreign capital', value: `ζK ${zk}`, icon: 'closure' },
+        { name: 'Foreign capital', value: symText('zetaK', zk), icon: 'closure' },
         { name: 'Budget', value: 'Common fiscal rule', icon: 'rule' },
         { name: 'Gap', value: x == null ? holeText(res[s.id]?.[a.id]) : fmt(x, 2), icon: 'gdp', path: x == null ? undefined : `sensitivity.${SENS}.results.${s.id}.${a.id}.gaps.${c.v}.${HEADLINE_YEAR}` },
-        { name: 'With ζK 0.1', value: ce == null ? holeText(storedAt(s.id, a.id, CENTRAL)) : fmt(ce, 2), icon: 'compare' },
+        { name: `With ${symText('zetaK', ZETA[CENTRAL])}`, value: ce == null ? holeText(storedAt(s.id, a.id, CENTRAL)) : fmt(ce, 2), icon: 'compare' },
       ],
       unit: `% gap against the forecast path, ${HEADLINE_YEAR}. The macro model works it out.`,
     };
   });
   return (
-    <ChartHover label={`${HEADLINE_YEAR} gaps with ζK ${zk}, by scenario, version and measure`} items={tips}>
+    <ChartHover label={`${HEADLINE_YEAR} gaps with ${symText('zetaK', zk)}, by scenario, version and measure`} items={tips}>
     {/* a table, not a plotted scale: each column head carries its unit (%
         gap); the card's unit line above it names zeta_K, the year and the
         path (item 42) */}
@@ -276,7 +276,7 @@ function SensGrid({ res }) {
                             {fmt(x, 2)}
                           </span>
                           {dirWord ? (
-                            <span className="ex-sg-dir" title={`${dirWord === 'higher' ? 'Higher' : 'Lower'} than with some foreign capital (ζK 0.1)${flip ? '; the sign flips' : ''}`}>
+                            <span className="ex-sg-dir" title={`${dirWord === 'higher' ? 'Higher' : 'Lower'} than with some foreign capital (${symText('zetaK', ZETA[CENTRAL])})${flip ? '; the sign flips' : ''}`}>
                               <Icon name={iconFor(dirWord === 'higher' ? 'gapUp' : 'gapDown')} size={12} />
                               <span className="visually-hidden">{`, ${dirWord} than with some foreign capital${flip ? ', sign flips' : ''}`}</span>
                             </span>
@@ -298,7 +298,7 @@ function SensGrid({ res }) {
 
 // The comparison every key item is against, named once (push D, Q6d):
 // some foreign capital, with its zeta_K from the data.
-export const CMP_NAME = `some foreign capital (ζK ${ZETA[CENTRAL]})`;
+export const CMP_NAME = `some foreign capital (${symText('zetaK', ZETA[CENTRAL])})`;
 
 // Item 39 (wording for Fable): the grid's always-visible key line, right
 // under it, centred (push D, Q6d): a lead-in naming the comparison once,
@@ -371,7 +371,7 @@ export default function SensitivityTable() {
             </>
           ),
         },
-        { label: 'In every scenario’s main version, against ζK 0.1', text: <Items className="ex-notes" items={sensClaims(res)} /> },
+        { label: `In every scenario’s main version, against ${symText('zetaK', ZETA[CENTRAL])}`, text: <Items className="ex-notes" items={sensClaims(res)} /> },
         { label: 'How it is drawn', text: <Items className="ex-notes" items={gridKey(res)} /> },
         { label: 'Compared with', text: 'The forecast path for the same foreign-capital case.' },
         { label: 'Settings', text: 'Spending follows GDP.' },

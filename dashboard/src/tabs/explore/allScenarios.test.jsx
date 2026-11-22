@@ -267,7 +267,7 @@ describe('the zeta_K 0.5 card’s More info fold', () => {
     // the data; then the outline and the arrows, no bare "/" between icons
     const key = card.querySelector('.ex-sg-keyline');
     const zk = S.closures['zk0.1'].zeta_K;
-    expect(key.querySelector('.ex-sg-keylead').textContent).toBe(`Compared with some foreign capital (ζK ${zk}):`);
+    expect(key.querySelector('.ex-sg-keylead').textContent).toBe(`Compared with some foreign capital (ζK = ${zk}):`);
     expect(key.textContent.match(/some foreign capital/g)).toHaveLength(1);
     const items = [...key.querySelectorAll('.ex-sg-keyitem')].map((i) => i.textContent.replace(/\s+/g, ' ').trim());
     expect(items.at(-1)).toBe('higher / lower');
@@ -276,8 +276,8 @@ describe('the zeta_K 0.5 card’s More info fold', () => {
     expect(arrows.querySelectorAll('svg')).toHaveLength(2);
     expect([...arrows.childNodes].map((n) => n.textContent.trim()).filter(Boolean)).toEqual(['higher /', 'lower']);
     // the More info key, in the same words
-    expect(t).toContain(`Arrows: higher or lower than with some foreign capital (ζK ${zk})`);
-    if (items.length > 1) expect(t).toMatch(new RegExp(`Dashed outline: the sign differs from some foreign capital \\(ζK ${zk}\\) \\(\\d+ cells\\)`));
+    expect(t).toContain(`Arrows: higher or lower than with some foreign capital (ζK = ${zk})`);
+    if (items.length > 1) expect(t).toMatch(new RegExp(`Dashed outline: the sign differs from some foreign capital \\(ζK = ${zk}\\) \\(\\d+ cells\\)`));
   });
 
   it('fracWord says "about all" within 0.02 of one, only when asked', async () => {

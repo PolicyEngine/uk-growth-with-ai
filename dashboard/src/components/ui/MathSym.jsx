@@ -8,8 +8,11 @@
 // spaces (the CSS keeps the whole symbol on one line), and there is no
 // whitespace between the letter and its subscript, so textContent reads
 // exactly as the plain text did ("ζK = 0.1"): word counts, number checks
-// and the label-join probes see what they saw before. Screen readers get
-// a spoken form ("zeta K equals 0.1") from aria-label.
+// and the label-join probes see what they saw before. No role and no
+// aria-label: the plain text reads as "zeta K equals 0.1" unaided. symSay()
+// gives the spoken form for labels built as strings (charts, tooltips).
+// One symbol with one value always prints " = ", lists included
+// ("at ζK = 0 and 0.1").
 //
 // JSX only. A string built in plain JS (a title, an aria-label, an SVG
 // <text>, a download's CSV) keeps the plain form; symText() gives it.
@@ -66,7 +69,7 @@ export default function MathSym({ name, value, className = '' }) {
   const s = SYMBOLS[name];
   if (!s) return null;
   return (
-    <span className={`math-sym${className ? ` ${className}` : ''}`} role="img" aria-label={symSay(name, value)} data-sym={name}>
+    <span className={`math-sym${className ? ` ${className}` : ''}`} data-sym={name}>
       <Glyph s={s} />
       {value == null ? null : ` = ${numText(value)}`}
     </span>
@@ -77,7 +80,7 @@ export default function MathSym({ name, value, className = '' }) {
 // italic, read as "delta K".
 function Product({ names }) {
   return (
-    <span className="math-sym" role="img" aria-label={names.map((n) => SYMBOLS[n].say).join(' ')} data-sym={names.join(' ')}>
+    <span className="math-sym" data-sym={names.join(' ')}>
       {names.map((n) => (
         <Glyph key={n} s={SYMBOLS[n]} />
       ))}
