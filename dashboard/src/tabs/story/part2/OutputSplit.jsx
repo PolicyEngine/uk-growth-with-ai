@@ -39,8 +39,8 @@ import { iconFor } from '@/lib/concepts.js';
 // checks, which read it at step 1) always holds each share and change. On
 // phones a sticky graphic this tall would leave no room to read, and the
 // scrolly would repeat it per step, so the figure is drawn once, complete,
-// above the three texts. Before step 3 the waterfall is collapsed and
-// hidden (its text kept in the DOM); it opens at step 3. The GDP bar carries no number: that figure is the headline
+// above the three texts. Before step 3 the waterfall is hidden, its room
+// kept (its text kept in the DOM); it shows at step 3. The GDP bar carries no number: that figure is the headline
 // tile's. Bare numbers, the unit in each subtitle.
 
 const CL_WORDS = { [CENTRAL]: 'some foreign capital', [BOUND]: 'no foreign capital' };
@@ -425,8 +425,8 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           </p>
         )}
       </div>
-      {/* not yet reached: collapsed and hidden (its text stays in the DOM,
-          for the number checks), out of reach of focus and pointer; it opens
+      {/* not yet reached: hidden, its room kept (its text stays in the DOM,
+          for the number checks), out of reach of focus and pointer; it shows
           at step 3, where it is discussed, at full contrast */}
       <div className={`p2-output-change p2-out-later${s >= 2 ? ' is-on' : ''}`} inert={s < 2 || undefined}>
         <p className="story-figure-title p2-output-title" data-title-fallback={kept ? undefined : ''}>

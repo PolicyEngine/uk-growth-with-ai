@@ -6,6 +6,7 @@
 // altered values.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render } from '@testing-library/react';
+import { readFileSync } from 'node:fs';
 
 // Every link behind the "Sources and notes" buttons in `root`: each opened,
 // read and closed in turn (the popover is drawn only while open).
@@ -748,5 +749,21 @@ describe('direction icons follow the signs', () => {
     // a pinned Korinek et al. is in the domain from state 2, so it never clips and nothing rescales later
     expect(canvasDomain(2, 'uk_central', lines, 'korinek')).toEqual(expect.arrayContaining(kor));
     expect(rescales('uk_central', 'zk0.1', 'korinek')).toBe(false);
+  });
+});
+
+// Fable 5.2, fix list 20: on desktop the waterfall's room is kept before
+// step 3, so the Sankey's sticky box has one height in every state and the
+// step driver's geometry never depends on the step it picks. Hidden by
+// opacity (and inert), never by visibility or display: the number checks
+// read its text at step 1.
+describe('where output goes keeps one height on desktop', () => {
+  const css = readFileSync('src/app/story-part2.css', 'utf8');
+  it('a min-width 901px block keeps #p2-output .p2-out-later:not(.is-on) at height auto, with no visibility or display', () => {
+    const blocks = [...css.matchAll(/@media \(min-width: 901px\) \{([\s\S]*?)\n\}/g)].map((m) => m[1]);
+    const rule = blocks.map((b) => b.match(/#p2-output \.p2-out-later:not\(\.is-on\) \{([^}]*)\}/)).find(Boolean);
+    expect(rule, 'the rule in a min-width: 901px block').toBeTruthy();
+    expect(rule[1]).toMatch(/height: auto;/);
+    expect(rule[1]).not.toMatch(/visibility|display/);
   });
 });

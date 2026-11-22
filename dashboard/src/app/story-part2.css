@@ -507,10 +507,13 @@
 /* Layers not yet reached: hidden by opacity only, so their figures stay in
    the page's text */
 .p2-out-later {
-  /* before step 3 (C5, round 2) the waterfall is collapsed and hidden: no
-     greyed panel that reads as broken. Its text stays in the DOM (height 0,
-     not display: none), so the number checks read it at step 1. It opens
-     at once at step 3 (no height animation: the chips fly out of it) */
+  /* before step 3 (C5, round 2) the waterfall is hidden: no greyed panel
+     that reads as broken. At 901px and up its room is always kept (the
+     #p2-output rule below, fix list 20), so the sticky box has one height;
+     the collapse (height 0) is left only at 900px and below, until the
+     phone figure (is-fast) opens it. Its text stays in the DOM (not
+     display: none), so the number checks read it at step 1. It shows at
+     once at step 3 (no height animation: the chips fly out of it) */
   opacity: 1;
 }
 .p2-out-later:not(.is-on) {
@@ -1450,11 +1453,20 @@
 }
 
 /* Where output goes, desktop: the box keeps its tallest state's height
-   (Scrolly); the figure sits at its top, so the Sankey does not move when
-   the waterfall opens below it at step 3 */
+   (the rule below keeps the waterfall's room in every state, not
+   Scrolly); the figure sits at its top, so the Sankey does not move when
+   the waterfall shows below it at step 3 */
 @media (min-width: 901px) {
   #p2-output .scrolly-graphic-inner {
     justify-content: flex-start;
+  }
+  /* not yet reached: hidden, but its room is kept, so the sticky box has one
+     height in every state and the step driver's geometry never depends on
+     the step it picks */
+  #p2-output .p2-out-later:not(.is-on) {
+    height: auto;
+    padding-top: 8px !important;
+    overflow: visible;
   }
 }
 
