@@ -13,7 +13,7 @@ import PageIntro from '@/components/ui/PageIntro.jsx';
 import { MACRO_ABOUT } from '@/lib/labels.js';
 import CHANGELOG from '@/data/site-changelog.json';
 import { METHOD_FACTS as MF, setHas } from '@/lib/dataKeys.js';
-import { MODEL_VERSIONS, VINTAGES, AI_FULL_RERUN, AI_STUDY, RELEASES, ledger, ledgerTable, LAST_UPDATED, longDate, version } from './ledger.js';
+import { MODEL_VERSIONS, VINTAGES, AI_FULL_RERUN, AI_STUDY, RELEASES, ledger, ledgerTable, LAST_UPDATED, longDate } from './ledger.js';
 import { HISTORY } from './history.js';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
 import { Items, WhyChain } from '@/components/story/Items.jsx';
@@ -22,6 +22,7 @@ import IconText from '@/tabs/method/IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { REF, DASH_REF, SP_HELPER, STEPS } from './pipeline.js';
 import HouseholdsDetail from '@/tabs/households/HouseholdsDetail.jsx';
+import { CITE_BIB, CITE_TEXT } from './cite.js';
 
 // Data and code: reproduce the results (before you start, the 2028-surprise
 // pipeline, outputs and checks), the one vintages table and the model
@@ -40,7 +41,6 @@ const SECTIONS = [
   { id: 'changelog', title: 'Changelog and revisions', icon: iconFor('revision') },
   { id: 'use-oguk', title: 'Use the macro model yourself', icon: iconFor('code') },
 ];
-const SITE_URL = 'https://uk-growth-with-ai.vercel.app';
 const firstCommand = (code) => code.split('\n').find((l) => l.trim() && !l.trim().startsWith('#')).replace(/\s+#.*$/, '').replace(/\s*\\$/, '');
 // dashboard files at the dashboard branch; the run's files at the set's ref
 const refFor = (p) => (p.startsWith('dashboard/') ? DASH_REF : REF);
@@ -539,17 +539,6 @@ function Ledger() {
     </Card>
   );
 }
-
-const year = LAST_UPDATED.slice(0, 4);
-const CITE_TEXT = `PolicyEngine (${year}). AI and the UK economy: Beyond the forecast. Interactive dashboard, data updated ${LAST_UPDATED}; macro model solves ${version('solves').value}. ${SITE_URL}`;
-const CITE_BIB = `@misc{policyengine_ai_uk_${year},
-  author       = {{PolicyEngine}},
-  title        = {{AI} and the {UK} economy: Beyond the forecast},
-  year         = {${year}},
-  howpublished = {Interactive dashboard},
-  url          = {${SITE_URL}},
-  note         = {Data updated ${LAST_UPDATED}; macro model solves ${version('solves').value}; code at ${REPO}}
-}`;
 
 function Cite() {
   return (

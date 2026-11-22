@@ -4,6 +4,7 @@ import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import IconLine from '@/components/ui/IconLine.jsx';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
 import PageIntro from '@/components/ui/PageIntro.jsx';
+import CiteFoot from '@/components/ui/CiteFoot.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { MACRO_ABOUT } from '@/lib/labels.js';
@@ -65,6 +66,7 @@ export default function InputsPage() {
             </NavLink>
           </IconLine>
           <UsedBy id="m-inputs" />
+          <CiteFoot />
         </section>
       </div>
     </div>

@@ -335,3 +335,111 @@
   font: 400 12px/1.3 var(--ch-font, inherit);
   color: var(--t-muted);
 }
+
+/* ---------- One reference list (Method redesign, section 7) ----------
+   components/ui/RefList.jsx: one entry a line, key · full reference ·
+   where. The whole entry is one link; the external mark (the Story's, a
+   Lucide external-link mask) is drawn after the reference in CSS, so no
+   text enters the DOM. The same mark follows the inputs table's source
+   links. */
+.ref-list,
+.mx-inputs {
+  --ic-external: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 3h6v6'/%3E%3Cpath d='M10 14 21 3'/%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3C/svg%3E");
+}
+.ref-list {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ref-link {
+  display: block;
+  color: var(--pe-gray-700);
+  text-decoration: none;
+}
+.ref-link:hover .ref-key,
+.ref-link:focus-visible .ref-key {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.ref-key {
+  font-weight: 600;
+  color: var(--pe-teal-700);
+}
+.ref-title::before,
+.ref-loc::before {
+  content: '· ';
+  color: var(--pe-gray-400);
+}
+.ref-loc {
+  color: var(--pe-gray-500);
+}
+.ref-use,
+.ref-read {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--t-meta);
+  color: var(--pe-gray-600);
+}
+.ref-list a[target='_blank'] .ref-key:last-child::after,
+.ref-list a[target='_blank'] .ref-title::after,
+.mx-inputs-src a[target='_blank']::after,
+.mx-inputs-cites a[target='_blank']::after {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-left: 4px;
+  vertical-align: -1px;
+  background: currentColor;
+  -webkit-mask: var(--ic-external) center / contain no-repeat;
+  mask: var(--ic-external) center / contain no-repeat;
+}
+@media (max-width: 600px) {
+  .ref-key {
+    display: block;
+  }
+  .ref-key + .ref-title::before {
+    content: none;
+  }
+}
+
+/* "Cite this page" at the foot of each Method page (M14) */
+.cite-foot {
+  margin-top: var(--gap-block);
+  padding-top: 16px;
+  border-top: 1px solid var(--card-border);
+}
+.cite-foot-h {
+  margin: 0 0 8px;
+  font-size: var(--chart-fs-head);
+  font-weight: 600;
+}
+.cite-foot-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.cite-foot .page-cite {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--t-meta);
+  color: var(--pe-gray-600);
+  overflow-wrap: anywhere;
+}
+.cite-foot .cite-foot-copy {
+  position: static;
+  flex: none;
+}
+.cite-foot-link {
+  margin: 8px 0 0;
+  font-size: var(--t-meta);
+}
+.cite-foot-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--pe-teal-700);
+}

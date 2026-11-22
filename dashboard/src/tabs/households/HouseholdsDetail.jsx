@@ -3,7 +3,8 @@
 import { InfoCard } from '@/components/ui/Card.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { linkAiFiles } from '@/tabs/explore/sources.jsx';
-import { D, PAPER_URL, PR_URL } from '@/tabs/story/part3/shared.jsx';
+import { D, PR_URL } from '@/tabs/story/part3/shared.jsx';
+import { AHMADI_URL } from '@/data/references.js';
 import { REFS } from '@/tabs/story/part3/sources.jsx';
 
 // The household study's result files, the commit they were read at and how
@@ -14,7 +15,6 @@ import { REFS } from '@/tabs/story/part3/sources.jsx';
 // one line.
 const STATUS = D.provisional === false ? (D.status ?? null) : 'provisional';
 const PR = D.source.pr_url ?? PR_URL;
-const PAPER = D.source.paper_url ?? PAPER_URL;
 
 export const FILES = [
   ['The main case', 'results/robustness/central_monte_carlo.json'],
@@ -49,7 +49,7 @@ export default function HouseholdsDetail() {
           ))}
         </ul>
         <p className="hh-links">
-          <a href={PAPER} target="_blank" rel="noopener noreferrer">
+          <a href={AHMADI_URL} target="_blank" rel="noopener noreferrer">
             {`${STATUS === 'provisional' ? 'Draft: ' : ''}${REFS.ahmadi.title} (PDF)`}
           </a>
           <a href={PR} target="_blank" rel="noopener noreferrer">

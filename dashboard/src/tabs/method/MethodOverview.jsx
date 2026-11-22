@@ -3,6 +3,7 @@
 import Icon from '@/components/ab/Icon.jsx';
 import IconLine from '@/components/ui/IconLine.jsx';
 import PageIntro from '@/components/ui/PageIntro.jsx';
+import CiteFoot from '@/components/ui/CiteFoot.jsx';
 import { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { iconFor } from '@/lib/concepts.js';
@@ -136,6 +137,7 @@ export default function MethodOverview() {
             ))}
           </div>
         </section>
+        <CiteFoot />
       </div>
     </div>
   );

@@ -54,7 +54,7 @@ function Kind({ k, label }) {
 }
 
 const link = (k) => (
-  <a href={SRC[k].url} target="_blank" rel="noreferrer">
+  <a href={SRC[k].url} target="_blank" rel="noopener noreferrer">
     {SRC[k].label}
   </a>
 );

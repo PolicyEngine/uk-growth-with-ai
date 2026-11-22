@@ -10,7 +10,7 @@ import IconText from '@/tabs/method/IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { ModelLine, PageNotes } from '@/components/ui/PageIntro.jsx';
 import UsedBy from '@/tabs/method/UsedBy.jsx';
-import { D, NO_CLEAN_RERUN, PAPER_URL } from '@/tabs/story/part3/shared.jsx';
+import { D, NO_CLEAN_RERUN } from '@/tabs/story/part3/shared.jsx';
 import { AI_FULL_RERUN, AI_STUDY, MODEL_YEAR } from '@/tabs/code/ledger.js';
 import { URLS } from '@/tabs/ai/links.js';
 import { ext } from '@/tabs/shared/ui.jsx';
@@ -18,6 +18,7 @@ import { fmtInputPct, fmtPct1 } from '@/tabs/story/part3/format.js';
 import { methodName } from './figures.js';
 import { REFS } from '@/tabs/story/part3/sources.jsx';
 import { MACRO_ABOUT } from '@/lib/labels.js';
+import { AHMADI_URL, REFERENCES } from '@/data/references.js';
 
 // Method and sources > Household method: how uk-ai-study (PolicyEngine/
 // uk-ai-study PR #18; its status is read from the data) produces the results in story part 3 and
@@ -33,17 +34,20 @@ const M = D.method;
 // status come from aiStudy2425.json
 // a status chip only while the study is provisional; once merged, the line says so
 const STATUS = AI_STUDY.provisional ? 'Provisional' : AI_STUDY.merged ? `Merged${AI_STUDY.mergedDay ? ` ${AI_STUDY.mergedDay}` : ''}, at ${AI_STUDY.commit.slice(0, 7)}` : null;
-// Every published source this page names, linked
+// Every published source this page names, linked. The references the
+// study cites read the one registry (data/references.js: the key and the
+// URL); the rest are this page's own links.
+const reg = (id) => [REFERENCES[id].key, REFERENCES[id].url];
 const L = {
-  frs: ['Family Resources Survey', 'https://www.gov.uk/government/collections/family-resources-survey--2'],
-  spi: ['HMRC Survey of Personal Incomes', 'https://www.gov.uk/government/collections/personal-incomes-statistics'],
-  hbai: ['HBAI', 'https://www.gov.uk/government/collections/households-below-average-income-hbai--2'],
+  frs: reg('frs'),
+  spi: reg('spi'),
+  hbai: reg('hbai'),
   peUk: ['PolicyEngine UK', URLS.peUk],
-  felten: ['Felten, Raj and Seamans (2021)', 'https://doi.org/10.1002/smj.3286'],
-  pizzinelli: ['Pizzinelli et al. (2023)', 'https://doi.org/10.5089/9798400254802.001'],
-  doorley: ['Doorley et al. (2026)', 'https://doi.org/10.26504/jr16'],
+  felten: reg('felten'),
+  pizzinelli: reg('pizzinelli'),
+  doorley: reg('doorley'),
   obrFrs: ['OBR, Fiscal risks and sustainability, July 2026, Box 4.1', 'https://obr.uk/frs/fiscal-risks-and-sustainability-july-2026/'],
-  cazzaniga: ['Cazzaniga et al. (2024)', 'https://doi.org/10.5089/9798400262548.006'],
+  cazzaniga: reg('cazzaniga'),
   ucParams: ['PolicyEngine UK’s Universal Credit parameters', 'https://github.com/PolicyEngine/policyengine-uk/tree/main/policyengine_uk/parameters/gov/dwp/universal_credit'],
   ucGov: ['GOV.UK: Universal Credit, what you’ll get', 'https://www.gov.uk/universal-credit/what-youll-get'],
   jsaGov: ['GOV.UK: Jobseeker’s Allowance, what you’ll get', 'https://www.gov.uk/jobseekers-allowance/what-youll-get'],
@@ -102,7 +106,7 @@ export default function HouseholdsMethod() {
           </div>
           <p className="hh-answer">
             <IconText icon="jobLoss">
-              <a href={PAPER_URL} target="_blank" rel="noreferrer" title={REFS.ahmadi.title}>
+              <a href={AHMADI_URL} target="_blank" rel="noopener noreferrer" title={REFS.ahmadi.title}>
                 The study
               </a>{' '}
               removes, for one year, the earnings of randomly chosen employees in a calibrated UK sample, weighted by AI exposure.
@@ -367,7 +371,7 @@ export default function HouseholdsMethod() {
           <ul className="p3-close-links">
             {/* a citation (check_text exempts [data-cite]) */}
             <li data-cite="">
-              <a href={AI_STUDY.paperUrl ?? PAPER_URL} target="_blank" rel="noreferrer">
+              <a href={AHMADI_URL} target="_blank" rel="noopener noreferrer">
                 <Icon name="arrowRight" size={16} strokeWidth={2} /> {REFS.ahmadi.title} (PDF)
               </a>
             </li>

@@ -21,6 +21,8 @@ import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from '@/tabs/method/IconText.jsx';
 import { SRC } from '@/tabs/method/sources.js';
+import RefList from '@/components/ui/RefList.jsx';
+import { REF_GROUPS } from '@/data/references.js';
 import { CENTRAL, HEADLINE_YEAR, SURPRISE_YEAR, gap } from '@/tabs/ai/surprise.js';
 import { SET } from '@/lib/dataKeys.js';
 import { MACRO_ABOUT, MACRO_FOLLOWS } from '@/lib/labels.js';
@@ -304,35 +306,17 @@ function Takeaways() {
   );
 }
 
+// One group of the reference list (Method redesign, M12): the registry
+// (data/references.js) in its group, each entry #src-<id>; the first two
+// groups keep their ids (#src-uk, #src-model).
 function SourceList({ group, title, icon }) {
-  const list = Object.entries(SOURCES).filter(([, s]) => s.group === group);
   return (
     <section className="mx-src-group" aria-labelledby={`src-${group}`}>
       <h3 id={`src-${group}`} className="mx-src-h">
         <Icon name={icon} size={18} />
         <span>{title}</span>
       </h3>
-      <div className="card-grid cols-2">
-        {list.map(([id, s]) => (
-          <a key={id} id={`src-${id}`} className="link-card mx-src" href={s.url} target="_blank" rel="noreferrer">
-            <span className="mx-src-top">
-              <span className="link-card-title">{s.short}</span>
-            </span>
-            <span className="mx-src-title">{s.title}</span>
-            <span className="mx-src-use">
-              <IconText icon="why">{s.use}</IconText>
-            </span>
-            <span className="mx-src-loc">
-              <IconText icon="source">{s.loc}</IconText>
-            </span>
-            {s.read ? (
-              <span className="mx-src-read">
-                <IconText icon="caveat">{s.read}</IconText>
-              </span>
-            ) : null}
-          </a>
-        ))}
-      </div>
+      <RefList group={group} />
     </section>
   );
 }
@@ -377,8 +361,9 @@ export default function StudiesTab() {
         <SectionHeading id="sources" icon={iconFor('source')} title="Sources">
             <IconText icon="link">Behind the coverage matrix and the growth check; figures in the evidence map. Earlier checks: {ext(`${REPO}/pull/41`, 'the literature comparison (PR #41)')}.</IconText>
         </SectionHeading>
-        <SourceList group="uk" title="UK official and UK-specific" icon={iconFor('finances')} />
-        <SourceList group="model" title="Model-based studies" icon={iconFor('model')} />
+        {REF_GROUPS.map((g) => (
+          <SourceList key={g.id} group={g.id} title={g.title} icon={iconFor(g.icon)} />
+        ))}
       </div>
     </div>
   );
