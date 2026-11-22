@@ -311,7 +311,7 @@ p.mx-axis-title.is-x {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: var(--t-ui);
+  font-size: var(--fs-small);
 }
 .mx-inputs-table thead th {
   padding: 6px 10px 6px 0;
@@ -465,7 +465,7 @@ p.mx-axis-title.is-x {
   max-width: 78ch;
   margin: 0;
   padding: 0 0 0 18px;
-  font-size: var(--t-ui);
+  font-size: var(--fs-small);
   line-height: 1.5;
   color: var(--pe-gray-700);
 }
@@ -476,7 +476,7 @@ p.mx-axis-title.is-x {
 .mx-limit-para {
   max-width: 78ch;
   margin: 8px 0 0;
-  font-size: var(--t-ui);
+  font-size: var(--fs-small);
   line-height: 1.5;
   color: var(--pe-gray-700);
 }
@@ -547,7 +547,7 @@ p.mx-axis-title.is-x {
   margin: 8px 0 4px;
 }
 .mx-rule-stats .why-stat-value {
-  font-size: var(--t-topic);
+  font-size: var(--fs-section);
 }
 @media (max-width: 480px) {
   .mx-rule-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }

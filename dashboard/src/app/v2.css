@@ -840,7 +840,7 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 }
 .card-tag {
   margin: 6px 0 0;
-  font-size: var(--fs-micro);
+  font-size: var(--fs-caption);
   font-weight: 600;
   color: var(--pe-gray-500);
 }
@@ -1489,7 +1489,7 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 
 /* ---------- Method and Scenarios: plain kickers, plain icon + text ---------- */
 .mx-kicker {
-  font-size: var(--fs-micro) !important;
+  font-size: var(--fs-caption) !important;
   font-weight: 600;
   color: var(--pe-gray-500) !important;
 }

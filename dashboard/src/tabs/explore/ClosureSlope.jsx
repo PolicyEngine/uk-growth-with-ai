@@ -187,19 +187,19 @@ function Group({ m, rows, pct, sel }) {
         <Row key={r.arm.id} m={m} r={r} pct={pct} sel={sel} />
       ))}
       {note?.flip ? (
-        <IconLine concept="closure" tier="meta" className="ex-fc-note is-flip" data-label-for="flip">
+        <IconLine concept="closure" tier="ui" className="ex-fc-note is-flip" data-label-for="flip">
           {note.text}
         </IconLine>
       ) : note ? (
-        <IconLine concept="onPath" tier="meta" className="ex-fc-note">
+        <IconLine concept="onPath" tier="ui" className="ex-fc-note">
           {note.text}
         </IconLine>
       ) : pending.length ? (
-        <IconLine concept="provisional" tier="meta" className="ex-fc-note">
+        <IconLine concept="provisional" tier="ui" className="ex-fc-note">
           No-foreign-capital case not solved for {vnames(pending)}
         </IconLine>
       ) : (
-        <IconLine concept="onPath" tier="meta" className="ex-fc-note">
+        <IconLine concept="onPath" tier="ui" className="ex-fc-note">
           Same side of the forecast path in both cases
         </IconLine>
       )}

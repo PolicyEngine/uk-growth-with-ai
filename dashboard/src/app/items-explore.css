@@ -977,7 +977,7 @@
   white-space: nowrap;
   color: var(--pe-gray-600, #4b5563);
 }
-.ex-fc-row.is-sel .ex-fc-val { font-weight: 700; }
+.ex-fc-row.is-sel .ex-fc-val { font-weight: 600; }
 .ex-fc-val.is-left,
 .ex-fc-hole.is-left { margin-right: calc(var(--fc-dot) / 2 + 4px); }
 .ex-fc-val.is-right,
