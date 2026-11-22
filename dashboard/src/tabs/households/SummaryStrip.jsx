@@ -22,15 +22,15 @@ export function stripTiles(d = D) {
   const resp = d.policy.rows.filter((r) => r.family === 'exposure');
   const costs = resp.map((r) => r.cost_bn);
   return [
-    { key: 'cost', label: 'Net cost to the public finances', value: fmtBn(h.central_cost.value), sub: 'a year', icon: 'landmark', anchor: 'hh-cost-lines' },
+    { key: 'cost', label: 'Net cost to the public finances', value: fmtBn(h.central_cost.value), sub: 'a year', icon: iconFor('finances'), anchor: 'hh-cost-lines' },
     { key: 'poverty', label: 'Absolute poverty', value: fmtPp(h.central_poverty.value), sub: 'before housing costs', icon: iconFor('poverty'), anchor: 'hh-rules' },
-    { key: 'gini', label: 'Gini', value: fmtGiniPts(h.central_gini.value), sub: 'on its 0 to 100 scale', icon: 'bars', anchor: 'hh-ladder' },
+    { key: 'gini', label: 'Gini', value: fmtGiniPts(h.central_gini.value), sub: 'on its 0 to 100 scale', icon: iconFor('inequality'), anchor: 'hh-ladder' },
     {
       key: 'responses',
       label: `${inWords(resp.length)} policy responses`,
       value: `${fmtBn(Math.min(...costs))} to ${fmtBn(Math.max(...costs))}`,
       sub: 'cost a year, on top of the main case',
-      icon: 'handshake',
+      icon: iconFor('policy'),
       anchor: 'hh-policy',
       draws: resp.every((r) => r.draws === resp[0]?.draws) ? resp[0]?.draws : null,
     },

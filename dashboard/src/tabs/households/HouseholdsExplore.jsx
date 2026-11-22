@@ -15,6 +15,7 @@ import { Bar, Plane, STEP, ValueTable, signedTick } from './charts.jsx';
 import SummaryStrip from './SummaryStrip.jsx';
 import { RULE_MARGIN_PP, RULE_NAMES, SMALL_DECILE_PCT, fmtGiniPts, ruleName, rulesGap } from './figures.js';
 import { REFS } from '@/tabs/story/part3/sources.jsx';
+import { iconFor } from '@/lib/concepts.js';
 
 // Explore > Households (item-24-fable.md): the household study's detail,
 // apart from story part 3. Seven cards in three sections. Each card's
@@ -1055,9 +1056,9 @@ function DetailLink() {
 
 // The page's three sections, for the nav under the question: titles only.
 export const SECTIONS = [
-  { id: 'hh-cost', title: 'What moves the cost', icon: 'landmark', sub: 'The cost by line, per pound of lost pay, by variant and by displacement rule' },
-  { id: 'hh-who', title: 'Who loses income', icon: 'usersRound', sub: 'The displaced workers’ benefit units, and income by decile' },
-  { id: 'hh-responses', title: 'Policy responses', icon: 'handshake', sub: 'Three stylised additions, each simulated on top of the main case' },
+  { id: 'hh-cost', title: 'What moves the cost', icon: iconFor('finances'), sub: 'The cost by line, per pound of lost pay, by variant and by displacement rule' },
+  { id: 'hh-who', title: 'Who loses income', icon: iconFor('workers'), sub: 'The displaced workers’ benefit units, and income by decile' },
+  { id: 'hh-responses', title: 'Policy responses', icon: iconFor('policy'), sub: 'Three stylised additions, each simulated on top of the main case' },
 ];
 
 // The head: the question (with the sources-and-notes icon: the paper, the
