@@ -10,6 +10,7 @@ import { S, ARMS, BOUND, CENTRAL, HEADLINE_YEAR, YEARS, ZETA, fmt, scenarioById 
 import { SLOPE_MEASURES } from '@/tabs/explore/ClosureSlope.jsx';
 import { SENS, flipOf, held } from '@/tabs/explore/SensitivityTable.jsx';
 import { sourcesItems } from '@/tabs/explore/sources.jsx';
+import { mathNodes } from '@/components/ui/MathSym.jsx';
 
 // Sensitivities (Method redesign, 4.5; M10, M11): what changing one setting
 // does to UK central's headline-year figures, everything else as in the
@@ -150,7 +151,7 @@ export default function SensitivityGrid() {
               </tr>
               {SENS_ROWS.filter((r) => r.group === g).map((row) => (
                 <tr key={row.label}>
-                  <th scope="row">{row.label}</th>
+                  <th scope="row">{mathNodes(row.label)}</th>
                   {SLOPE_MEASURES.map((m) => (
                     <Cell key={m.v} row={row} v={m.v} main={main} />
                   ))}

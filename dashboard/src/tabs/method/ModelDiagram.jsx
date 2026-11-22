@@ -7,6 +7,7 @@ import { iconFor } from '@/lib/concepts.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { esc } from '@/lib/download.js';
 import IconText from './IconText.jsx';
+import { mathNodes } from '@/components/ui/MathSym.jsx';
 
 // OG-UK as four blocks and the flows between them: households by age and
 // lifetime earnings, firms, the government and the rest of the world, in a
@@ -197,14 +198,14 @@ export default function ModelDiagram() {
         </span>
         <span className="md-stage-text">
           <b>{STAGE_IN.title}</b>
-          <span>{STAGE_IN.line}</span>
+          <span>{mathNodes(STAGE_IN.line)}</span>
         </span>
       </div>
       {/* the one arrow into the loop: AI enters at firms only */}
       <p className="md-link md-link-in">
         <Arrow dir="down" />
         <span>
-          <span className="md-to">To firms:</span> {STAGE_IN.to}
+          <span className="md-to">To firms:</span> {mathNodes(STAGE_IN.to)}
         </span>
       </p>
       <p className="md-stage-head">
@@ -228,7 +229,7 @@ export default function ModelDiagram() {
               <span className="md-node-title">{n.title}</span>
             </span>
             <span className="md-node-tag">{n.tag}</span>
-            <span className="md-node-line">{n.line}</span>
+            <span className="md-node-line">{mathNodes(n.line)}</span>
           </button>
         ))}
         {EDGES.map((e) => (
@@ -254,7 +255,7 @@ export default function ModelDiagram() {
         </span>
         <span className="md-stage-text">
           <b>{STAGE_OUT.title}</b>
-          <span>{STAGE_OUT.line}</span>
+          <span>{mathNodes(STAGE_OUT.line)}</span>
         </span>
       </div>
       <p className="md-note">

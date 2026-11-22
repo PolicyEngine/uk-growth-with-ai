@@ -6,6 +6,7 @@ import Pill from '@/components/ui/Pill.jsx';
 import S from '@/lib/activeData.js';
 import { INPUTS, KIND, PART_USED, ROWS } from './inputs.js';
 import { SRC } from './sources.js';
+import MathSym, { mathNodes, symText } from '@/components/ui/MathSym.jsx';
 
 // Every input on one table: input, value, a chip for its kind of source and
 // one linked source, with a short line on how it is obtained. The full
@@ -25,7 +26,7 @@ const COUNTS = Object.fromEntries(Object.keys(KIND).map((k) => [k, ROWS.filter((
 const PART_COUNTS = Object.fromEntries(Object.keys(PART_USED).map((k) => [k, ROWS.filter((r) => r.part === k).length]));
 const partText = (k) => `Part ${PART_USED[k].n} · ${PART_USED[k].name}`;
 // what a search reads in a row
-const HAY = Object.fromEntries(ROWS.map((r) => [r.id, [r.input, r.value, r.short, r.how, r.note ?? '', ...r.src.map((k) => SRC[k]?.label ?? '')].join(' ').toLowerCase()]));
+const HAY = Object.fromEntries(ROWS.map((r) => [r.id, [r.sym ? symText(r.sym) : '', r.input, r.value, r.short, r.how, r.note ?? '', ...r.src.map((k) => SRC[k]?.label ?? '')].join(' ').toLowerCase()]));
 export const rowMatches = (r, { kind = null, part = null, q = '' } = {}) => (!kind || r.kind === kind) && (!part || r.part === part) && (!q.trim() || HAY[r.id].includes(q.trim().toLowerCase()));
 const SCEN_NOTE = Object.fromEntries(S.scenarios.map((s) => [s.id, s.sources ?? {}]));
 
@@ -42,7 +43,7 @@ const hasDetail = (r) => r.how !== r.short || !!r.note || r.src.length > 1 || !!
 
 export const inputsTable = () => ({
   columns: ['Group', 'Input', 'Value used', 'Source type', 'How it is obtained', 'Sources', 'Used by'],
-  rows: INPUTS.map((r) => [r.group, r.input, r.value, r.kindLabel ?? KIND[r.kind].label, r.note ? `${r.how} ${r.note}` : r.how, r.src.map((k) => `${SRC[k].label} <${SRC[k].url}>`).join('; '), partText(r.part)]),
+  rows: INPUTS.map((r) => [r.group, r.sym ? `${symText(r.sym)}: ${r.input}` : r.input, r.value, r.kindLabel ?? KIND[r.kind].label, r.note ? `${r.how} ${r.note}` : r.how, r.src.map((k) => `${SRC[k].label} <${SRC[k].url}>`).join('; '), partText(r.part)]),
 });
 
 function Kind({ k, label }) {
@@ -217,14 +218,14 @@ export default function InputsTable() {
                       {d ? (
                         <button type="button" className="mx-row-toggle" aria-expanded={isOpen} aria-controls={`${r.id}-detail`} onClick={() => toggle(r.id)}>
                           <Icon name="chevronDown" size={14} className="mx-chev" />
-                          <span className="mx-inputs-name">{r.input}</span>
+                          <span className="mx-inputs-name">{r.sym ? <><MathSym name={r.sym} className="mx-inputs-sym" />{' '}</> : null}{r.input}</span>
                         </button>
                       ) : (
-                        <span className="mx-inputs-name is-plain">{r.input}</span>
+                        <span className="mx-inputs-name is-plain">{r.sym ? <><MathSym name={r.sym} className="mx-inputs-sym" />{' '}</> : null}{r.input}</span>
                       )}{' '}
                       <span className="mx-inputs-short">{r.short}</span>
                     </th>
-                    <td className="mx-inputs-v">{r.value}</td>
+                    <td className="mx-inputs-v">{mathNodes(r.value)}</td>
                     <td className="mx-inputs-k">
                       <Kind k={r.kind} label={r.kindLabel} />
                     </td>

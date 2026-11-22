@@ -15,6 +15,10 @@ export const name = (id) => sc(id).label;
 export const pp = (id) => `−${sc(id).labour_share_fall_pp.toFixed(1)}pp`;
 export const pc = (id) => `+${sc(id).tfp_gain_pct.toFixed(1)}%`;
 
+// `sym`: the row's parameter symbol (components/ui/MathSym.jsx), printed
+// before the label in the table and kept out of the label text (Method
+// redesign, 6.1; request 22). The search and the download read its plain
+// form.
 // `part`: which part of the study uses the input (the table's "Used by"
 // column and filter): the macro model (Part 2) or the household study (Part 3).
 export const PART_USED = {
@@ -56,13 +60,13 @@ export const INPUTS = [
   { id: 'in-demographics', group: 'Baseline', part: 'macro', input: 'Demographics', value: '—', kind: 'external', how: 'UN World Population Prospects, read by OG-Core through a GitHub mirror; not an OBR or ONS projection.', src: ['unWpp', 'popData'] },
   { id: 'in-tax-functions', group: 'Baseline', part: 'macro', input: 'Tax functions', value: '—', kind: 'external', how: 'Fitted to PolicyEngine UK.', src: ['peUk'] },
   // OG-UK defaults
-  { id: 'in-k-share-of-the-extra-capital-firms-want-', group: 'Model parameters', part: 'macro', input: 'ζK: share of the extra capital firms want that foreigners supply', value: '0.1', kind: 'default', how: 'OG-Core’s US default, chosen by the study as central, which the macro model keeps: its baseline is closest to UK income paid abroad; it misses the current account. It is the share of the extra capital firms want that is met from abroad, so most of the added capital ends up foreign-owned.', src: ['ogukParams', 'ogCoreParams', 'pinkBook', 'closureMemo'] },
-  { id: 'in-k-bound-no-foreign-capital', group: 'Model parameters', part: 'macro', input: 'ζK bound (no foreign capital)', value: '0', kind: 'choice', how: 'A bound, not an estimate.', src: ['closureMemo'] },
-  { id: 'in-d-foreign-share-of-new-government-debt', group: 'Model parameters', part: 'macro', input: 'ζD: foreign share of new government debt', value: '0.4', kind: 'default', how: 'No UK estimate is used.', src: ['ogukParams'] },
+  { id: 'in-k-share-of-the-extra-capital-firms-want-', group: 'Model parameters', part: 'macro', sym: 'zetaK', input: 'Share of the extra capital firms want that foreigners supply', value: '0.1', kind: 'default', how: 'OG-Core’s US default, chosen by the study as central, which the macro model keeps: its baseline is closest to UK income paid abroad; it misses the current account. It is the share of the extra capital firms want that is met from abroad, so most of the added capital ends up foreign-owned.', src: ['ogukParams', 'ogCoreParams', 'pinkBook', 'closureMemo'] },
+  { id: 'in-k-bound-no-foreign-capital', group: 'Model parameters', part: 'macro', sym: 'zetaK', input: 'Bound (no foreign capital)', value: '0', kind: 'choice', how: 'A bound, not an estimate.', src: ['closureMemo'] },
+  { id: 'in-d-foreign-share-of-new-government-debt', group: 'Model parameters', part: 'macro', sym: 'zetaD', input: 'Foreign share of new government debt', value: '0.4', kind: 'default', how: 'No UK estimate is used.', src: ['ogukParams'] },
   { id: 'in-world-interest-rate', group: 'Model parameters', part: 'macro', input: 'World interest rate', value: '2%', kind: 'default', how: 'Not calibrated; OG-Core’s own default is 4%.', src: ['ogukParams', 'ogCoreParams'] },
-  { id: 'in-capital-share-labour-share-65', group: 'Model parameters', part: 'macro', input: 'Capital share γ (labour share 65%)', value: '0.35', kind: 'default', how: 'No UK estimate is used.', src: ['ogukParams'] },
-  { id: 'in-elasticity-of-substitution', group: 'Model parameters', part: 'macro', input: 'Elasticity of substitution ε', value: '1', kind: 'default', how: 'Cobb-Douglas.', src: ['ogukParams'] },
-  { id: 'in-depreciation', group: 'Model parameters', part: 'macro', input: 'Depreciation δ', value: '0.065 a year', kind: 'default', how: 'The macro model sets it from ONS capital stocks and fixed capital consumption (2022).', src: ['ogukParams'] },
+  { id: 'in-capital-share-labour-share-65', group: 'Model parameters', part: 'macro', sym: 'gamma', input: 'Capital share (labour share 65%)', value: '0.35', kind: 'default', how: 'No UK estimate is used.', src: ['ogukParams'] },
+  { id: 'in-elasticity-of-substitution', group: 'Model parameters', part: 'macro', sym: 'epsilon', input: 'Elasticity of substitution', value: '1', kind: 'default', how: 'Cobb-Douglas.', src: ['ogukParams'] },
+  { id: 'in-depreciation', group: 'Model parameters', part: 'macro', sym: 'delta', input: 'Depreciation', value: '0.065 a year', kind: 'default', how: 'The macro model sets it from ONS capital stocks and fixed capital consumption (2022).', src: ['ogukParams'] },
   { id: 'in-households-80-ages-seven-earnings-groups', group: 'Model parameters', part: 'macro', input: 'Households: 80 ages, seven earnings groups', value: '20–99', kind: 'default', how: 'The macro model’s defaults.', src: ['ogukParams'] },
   { id: 'in-employer-nics-as-a-payroll-tax', group: 'Model parameters', part: 'macro', input: 'Employer NICs as a payroll tax', value: '15%', kind: 'default', how: 'The macro model’s default payroll tax.', src: ['ogukParams'] },
   // fiscal rules and solver
@@ -96,9 +100,9 @@ const SHORT = {
   '2030 debt/GDP target': ['Spending set so 2030 debt/GDP matches the OBR’s forecast', null],
   Vintage: ['March 2026 EFO; the growth check uses October 2026', null],
   Demographics: ['UN World Population Prospects, via OG-Core; not OBR or ONS', null],
-  'ζK: share of the extra capital firms want that foreigners supply': ['Kept from OG-Core’s default. That it is the central case is the study’s choice', null],
+  'Share of the extra capital firms want that foreigners supply': ['Kept from OG-Core’s default. That it is the central case is the study’s choice', null],
   'World interest rate': ['Not calibrated; OG-Core’s own default is 4%', null],
-  'Depreciation δ': ['From ONS capital stocks and fixed capital consumption, 2022', null],
+  Depreciation: ['From ONS capital stocks and fixed capital consumption, 2022', null],
   [`Common rule; debt rule from ${LATE_YEAR}`]: ['The macro model’s default is 4; not an OBR rule', null],
   'Fixed spending': ['A choice on Explore; no OBR source is cited', null],
   'Debt-neutral transfers': ['Households receive or pay the fiscal effect as transfers', null],
@@ -116,8 +120,8 @@ export const KEY_INPUTS = new Set([
   'The scenario’s AI starts as a surprise; one starting point',
   'Trend productivity growth',
   '2030 debt/GDP target',
-  'ζK: share of the extra capital firms want that foreigners supply',
-  'Capital share γ (labour share 65%)',
+  'Share of the extra capital firms want that foreigners supply',
+  'Capital share (labour share 65%)',
   'Employees displaced; survivors’ wage rise',
 ]);
 

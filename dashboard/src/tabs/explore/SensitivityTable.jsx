@@ -17,6 +17,7 @@ import { OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import { NavLink } from '@/lib/nav.jsx';
 import ChartHover from '@/components/story/chart/ChartHover.jsx';
 import { fracWord } from '@/tabs/story/part2/caveats.js';
+import MathSym, { mathNodes } from '@/components/ui/MathSym.jsx';
 
 // The foreign-owned share of the added capital in the headline year: the
 // data file's foreign-share key (lib/dataKeys.js) for UK central's main version, the same
@@ -311,7 +312,7 @@ function GridKeyLine({ res }) {
   const flips = gridKey(res).some((k) => k.key === 'flip');
   return (
     <p className="ex-sg-keyline" data-fable="item 39 wording">
-      <span className="ex-sg-keylead">Compared with {CMP_NAME}:</span>
+      <span className="ex-sg-keylead">Compared with {mathNodes(CMP_NAME)}:</span>
       {flips ? (
         <span className="ex-sg-keyitem">
           <span className="ex-sg-keyswatch" aria-hidden="true" data-icon="" /> sign differs
@@ -347,7 +348,7 @@ export default function SensitivityTable() {
       id="closure-sensitivity"
       icon={iconFor('foreign')}
       title={sensTitle(res)}
-      unit={<span data-axis-title="y">{`ζK = ${sens.zeta_K}, ${HEADLINE_YEAR}, % gap vs forecast path`}</span>}
+      unit={<span data-axis-title="y">{mathNodes(`ζK = ${sens.zeta_K}, ${HEADLINE_YEAR}, % gap vs forecast path`)}</span>}
       // the definition, the claims, the grid's key, the flag and the
       // settings, in the card's one closed More info (item 14; item 36:
       // Card.jsx cardMore puts the rows under How to read, the flag under
@@ -359,7 +360,7 @@ export default function SensitivityTable() {
           text: (
             <>
               <span className="ex-sg-def">
-                {ext(URLS.ogCoreParams, 'ζK')} = {sens.zeta_K}: foreign investors supply half of the extra capital firms want, not half of added capital.
+                {ext(URLS.ogCoreParams, <MathSym name="zetaK" />)} = {sens.zeta_K}: foreign investors supply half of the extra capital firms want, not half of added capital.
               </span>
               {foreignShareLine(res) ? (
                 <>

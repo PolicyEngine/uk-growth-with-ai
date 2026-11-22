@@ -12,6 +12,7 @@ import { cssColour, esc } from '@/lib/download.js';
 import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result, PENDING, fmtHeld, ZETA } from '@/tabs/ai/surprise.js';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
+import { mathNodes } from '@/components/ui/MathSym.jsx';
 
 // The Results headline: a takeaway sentence built from the data, a dumbbell
 // panel (one row per measure, one marker pair per arm: the central value as a
@@ -84,7 +85,7 @@ export function DotTip({ arm, closure, measure, value }) {
     <>
       <b>{measure}, {HEADLINE_YEAR}</b>
       <span>{arm}</span>
-      <span>{closure}</span>
+      <span>{mathNodes(closure)}</span>
       <span className="tip-value">{fmt(value)} against the OBR’s central forecast path</span>
     </>
   );

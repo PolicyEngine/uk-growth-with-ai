@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
+import { mathNodes } from '@/components/ui/MathSym.jsx';
 
 // One row of a model page's "Key settings" (Method redesign, 4.3; M5):
 // the setting, what the study uses, what else was run, and a chevron, as
@@ -44,13 +45,13 @@ export default function SettingRow({ id, setting, uses, also = null, children })
         <span className="mx-setting-name">{setting}</span>{' '}
         <span className="mx-setting-uses">
           <span className="mx-setting-label">{SETTING_COLS[1]}: </span>
-          <span className="mx-setting-v">{uses}</span>
+          <span className="mx-setting-v">{mathNodes(uses)}</span>
         </span>{' '}
         <span className={`mx-setting-also${also ? '' : ' is-none'}`}>
           {also ? (
             <>
               <span className="mx-setting-label">{SETTING_COLS[2]}: </span>
-              <span className="mx-setting-v">{also}</span>
+              <span className="mx-setting-v">{mathNodes(also)}</span>
             </>
           ) : (
             <span className="mx-setting-v">—</span>

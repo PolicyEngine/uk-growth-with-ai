@@ -6,6 +6,7 @@ import { YEARS, FIRST_YEAR, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR } from '@/ta
 import IconText from './IconText.jsx';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
+import MathSym from '@/components/ui/MathSym.jsx';
 
 // The timing as a horizontal timeline: one column per year, a bar for the
 // weight of the γ and Z ramp, and the four dates that matter. Hover, tap or
@@ -73,7 +74,7 @@ export default function Timeline({ caption = true }) {
       {caption ? (
         <figcaption className="mx-fig-cap">
           <span className="mx-fig-title">The timing, {YEARS[0]}–{LATE_YEAR}</span>
-          <span className="mx-fig-sub">Ramp weight of &gamma; and Z, 0 to 1</span>
+          <span className="mx-fig-sub">Ramp weight of <MathSym name="gamma" /> and <MathSym name="Z" />, 0 to 1</span>
         </figcaption>
       ) : null}
       <div className="mx-tl-phases" aria-hidden="true">
@@ -83,7 +84,7 @@ export default function Timeline({ caption = true }) {
       </div>
       <p className="mx-axis-title mx-tl-axis">
         <IconText icon="measure">
-          <span data-axis-title="y">Ramp weight of &gamma; and Z, 0 to 1</span>
+          <span data-axis-title="y">Ramp weight of <MathSym name="gamma" /> and <MathSym name="Z" />, 0 to 1</span>
         </IconText>
       </p>
       <ChartHover label={`The timing, ${YEARS[0]} to ${LATE_YEAR}`} items={tips} onActive={setAt}>

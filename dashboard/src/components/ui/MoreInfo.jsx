@@ -3,6 +3,7 @@
 import { isValidElement } from 'react';
 import Disclosure from '@/components/ab/Disclosure.jsx';
 import { Items } from '@/components/story/Items.jsx';
+import { mathNodes } from '@/components/ui/MathSym.jsx';
 
 // A card's one "More info" (consolidated-design-fable.md §2, slot 8;
 // item-36-fable.md §1.1): closed, its button text exactly "More info".
@@ -54,9 +55,9 @@ function Line({ g, it }) {
   const Tag = inline(it.text) ? 'p' : 'div';
   return (
     <Tag className="ex-fin-more-line" data-claim={`${g.key}-${it.key}`}>
-      {it.head ? <b>{it.head}</b> : null}
+      {it.head ? <b>{mathNodes(it.head)}</b> : null}
       {it.head ? ' ' : null}
-      {it.text}
+      {mathNodes(it.text)}
     </Tag>
   );
 }

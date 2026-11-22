@@ -30,6 +30,7 @@ import { payCaveat } from '@/tabs/story/part2/caveats.js';
 import { CENTRAL, BOUND, LATE_YEAR, SCEN_NAME as SN, ARM_COLOR } from '@/tabs/ai/surprise.js';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import { VERSION_TOKEN, versionName } from '@/lib/versionColors.js';
+import MathSym from '@/components/ui/MathSym.jsx';
 
 // Results. The answer and the three headline figures are on Story.
 // Income and output, Economy, Public finances: one chart card per measure,
@@ -319,20 +320,20 @@ const ECONOMY = [
           icon: 'caveat',
           text: f.record ? (
             <>
-              This scenario, main version, ζK {f.zeta}: +{Math.round(f.x)}% in {SURPRISE_YEAR}, {ext(OG_RESULT_URLS.plausibility, 'larger than any year on record')}
+              This scenario, main version, <MathSym name="zetaK" /> {f.zeta}: +{Math.round(f.x)}% in {SURPRISE_YEAR}, {ext(OG_RESULT_URLS.plausibility, 'larger than any year on record')}
             </>
           ) : (
             `This scenario, main version, ζK ${f.zeta}: +${Math.round(f.x)}% in ${SURPRISE_YEAR}`
           ),
         })),
-        TOP_FLAG && !shownInvestFlags(sid, closure, rule).includes(TOP_FLAG) ? { key: 'flag', icon: 'caveat', text: <>{SN[TOP_FLAG.sid]}{TOP_FLAG.arm === 'tfp' ? ', main version' : ''}, ζK {TOP_FLAG.zeta}: +{Math.round(TOP_FLAG.x)}% in {SURPRISE_YEAR}</> } : null,
+        TOP_FLAG && !shownInvestFlags(sid, closure, rule).includes(TOP_FLAG) ? { key: 'flag', icon: 'caveat', text: <>{SN[TOP_FLAG.sid]}{TOP_FLAG.arm === 'tfp' ? ', main version' : ''}, <MathSym name="zetaK" /> {TOP_FLAG.zeta}: +{Math.round(TOP_FLAG.x)}% in {SURPRISE_YEAR}</> } : null,
         TOP_FLAG ? { key: 'flag2', icon: 'limit', text: <>Implausible: above the +{I_FLAG_PCT}% {ext(OG_RESULT_URLS.sanity, 'investment flag')}, {ext(OG_RESULT_URLS.plausibility, 'beyond any year on record')}</> } : null,
       ]} />,
     }) },
   ] },
   { group: 'Factors', concept: 'capital', lede: 'The capital and labour that production uses.', rows: [
     { v: 'K', title: 'Capital stock', name: 'the capital stock', concept: 'capital', about: { caveats: <Items items={[
-      { key: 'reset', icon: 'foreign', text: <>Foreign capital resets each year ({ext(URLS.ogCoreParams, 'OG-Core’s ζK rule')})</> },
+      { key: 'reset', icon: 'foreign', text: <>Foreign capital resets each year ({ext(URLS.ogCoreParams, <>OG-Core’s <MathSym name="zetaK" /> rule</>)})</> },
       { key: 'inflow', icon: 'capital', text: 'Part of the first-year gap is an inflow with no investment recorded' },
     ]} /> } },
     { v: 'L', title: 'Labour', name: 'labour (hours worked, not jobs)', concept: 'labour', about: { caveats: <Items items={[
@@ -435,7 +436,7 @@ function IncomePanel({ sid }) {
                   // sentence, from the signs; the sensitivity no longer
                   // reads as a sign that depends on foreign capital
                   payCaveat(sid) ? { key: 'wz0', icon: 'pay', text: payCaveat(sid) } : null,
-                  payCaveat(sid) && (payCaveat(sid).includes('sensitivity') || payCaveat(sid).startsWith('Its sign')) ? { key: 'wzlink', icon: 'link', text: <>Figures: Both, and the <NavLink tab="explore" sub="economy" anchor="closure-sensitivity">ζK 0.5 sensitivity</NavLink></> } : null,
+                  payCaveat(sid) && (payCaveat(sid).includes('sensitivity') || payCaveat(sid).startsWith('Its sign')) ? { key: 'wzlink', icon: 'link', text: <>Figures: Both, and the <NavLink tab="explore" sub="economy" anchor="closure-sensitivity"><MathSym name="zetaK" /> 0.5 sensitivity</NavLink></> } : null,
                   ...stressItems(sid),
                 ]}
               />

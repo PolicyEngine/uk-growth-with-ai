@@ -1,6 +1,6 @@
 # Method and sources redesign: checks (push E)
 
-The Method redesign (Fable 5.2 ruling for Vahid, 22 Nov; rulings M1 to M18) landed as commits 1 to 12 on `perf/method`, branched from `perf/pushD` at `baabc21`. Commit 13 (parameter symbols through `MathSym`) waits for `MathSym`. Under the light-work rule no browser, build or server was run. The 1280 and 390 check outputs are listed below as pending, not passed.
+The Method redesign (Fable 5.2 ruling for Vahid, 22 Nov; rulings M1 to M18) landed as commits 1 to 12 on `perf/method`, branched from `perf/pushD` at `baabc21`. Commit 13 (parameter symbols through `MathSym`) landed with push E's request 22: the inputs table's rows carry `sym` and print the symbol before the label. Under the light-work rule no browser, build or server was run. The 1280 and 390 check outputs are listed below as pending, not passed.
 
 ## Run, browser-free
 

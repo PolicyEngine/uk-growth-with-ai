@@ -24,6 +24,7 @@ import { NavLink } from '@/lib/nav.jsx';
 import { REF, DASH_REF, SP_HELPER, STEPS } from './pipeline.js';
 import HouseholdsDetail from '@/tabs/households/HouseholdsDetail.jsx';
 import { CITE_BIB, CITE_TEXT } from './cite.js';
+import MathSym, { mathNodes } from '@/components/ui/MathSym.jsx';
 
 // Data and code (Method redesign, section 8; M15): three start cards (the
 // repository, the data files, rerun it), then rerun the results (before you
@@ -133,11 +134,11 @@ function BeforeYouStart() {
             </div>
             <div className="mx-before-part">
               <p className="mx-before-head">
-                <b>Patch OG-Core for a time-varying γ.</b> Runs refuse to start without it.
+                <b>Patch OG-Core for a time-varying <MathSym name="gamma" />.</b> Runs refuse to start without it.
               </p>
               <Items
                 items={[
-                  { icon: 'model', text: <>Stock OG-Core holds &gamma; fixed over time.</> },
+                  { icon: 'model', text: <>Stock OG-Core holds <MathSym name="gamma" /> fixed over time.</> },
                   { icon: 'code', text: <>The {ext(URLS.patch, 'patch')} adds a time dimension ({ext(URLS.patchDoc, 'design')}).</> },
                 ]}
               />
@@ -436,7 +437,7 @@ function Vintages() {
                   </td>
                   <th scope="row" data-package="">{e.label}</th>
                   <td>
-                    {e.url ? ext(e.url, e.value) : e.value}{' '}
+                    {e.url ? ext(e.url, mathNodes(e.value)) : mathNodes(e.value)}{' '}
                     <span className="ledger-where">{e.where}</span>
                   </td>
                 </tr>
@@ -603,7 +604,7 @@ const Entry = ({ e }) => (
   <li>
     <span className="mx-history-date">{longDate(e.date)}</span>{' '}
     <span>
-      {e.text} {ext(`${REPO}/commit/${e.commit}`, e.commit)}
+      {mathNodes(e.text)} {ext(`${REPO}/commit/${e.commit}`, e.commit)}
     </span>
   </li>
 );
@@ -624,7 +625,7 @@ function Revisions() {
             <span className="mx-history-date">{d}</span>{' '}
             <span className="mx-history-text">
               <span>
-                {t} {ext(issue(n), `#${n}`)}
+                {mathNodes(t)} {ext(issue(n), `#${n}`)}
               </span>
             </span>
           </li>

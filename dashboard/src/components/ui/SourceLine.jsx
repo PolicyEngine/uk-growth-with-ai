@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom';
 import Icon from '@/components/ab/Icon.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { iconFor } from '@/lib/concepts.js';
+import { mathNodes } from '@/components/ui/MathSym.jsx';
 
 // The one quiet "Sources and notes" button of every figure (Story,
 // Explore, Method), the vitals panel and the "As of" stamp: a small plain
@@ -92,14 +93,14 @@ function Item({ it, onNav }) {
   const meta = [it.publisher && !it.nav ? shortPublisher(it.publisher) : null, it.id, it.date ? `released ${fmtDate(it.date)}` : null, it.extra].filter(Boolean);
   const label = it.nav ? (
     <NavLink tab={it.nav.tab} sub={it.nav.sub} anchor={it.nav.anchor} className="src-pop-link" onClick={onNav}>
-      {it.label}
+      {mathNodes(it.label)}
     </NavLink>
   ) : it.url ? (
     <a className="src-pop-link" href={it.url} target="_blank" rel="noopener noreferrer">
-      {it.label}
+      {mathNodes(it.label)}
     </a>
   ) : (
-    <span className="src-pop-name">{it.label}</span>
+    <span className="src-pop-name">{mathNodes(it.label)}</span>
   );
   return (
     <li className="src-pop-item">

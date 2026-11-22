@@ -3,6 +3,7 @@
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
+import { mathNodes } from '@/components/ui/MathSym.jsx';
 
 // Short items in place of prose, about a dozen words each. Round 1 icon
 // rule: items of one kind take a 4px dot (CSS), no icon; pass `icons` for
@@ -16,7 +17,7 @@ export function Items({ items, className = '', icons = false }) {
       {items.filter(Boolean).map((it, i) => (
         <li key={it.key ?? i}>
           {icons ? <Icon name={iconFor(it.icon)} size={16} className="story-item-icon" /> : null}
-          <span className="story-item-text">{it.text}</span>
+          <span className="story-item-text">{mathNodes(it.text)}</span>
         </li>
       ))}
     </ul>
@@ -34,7 +35,7 @@ export function KeyFacts({ facts, className = '' }) {
         <li key={f.key ?? i} className="story-fact">
           <Icon name={iconFor(f.icon)} size={18} className="story-fact-icon" />
           <span className="story-fact-value">{f.value}</span>{' '}
-          <span className="story-fact-label">{f.label}</span>
+          <span className="story-fact-label">{mathNodes(f.label)}</span>
           {f.sub ? <>{' '}<span className="story-fact-sub">{f.sub}</span></> : null}
         </li>
       ))}

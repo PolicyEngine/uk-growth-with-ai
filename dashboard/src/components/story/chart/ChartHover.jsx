@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Icon from "@/components/ab/Icon.jsx";
 import { iconFor } from "@/lib/concepts.js";
+import { mathNodes } from "@/components/ui/MathSym.jsx";
 
 // Hover on every chart (M4, maria-round-brief.md): the one tooltip for a
 // chart of separate marks (bars, dumbbells, tiles, rows, ribbons, grid
@@ -49,7 +50,7 @@ export function ChartTipCard({
       {/* a space between every name and value, and between the lines, so
           the card's text never joins two words (push D review, B3); a
           whitespace node is not drawn in the row's grid */}
-      {head ? <div className="ch-tip-head">{head}</div> : null}{" "}
+      {head ? <div className="ch-tip-head">{mathNodes(head)}</div> : null}{" "}
       {rows.map((r, k) => (
         <div key={r.key ?? k} className="ch-tip-row">
           {r.color ? (
@@ -61,17 +62,17 @@ export function ChartTipCard({
               className="ch-tip-icon"
             />
           )}
-          <span className="ch-tip-name">{r.name}</span>{" "}
+          <span className="ch-tip-name">{mathNodes(r.name)}</span>{" "}
           <span
             className="ch-tip-value"
             data-path={r.path}
             style={r.text ? { color: r.text } : undefined}
           >
-            {r.value}
+            {mathNodes(r.value)}
           </span>{" "}
         </div>
       ))}
-      {unit ? <div className="ch-tip-unit">{unit}</div> : null}{" "}
+      {unit ? <div className="ch-tip-unit">{mathNodes(unit)}</div> : null}{" "}
       {kind && KIND[kind] ? (
         <div className="ch-tip-unit">{KIND[kind]}</div>
       ) : null}

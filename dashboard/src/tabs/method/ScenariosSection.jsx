@@ -14,6 +14,7 @@ import { ext } from '../shared/ui.jsx';
 import Timeline, { timelineTable, timelineSvg } from './Timeline.jsx';
 import { SRC } from './sources.js';
 import ScenarioMap, { scenarioTable } from './ScenarioMap.jsx';
+import MathSym from '@/components/ui/MathSym.jsx';
 
 // Scenarios: what is assumed. The four scenarios (three UK, one US upper
 // case), the three arms each is run in, and the timing: one anchored section
@@ -79,7 +80,7 @@ const ARM_TEXT = {
     more: (
       <Items
         items={[
-          { icon: 'equation', text: <>Z is solved jointly with &gamma;.</> },
+          { icon: 'equation', text: <><MathSym name="Z" /> is solved jointly with <MathSym name="gamma" />.</> },
           { icon: 'start', text: <>The gain is measured at the forecast path&rsquo;s {FIRST_YEAR} capital and labour.</> },
           { icon: 'start', text: 'No scenario has touched those inputs yet.' },
         ]}

@@ -33,6 +33,7 @@ import { SRC, code } from './sources.js';
 import SettingRow, { SettingHeads } from './SettingRow.jsx';
 import SensitivityGrid from './SensitivityGrid.jsx';
 import { ROWS, name, pc, pp } from './inputs.js';
+import MathSym, { mathNodes } from '@/components/ui/MathSym.jsx';
 
 const cite = (k) => ext(SRC[k].url, SRC[k].label);
 
@@ -84,10 +85,10 @@ function ClosureCards() {
         more={
           <Items
             items={[
-              { icon: 'foreign', text: <>&zeta;<sub>K</sub>, in OG-Core&rsquo;s definition: the share of excess capital demand (the extra capital firms want) that foreigners supply ({cite('ogCoreParams')}).</> },
+              { icon: 'foreign', text: <><MathSym name="zetaK" />, in OG-Core&rsquo;s definition: the share of excess capital demand (the extra capital firms want) that foreigners supply ({cite('ogCoreParams')}).</> },
               { icon: 'model', text: <>{pct(ZETA[CENTRAL], 0)} is OG-Core&rsquo;s US default, chosen by the study and kept by the macro model ({cite('ogukParams')}); not calibrated to the UK.</> },
               { icon: 'interest', text: <>World interest rate 2%: the macro model&rsquo;s default ({cite('ogukParams')}; OG-Core&rsquo;s is 4%). A modelling choice, not from a published source.</> },
-              { icon: 'debt', text: <>Foreigners buy 40% of new government debt (&zeta;<sub>D</sub>): OG-Core&rsquo;s default, kept by the macro model ({cite('ogukParams')}). A modelling choice, not from a UK source.</> },
+              { icon: 'debt', text: <>Foreigners buy 40% of new government debt (<MathSym name="zetaD" />): OG-Core&rsquo;s default, kept by the macro model ({cite('ogukParams')}). A modelling choice, not from a UK source.</> },
               { icon: 'data', text: <>Its baseline income paid abroad sits inside the UK&rsquo;s ({cite('pinkBook')}).</> },
               { icon: 'caveat', text: <>It misses the current account; the no-foreign-capital case is closer on the net foreign-asset stock ({ext(DOC_MAIN('closure_choice.md'), 'closure memo')}).</> },
               { icon: 'timing', text: 'Foreign capital resets each year.' },
@@ -100,7 +101,7 @@ function ClosureCards() {
       >
         <p className="mx-big">
           <Icon name={iconFor('foreign')} size={18} className="mx-dt-icon" />
-          &zeta;<sub>K</sub> = {ZETA[CENTRAL]}
+          <MathSym name="zetaK" value={ZETA[CENTRAL]} />
         </p>
         <Items
           items={[
@@ -129,7 +130,7 @@ function ClosureCards() {
       >
         <p className="mx-big">
           <Icon name={iconFor('closed')} size={18} className="mx-dt-icon" />
-          &zeta;<sub>K</sub> = {ZETA[BOUND]}
+          <MathSym name="zetaK" value={ZETA[BOUND]} />
         </p>
         <Items
           items={[
@@ -172,7 +173,7 @@ const RULE_TEXT = {
     // M11: the step in the debt rule's first year (only while the data shows it)
     step: investStep(),
     items: [
-      { icon: 'rule', text: <>A modelling choice, against the model&rsquo;s default of 4 ({ext(SRC.tg1.url, 'tG1 = 10')}).</> },
+      { icon: 'rule', text: <>A modelling choice, against the model&rsquo;s default of 4 ({ext(SRC.tg1.url, <MathSym name="tG1" value={10} />)}).</> },
       { icon: 'timing', text: `So debt is quoted for ${HEADLINE_YEAR} and ${LATE_YEAR}.` },
     ],
   },
@@ -344,7 +345,7 @@ function Limitations() {
                   .filter((it) => !it.para)
                   .map((it) => (
                     <li key={it.title}>
-                      <span className="mx-limit-title">{it.title}:</span> {it.text}
+                      <span className="mx-limit-title">{it.title}:</span> {mathNodes(it.text)}
                     </li>
                   ))}
               </ul>
@@ -353,7 +354,7 @@ function Limitations() {
               .filter((it) => it.para)
               .map((it) => (
                 <p key={it.title} className="mx-limit-para">
-                  <span className="mx-limit-title">{it.title}:</span> {it.text}
+                  <span className="mx-limit-title">{it.title}:</span> {mathNodes(it.text)}
                 </p>
               ))}
           </div>
@@ -376,8 +377,8 @@ function ShockCards() {
         more={
           <Items
             items={[
-              { icon: 'equation', text: <>Cobb-Douglas production: the labour share is exactly 1 &minus; &gamma;.</> },
-              { icon: 'scenario', text: <>A fall of f points sets &gamma; to 0.35 + f/100; 0.35 is the macro model&rsquo;s default ({cite('ogukParams')}).</> },
+              { icon: 'equation', text: <>Cobb-Douglas production: the labour share is exactly 1 &minus; <MathSym name="gamma" />.</> },
+              { icon: 'scenario', text: <>A fall of f points sets <MathSym name="gamma" /> to 0.35 + f/100; 0.35 is the macro model&rsquo;s default ({cite('ogukParams')}).</> },
               {
                 icon: 'code',
                 text: (
@@ -394,7 +395,7 @@ function ShockCards() {
       >
         <Items
           items={[
-            { icon: 'capital', text: <>The capital share &gamma; rises.</> },
+            { icon: 'capital', text: <>The capital share <MathSym name="gamma" /> rises.</> },
             { icon: 'labour', text: 'The labour share falls by the same points.' },
           ]}
         />
@@ -646,7 +647,7 @@ export default function MethodTab() {
                         {m.k}
                       </span>
                       <span className="mx-measure-t">{m.t}</span>
-                      <span className="mx-measure-d">{m.href ? ext(m.href, m.d) : m.d}</span>
+                      <span className="mx-measure-d">{m.href ? ext(m.href, mathNodes(m.d)) : mathNodes(m.d)}</span>
                       {i < MEASURES.length - 1 ? (
                         <span className="mx-measure-arrow" aria-hidden="true">
                           →
