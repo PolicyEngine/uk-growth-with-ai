@@ -9,6 +9,7 @@ import { PART_COLOR } from './split.js';
 import { EPS2, dirWord } from './dir.js';
 import { welfareWords } from './caveats.js';
 import { shockFor } from './shock.js';
+import { ShockCap } from './ShockTiles.jsx';
 
 // Part 2's step cards (round 1): one sentence per step, with at most one
 // emphasised term, a colour-keyed <Key> that lights the mark the step
@@ -82,7 +83,8 @@ export function shockDefinition() {
 // the small-tile counts are the figure's). Its marks are tiles, which move
 // with the step: highlight 'none'.
 export function shockSteps(sid, closure) {
-  const { base, ch, moreCapital } = shockFor(sid, closure);
+  const shock = shockFor(sid, closure);
+  const { base, ch, moreCapital } = shock;
   const why = 'Its tiles move with the step; no marks to light';
   const lab = base?.labour;
   const part = lab == null ? 'most' : lab >= 62 && lab <= 70 ? 'about two thirds' : lab > 50 ? 'the larger part' : 'the smaller part';
@@ -107,7 +109,14 @@ export function shockSteps(sid, closure) {
       title: 'Move 1: income shifts from labour to capital',
       highlight: 'none',
       highlightWhy: why,
-      body: <Say>First move: AI does more workers&rsquo; tasks than the OBR expects, so part of labour&rsquo;s income goes to capital.</Say>,
+      // the move's line (its counts, once under the tiles) is the card's
+      // second line, beside the figure (Vahid, 22 Nov)
+      body: (
+        <>
+          <Say>First move: AI does more workers&rsquo; tasks than the OBR expects, so part of labour&rsquo;s income goes to capital.</Say>
+          {base ? <ShockCap shock={shock} move={1} /> : null}
+        </>
+      ),
     },
     {
       id: 'p2-shock-2',
@@ -117,10 +126,15 @@ export function shockSteps(sid, closure) {
       highlightWhy: why,
       body: ch == null ? (
         <Say>{['This scenario is not yet solved for the foreign-capital case chosen above.', nextSolved(sid, closure)].filter(Boolean).join(' ')}</Say>
-      ) : grows ? (
-        <Say>Then output grows: productivity is higher (an input) and the economy holds more capital (the model&rsquo;s response).</Say>
       ) : (
-        <Say>Then output ends {dirWord(ch.gdp)} the forecast path, once productivity, capital and hours have responded.</Say>
+        <>
+          {grows ? (
+            <Say>Then output grows: productivity is higher (an input) and the economy holds more capital (the model&rsquo;s response).</Say>
+          ) : (
+            <Say>Then output ends {dirWord(ch.gdp)} the forecast path, once productivity, capital and hours have responded.</Say>
+          )}
+          {base ? <ShockCap shock={shock} move={2} /> : null}
+        </>
       ),
     },
   ];

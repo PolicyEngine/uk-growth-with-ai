@@ -294,7 +294,7 @@ describe('each state of each graphic', () => {
         </NavProvider>,
       );
       const svgs = [...container.querySelectorAll('svg.tile-field')];
-      const r = { strip: svgs[1]?.querySelectorAll('rect').length, caps: [...container.querySelectorAll('.p2-shock-cap.is-on')].map((p) => p.textContent) };
+      const r = { strip: svgs[1]?.querySelectorAll('rect').length, caps: [...container.querySelectorAll('.p2-shock-cap')].map((p) => p.textContent) };
       unmount();
       return r;
     };
@@ -302,9 +302,13 @@ describe('each state of each graphic', () => {
     expect(st[0].strip).toBe(sh.RL * 10 + 10);
     expect(st[1].strip).toBe(st[0].strip);
     expect(st[2].strip).toBe(st[0].strip);
+    // the two lines are the step cards' (ShockCap), not the figure's
+    expect(st.every((x) => x.caps.length === 0)).toBe(true);
+    const { ShockCap } = await import('@/tabs/story/part2/ShockTiles.jsx');
+    const line = (move) => render(<ShockCap shock={sh} move={move} />).container.textContent;
     const input = real.scenarios.find((x) => x.id === 'uk_central').labour_share_fall_pp.toFixed(1);
-    expect(st[1].caps).toEqual([`AI moves ${input} of every 100 tiles of output from labour to capital: ${sh.M} small tiles cross. Its size is an assumption for each scenario.`]);
-    expect(st[2].caps[1]).toBe('This scenario is not yet solved for the foreign-capital case chosen above.');
+    expect(line(1)).toBe(`AI moves ${input} of every 100 tiles of output from labour to capital: ${sh.M} small tiles cross. Its size is an assumption for each scenario.`);
+    expect(line(2)).toBe('This scenario is not yet solved for the foreign-capital case chosen above.');
   });
 });
 
@@ -712,12 +716,15 @@ describe('direction icons follow the signs', () => {
     for (const q of ['tab=story', 'tab=story&s=korinek&closure=both', 'tab=story&s=uk_low&closure=closed']) {
       const { container, unmount } = at(q);
       const shock = container.querySelector('#p2-shock');
-      expect(shock.querySelectorAll('.scrolly-graphic-inner [data-input]'), q).toHaveLength(1);
+      // the input is quoted once, in move 1's card (its line moved beside
+      // the figure, 22 Nov)
+      expect(shock.querySelectorAll('.scrolly-steps #p2-shock-1 [data-input]'), q).toHaveLength(1);
+      expect(shock.querySelectorAll('.scrolly-graphic-inner [data-input], .scrolly-graphic-inner .p2-shock-cap'), q).toHaveLength(0);
       expect(shock.textContent).not.toMatch(/[+−]\d+\.\d+/);
       expect(shock.textContent).toContain('Its size is an assumption for each scenario.');
       // the added output's size is OG-UK's, said once, in its caption; its
       // one decimal restates the headline GDP gap (data-axis)
-      const two = shock.querySelectorAll('.p2-shock-cap')[1];
+      const two = shock.querySelector('.scrolly-steps #p2-shock-2 .p2-shock-cap') ?? shock.querySelector('.scrolly-steps #p2-shock-2');
       if (/new small tile/.test(two.textContent)) {
         expect(two.textContent).toContain('The macro model works out the size.');
         expect(two.querySelectorAll('[data-axis]'), q).toHaveLength(1);

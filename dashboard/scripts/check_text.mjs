@@ -13,7 +13,7 @@
 // of thing, once per block group; it no longer leads every line.
 //   (a) must have exactly one icon: a chart title, a figure title, a step
 //       card (its closing line's icon not counted), a takeaway caption, an
-//       essential caveat line, a tile caption (Vahid, 21 Nov: "all text
+//       essential caveat line (Vahid, 21 Nov: "all text
 //       should have icon"), a beat with no numeral (push D, Q3: the
 //       OBR-sized run's "A smaller shock"); a standalone note (round 8,
 //       M3: NOTE_ICON_SEL below; the Explore and Results ones are
@@ -190,7 +190,7 @@ for (const [name, path] of Object.entries(PAGES)) {
       }
       if (!story) return { out };
       // (a) exactly one icon
-      for (const sel of ['.ch-title', '.scrolly-card', '.story-figure-title', '.scrolly-takeaway', '.src-essential', '.p2-shock-cap', '.story-beat.has-icon', ...NOTE_ICON_SEL]) {
+      for (const sel of ['.ch-title', '.scrolly-card', '.story-figure-title', '.scrolly-takeaway', '.src-essential', '.story-beat.has-icon', ...NOTE_ICON_SEL]) {
         for (const el of panel.querySelectorAll(sel)) {
           if (el.closest(skip) || !visible(el)) continue;
           // a step card's closing line counts as its own block

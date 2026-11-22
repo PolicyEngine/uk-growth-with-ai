@@ -1,7 +1,6 @@
 'use client';
 
 import { TileField } from '@/components/story/primitives.jsx';
-import IconLine from '@/components/ui/IconLine.jsx';
 import { useReducedMotion } from '@/components/story/motion.js';
 import { ChartHover, ModelBadge } from '@/components/story/chart/index.js';
 import { NavLink } from '@/lib/nav.jsx';
@@ -11,7 +10,7 @@ import { SRC, ModelSourceButton, resultUrl, pathUrl } from './sources.jsx';
 import { docItem } from '@/lib/sourceItems.js';
 import { SPLIT_YEAR } from './split.js';
 import { dirWord } from './dir.js';
-import { COLS, GAP, ROWS, WIN, LEAD, LABOUR_COLOR, CAPITAL_COLOR, overviewTiles, shockTiles, settleMs } from './shock.js';
+import { COLS, GAP, ROWS, WIN, LEAD, LABOUR_COLOR, CAPITAL_COLOR, overviewTiles, shockTiles } from './shock.js';
 
 export { LABOUR_COLOR, CAPITAL_COLOR };
 
@@ -60,6 +59,41 @@ const notes = () => [
   },
 ];
 
+// Each move's line (Vahid, 22 Nov: "move to side? with animation?"): the
+// two lines once under the tiles are now the step cards' second lines,
+// beside the pinned figure (steps.jsx shockSteps): move 1, the share input
+// (data-input) and the M small tiles that cross; move 2, the N new tiles,
+// NL to labour and NK to capital, and the GDP change restated from the
+// headline tiles (data-axis). The active card is at full strength, the
+// other dimmed (Scrolly); each card's state plays its move in the figure.
+export function ShockCap({ shock, move }) {
+  const { ch, M, N, NL, NK, inputPp } = shock;
+  if (move === 1)
+    return (
+      <p className="p2-shock-cap" data-move="1">
+        AI moves <span data-input="">{inputPp.toFixed(1)}</span> of every 100 tiles of output from labour to capital: {M} small tiles cross. Its size is an assumption for each scenario.
+      </p>
+    );
+  const line2 =
+    ch == null
+      ? 'This scenario is not yet solved for the foreign-capital case chosen above.'
+      : N === 0
+        ? `No new small tiles: GDP is ${dirWord(ch.gdp)} the forecast path.`
+        : (
+            <>
+              {/* under 5 new tiles the rounded split misleads (2 tiles split 1
+                  and 1 beside "the new split"): no split (review round 1, R1-18) */}
+              Output grows about <span data-axis="">{ch.gdp.toFixed(1)}%</span>: {N} new small {N === 1 ? 'tile' : 'tiles'}
+              {N < 5 ? '' : `, about ${NL} to labour, ${NK} to capital, at the new split`}. The macro model works out the size.
+            </>
+          );
+  return (
+    <p className="p2-shock-cap" data-move="2">
+      {line2}
+    </p>
+  );
+}
+
 export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
   const reduce = useReducedMotion();
   const { cl, base, ch, M, N, NL, NK, L0, RL, R, inputPp } = shock;
@@ -98,21 +132,6 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
         },
       ]
     : [];
-  // each move's caption, shown 100ms after its last tile lands
-  const capDelay = (st) => (forward && s === st ? settleMs(st, shock, lead) + 100 : 0);
-  const line2 =
-    ch == null
-      ? 'This scenario is not yet solved for the foreign-capital case chosen above.'
-      : N === 0
-        ? `No new small tiles: GDP is ${dirWord(ch.gdp)} the forecast path.`
-        : (
-            <>
-              {/* under 5 new tiles the rounded split misleads (2 tiles split 1
-                  and 1 beside "the new split"): no split (review round 1, R1-18) */}
-              Output grows about <span data-axis="">{ch.gdp.toFixed(1)}%</span>: {N} new small {N === 1 ? 'tile' : 'tiles'}
-              {N < 5 ? '' : `, about ${NL} to labour, ${NK} to capital, at the new split`}. The macro model works out the size.
-            </>
-          );
   const stripLabel = base
     ? [
         `Magnified strip before the shock: ${RL * WIN} small tiles of labour income, 10 of capital income.`,
@@ -197,14 +216,6 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
             </div>
           </div>
           </ChartHover>
-          <div className="p2-shock-caps">
-            <IconLine concept="ai" className={`p2-shock-cap${s >= 1 ? ' is-on' : ''}`} style={{ '--cd': `${capDelay(1)}ms` }}>
-              AI moves <span data-input="">{inputPp.toFixed(1)}</span> of every 100 tiles of output from labour to capital: {M} small tiles cross. Its size is an assumption for each scenario.
-            </IconLine>
-            <IconLine concept={ch == null ? 'provisional' : 'gdp'} className={`p2-shock-cap${s >= 2 ? ' is-on' : ''}`} style={{ '--cd': `${capDelay(2)}ms` }}>
-              {line2}
-            </IconLine>
-          </div>
         </>
       ) : (
         <p className="p2-pending">

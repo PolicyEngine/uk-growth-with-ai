@@ -164,24 +164,14 @@
 .p2-shock-wins span:last-child {
   grid-column: 3;
 }
-/* each move's caption: always in the layout (the figure keeps its height),
-   shown once its move has landed (--cd: the last tile's landing + 100ms) */
-.p2-shock-caps {
-  margin: 8px 0 0;
-}
-.p2-shock-cap {
-  margin: 2px 0 0;
-  font-size: var(--fs-caption);
+/* each move's line: the step card's second line, beside the pinned
+   figure (Vahid, 22 Nov), in the UI size; shown with its card, which
+   Scrolly dims while another card is active */
+.scrolly-body .p2-shock-cap {
+  margin: 6px 0 0;
+  font-size: var(--t-ui);
   line-height: 1.45;
-  color: var(--pe-gray-700);
-  visibility: hidden;
-  opacity: 0;
-  transition: opacity 150ms ease, visibility 0s linear 150ms;
-}
-.p2-shock-cap.is-on {
-  visibility: visible;
-  opacity: 1;
-  transition: opacity 200ms ease var(--cd, 0ms), visibility 0s linear var(--cd, 0ms);
+  color: var(--t-text);
 }
 /* new small tiles drop in by a transition from @starting-style (700ms), set
    only on a forward move: Scrolly's is-snap zeroes it on a jump, and lifting
@@ -244,17 +234,8 @@
   .p2-shock-wins {
     display: none;
   }
-  .p2-shock-caps {
-    margin-top: 2px;
-  }
-  .p2-shock-cap {
-    font-size: 12px;
-    line-height: 1.35;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .p2-shock-cap,
-  .p2-shock-cap.is-on,
   .p2-shock-zoom.is-enter,
   .p2-shock-fig .tile-field .tile.is-new {
     transition: none !important;
