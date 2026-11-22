@@ -468,3 +468,19 @@
 .hh-db {
   container-type: inline-size;
 }
+
+/* ---- card 1: the waterfall's step guides (Households redesign, R5): a
+   1px line at each bar's end, down to the next row's bar; over a group
+   head it runs one row further ---- */
+.hh-wf-guide {
+  position: absolute;
+  top: 12px;
+  height: var(--hh-wf-step, 18px);
+  border-left: 1px solid var(--pe-gray-300);
+  pointer-events: none;
+}
+.hh-wf-guide.is-over-head {
+  /* the group head row: 12px + one 16px line + 3px, and 1px more above
+     the next bar */
+  height: calc(var(--hh-wf-step, 18px) + 38px);
+}

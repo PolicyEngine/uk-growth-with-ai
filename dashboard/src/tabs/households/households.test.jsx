@@ -131,8 +131,18 @@ describe('HouseholdsExplore', () => {
     const { rows, net } = costSteps();
     rows.forEach((r, i) => expect(r.from).toBeCloseTo(i ? rows[i - 1].to : 0, 9));
     expect(net.to).toBe(D.cost_components.total_bn);
+    // grouped by sign (Households redesign, R5): adds first, then lowers
+    const firstLower = rows.findIndex((r) => r.cost_bn < 0);
+    if (firstLower >= 0) expect(rows.slice(firstLower).every((r) => r.cost_bn < 0)).toBe(true);
     const { container } = render(<HouseholdsExplore />);
     const card = container.querySelector('#hh-cost-lines');
+    const heads = [...card.querySelectorAll('tr.hh-tbl-group')].map(flat);
+    const want = [rows.some((r) => r.cost_bn >= 0) ? 'Adds to the cost' : null, rows.some((r) => r.cost_bn < 0) ? 'Lowers the cost' : null].filter(Boolean);
+    expect(heads).toEqual(want);
+    // within each group, the data's order; no subtotal rows
+    const ids = [...card.querySelectorAll('tr[data-row]')].map((tr) => tr.getAttribute('data-row'));
+    expect(ids).toEqual([...rows.map((r) => r.id), 'net']);
+    expect(card.querySelectorAll('.hh-wf-guide')).toHaveLength(rows.length);
     const netRow = card.querySelector('tr[data-row="net"]');
     expect(netRow.classList.contains('is-main')).toBe(true);
     expect(flat(netRow.querySelector('th'))).toBe('Net cost (main case)');

@@ -197,14 +197,25 @@ const Lead = ({ children }) => <>{[children].flat().filter(Boolean).map((s, i) =
 // Each line grows from where the line above ends; the landing bar is the
 // net, the main-case cost, whose home is story step 1 (data-axis here).
 const SHORT = { other_income_tax: 'Income tax on earnings (net)' };
+// Grouped by sign (Households redesign, R5): the lines that add to the cost
+// first, then those that lower it, each group in the data's order; no
+// subtotals.
+export const COST_GROUPS = [
+  { id: 'add', name: 'Adds to the cost', test: (v) => v >= 0 },
+  { id: 'lower', name: 'Lowers the cost', test: (v) => v < 0 },
+];
 export function costSteps() {
   const C = D.cost_components;
   let at = 0;
-  const rows = C.rows.map((r) => {
-    const s = { ...r, from: at, to: at + r.cost_bn };
-    at += r.cost_bn;
-    return s;
-  });
+  const rows = COST_GROUPS.flatMap((g) =>
+    C.rows
+      .filter((r) => g.test(r.cost_bn))
+      .map((r) => {
+        const s = { ...r, group: g.id, from: at, to: at + r.cost_bn };
+        at += r.cost_bn;
+        return s;
+      }),
+  );
   return { rows, net: { from: 0, to: C.total_bn } };
 }
 // a line under £0.05bn in size prints two decimals, not a phrase
@@ -218,9 +229,12 @@ function CostByTax() {
   const lo = Math.min(0, ...ends);
   const hi = Math.max(...ends) * 1.04;
   const X = (v) => ((v - lo) / (hi - lo)) * 100;
-  const bar = (from, to, cls, i) => (
+  // a 1px guide at each line's end, down to the next row's bar (longer
+  // where a group head sits between them)
+  const bar = (from, to, cls, i, guide = null) => (
     <span className="hh-wf-track" aria-hidden="true">
       <span className="hh-wf-zero" style={{ left: `${X(0)}%` }} />
+      {guide ? <span className={`hh-wf-guide${guide === 'head' ? ' is-over-head' : ''}`} style={{ left: `${X(to)}%` }} /> : null}
       <span
         className={`hh-wf-bar ${cls}`}
         style={{ left: `${X(Math.min(from, to))}%`, width: `${Math.abs(X(to) - X(from))}%`, transformOrigin: to < from ? 'right center' : 'left center', transitionDelay: `${i * 140}ms` }}
@@ -244,7 +258,7 @@ function CostByTax() {
       more={[
         { label: 'Measure', text: 'Positive is a cost to the public finances.' },
         { label: 'Sample', text: `Mean of ${C.draws} draws.` },
-        { label: 'How it is drawn', text: 'Each line starts where the line above ends; the net bar starts at zero.' },
+        { label: 'How it is drawn', text: 'Each line starts where the line above ends; the net bar starts at zero. Lines that add to the cost come first.' },
       ]}
       download={{ title: 'Cost by tax and benefit', context: CTX, table: { columns: ['line', 'cost_bn_mean', 'cost_bn_sd'], rows: C.rows.map((r) => [r.label, r.cost_bn, r.sd_bn]) } }}
       about={about({
@@ -268,12 +282,15 @@ function CostByTax() {
           rowHead="Line"
           cols={['£bn']}
           rows={[
-            ...rows.map((r, i) => ({
-              id: r.id,
-              label: <span title={SHORT[r.id] ? r.label : undefined}>{SHORT[r.id] ?? r.label}</span>,
-              bar: bar(r.from, r.to, r.cost_bn >= 0 ? 'is-loss' : 'is-gain', i),
-              cells: [bnLine(r.cost_bn)],
-            })),
+            ...rows.flatMap((r, i) => [
+              ...(i === 0 || rows[i - 1].group !== r.group ? [{ id: `g-${r.group}`, group: COST_GROUPS.find((g) => g.id === r.group).name }] : []),
+              {
+                id: r.id,
+                label: <span title={SHORT[r.id] ? r.label : undefined}>{SHORT[r.id] ?? r.label}</span>,
+                bar: bar(r.from, r.to, r.cost_bn >= 0 ? 'is-loss' : 'is-gain', i, rows[i + 1] && rows[i + 1].group !== r.group ? 'head' : 'row'),
+                cells: [bnLine(r.cost_bn)],
+              },
+            ]),
             // the net, the main-case cost: its home is story step 1
             { id: 'net', main: true, label: 'Net cost (main case)', bar: bar(net.from, net.to, 'is-net', rows.length), cells: [<Ax key="n">{fmtBn(net.to)}</Ax>] },
           ]}
