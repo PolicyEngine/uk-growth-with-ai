@@ -109,6 +109,15 @@ describe('the CSS: entrance fades only behind is-swap', () => {
     for (const sel of ['.p3-plane-stress', '.p3-plane-link', '.p3-plane-label']) expect(list).toContain(sel);
     expect(story).not.toMatch(/(^|[\s,])\.reveal\b/);
   });
+  it('Households marks: reduced motion, print and no JS (fix 3)', () => {
+    const ex = css('items-explore.css');
+    const reduce = ex.match(/@media \(prefers-reduced-motion: reduce\) \{\s*\.hh-page[\s\S]*?\n\}/)[0];
+    for (const sel of ['.hh-page .hh-bar-seg', '.hh-page .hh-pt-lab']) expect(reduce).toContain(sel);
+    const fallback = ex.match(/@media print, \(scripting: none\) \{\s*\.hh-page[\s\S]*?\n\}/)[0];
+    expect(fallback).toMatch(/\.hh-page \.hh-bar-seg,[\s\S]*?transform: none/);
+    expect(fallback).toMatch(/\.hh-page \.hh-pt-lab \{\s*opacity: 1;\s*\}/);
+    expect(fallback).toMatch(/\.hh-page \.hh-arrow \{\s*stroke-dashoffset: 0;\s*\}/);
+  });
   it('the panel fades sit inside a no-preference media query', () => {
     expect(css('story.css')).toMatch(/@media screen and \(prefers-reduced-motion: no-preference\) \{\s*\.tab-panel\.is-swap:not\(\[hidden\]\) \{\s*animation: panel-in 200ms/);
     expect(css('v2.css')).toMatch(/@media screen and \(prefers-reduced-motion: no-preference\) \{\s*\.sub-panel\.is-swap \{\s*animation: sub-in 180ms/);

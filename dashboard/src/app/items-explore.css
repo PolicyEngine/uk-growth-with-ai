@@ -1783,6 +1783,8 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .hh-page .hh-wf-bar,
+  .hh-page .hh-bar-seg,
+  .hh-page .hh-pt-lab,
   .hh-page .hh-pt,
   .hh-page .hh-arrow,
   .hh-page .hh-pence-seg,
@@ -1798,6 +1800,7 @@
 }
 @media print, (scripting: none) {
   .hh-page .hh-wf-bar,
+  .hh-page .hh-bar-seg,
   .hh-page .hh-pence-seg,
   .hh-page .hh-funnel-bar,
   .hh-page .hh-db-bar,
@@ -1809,6 +1812,13 @@
   .hh-page .hh-db-dot {
     opacity: 1;
     transform: none;
+  }
+  /* placed by its transform: opacity only */
+  .hh-page .hh-pt-lab {
+    opacity: 1;
+  }
+  .hh-page .hh-arrow {
+    stroke-dashoffset: 0;
   }
 }
 /* round 2: plain dots with direct labels (C13) */
