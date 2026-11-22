@@ -21,6 +21,7 @@ import { iconFor } from '@/lib/concepts.js';
 import IconText from '@/tabs/method/IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { REF, DASH_REF, SP_HELPER, STEPS } from './pipeline.js';
+import HouseholdsDetail from '@/tabs/households/HouseholdsDetail.jsx';
 
 // Data and code: reproduce the results (before you start, the 2028-surprise
 // pipeline, outputs and checks), the one vintages table and the model
@@ -394,6 +395,9 @@ function Vintages() {
           ].filter(Boolean)}
         />
       </InfoCard>
+      {/* the household study's result files and commit (#detail-sources;
+          a Method sub-tab until the Method redesign) */}
+      <HouseholdsDetail />
       {/* one column: the versions table needs the width, and the two cards
           differ in height by hundreds of pixels */}
       <div className="cards-grid mx-stack-grid">

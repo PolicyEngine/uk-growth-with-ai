@@ -38,7 +38,6 @@ const OTHER = {
   overview: '/?tab=method',
   inputs: '/?tab=method&sub=inputs',
   'household-method': '/?tab=method&sub=households',
-  detail: '/?tab=method&sub=detail',
 };
 // BROWSER=webkit runs Playwright's WebKit (an approximation of Safari)
 const browser = process.env.BROWSER === 'webkit' ? await webkit.launch() : await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});

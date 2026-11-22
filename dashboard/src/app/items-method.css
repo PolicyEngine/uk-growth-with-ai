@@ -696,3 +696,9 @@ p.mx-axis-title.is-x {
 @media (max-width: 600px) {
   .mx-inputs-find { flex-basis: 100%; }
 }
+
+/* Data and code: the household study's result files, a card in "Data files
+   and versions" (#detail-sources; Method redesign, section 8) */
+.hh-detail-card .hh-detail-sub {
+  color: var(--pe-gray-600);
+}

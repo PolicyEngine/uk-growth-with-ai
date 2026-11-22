@@ -108,6 +108,8 @@ const LEGACY_SUB = {
     limits: ['method', null, 'm-limits'],
     // the revision history is the changelog on Data and code
     history: ['method', 'code', 'changelog'],
+    // Detail and sources is a card on Data and code (Method redesign, M2)
+    detail: ['method', 'code', 'detail-sources'],
     // Scenarios folded into OG-UK method; its old ids (s-*, scen-*, arm-*,
     // timing, m-jump) are kept there, so a named anchor is kept
     scenarios: ['method', null, 'm-scenarios'],
@@ -141,6 +143,8 @@ export function resolve(tab, sub = null, anchor = null) {
   }
   else if (own(ALIAS, tab)) [tab, sub, anchor] = ALIAS[tab](sub, anchor);
   if (tab === 'method' && anchor === 'm-history') [sub, anchor] = ['code', 'changelog'];
+  // Detail and sources is a section of Data and code
+  if (tab === 'method' && anchor === 'detail-sources') sub = 'code';
   // moved anchors: the income charts are the Economy wall
   if (tab === 'explore' && anchor === 'income') anchor = 'economy-wall';
   if (tab === 'method' && anchor && (!sub || sub === 'how') && INPUT_ANCHOR.test(anchor)) sub = 'inputs';

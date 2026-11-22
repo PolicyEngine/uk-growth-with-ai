@@ -55,7 +55,6 @@ export const TABS = [
       { id: 'inputs', label: 'Inputs', short: 'Inputs', icon: 'table' },
       { id: 'studies', label: 'Evidence', icon: 'library' },
       { id: 'code', label: 'Data and code', short: 'Code', icon: 'code' },
-      { id: 'detail', label: 'Detail and sources', short: 'Detail', icon: 'fileText', study: true },
     ] },
 ];
 export const tabById = (id) => TABS.find((t) => t.id === id);

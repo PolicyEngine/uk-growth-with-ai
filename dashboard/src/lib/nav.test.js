@@ -57,6 +57,10 @@ describe('address', () => {
     expect(parseUrl('?tab=method', '#mx-group-model-parameters')).toMatchObject({ tab: 'method', sub: 'inputs' });
     expect(parseUrl('?tab=method&sub=inputs')).toMatchObject({ tab: 'method', sub: 'inputs', anchor: null });
     expect(parseUrl('?tab=method&sub=studies', '#in-sources')).toMatchObject({ tab: 'method', sub: 'studies' });
+    // Detail and sources is a card on Data and code (Method redesign, M2)
+    expect(parseUrl('?tab=method&sub=detail')).toMatchObject({ tab: 'method', sub: 'code', anchor: 'detail-sources' });
+    expect(parseUrl('?tab=method', '#detail-sources')).toMatchObject({ tab: 'method', sub: 'code', anchor: 'detail-sources' });
+    expect(parseUrl('?tab=method&sub=how', '#detail-sources')).toMatchObject({ tab: 'method', sub: 'code', anchor: 'detail-sources' });
     expect(parseUrl('?tab=method&sub=limits')).toMatchObject({ tab: 'method', sub: 'how', anchor: 'm-limits' });
     expect(parseUrl('?tab=results&sub=variables&s=uk_high')).toMatchObject({ tab: 'explore', sub: null, anchor: 'explore-part-economy', s: 'uk_high' });
     expect(parseUrl('?tab=results&sub=overview')).toMatchObject({ tab: 'story', sub: null });

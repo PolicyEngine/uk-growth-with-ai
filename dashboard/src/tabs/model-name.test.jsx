@@ -110,7 +110,6 @@ export function renderedHits(root, page) {
 
 const MORE = [
   ['method households', 'tab=method&sub=households', MethodSourcesTab],
-  ['method detail', 'tab=method&sub=detail', MethodSourcesTab],
 ];
 
 describe('the macro model is not called OG-UK', () => {

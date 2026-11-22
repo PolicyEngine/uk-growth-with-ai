@@ -991,7 +991,7 @@ function Policy() {
 function DetailLink() {
   return (
     <p className="hh-detail-link">
-      <NavLink tab="method" sub="detail">
+      <NavLink tab="method" sub="code" anchor="detail-sources">
         Detail and sources: result files, commit, how the page is built
       </NavLink>
     </p>
