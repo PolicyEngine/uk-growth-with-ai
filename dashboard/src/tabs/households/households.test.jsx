@@ -424,6 +424,8 @@ describe('HouseholdsMethod', () => {
     expect(flow.querySelectorAll('.hf-link')).toHaveLength(5);
     expect(flow.textContent).not.toMatch(/macro model/i);
     expect(flow.textContent).toContain('sets each group’s share, in the main case');
+    // each arrow names its two ends as written (PolicyEngine UK keeps its capitals)
+    expect([...flow.querySelectorAll('.hf-ends')].map((e) => e.textContent.trim())).toEqual(['AI exposure to the shock:', 'The shock to PolicyEngine UK:', 'Survey data to PolicyEngine UK:', 'PolicyEngine UK to household incomes:', 'PolicyEngine UK to public finances:']);
     // the caution panel holds the nine tiles
     expect(container.querySelector('#hm-out').closest('.caution-panel').querySelectorAll('.hm-out-tile')).toHaveLength(9);
   });

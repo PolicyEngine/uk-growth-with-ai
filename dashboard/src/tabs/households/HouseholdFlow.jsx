@@ -70,13 +70,17 @@ function Box({ k, b }) {
   );
 }
 
+// A box's title inside a sentence: lower case first, except a name
+// ("PolicyEngine UK")
+const inLine = (t) => (/^[A-Z][a-z]+[A-Z]/.test(t) || /^[A-Z]{2}/.test(t) ? t : t[0].toLowerCase() + t.slice(1));
+
 function Link({ l, boxes }) {
   return (
     <p className={`hf-link hf-link-${l.id}`}>
       <Arrow dir={DIR[l.id] ?? 'right'} />
       <span>
         <span className="hf-ends">
-          {boxes[l.from].title} to {boxes[l.to].title.toLowerCase()}:{' '}
+          {boxes[l.from].title} to {inLine(boxes[l.to].title)}:{' '}
         </span>
         {l.label}
       </span>
