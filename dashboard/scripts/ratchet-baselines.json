@@ -46,8 +46,8 @@
       "source": "claims-and-years.test.jsx: cohort views print no active-set shock year that differs from the cohort file year (R2-03), and no source line mixes the two"
     },
     "fold_titles": {
-      "baseline": 3,
-      "source": "caption-length.test.jsx fold probe, both data files: PartHead \"About this model\"; Data and code \"Install the model\", \"Patch OG-Core for a time-varying γ\", \"Environment\", \"The sp helper used below\", \"Earlier changes\" (7 renders)"
+      "baseline": 4,
+      "source": "caption-length.test.jsx fold probe, both data files: PartHead \"About this model\" (part 1's added with the part openings, approved by Vahid, 22 Nov: every part has one); Data and code \"Install the model\", \"Patch OG-Core for a time-varying γ\", \"Environment\", \"The sp helper used below\", \"Earlier changes\" (7 renders)"
     },
     "typed_years_wide": {
       "baseline": 51,

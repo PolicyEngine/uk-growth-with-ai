@@ -67,7 +67,8 @@ function audit({ story }) {
   const links = [...panel.querySelectorAll('a')].filter(visible);
   // figures
   const figs = story
-    ? [...panel.querySelectorAll('figure'), ...panel.querySelectorAll('#p1-vitals')].filter(visible)
+    ? // the vitals panel's sources are part 1's About now (part openings, 22 Nov)
+      [...panel.querySelectorAll('figure')].filter(visible)
     : [...panel.querySelectorAll('figure, .card')].filter((f) => visible(f) && (f.matches('figure') || f.querySelector('.chart-plot')) && !f.parentElement.closest('figure, .card'));
   for (const f of figs) {
     // one sources button per card: a figure inside a card or a Finding box

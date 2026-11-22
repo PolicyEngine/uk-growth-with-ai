@@ -388,7 +388,6 @@ function TaxGapCard({ sid, closure, rule }) {
           ours={{
             value: model,
             text: model == null ? PENDING : `${signed(model, 2)}pp`,
-            path: model == null ? undefined : `results.${sid}.tfp.${CENTRAL}.gaps.tax_gdp_pp.${HEADLINE_YEAR}`,
             extra:
               onChart && model != null ? (
                 <a className="cause-see" href="#tax-gdp" onMouseEnter={flag(true)} onMouseLeave={flag(false)} onFocus={flag(true)} onBlur={flag(false)}>
