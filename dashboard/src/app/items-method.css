@@ -563,3 +563,23 @@ p.mx-axis-title.is-x {
 @media (max-width: 480px) {
   .mx-rule-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Limitations in four groups (push D, Q9.6): a small icon head each, in a
+   two-column grid on a wide screen */
+.mx-limit-groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+}
+@media (max-width: 700px) {
+  .mx-limit-groups { grid-template-columns: minmax(0, 1fr); }
+}
+.mx-limit-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.mx-limit-head svg { color: var(--pe-gray-500); }

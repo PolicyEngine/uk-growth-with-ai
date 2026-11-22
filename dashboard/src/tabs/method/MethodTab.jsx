@@ -270,6 +270,13 @@ const DEBT_CARD = {
 const ETR = S.closures[CENTRAL].reference_effective_tax_rates;
 const TAX_GAP = ETR.labour - ETR.capital_gross;
 
+// The limitations' four groups (push D, Q9.6), by the items' titles.
+export const LIMIT_GROUPS = [
+  { key: 'structure', title: 'Structure', icon: 'model', titles: ['One sector', 'No unemployment', 'No regions or housing', 'No money, trade or exchange rate'] },
+  { key: 'behaviour', title: 'Behaviour', icon: 'households', titles: ['Perfect foresight', 'Slow capital response', 'No markups', 'Substitution fixed at one'] },
+  { key: 'inputs', title: 'Inputs', icon: 'scenario', titles: ['Imposed technology paths', 'Productivity overlaps the OBR’s'] },
+  { key: 'finances', title: 'Public finances', icon: 'finances', titles: ['Revenue responds too little', 'Foreign AI providers'] },
+];
 // What the model leaves out: one short list, a line each, every fact once.
 function Limitations() {
   const items = [
@@ -309,25 +316,43 @@ function Limitations() {
     { title: 'No money, trade or exchange rate', text: 'links abroad are capital and gilts.' },
     { title: 'No regions or housing', text: 'one national economy.' },
   ];
+  // grouped under four headings with icons (push D, Q9.6); text and links
+  // unchanged, each limitation once
+  const byTitle = Object.fromEntries(items.map((it) => [it.title, it]));
+  const used = LIMIT_GROUPS.flatMap((g) => g.titles);
+  if (used.length !== items.length || items.some((it) => !used.includes(it.title))) throw new Error('Limitations: every item in exactly one group');
   return (
-    <>
-      <ul className="mx-limit-list">
-        {items
-          .filter((it) => !it.para)
-          .map((it) => (
-            <li key={it.title}>
-              <span className="mx-limit-title">{it.title}:</span> {it.text}
-            </li>
-          ))}
-      </ul>
-      {items
-        .filter((it) => it.para)
-        .map((it) => (
-          <p key={it.title} className="mx-limit-para">
-            <span className="mx-limit-title">{it.title}:</span> {it.text}
-          </p>
-        ))}
-    </>
+    <div className="mx-limit-groups">
+      {LIMIT_GROUPS.map((g) => {
+        const xs = g.titles.map((t) => byTitle[t]);
+        return (
+          <div key={g.key} className="mx-limit-group" data-group={g.key}>
+            <h3 className="mx-limit-head">
+              <Icon name={iconFor(g.icon)} size={16} />
+              <span>{g.title}</span>
+            </h3>
+            {xs.some((it) => !it.para) ? (
+              <ul className="mx-limit-list">
+                {xs
+                  .filter((it) => !it.para)
+                  .map((it) => (
+                    <li key={it.title}>
+                      <span className="mx-limit-title">{it.title}:</span> {it.text}
+                    </li>
+                  ))}
+              </ul>
+            ) : null}
+            {xs
+              .filter((it) => it.para)
+              .map((it) => (
+                <p key={it.title} className="mx-limit-para">
+                  <span className="mx-limit-title">{it.title}:</span> {it.text}
+                </p>
+              ))}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
 import { SCENARIOS, CLOSURES, fixedInputVsTz, gap } from '@/tabs/ai/surprise.js';
 import { ArmsPart, InputsPart, ScenariosPart, TimingPart, stressMove, tzGdpMove, stressItems, tzGdpItems } from './ScenariosSection.jsx';
-import MethodTab from './MethodTab.jsx';
+import MethodTab, { LIMIT_GROUPS } from './MethodTab.jsx';
 
 afterEach(cleanup);
 
@@ -131,5 +131,16 @@ describe('Scenarios direction icons', () => {
       expect([...step.querySelectorAll('.why-stat-label')].map((d) => d.textContent)).toEqual([`UK central: investment, ${st.prev}`, `Investment, ${st.late}`, `Debt, % of GDP, ${st.late}`]);
     }
     for (const c of cards.slice(1)) expect(c.querySelector('.mx-rule-step'), c.id).toBeNull();
+  });
+  // push D, Q9.6: the twelve limitations under four headings with icons
+  it('groups the limitations under four headings with icons, each item once', () => {
+    const { container } = render(<MethodTab />);
+    const groups = [...container.querySelectorAll('.mx-limit-group')];
+    expect(groups.map((g) => g.querySelector('.mx-limit-head').textContent)).toEqual(['Structure', 'Behaviour', 'Inputs', 'Public finances']);
+    for (const g of groups) expect(g.querySelector('.mx-limit-head svg'), g.dataset.group).not.toBeNull();
+    const titles = [...container.querySelectorAll('.mx-limit-group .mx-limit-title')].map((t) => t.textContent.replace(/:$/, ''));
+    expect([...titles].sort()).toEqual(LIMIT_GROUPS.flatMap((g) => g.titles).sort());
+    for (const g of groups) expect([...g.querySelectorAll('.mx-limit-title')].map((t) => t.textContent.replace(/:$/, '')).sort(), g.dataset.group).toEqual([...LIMIT_GROUPS.find((x) => x.key === g.dataset.group).titles].sort());
+    expect(titles).toHaveLength(12);
   });
 });
