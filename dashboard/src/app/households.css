@@ -4,26 +4,99 @@
    --chart-fs-label (values 600), heads --chart-fs-head, column heads,
    ticks and notes --chart-fs-tick. Nothing under 14 / 13. */
 
-/* ---- page head: "On this page" and three plain links ---- */
-.hh-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 20px;
-  align-items: baseline;
-  margin: 12px 0 0;
-  font-size: var(--chart-fs-label);
+/* ---- page head (Households redesign, Fable 5.2 ruling for Vahid): the
+   main-case strip of four link tiles, then the section links as outlined
+   pills (anchors: not sticky, no active state) ---- */
+.hh-strip-wrap {
+  margin: 16px 0 0;
 }
-.hh-nav-label {
+.hh-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hh-strip > li {
+  display: flex;
+  min-width: 0;
+}
+.hh-tile {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px 14px;
+  color: var(--pe-gray-900);
+  text-decoration: none;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+}
+.hh-tile:hover,
+.hh-tile:focus-visible {
+  border-color: var(--pe-gray-400);
+}
+.hh-tile:hover .hh-tile-label > span,
+.hh-tile:focus-visible .hh-tile-label > span {
+  text-decoration: underline;
+}
+.hh-tile-label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: var(--chart-fs-tick);
+  color: var(--pe-gray-600);
+}
+.hh-tile-label > .plain-icon {
+  display: inline-flex;
+  flex: none;
+  color: var(--pe-gray-500);
+}
+.hh-tile-value {
+  font-size: var(--chart-fs-title);
+  font-weight: 600;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-900);
+}
+.hh-tile-sub {
+  font-size: var(--chart-fs-tick);
+  line-height: 1.35;
+  color: var(--pe-gray-500);
+}
+.hh-strip-cap {
+  margin: 8px 0 0;
   font-size: var(--chart-fs-tick);
   color: var(--pe-gray-500);
 }
+.hh-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0 0;
+  font-size: var(--chart-fs-tick);
+}
 .hh-nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
   color: var(--c-link, var(--c-highlight));
   text-decoration: none;
+  background: none;
+  border: 1px solid var(--pe-gray-300);
+  border-radius: 999px;
 }
 .hh-nav-link:hover,
 .hh-nav-link:focus-visible {
   text-decoration: underline;
+}
+@media (max-width: 768px) {
+  .hh-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 /* ---- card lead: one or two sentences, each a line ---- */

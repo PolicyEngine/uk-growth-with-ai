@@ -40,7 +40,8 @@ const PAGES = {
   data: '/?tab=method&sub=code',
   detail: '/?tab=method&sub=detail',
 };
-const ANCHORS = new Set(['economy', 'method']);
+// households: a strip tile or a section pill jumps below the stack (Households redesign)
+const ANCHORS = new Set(['economy', 'method', 'households']);
 
 const browser = process.env.BROWSER === 'webkit' ? await webkit.launch() : await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 let fails = 0;

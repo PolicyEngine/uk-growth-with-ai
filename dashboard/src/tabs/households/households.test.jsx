@@ -8,9 +8,9 @@ import { cleanup, render } from '@testing-library/react';
 import D from '@/data/aiStudy2425.json';
 import Part3 from '@/tabs/story/Part3.jsx';
 import HouseholdsExplore, { SECTIONS, VARIANT_ARROWS, costSteps } from './HouseholdsExplore.jsx';
-import { fmtBn, fmtBn2, fmtDecilePct, fmtShare as fmtShareT } from '@/tabs/story/part3/format.js';
+import { fmtBn, fmtBn2, fmtDecilePct, fmtPp, fmtShare as fmtShareT } from '@/tabs/story/part3/format.js';
 import HouseholdsMethod from './HouseholdsMethod.jsx';
-import { FIG, RULE_NAMES, counts, householdsFigures, methodName, storyFigures } from './figures.js';
+import { FIG, RULE_NAMES, counts, fmtGiniPts, householdsFigures, methodName, storyFigures } from './figures.js';
 import { CAVEAT_GREY, DESTS, absorbGraph } from './Absorb.jsx';
 import { imbalances } from '@/components/story/Sankey.jsx';
 import { Plane, ticksBetween } from './charts.jsx';
@@ -57,6 +57,34 @@ describe('HouseholdsExplore', () => {
     links.forEach((a, i) => expect(a.getAttribute('href').endsWith(`#${SECTIONS[i].id}`)).toBe(true));
     for (const s of SECTIONS) expect(container.querySelector(`#${s.id} h2`).textContent).toBe(s.title);
     expect(nav.querySelectorAll('svg, select')).toHaveLength(0);
+    // the nav: pills that are links, not sticky, with no active state and
+    // no on-screen label (the aria-label carries it)
+    expect(nav.querySelector('.hh-nav-label, [aria-current], [aria-pressed]')).toBeNull();
+    expect(nav.textContent).not.toContain('On this page');
+    // the main-case strip (Households redesign, R2): four link tiles, each
+    // to a card that prints its measure, every value a restated figure
+    const strip = container.querySelector('ul.hh-strip[aria-label="Main-case headlines"]');
+    expect(strip.compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const tiles = [...strip.querySelectorAll(':scope > li > a.hh-tile')];
+    expect(tiles.map((a) => a.getAttribute('href').split('#')[1])).toEqual(['hh-cost-lines', 'hh-rules', 'hh-ladder', 'hh-policy']);
+    for (const a of tiles) expect(container.querySelector(`#${a.getAttribute('href').split('#')[1]}`)).not.toBeNull();
+    const resp = D.policy.rows.filter((r) => r.family === 'exposure');
+    const costs = resp.map((r) => r.cost_bn);
+    expect(tiles.map((a) => a.querySelector('.hh-tile-value').textContent)).toEqual([
+      fmtBn(D.headline.central_cost.value),
+      fmtPp(D.headline.central_poverty.value),
+      fmtGiniPts(D.headline.central_gini.value),
+      `${fmtBn(Math.min(...costs))} to ${fmtBn(Math.max(...costs))}`,
+    ]);
+    for (const a of tiles) {
+      expect(a.querySelector('.hh-tile-value').hasAttribute('data-axis')).toBe(true);
+      // every figure in a tile is inside [data-axis]
+      const c = a.cloneNode(true);
+      c.querySelectorAll('[data-axis]').forEach((n) => n.remove());
+      expect(c.textContent).not.toMatch(/\d+\.\d|£\d/);
+    }
+    expect(tiles.map((a) => a.querySelector('.hh-tile-label').textContent)).toEqual(['Net cost to the public finances', 'Absolute poverty', 'Gini', 'Three policy responses']);
+    expect(container.querySelector('.hh-strip-cap').textContent).toBe(`Main case · mean of ${D.headline.central_cost.draws} draws`);
     // the status comes from the data file: "Provisional" once while the
     // study is provisional, not at all once it is merged
     if (D.provisional === false) {
@@ -228,7 +256,9 @@ describe('HouseholdsExplore', () => {
       expect(card.querySelectorAll('.card-lead svg, .card-unit svg, .hh-tbl svg'), card.id).toHaveLength(0);
     }
     // the sources-and-notes book and the model line's icon
-    expect(container.querySelectorAll('.hh-lead svg').length).toBe(2);
+    expect([...container.querySelectorAll('.hh-lead svg')].filter((x) => !x.closest('.hh-strip')).length).toBe(2);
+    // and one icon on each strip tile's label
+    for (const li of container.querySelectorAll('.hh-strip > li')) expect(li.querySelectorAll('svg')).toHaveLength(1);
     expect(container.querySelectorAll('.section-heading p svg').length).toBe(0);
   });
 

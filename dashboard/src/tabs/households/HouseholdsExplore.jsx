@@ -12,6 +12,7 @@ import { URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import { D, MODEL_YEAR, OBR_SCENARIO, OUTSIDE_REBUILD, PAPER_URL, entryClass, ladder, perPound, rule, useSeenBeat } from '@/tabs/story/part3/shared.jsx';
 import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtInputPct, fmtPence, fmtPp, fmtPpSpread, fmtShare } from '@/tabs/story/part3/format.js';
 import { Bar, Plane, STEP, ValueTable, signedTick } from './charts.jsx';
+import SummaryStrip from './SummaryStrip.jsx';
 import { RULE_MARGIN_PP, RULE_NAMES, SMALL_DECILE_PCT, fmtGiniPts, ruleName, rulesGap } from './figures.js';
 import { REFS } from '@/tabs/story/part3/sources.jsx';
 
@@ -1055,10 +1056,10 @@ export default function HouseholdsExplore() {
         <div className="model-row">
           <ModelLine link />
         </div>
+        <SummaryStrip />
+        {/* the section links as outlined pills: anchors, not sticky, no
+            active state (Households redesign, R3) */}
         <nav className="hh-nav" aria-label="On this page">
-          <span className="hh-nav-label" aria-hidden="true">
-            On this page
-          </span>
           {SECTIONS.map((s) => (
             <NavLink key={s.id} tab="explore" sub="households" anchor={s.id} className="hh-nav-link">
               {s.title}
