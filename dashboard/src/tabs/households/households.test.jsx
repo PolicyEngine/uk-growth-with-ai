@@ -183,7 +183,7 @@ describe('HouseholdsExplore', () => {
     expect(fold('hh-per-pound')).toMatch(/On one draw \(seed 0\)/);
     expect(fold('hh-policy')).toMatch(/costed gross/);
     // Fable round 7, S5: the UC changes' reach, in the policy card's caveats
-    expect(fold('hh-policy')).toMatch(/apply to every UC claimant, not only the displaced; wage insurance is paid only to the displaced/);
+    expect(fold('hh-policy')).toMatch(/two UC changes are not limited to the displaced; wage insurance is paid only to the displaced/);
     expect(fold('hh-policy')).toMatch(/the study does not split it/);
     // push D, Q8.6: wage insurance's other rules sit indented under it
     const rows = [...container.querySelectorAll('#hh-policy tbody tr[data-row]')];

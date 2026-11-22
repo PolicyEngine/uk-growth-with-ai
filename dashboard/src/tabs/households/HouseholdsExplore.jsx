@@ -129,8 +129,8 @@ export function policyReachWords(rows = D.policy.rows) {
   const uc = rows.filter((r) => r.reform !== 'R1_wage_insurance' && /Universal Credit|UC/.test(r.label)).length;
   if (!wi || uc < 1) return [];
   return [
-    `The ${uc === 2 ? 'two ' : ''}UC change${uc === 1 ? '' : 's'} apply to every UC claimant, not only the displaced; wage insurance is paid only to the displaced.`,
-    'So part of the UC changes’ cost and fall in poverty is among claimants who were not displaced; the study does not split it.',
+    `The ${uc === 2 ? 'two ' : ''}UC change${uc === 1 ? ' is' : 's are'} not limited to the displaced; wage insurance is paid only to the displaced.`,
+    `So part of the UC change${uc === 1 ? '’s' : 's’'} cost and fall in poverty is among claimants who were not displaced; the study does not split it.`,
   ];
 }
 export function policyWords(main) {
