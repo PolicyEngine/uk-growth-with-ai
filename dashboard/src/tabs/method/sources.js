@@ -79,6 +79,7 @@ export const REPLICATE = {
   'm-model': [{ label: 'solve.py', url: code('uk_growth_with_ai/solve.py') }, SRC.ogukParams],
   'm-shock': [{ label: 'firm-gamma patch', url: URLS.patch }, { label: 'arms.py', url: code('uk_growth_with_ai/arms.py') }],
   'm-scenarios': [SRC.ukTargets, SRC.surpriseYear],
+  'm-inputs': [SRC.ukTargets, SRC.ogukParams],
   'm-closures': [{ label: 'surprise.py', url: code('uk_growth_with_ai/surprise.py') }, { label: 'results, zk0.1 and zk0', url: `${REPO}/tree/${RUN}/analysis/surprise/output` }],
   'm-rules': [SRC.tg1, SRC.debtTarget],
   'm-path': [SRC.checks, { label: 'restart gate result', url: code('analysis/surprise/output/zk0.1/GATE_continuation.json') }],

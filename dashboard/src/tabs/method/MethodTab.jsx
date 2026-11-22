@@ -21,7 +21,7 @@ import { METHOD_FACTS as F } from '@/lib/dataKeys.js';
 import { ext } from '../shared/ui.jsx';
 import ModelDiagram, { flowTable, diagramSvg } from './ModelDiagram.jsx';
 import Cohorts from './Cohorts.jsx';
-import ScenariosSection from './ScenariosSection.jsx';
+import { ArmsPart, InputsPart, ScenariosPart, SubHead, TimingPart } from './ScenariosSection.jsx';
 import { investStepLine } from './investStep.js';
 import UsedBy from './UsedBy.jsx';
 import { SRC } from './sources.js';
@@ -38,9 +38,11 @@ const overlapList = () => {
 };
 const CENTRAL_TFP = tfpInput('uk_central');
 
-// OG-UK method, one page: the model, the shock, the scenarios (inputs, arms
-// and timing), closures and income measures, fiscal rules and public
-// finances, the path, limitations. Each fact has its one home here; chart
+// The macro model's method, one page (push D, Q9.2): an overview (the
+// model, many generations), what AI changes (the shock, the scenarios, the
+// three versions, the timing), every input and its source, closures and
+// income measures, fiscal rules and public finances, solving and checks,
+// limitations. Each fact has its one home here; chart
 // cards link to these sections by anchor, and each section lists the charts
 // that use it (UsedBy). Sources and published figures are on Evidence;
 // commands, vintages and the revision history on Data and code.
@@ -49,13 +51,19 @@ const DOC = (p) => `${REPO}/blob/${SET.branch}/docs/${p}`;
 const DOC_MAIN = (p) => `${REPO}/blob/main/docs/${p}`;
 const pct = (x, dp = 1) => `${(x * 100).toFixed(dp)}%`;
 
+// The reading order (push D, Q9.2; Vahid: "better organization"): what
+// the model is, what AI changes in it, every input, then closures, fiscal
+// rules, solving and limitations. The section ids are the old ones, so
+// every link from another page lands: #m-model (Overview), #m-shock (What
+// AI changes, with #m-scenarios, #m-arms and #m-timing inside it), #m-path
+// (Solving and checks). #m-inputs is new; #m-inputs-head stays inside it.
 const SECTIONS = [
-  { id: METHOD.model.id, title: METHOD.model.label, icon: iconFor('model') },
-  { id: METHOD.shock.id, title: METHOD.shock.label, icon: iconFor('shock') },
-  { id: 'm-scenarios', title: 'Scenarios', icon: iconFor('scenario') },
+  { id: METHOD.model.id, title: 'Overview', icon: iconFor('model') },
+  { id: METHOD.shock.id, title: 'What AI changes', icon: iconFor('shock') },
+  { id: 'm-inputs', title: 'Inputs and sources', icon: iconFor('source') },
   { id: METHOD.closures.id, title: METHOD.closures.label, icon: iconFor('closure') },
   { id: METHOD.rules.id, title: METHOD.rules.label, icon: iconFor('finances') },
-  { id: 'm-path', title: 'Steady state and path', icon: iconFor('path') },
+  { id: 'm-path', title: 'Solving and checks', icon: iconFor('path') },
   { id: METHOD.limits.id, title: METHOD.limits.label, icon: iconFor('limit') },
 ];
 
@@ -275,7 +283,7 @@ export default function MethodTab() {
           />
         </PageIntro>
         <section>
-          <SectionHeading id="m-model" icon={iconFor('model')} title="The model">
+          <SectionHeading id="m-model" icon={iconFor('model')} title="Overview">
             <IconText icon="link">{ext(URLS.ogUkFork, 'OG-UK')}, the UK calibration of {ext(URLS.ogCore, 'OG-Core')}. Choose a block to light its flows.</IconText>
           </SectionHeading>
           <UsedBy id="m-model" />
@@ -347,10 +355,11 @@ export default function MethodTab() {
         </section>
 
         <section>
-          <SectionHeading id="m-shock" icon={iconFor('shock')} title="The shock">
+          <SectionHeading id="m-shock" icon={iconFor('shock')} title="What AI changes">
             <IconText icon="ai">The macro model has no AI parameter. AI changes two numbers in production.</IconText>
           </SectionHeading>
           <UsedBy id="m-shock" />
+          <SubHead id="m-shock-head" title="The shock" />
           <FoldGrid className="card-grid">
             <InfoCard
               icon={iconFor('ai')}
@@ -437,9 +446,20 @@ export default function MethodTab() {
               />
             </InfoCard>
           </FoldGrid>
+          <ScenariosPart uses={<UsedBy id="m-scenarios" />} />
+          <ArmsPart />
+          <TimingPart />
         </section>
 
-        <ScenariosSection uses={<UsedBy id="m-scenarios" />} />
+        <section>
+          <SectionHeading id="m-inputs" icon={iconFor('source')} title="Inputs and sources">
+            <IconText icon="source">Published, derived by this study, the macro model&rsquo;s default, or a modelling choice: each row says which, and links it.</IconText>
+          </SectionHeading>
+          <UsedBy id="m-inputs" />
+          {/* the old sub-heading's anchor, kept so links to it land */}
+          <span id="m-inputs-head" className="mx-alias" aria-hidden="true" />
+          <InputsPart />
+        </section>
 
         <section>
           <SectionHeading id="m-closures" icon={iconFor('closure')} title="Closures and income measures">
@@ -511,7 +531,7 @@ export default function MethodTab() {
         </section>
 
         <section>
-          <SectionHeading id="m-path" icon={iconFor('path')} title="Steady state and path">
+          <SectionHeading id="m-path" icon={iconFor('path')} title="Solving and checks">
             <IconText icon="check">How each run is solved and checked. When the extra AI starts and how it ramps up is on{' '}
             <NavLink tab="method" sub="how" anchor="m-timing">
               Scenarios, when it happens

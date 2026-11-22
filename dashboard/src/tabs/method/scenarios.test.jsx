@@ -4,7 +4,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
 import { SCENARIOS, CLOSURES, fixedInputVsTz, gap } from '@/tabs/ai/surprise.js';
-import ScenariosSection, { stressMove, tzGdpMove, stressItems, tzGdpItems } from './ScenariosSection.jsx';
+import { ArmsPart, InputsPart, ScenariosPart, TimingPart, stressMove, tzGdpMove, stressItems, tzGdpItems } from './ScenariosSection.jsx';
+import MethodTab from './MethodTab.jsx';
 
 afterEach(cleanup);
 
@@ -40,10 +41,30 @@ describe('Scenarios direction icons', () => {
   });
 
   it('renders the arm cards with their items and keeps the anchors', () => {
-    const { container } = render(<ScenariosSection />);
-    for (const id of ['s-scenarios', 's-arms', 's-timing', 'arm-tfp', 'arm-tz', 'arm-ss', 'm-jump', 'scenario-map', 'timing'])
+    const { container } = render(
+      <>
+        <ScenariosPart />
+        <ArmsPart />
+        <TimingPart />
+        <InputsPart />
+      </>,
+    );
+    for (const id of ['m-scenarios', 's-scenarios', 'm-arms', 's-arms', 'm-timing', 's-timing', 'arm-tfp', 'arm-tz', 'arm-ss', 'm-jump', 'scenario-map', 'timing', 'inputs-table'])
       expect(container.querySelector(`#${id}`), id).not.toBeNull();
     expect(container.textContent).toContain('A stress test, not a bound or a forecast');
     expect(container.textContent).not.toMatch(/NaN|undefined/);
+  });
+  // push D, Q9.2: the reading order, every old anchor kept
+  it('Method reads in Vahid’s order, and every anchor other pages link to lands', () => {
+    const { container } = render(<MethodTab />);
+    const heads = [...container.querySelectorAll('.page-body > section > .section-heading h2')].map((h) => h.textContent);
+    expect(heads).toEqual(['Overview', 'What AI changes', 'Inputs and sources', 'Closures and income measures', 'Fiscal rules and public finances', 'Solving and checks', 'Limitations']);
+    const order = ['m-model', 'm-generations', 'm-shock', 'm-shock-head', 'm-scenarios', 'm-arms', 'm-timing', 'm-inputs', 'm-inputs-head', 'inputs-table', 'm-closures', 'm-rules', 'm-debt', 'm-path', 'm-limits', 'm-history'];
+    const at = order.map((id) => container.querySelector(`#${id}`));
+    at.forEach((el, i) => expect(el, order[i]).not.toBeNull());
+    for (let i = 1; i < at.length; i++) expect(at[i - 1].compareDocumentPosition(at[i]) & Node.DOCUMENT_POSITION_FOLLOWING, `${order[i - 1]} before ${order[i]}`).toBeTruthy();
+    for (const id of ['s-scenarios', 's-arms', 's-timing', 'm-jump', 'm-tax', 'm-measures', 'scenario-map', 'timing']) expect(container.querySelector(`#${id}`), id).not.toBeNull();
+    const nav = [...container.querySelectorAll('nav a, option')].map((a) => a.textContent.trim()).filter(Boolean);
+    for (const t of ['Overview', 'What AI changes', 'Inputs and sources', 'Solving and checks']) expect(nav, t).toContain(t);
   });
 });

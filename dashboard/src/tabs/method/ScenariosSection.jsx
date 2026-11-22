@@ -2,7 +2,7 @@
 
 import InfoCard from '@/components/ab/InfoCard.jsx';
 import FoldGrid from './FoldGrid.jsx';
-import Card, { SectionHeading } from '@/components/ui/Card.jsx';
+import Card from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from './IconText.jsx';
@@ -169,16 +169,9 @@ function ArmCards() {
 }
 
 
-// The sub-sections, for a page's contents list
-export const SCENARIO_SECTIONS = [
-  { id: 's-scenarios', title: 'The scenarios', icon: iconFor('scenario') },
-  { id: 'm-inputs-head', title: 'Every input and its source', icon: iconFor('source') },
-  { id: 'm-arms', title: 'Three versions (arms) per scenario', icon: iconFor('compare') },
-  { id: 'm-timing', title: 'When it happens', icon: iconFor('timing') },
-];
-
-// A sub-section heading inside the section (h3), keeping the old anchor id
-function SubHead({ id, oldId, title, children }) {
+// A sub-section heading inside a section (h3), keeping the old anchor id
+// on the h3 (`oldId`) so links to it still land
+export function SubHead({ id, oldId, title, children }) {
   return (
     <div className="section-heading mx-subhead" id={id} tabIndex={-1}>
       <div className="section-heading-text">
@@ -200,16 +193,18 @@ export function investJump() {
   return `${inv} Hours jump in ${SURPRISE_YEAR} only.`;
 }
 
-export default function ScenariosSection({ uses = null }) {
+// Method's "What AI changes" and "Inputs and sources" (push D, Q9.2):
+// the scenarios, the three versions and the timing are parts of what AI
+// changes; every input and its source is its own section. Each part keeps
+// its anchors: #m-scenarios (nav.jsx's ?tab=scenarios) and the old h3 ids
+// #s-scenarios, #s-arms and #s-timing.
+export function ScenariosPart({ uses = null }) {
   return (
-    <section className="mx-scenarios">
-      <SectionHeading id="m-scenarios" icon={iconFor('scenario')} title="Scenarios: inputs, arms and timing">
-        <IconText icon="scenario">{`Each scenario is a fall in the labour share and a gain in output at fixed inputs, reached in ${HEADLINE_YEAR}.`}</IconText>
-      </SectionHeading>
-      {uses}
-      <SubHead id="s-scenarios" icon="scenario" title="The scenarios">
+    <div className="mx-scenarios">
+      <SubHead id="m-scenarios" oldId="s-scenarios" title="Scenarios">
         <IconText icon="source">Each is a pair of inputs reached in {HEADLINE_YEAR}, derived from OBR and IMF figures (the upper case: taken from Korinek et al.).</IconText>
       </SubHead>
+      {uses}
       <Card
         id="scenario-map"
         icon={iconFor('scenario')}
@@ -230,10 +225,13 @@ export default function ScenariosSection({ uses = null }) {
           Evidence
         </NavLink>
       </p>
+    </div>
+  );
+}
 
-      <SubHead id="m-inputs-head" icon="source" title="Every input and its source">
-        <IconText icon="source">Published, derived by this study, the macro model&rsquo;s default, or a modelling choice: each row says which, and links it.</IconText>
-      </SubHead>
+export function InputsPart() {
+  return (
+    <>
       <Card
         id="inputs-table"
         icon={iconFor('source')}
@@ -244,13 +242,25 @@ export default function ScenariosSection({ uses = null }) {
       >
         <InputsTable />
       </Card>
+    </>
+  );
+}
 
-      <SubHead id="m-arms" oldId="s-arms" icon="compare" title="Three versions (arms) per scenario">
+export function ArmsPart() {
+  return (
+    <>
+      <SubHead id="m-arms" oldId="s-arms" title="Three versions (arms)">
         <IconText icon="compare">The same labour-share fall in each. They differ in output at fixed inputs.</IconText>
       </SubHead>
       <ArmCards />
+    </>
+  );
+}
 
-      <SubHead id="m-timing" oldId="s-timing" icon="timing" title="When it happens">
+export function TimingPart() {
+  return (
+    <>
+      <SubHead id="m-timing" oldId="s-timing" title="When it happens">
         <IconText icon="timing">One start in {FIRST_YEAR}, a surprise in {SURPRISE_YEAR}, full weight by {HEADLINE_YEAR}.</IconText>
       </SubHead>
       <Card
@@ -335,6 +345,6 @@ export default function ScenariosSection({ uses = null }) {
           <p className="mx-card-para">{investJump()}</p>
         </InfoCard>
       </FoldGrid>
-    </section>
+    </>
   );
 }
