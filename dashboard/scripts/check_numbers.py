@@ -120,13 +120,14 @@ def expected(sid, mode):
             add(g(sid, arm, main, 'debt_gdp_pp', LATE), 2, 'pp')
         if not coincides(sid, arm, main, 'tax_gdp_pp', 1):
             add(g(sid, arm, main, 'tax_gdp_pp', H), 2, 'pp')
-    # the tax card stays central: the top of the rough UK-rates range,
-    # labour-share fall x 0.23 (the bottom prints without a unit). Its first
+    # the tax card stays central: the rough UK-rates range, labour-share
+    # fall x 0.19 to x 0.23 (both ends carry the unit and are checked). Its first
     # row prints the model's central tax/GDP (main arm) at its mark in every
     # case (22 Nov: the value was missing; a small "see chart" link stays)
     add(g(sid, 'tfp', C, 'tax_gdp_pp', H), 2, 'pp')
     ls = g(sid, 'tfp', C, 'labour_share_pp')
     if ls is not None:
+        add(ls * 0.19, 2, 'pp')
         add(ls * 0.23, 2, 'pp')
     # and OG-UK's labour vs capital effective tax-rate gap on the path in the
     # headline year, central closure (one decimal, unsigned): the causes chart

@@ -404,7 +404,7 @@ function TaxGapCard({ sid, closure, rule }) {
                 </a>
               ) : null,
           }}
-          theirs={uk == null ? { name: 'OBR-scaled', text: PENDING } : { name: 'OBR-scaled', lo: uk[0], hi: uk[1], text: `${signed(uk[0], 2)} to ${signed(uk[1], 2)}pp` }}
+          theirs={uk == null ? { name: 'OBR-scaled', text: PENDING } : { name: 'OBR-scaled', lo: uk[0], hi: uk[1], text: `${signed(uk[0], 2)}pp to ${signed(uk[1], 2)}pp` }}
           tagIcon={iconFor('arithmetic')}
           effect="Rough scaling, not a model run"
         />
