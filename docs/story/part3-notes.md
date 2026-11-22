@@ -129,6 +129,17 @@ Every PR figure matches after rounding. The full-precision values are £7.38bn, 
 
 ## Explore > Households redesign: checks (push E)
 
+Browser checks: not run. The outputs below are filled in when the browser slot runs them.
+
+| Check | 1280 | 390 |
+|---|---|---|
+| `check_numbers` (63 on Households) | not run | not run |
+| `check_pill` | not run | not run |
+| `check_header` | not run | not run |
+| `check_text` | not run | not run |
+| `check_axes` (no overlap on `#hh-policy`) | not run | not run |
+| `check_sources` | not run | not run |
+
 The Households redesign (Fable 5.2 ruling for Vahid, 22 Nov) landed as commits 1 to 9 on `perf/pushD`, except commit 6 (below). Under the light-work rule no browser, build or server was run, so the 1280 and 390 check outputs are not recorded here yet.
 
 Run, browser-free:
@@ -137,6 +148,6 @@ Run, browser-free:
 - vitest, under the default data and `NEXT_PUBLIC_DATA=2028`: `households.test.jsx`, `words.test.jsx`, `anatomy.test.jsx`, `icon-lines.test.jsx`, `label-joins.test.jsx`, `caption-length.test.jsx`, `claims-and-years.test.jsx` and the Explore tests all pass. The two "once" tests are unchanged and pass.
 - eslint on the touched files. The `ugai/one-fold` count stays at its baseline of 4.
 
-Not landed: commit 6, "per pound as two bars; the one-draw rows behind Show table". `TableFold` is a `Disclosure` titled "Show table", and `ugai/one-fold` flags any fold whose title is not "More info". That would raise `eslint_ugai_one_fold` from 4 to 5 in `scripts/ratchet-baselines.json`, and no baseline may rise, so the fold is held for a ruling. The per-pound card is as before: job loss on 20 draws is one fill with "not split", wage cuts are a two-part bar, and the seed-0 rows stay open under a "One draw (seed 0)" head. `dumptabs.mjs` already reads a closed table fold before the More info mark (commit 1), so the count holds once the fold lands.
+Not landed: commit 6, "per pound as two bars; the one-draw rows behind Show table". Fable's push E ruling (C1) drops it: the seed-0 rows stay open under their own "One draw (seed 0)" heading, `TableFold` does not land, and the `[data-table-fold]` read that commit 1 added to `dumptabs.mjs` is removed (push E fix 6). Commit 1's `part3.py` sum check stays. `households.test.jsx` asserts no `[data-table-fold]` on the whole page.
 
 Pending in the browser, at 1280 and 390: `check_numbers` (63 on Households), `check_pill`, `check_header` (Households is now in `ANCHORS`), `check_text`, `check_axes`, `check_sources`, `check_hover`, `check_states`, and the layouts in section 6 of the ruling.
