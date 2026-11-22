@@ -335,7 +335,7 @@ function TaxGapCard({ sid, closure, rule }) {
         <Items
           className="ex-notes"
           items={[
-            { key: 'rates', icon: 'rule', text: `The macro model taxes labour ${TAX_GAP.toFixed(1)}pp more than capital; OBR rates imply ${CAUSES[0].lo}–${CAUSES[0].hi}pp` },
+            { key: 'rates', icon: 'rule', text: `The model taxes labour ${TAX_GAP.toFixed(1)}pp more than capital; OBR rates imply ${CAUSES[0].lo}–${CAUSES[0].hi}pp` },
             // the sign changes only where tax/GDP rises by the headline year
             // (review round 1, R1-02)
             closure !== 'central' && closedTax ? { key: 'closed', icon: 'closed', text: closedTax.flips ? `With no foreign capital the ${HEADLINE_YEAR} sign changes:` : 'With no foreign capital:' } : null,

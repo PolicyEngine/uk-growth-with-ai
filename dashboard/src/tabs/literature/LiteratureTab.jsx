@@ -281,7 +281,7 @@ function Takeaways() {
         <Items
           items={[
             { icon: 'households', text: 'The IMF’s households differ by income and wealth, not by age.' },
-            { icon: 'tax', text: 'Of the five, only the macro model and the OBR have a tax system.' },
+            { icon: 'tax', text: 'Only the macro model and the OBR have a tax system.' },
           ]}
         />
       </InfoCard>

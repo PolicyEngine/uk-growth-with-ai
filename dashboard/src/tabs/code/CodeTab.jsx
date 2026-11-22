@@ -704,7 +704,7 @@ export default function CodeTab() {
                 items={[
                   { icon: 'measure', text: 'Solver outputs are in model units.' },
                   { icon: 'path', text: 'This study reports gaps against the OBR’s central forecast path instead.' },
-                  { icon: 'cost', text: 'The macro model’s map functions scale units to £bn by one ONS GDP anchor.' },
+                  { icon: 'cost', text: 'The model’s map functions scale to £bn by one ONS GDP anchor.' },
                 ]}
               />
             </InfoCard>

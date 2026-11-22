@@ -90,7 +90,7 @@ export const PARTS = [
       <Items
         items={[
           { icon: 'data', text: <Hy>PolicyEngine UK on Microcosm UK survey data</Hy> },
-          { icon: 'jobLoss', text: 'Here people lose jobs; in the macro model everyone who wants work has it' },
+          { icon: 'jobLoss', text: 'Here people lose jobs; the macro model has no unemployment' },
           { icon: 'compare', text: 'Its figures are not added to or compared with part 2’s' },
         ]}
       />

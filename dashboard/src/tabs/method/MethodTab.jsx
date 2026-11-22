@@ -166,7 +166,7 @@ const RULE_TEXT = {
     // M11: the step in the debt rule's first year (only while the data shows it)
     step: investStep(),
     items: [
-      { icon: 'rule', text: <>A modelling choice, against the macro model&rsquo;s default of 4 ({ext(SRC.tg1.url, 'tG1 = 10')}).</> },
+      { icon: 'rule', text: <>A modelling choice, against the model&rsquo;s default of 4 ({ext(SRC.tg1.url, 'tG1 = 10')}).</> },
       { icon: 'timing', text: `So debt is quoted for ${HEADLINE_YEAR} and ${LATE_YEAR}.` },
     ],
   },
