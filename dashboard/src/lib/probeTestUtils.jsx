@@ -8,6 +8,7 @@ import { NavProvider } from '@/lib/nav.jsx';
 import StoryTab from '@/tabs/story/StoryTab.jsx';
 import ExploreTab from '@/tabs/explore/ExploreTab.jsx';
 import MethodTab from '@/tabs/method/MethodTab.jsx';
+import MethodOverview from '@/tabs/method/MethodOverview.jsx';
 import StudiesTab from '@/tabs/literature/LiteratureTab.jsx';
 import CodeTab from '@/tabs/code/CodeTab.jsx';
 
@@ -17,9 +18,11 @@ export const PAGES = [
   ['explore finances', 'tab=explore&sub=finances', ExploreTab],
   ['explore who', 'tab=explore&sub=who', ExploreTab],
   ['explore households', 'tab=explore&sub=households', ExploreTab],
-  ['method', 'tab=method', MethodTab],
+  ['method', 'tab=method&sub=how', MethodTab],
   ['evidence', 'tab=literature', StudiesTab],
   ['data and code', 'tab=code', CodeTab],
+  // appended (the probes index PAGES by position): the Method landing
+  ['method overview', 'tab=method', MethodOverview],
 ];
 
 export function renderPage([, query, Page]) {

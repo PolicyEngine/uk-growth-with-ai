@@ -13,7 +13,7 @@ import PageIntro from '@/components/ui/PageIntro.jsx';
 import { MACRO_ABOUT } from '@/lib/labels.js';
 import CHANGELOG from '@/data/site-changelog.json';
 import { METHOD_FACTS as MF, setHas } from '@/lib/dataKeys.js';
-import { MODEL_VERSIONS, VINTAGES, AI_FULL_RERUN, AI_STUDY, RELEASES, ledger, ledgerTable, LAST_UPDATED, version } from './ledger.js';
+import { MODEL_VERSIONS, VINTAGES, AI_FULL_RERUN, AI_STUDY, RELEASES, ledger, ledgerTable, LAST_UPDATED, longDate, version } from './ledger.js';
 import { HISTORY } from './history.js';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
 import { Items, WhyChain } from '@/components/story/Items.jsx';
@@ -40,14 +40,6 @@ const SECTIONS = [
   { id: 'use-oguk', title: 'Use the macro model yourself', icon: iconFor('code') },
 ];
 const SITE_URL = 'https://uk-growth-with-ai.vercel.app';
-// one date format in both changelogs, "12 Nov 2026" (review round 2, R2-31)
-// (three-letter months by hand: en-GB's "short" month is "Sept" in newer ICU)
-const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const longDate = (d) => {
-  const [y, m, day] = d.slice(0, 10).split('-').map(Number);
-  return `${day} ${MON[m - 1]} ${y}`;
-};
-
 const firstCommand = (code) => code.split('\n').find((l) => l.trim() && !l.trim().startsWith('#')).replace(/\s+#.*$/, '').replace(/\s*\\$/, '');
 // dashboard files at the dashboard branch; the run's files at the set's ref
 const refFor = (p) => (p.startsWith('dashboard/') ? DASH_REF : REF);

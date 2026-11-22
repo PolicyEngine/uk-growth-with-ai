@@ -10,8 +10,8 @@ import IconText from '@/tabs/method/IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { ModelLine, PageNotes } from '@/components/ui/PageIntro.jsx';
 import UsedBy from '@/tabs/method/UsedBy.jsx';
-import { D, MODEL_YEAR as PART3_YEAR, NO_CLEAN_RERUN, PAPER_URL } from '@/tabs/story/part3/shared.jsx';
-import { AI_FULL_RERUN, AI_STUDY } from '@/tabs/code/ledger.js';
+import { D, NO_CLEAN_RERUN, PAPER_URL } from '@/tabs/story/part3/shared.jsx';
+import { AI_FULL_RERUN, AI_STUDY, MODEL_YEAR } from '@/tabs/code/ledger.js';
 import { URLS } from '@/tabs/ai/links.js';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { fmtInputPct, fmtPct1 } from '@/tabs/story/part3/format.js';
@@ -29,8 +29,8 @@ import { MACRO_ABOUT } from '@/lib/labels.js';
 // this page keeps an anchored line there (#hm-vintage).
 
 const M = D.method;
-// The model year and status come from aiStudy2425.json once it carries them
-const MODEL_YEAR = AI_STUDY.modelYear ? (/^FY/.test(AI_STUDY.modelYear) ? AI_STUDY.modelYear : `FY ${AI_STUDY.modelYear}`) : PART3_YEAR;
+// The model year (ledger.js, one home with the Method landing) and the
+// status come from aiStudy2425.json
 // a status chip only while the study is provisional; once merged, the line says so
 const STATUS = AI_STUDY.provisional ? 'Provisional' : AI_STUDY.merged ? `Merged${AI_STUDY.mergedDay ? ` ${AI_STUDY.mergedDay}` : ''}, at ${AI_STUDY.commit.slice(0, 7)}` : null;
 // Every published source this page names, linked

@@ -478,7 +478,8 @@ describe('Part3', () => {
     ]);
     const label = (id) => TABS.find((t) => t.id === id).label;
     expect(links.map((a) => a.querySelector('strong').textContent)).toEqual([label('explore'), label('method'), TABS.find((t) => t.id === 'method').subs.find((x) => x.id === 'code').label]);
-    expect(CLOSE_NEXT.map((l) => l.sub)).toEqual(['economy', 'how', 'code']);
+    // "Method and sources" describes the whole tab: it opens the landing (Method redesign, 10)
+    expect(CLOSE_NEXT.map((l) => l.sub)).toEqual(['economy', undefined, 'code']);
     expect(links[0].textContent).toContain('Economy, public finances, who gains and who loses, households.');
     expect(nav.querySelector('.story-panel, .story-frame')).toBeNull();
   });

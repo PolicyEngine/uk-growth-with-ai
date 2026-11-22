@@ -86,12 +86,13 @@ const LEGACY_TAB = {
   'public-finances': ['explore', 'finances'],
   growth: ['explore'],
   'growth/results': ['explore'],
-  'growth/method': ['method'],
+  // the macro model's method; ?tab=method alone is the landing
+  'growth/method': ['method', 'how'],
   methodology: ['method'],
-  'methodology/how': ['method'],
+  'methodology/how': ['method', 'how'],
   'methodology/code': ['method', 'code'],
   'methodology/coverage': ['method', 'studies'],
-  'methodology/obr': ['method'],
+  'methodology/obr': ['method', 'how'],
   coverage: ['method', 'studies'],
 };
 const STUDY_SUBS = { coverage: 'coverage', numbers: 'numbers', sources: 'sources', matrix: 'coverage' };

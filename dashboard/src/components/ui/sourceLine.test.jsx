@@ -47,7 +47,7 @@ describe('SourceLine', () => {
     expect(pop.textContent).toContain('IHYQ');
     expect(pop.textContent).toContain('released 12 Nov 2026');
     expect(pop.textContent).toContain('Through 2026 Q3');
-    expect([...pop.querySelectorAll('.src-pop-list a')].map((a) => a.getAttribute('href'))).toEqual(['https://www.ons.gov.uk/a', 'https://www.ons.gov.uk/b', '/?tab=method#m-model']);
+    expect([...pop.querySelectorAll('.src-pop-list a')].map((a) => a.getAttribute('href'))).toEqual(['https://www.ons.gov.uk/a', 'https://www.ons.gov.uk/b', '/?tab=method&sub=how#m-model']);
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(b.getAttribute('aria-expanded')).toBe('false');
     expect(document.getElementById(b.getAttribute('aria-controls'))).toBeNull();

@@ -34,7 +34,8 @@ const OTHER = {
   finances: '/?tab=explore&sub=finances',
   who: '/?tab=explore&sub=who',
   households: '/?tab=explore&sub=households',
-  method: '/?tab=method',
+  method: '/?tab=method&sub=how',
+  overview: '/?tab=method',
   'household-method': '/?tab=method&sub=households',
   detail: '/?tab=method&sub=detail',
 };

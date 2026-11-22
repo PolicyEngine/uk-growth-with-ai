@@ -506,7 +506,7 @@ describe('round 3 probe gaps', () => {
       const { NavProvider } = await import('@/lib/nav.jsx');
       const pages = [
         ['tab=code', (await import('@/tabs/code/CodeTab.jsx')).default],
-        ['tab=method', (await import('@/tabs/method/MethodTab.jsx')).default],
+        ['tab=method&sub=how', (await import('@/tabs/method/MethodTab.jsx')).default],
         ['tab=explore&sub=economy', (await import('@/tabs/explore/ExploreTab.jsx')).default],
         ['tab=explore&sub=who', (await import('@/tabs/explore/ExploreTab.jsx')).default],
         ['tab=story', (await import('@/tabs/story/StoryTab.jsx')).default],

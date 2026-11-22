@@ -583,3 +583,59 @@ p.mx-axis-title.is-x {
   font-weight: 600;
 }
 .mx-limit-head svg { color: var(--pe-gray-500); }
+
+/* Method and sources > Overview, "How the study works" (Method redesign,
+   M1): six text cards in two rows of three, the gap token between them.
+   Each part card's three rows are a <dl>: the label (muted, the meta
+   size) over the text. */
+.mx-ov .card-grid.mx-ov-grid {
+  gap: var(--gap-card);
+  margin-top: 16px;
+}
+.mx-ov .mx-ov-card {
+  display: flex;
+  flex-direction: column;
+}
+.mx-ov .mx-ov-card .card-body {
+  flex: 1 1 auto;
+}
+.mx-ov-dl {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+.mx-ov-dl dt {
+  font-size: var(--t-meta);
+  font-weight: 600;
+  color: var(--pe-gray-500);
+}
+.mx-ov-dl dd {
+  margin: 2px 0 0;
+}
+.mx-ov-meta {
+  font-size: var(--t-meta);
+  color: var(--pe-gray-500);
+}
+.mx-ov-link {
+  margin: 16px 0 0;
+  font-size: var(--chart-fs-label);
+  font-weight: 600;
+}
+.mx-ov-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--pe-teal-700);
+}
+.mx-ov-note {
+  margin: 16px 0 0;
+  color: var(--pe-gray-600);
+}
+.mx-ov section + section {
+  margin-top: var(--gap-block);
+}
+@media (max-width: 600px) {
+  .mx-ov .card-grid.mx-ov-grid {
+    gap: var(--gap-card-phone);
+  }
+}

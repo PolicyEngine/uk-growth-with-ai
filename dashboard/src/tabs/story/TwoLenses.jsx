@@ -152,7 +152,7 @@ export const CLOSE_NEXT = [
     name: tab('explore').label,
     rest: `the results by topic. ${tab('explore').subs.map((x, i) => (i ? x.label.toLowerCase() : x.label)).join(', ')}.`,
   },
-  { tab: 'method', sub: 'how', icon: tab('method').icon, name: tab('method').label, rest: 'how each model works, every input and its source.' },
+  { tab: 'method', icon: tab('method').icon, name: tab('method').label, rest: 'how each model works, every input and its source.' },
   { tab: 'method', sub: 'code', icon: sub('method', 'code').icon, name: sub('method', 'code').label, rest: 'the data files, the model code and how to rerun it.' },
 ];
 
