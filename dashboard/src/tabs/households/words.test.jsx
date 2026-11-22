@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import D from '@/data/aiStudy2425.json';
-import { rulesWords, rulesTieWords, rankingsWords, rankingsLead, costWords, takeupWords, takeupLead, displacedWords, perPoundWords, policyWords } from './HouseholdsExplore.jsx';
+import { rulesWords, rulesTieWords, rankingsWords, rankingsLead, costWords, takeupWords, takeupLead, displacedWords, rulesReviewWords, perPoundWords, policyWords } from './HouseholdsExplore.jsx';
 import { linkAiFiles } from '@/tabs/explore/sources.jsx';
 import { RULE_MARGIN_PP, ruleName, rulesGap } from './figures.js';
 
@@ -91,6 +91,16 @@ describe('households wording follows the data', () => {
     expect(t).toBe(`Of entitled displaced units, ${Math.round(X.claim_uc_entitled.value)}% would claim UC; of the already unemployed, ${Math.round(X.existing_unemployed_claim.value)}%`);
     expect(t.split(/\s+/).length).toBeLessThanOrEqual(14);
     expect(t).not.toContain(`${Math.round(X.claim_uc.value)}%`);
+  });
+  // Fable round 7, N4: the pattern across rules from the data, and "not
+  // decomposed" (the extract gives no split)
+  it('rules: the higher-earner tilt line holds in the data, and is said not decomposed', () => {
+    const p = (id) => D.rules.find((r) => r.id === id).poverty_pp;
+    const w = rulesReviewWords(D.rules);
+    expect(w.includes('Both rules that tilt job loss towards higher earners raise poverty more than the main rule.')).toBe(p('compression') > p('exposure') && p('klein_top_loaded') > p('exposure'));
+    if (w.some((l) => /higher earners|Top-loaded/.test(l))) expect(w.some((l) => /^Not decomposed/.test(l))).toBe(true);
+    const r = (id, poverty_pp, cost_bn = 1) => ({ id, poverty_pp, cost_bn, cost_sd_bn: 0 });
+    expect(rulesReviewWords([r('exposure', 2), r('compression', 1.9), r('klein_top_loaded', 1.8)])).toEqual([]);
   });
   it('result file names link to the study at the data file commit', () => {
     const parts = linkAiFiles('results/low.json: x');

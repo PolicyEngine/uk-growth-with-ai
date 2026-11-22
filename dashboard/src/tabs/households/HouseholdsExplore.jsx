@@ -101,8 +101,13 @@ export function rulesReviewWords(rules) {
   const k = rules.find((r) => r.id === 'klein_top_loaded');
   const u = rules.find((r) => r.id === 'uniform');
   const out = [];
-  if (k && rules.every((r) => r.poverty_pp <= k.poverty_pp) && rules.every((r) => r.cost_bn <= k.cost_bn))
-    out.push('Top-loaded displaces above-median earners, yet raises poverty and cost most.', 'The study’s published extract does not break that rise down.');
+  const c = rules.find((r) => r.id === 'exposure');
+  const tilt = ['compression', 'klein_top_loaded'].map((id) => rules.find((r) => r.id === id)).filter(Boolean);
+  if (k && rules.every((r) => r.poverty_pp <= k.poverty_pp) && rules.every((r) => r.cost_bn <= k.cost_bn)) out.push('Top-loaded displaces above-median earners, yet raises poverty and cost most.');
+  // Fable round 7, N4: the pattern across rules, said once; why is not in
+  // the study's extract, so it is not explained
+  if (c && tilt.length === 2 && tilt.every((r) => r.poverty_pp > c.poverty_pp)) out.push('Both rules that tilt job loss towards higher earners raise poverty more than the main rule.');
+  if (out.length) out.push('Not decomposed: the study’s published extract does not split the poverty rise by who is displaced.');
   if (u && u.cost_sd_bn >= 0.8 * u.cost_bn) out.push('Uniform: the cost’s spread across draws is about its mean.');
   return out;
 }
@@ -834,7 +839,13 @@ function Rankings() {
         table: { columns: ['decile', ...R.map((r) => r.id)], rows: Array.from({ length: 10 }, (_, i) => [i + 1, ...R.map((r) => r.values[i])]) },
       }}
       about={about({
-        how: ['Each household is weighted by its number of members.', 'The rankings differ only in how households are placed in deciles.'],
+        how: [
+          'Each household is weighted by its number of members.',
+          'The rankings differ only in how households are placed in deciles.',
+          // Fable round 7, N5: why the Gini can rise while a low decile gains
+          'Deciles are by income before the shock; the Gini is measured after it, so it also counts the displaced who fall within and across deciles.',
+          'The study does not decompose the Gini change.',
+        ],
         caveats: [
           'Decile 1 includes households with large pension contributions that also receive capital income.',
           <>
