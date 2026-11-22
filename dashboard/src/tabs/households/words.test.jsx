@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import D from '@/data/aiStudy2425.json';
-import { rulesWords, rulesTieWords, rankingsWords, rankingsLead, costWords, takeupWords, perPoundWords, policyWords } from './HouseholdsExplore.jsx';
+import { rulesWords, rulesTieWords, rankingsWords, rankingsLead, costWords, takeupWords, takeupLead, perPoundWords, policyWords } from './HouseholdsExplore.jsx';
 import { linkAiFiles } from '@/tabs/explore/sources.jsx';
 import { RULE_MARGIN_PP, ruleName, rulesGap } from './figures.js';
 
@@ -74,6 +74,10 @@ describe('households wording follows the data', () => {
     const j = L('takeup_jsa');
     const ok = c.cost_bn < t.cost_bn && t.cost_bn < j.cost_bn && c.poverty_pp > t.poverty_pp && t.poverty_pp > j.poverty_pp;
     expect(takeupWords().includes('cost more and raise poverty less than the main case')).toBe(ok);
+    // push D, Q8.4: the lead supports the title, on the same draws; no wage-cut comparison
+    expect(takeupLead().includes('raises the cost and lowers the poverty rise')).toBe(ok);
+    expect(takeupLead()).toContain(`same ${c.draws} draws`);
+    expect(takeupLead()).not.toMatch(/[Ww]age cut/);
     const p = (id) => D.per_pound.find((r) => r.id === id).government_p;
     expect(perPoundWords().includes('wage cuts cost the public finances more')).toBe(p('wage_cuts') > D.per_pound_20.job_loss.government_p);
     const main = D.policy.rows.filter((r) => r.family === 'exposure');

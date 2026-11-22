@@ -409,7 +409,17 @@ export const VARIANT_ARROWS = [
   ['obr', 'obr_takeup'],
   ['obr_takeup', 'obr_takeup_jsa'],
 ];
-// Card 3's lead: wage cuts against job loss on the same 20 draws.
+// Card 3's lead (push D, Q8.4: it supports the title): full take-up, then
+// JSA, against the main case on the same draws, from the data.
+export function takeupLead() {
+  const c = L('central_20');
+  const steps = [c, L('takeup'), L('takeup_jsa')].filter(Boolean);
+  const up = steps.length > 1 && steps.every((r, i) => !i || (r.cost_bn > steps[i - 1].cost_bn && r.poverty_pp < steps[i - 1].poverty_pp));
+  return up
+    ? `On the same ${c.draws} draws, each step from the main case raises the cost and lowers the poverty rise.`
+    : `Full take-up and JSA are compared with the main case on the same ${c.draws} draws.`;
+}
+// Card 3's More info: wage cuts against job loss on the same 20 draws.
 function marginLead() {
   const j = L('central_20');
   const w = L('wage_cuts');
@@ -444,7 +454,7 @@ function Variants() {
       id="hh-ladder"
       icon="layers"
       title={takeupWords()}
-      lead={<Lead>{marginLead()}</Lead>}
+      lead={<Lead>{takeupLead()}</Lead>}
       unit="Cost, £bn a year; poverty, pp; Gini, points"
       more={[
         { label: 'Measure', text: 'Absolute poverty before housing costs; the Gini on its 0 to 100 scale.' },
@@ -459,6 +469,7 @@ function Variants() {
       about={about({
         how: [
           'Take-up, JSA and wage cuts reuse seeds 0 to 19 of the main case.',
+          marginLead(),
           <>
             On those {L('central_20').draws} draws the main case costs <Ax>{fmtBn(L('central_20').cost_bn)}</Ax>; the {L('central_50')?.draws ?? D.cost_components.draws}-draw headline is <Ax>{fmtBn(D.cost_components.total_bn)}</Ax>.
           </>,
