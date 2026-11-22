@@ -101,4 +101,4 @@ Checking time path for violations of constraints.
 Max Euler error, savings: 3.0084545965536336e-12
 Max Euler error labor supply: 1.3884449145962208e-12
 OK 6.7 min | SS labour share 0.6110 | RC/Y 2026 -0.0000% | RC interior max 3.33e-06 | TPI dist 5.204615754341523e-05 in 9 its
-wrote /Users/vahid/ugai-surprise/analysis/surprise/output/zk0.1/korinek_share_shift_ramp_zfixed_fs.json
+wrote analysis/surprise/output/zk0.1/korinek_share_shift_ramp_zfixed_fs.json

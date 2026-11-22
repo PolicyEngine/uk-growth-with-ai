@@ -84,4 +84,4 @@ Max absolute value resource constraint error: 0.163549558964579
 Checking time path for violations of constraints.
 Max Euler error, savings: 5.611067166455541e-12
 Max Euler error labor supply: 1.5865087021893487e-12
-OK pretp_zk0.1_baseline 7.0 min | TPI iters 8 dist 9.845209281834727e-05 converged=True | RC/Y 2026 +0.0001% | wrote /Users/vahid/uk-growth-with-ai/.claude/worktrees/agent-acd7a17b5472b735f/analysis/closure/output/pretp_zk0.1_baseline.json
+OK pretp_zk0.1_baseline 7.0 min | TPI iters 8 dist 9.845209281834727e-05 converged=True | RC/Y 2026 +0.0001% | wrote analysis/closure/output/pretp_zk0.1_baseline.json

@@ -99,4 +99,4 @@ Checking time path for violations of constraints.
 Max Euler error, savings: 4.922284801978094e-12
 Max Euler error labor supply: 2.0732304761850173e-12
 OK 15.2 min | SS labour share 0.6500 | RC/Y 2026 +0.0000% | RC interior max 1.09e-06 | TPI dist 5.925607451153051e-05 in 9 its
-wrote /Users/vahid/ugai-surprise2027/analysis/surprise2027/output/zk0/continuation.json
+wrote analysis/surprise2027/output/zk0/continuation.json

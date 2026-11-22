@@ -33,5 +33,5 @@ BQ diff: 0.00038741960139350093, -0.0005041455194408004
 TR diff: -0.00048821957245305525, -0.0008701349128134028
 Iteration: 2
 Distance: 0.1775801935118758
-/Users/vahid/ugai-surprise2027/analysis/surprise/driver.sh: line 71: 28927 Terminated: 15          "$@"
-TIMEOUT after 1800s: caffeinate -i /Users/vahid/ogmodels/OG-UK/.venv/bin/python -u -m uk_growth_with_ai surprise step --closure zk0 --stage arms --scenario uk_central --outdir /Users/vahid/ugai-surprise2027/analysis/surprise2027/output --rerun-dir /Users/vahid/ugai-surprise2027/analysis/rerun/output --work /Users/vahid/ugai-rerun-work --start 2027
+analysis/surprise/driver.sh: line 71: 28927 Terminated: 15          "$@"
+TIMEOUT after 1800s: caffeinate -i python -u -m uk_growth_with_ai surprise step --closure zk0 --stage arms --scenario uk_central --outdir analysis/surprise2027/output --rerun-dir analysis/rerun/output --work ugai-rerun-work --start 2027

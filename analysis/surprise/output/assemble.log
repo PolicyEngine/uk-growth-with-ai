@@ -4,15 +4,15 @@ wrote uk_growth_with_ai/data/scenarios_surprise2028_uk_low.json
 Traceback (most recent call last):
   File "<frozen runpy>", line 203, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/__main__.py", line 3, in <module>
+  File "uk_growth_with_ai/__main__.py", line 3, in <module>
     raise SystemExit(main())
                      ~~~~^^
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 134, in main
+  File "uk_growth_with_ai/cli.py", line 134, in main
     return _surprise(args)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 212, in _surprise
+  File "uk_growth_with_ai/cli.py", line 212, in _surprise
     res = sp.assemble(args.outdir, args.closure, fs=variant, rerun_dir=args.rerun_dir,
                       scenario=args.scenario, **kw)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/surprise.py", line 1066, in assemble
+  File "uk_growth_with_ai/surprise.py", line 1066, in assemble
     raise RuntimeError(f"{closure}: incomplete (continuation {bool(cont)}, tfp "
                        f"{bool(tfp)}, share_shift R4 {bool(ss)})")
 RuntimeError: zk0.1: incomplete (continuation True, tfp False, share_shift R4 False)
@@ -21,15 +21,15 @@ FAILED rc=1
 Traceback (most recent call last):
   File "<frozen runpy>", line 203, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/__main__.py", line 3, in <module>
+  File "uk_growth_with_ai/__main__.py", line 3, in <module>
     raise SystemExit(main())
                      ~~~~^^
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 134, in main
+  File "uk_growth_with_ai/cli.py", line 134, in main
     return _surprise(args)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 212, in _surprise
+  File "uk_growth_with_ai/cli.py", line 212, in _surprise
     res = sp.assemble(args.outdir, args.closure, fs=variant, rerun_dir=args.rerun_dir,
                       scenario=args.scenario, **kw)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/surprise.py", line 1066, in assemble
+  File "uk_growth_with_ai/surprise.py", line 1066, in assemble
     raise RuntimeError(f"{closure}: incomplete (continuation {bool(cont)}, tfp "
                        f"{bool(tfp)}, share_shift R4 {bool(ss)})")
 RuntimeError: zk0.1: incomplete (continuation True, tfp False, share_shift R4 False)
@@ -46,15 +46,15 @@ wrote uk_growth_with_ai/data/scenarios_surprise2028_uk_high.json
 Traceback (most recent call last):
   File "<frozen runpy>", line 203, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/__main__.py", line 3, in <module>
+  File "uk_growth_with_ai/__main__.py", line 3, in <module>
     raise SystemExit(main())
                      ~~~~^^
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 134, in main
+  File "uk_growth_with_ai/cli.py", line 134, in main
     return _surprise(args)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 212, in _surprise
+  File "uk_growth_with_ai/cli.py", line 212, in _surprise
     res = sp.assemble(args.outdir, args.closure, fs=variant, rerun_dir=args.rerun_dir,
                       scenario=args.scenario, **kw)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/surprise.py", line 1066, in assemble
+  File "uk_growth_with_ai/surprise.py", line 1066, in assemble
     raise RuntimeError(f"{closure}: incomplete (continuation {bool(cont)}, tfp "
                        f"{bool(tfp)}, share_shift R4 {bool(ss)})")
 RuntimeError: zk0.1: incomplete (continuation True, tfp False, share_shift R4 False)
@@ -63,15 +63,15 @@ FAILED rc=1
 Traceback (most recent call last):
   File "<frozen runpy>", line 203, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/__main__.py", line 3, in <module>
+  File "uk_growth_with_ai/__main__.py", line 3, in <module>
     raise SystemExit(main())
                      ~~~~^^
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 134, in main
+  File "uk_growth_with_ai/cli.py", line 134, in main
     return _surprise(args)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 212, in _surprise
+  File "uk_growth_with_ai/cli.py", line 212, in _surprise
     res = sp.assemble(args.outdir, args.closure, fs=variant, rerun_dir=args.rerun_dir,
                       scenario=args.scenario, **kw)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/surprise.py", line 1066, in assemble
+  File "uk_growth_with_ai/surprise.py", line 1066, in assemble
     raise RuntimeError(f"{closure}: incomplete (continuation {bool(cont)}, tfp "
                        f"{bool(tfp)}, share_shift R4 {bool(ss)})")
 RuntimeError: zk0.1: incomplete (continuation True, tfp False, share_shift R4 False)
@@ -88,15 +88,15 @@ wrote uk_growth_with_ai/data/scenarios_surprise2028_uk_low_zk0.json
 Traceback (most recent call last):
   File "<frozen runpy>", line 203, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/__main__.py", line 3, in <module>
+  File "uk_growth_with_ai/__main__.py", line 3, in <module>
     raise SystemExit(main())
                      ~~~~^^
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 134, in main
+  File "uk_growth_with_ai/cli.py", line 134, in main
     return _surprise(args)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 212, in _surprise
+  File "uk_growth_with_ai/cli.py", line 212, in _surprise
     res = sp.assemble(args.outdir, args.closure, fs=variant, rerun_dir=args.rerun_dir,
                       scenario=args.scenario, **kw)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/surprise.py", line 1066, in assemble
+  File "uk_growth_with_ai/surprise.py", line 1066, in assemble
     raise RuntimeError(f"{closure}: incomplete (continuation {bool(cont)}, tfp "
                        f"{bool(tfp)}, share_shift R4 {bool(ss)})")
 RuntimeError: zk0: incomplete (continuation True, tfp False, share_shift R4 False)
@@ -105,15 +105,15 @@ FAILED rc=1
 Traceback (most recent call last):
   File "<frozen runpy>", line 203, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/__main__.py", line 3, in <module>
+  File "uk_growth_with_ai/__main__.py", line 3, in <module>
     raise SystemExit(main())
                      ~~~~^^
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 134, in main
+  File "uk_growth_with_ai/cli.py", line 134, in main
     return _surprise(args)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 212, in _surprise
+  File "uk_growth_with_ai/cli.py", line 212, in _surprise
     res = sp.assemble(args.outdir, args.closure, fs=variant, rerun_dir=args.rerun_dir,
                       scenario=args.scenario, **kw)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/surprise.py", line 1066, in assemble
+  File "uk_growth_with_ai/surprise.py", line 1066, in assemble
     raise RuntimeError(f"{closure}: incomplete (continuation {bool(cont)}, tfp "
                        f"{bool(tfp)}, share_shift R4 {bool(ss)})")
 RuntimeError: zk0: incomplete (continuation True, tfp False, share_shift R4 False)
@@ -130,15 +130,15 @@ wrote uk_growth_with_ai/data/scenarios_surprise2028_uk_high_zk0.json
 Traceback (most recent call last):
   File "<frozen runpy>", line 203, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/__main__.py", line 3, in <module>
+  File "uk_growth_with_ai/__main__.py", line 3, in <module>
     raise SystemExit(main())
                      ~~~~^^
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 134, in main
+  File "uk_growth_with_ai/cli.py", line 134, in main
     return _surprise(args)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 212, in _surprise
+  File "uk_growth_with_ai/cli.py", line 212, in _surprise
     res = sp.assemble(args.outdir, args.closure, fs=variant, rerun_dir=args.rerun_dir,
                       scenario=args.scenario, **kw)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/surprise.py", line 1066, in assemble
+  File "uk_growth_with_ai/surprise.py", line 1066, in assemble
     raise RuntimeError(f"{closure}: incomplete (continuation {bool(cont)}, tfp "
                        f"{bool(tfp)}, share_shift R4 {bool(ss)})")
 RuntimeError: zk0: incomplete (continuation True, tfp False, share_shift R4 False)
@@ -147,15 +147,15 @@ FAILED rc=1
 Traceback (most recent call last):
   File "<frozen runpy>", line 203, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/__main__.py", line 3, in <module>
+  File "uk_growth_with_ai/__main__.py", line 3, in <module>
     raise SystemExit(main())
                      ~~~~^^
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 134, in main
+  File "uk_growth_with_ai/cli.py", line 134, in main
     return _surprise(args)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 212, in _surprise
+  File "uk_growth_with_ai/cli.py", line 212, in _surprise
     res = sp.assemble(args.outdir, args.closure, fs=variant, rerun_dir=args.rerun_dir,
                       scenario=args.scenario, **kw)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/surprise.py", line 1066, in assemble
+  File "uk_growth_with_ai/surprise.py", line 1066, in assemble
     raise RuntimeError(f"{closure}: incomplete (continuation {bool(cont)}, tfp "
                        f"{bool(tfp)}, share_shift R4 {bool(ss)})")
 RuntimeError: zk0: incomplete (continuation True, tfp False, share_shift R4 False)
@@ -172,15 +172,15 @@ wrote uk_growth_with_ai/data/scenarios_surprise2028_uk_low_zk0.5.json
 Traceback (most recent call last):
   File "<frozen runpy>", line 203, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/__main__.py", line 3, in <module>
+  File "uk_growth_with_ai/__main__.py", line 3, in <module>
     raise SystemExit(main())
                      ~~~~^^
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 134, in main
+  File "uk_growth_with_ai/cli.py", line 134, in main
     return _surprise(args)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 212, in _surprise
+  File "uk_growth_with_ai/cli.py", line 212, in _surprise
     res = sp.assemble(args.outdir, args.closure, fs=variant, rerun_dir=args.rerun_dir,
                       scenario=args.scenario, **kw)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/surprise.py", line 1066, in assemble
+  File "uk_growth_with_ai/surprise.py", line 1066, in assemble
     raise RuntimeError(f"{closure}: incomplete (continuation {bool(cont)}, tfp "
                        f"{bool(tfp)}, share_shift R4 {bool(ss)})")
 RuntimeError: zk0.5: incomplete (continuation True, tfp False, share_shift R4 False)
@@ -189,15 +189,15 @@ FAILED rc=1
 Traceback (most recent call last):
   File "<frozen runpy>", line 203, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/__main__.py", line 3, in <module>
+  File "uk_growth_with_ai/__main__.py", line 3, in <module>
     raise SystemExit(main())
                      ~~~~^^
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 134, in main
+  File "uk_growth_with_ai/cli.py", line 134, in main
     return _surprise(args)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 212, in _surprise
+  File "uk_growth_with_ai/cli.py", line 212, in _surprise
     res = sp.assemble(args.outdir, args.closure, fs=variant, rerun_dir=args.rerun_dir,
                       scenario=args.scenario, **kw)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/surprise.py", line 1066, in assemble
+  File "uk_growth_with_ai/surprise.py", line 1066, in assemble
     raise RuntimeError(f"{closure}: incomplete (continuation {bool(cont)}, tfp "
                        f"{bool(tfp)}, share_shift R4 {bool(ss)})")
 RuntimeError: zk0.5: incomplete (continuation True, tfp False, share_shift R4 False)
@@ -208,15 +208,15 @@ wrote uk_growth_with_ai/data/scenarios_surprise2028_uk_central_zk0.5.json
 Traceback (most recent call last):
   File "<frozen runpy>", line 203, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/__main__.py", line 3, in <module>
+  File "uk_growth_with_ai/__main__.py", line 3, in <module>
     raise SystemExit(main())
                      ~~~~^^
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 134, in main
+  File "uk_growth_with_ai/cli.py", line 134, in main
     return _surprise(args)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 212, in _surprise
+  File "uk_growth_with_ai/cli.py", line 212, in _surprise
     res = sp.assemble(args.outdir, args.closure, fs=variant, rerun_dir=args.rerun_dir,
                       scenario=args.scenario, **kw)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/surprise.py", line 1066, in assemble
+  File "uk_growth_with_ai/surprise.py", line 1066, in assemble
     raise RuntimeError(f"{closure}: incomplete (continuation {bool(cont)}, tfp "
                        f"{bool(tfp)}, share_shift R4 {bool(ss)})")
 RuntimeError: zk0.5: incomplete (continuation True, tfp False, share_shift R4 False)
@@ -225,15 +225,15 @@ FAILED rc=1
 Traceback (most recent call last):
   File "<frozen runpy>", line 203, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/__main__.py", line 3, in <module>
+  File "uk_growth_with_ai/__main__.py", line 3, in <module>
     raise SystemExit(main())
                      ~~~~^^
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 134, in main
+  File "uk_growth_with_ai/cli.py", line 134, in main
     return _surprise(args)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 212, in _surprise
+  File "uk_growth_with_ai/cli.py", line 212, in _surprise
     res = sp.assemble(args.outdir, args.closure, fs=variant, rerun_dir=args.rerun_dir,
                       scenario=args.scenario, **kw)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/surprise.py", line 1066, in assemble
+  File "uk_growth_with_ai/surprise.py", line 1066, in assemble
     raise RuntimeError(f"{closure}: incomplete (continuation {bool(cont)}, tfp "
                        f"{bool(tfp)}, share_shift R4 {bool(ss)})")
 RuntimeError: zk0.5: incomplete (continuation True, tfp False, share_shift R4 False)
@@ -244,15 +244,15 @@ wrote uk_growth_with_ai/data/scenarios_surprise2028_uk_high_zk0.5.json
 Traceback (most recent call last):
   File "<frozen runpy>", line 203, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/__main__.py", line 3, in <module>
+  File "uk_growth_with_ai/__main__.py", line 3, in <module>
     raise SystemExit(main())
                      ~~~~^^
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 134, in main
+  File "uk_growth_with_ai/cli.py", line 134, in main
     return _surprise(args)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 212, in _surprise
+  File "uk_growth_with_ai/cli.py", line 212, in _surprise
     res = sp.assemble(args.outdir, args.closure, fs=variant, rerun_dir=args.rerun_dir,
                       scenario=args.scenario, **kw)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/surprise.py", line 1066, in assemble
+  File "uk_growth_with_ai/surprise.py", line 1066, in assemble
     raise RuntimeError(f"{closure}: incomplete (continuation {bool(cont)}, tfp "
                        f"{bool(tfp)}, share_shift R4 {bool(ss)})")
 RuntimeError: zk0.5: incomplete (continuation True, tfp False, share_shift R4 False)
@@ -261,15 +261,15 @@ FAILED rc=1
 Traceback (most recent call last):
   File "<frozen runpy>", line 203, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/__main__.py", line 3, in <module>
+  File "uk_growth_with_ai/__main__.py", line 3, in <module>
     raise SystemExit(main())
                      ~~~~^^
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 134, in main
+  File "uk_growth_with_ai/cli.py", line 134, in main
     return _surprise(args)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 212, in _surprise
+  File "uk_growth_with_ai/cli.py", line 212, in _surprise
     res = sp.assemble(args.outdir, args.closure, fs=variant, rerun_dir=args.rerun_dir,
                       scenario=args.scenario, **kw)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/surprise.py", line 1066, in assemble
+  File "uk_growth_with_ai/surprise.py", line 1066, in assemble
     raise RuntimeError(f"{closure}: incomplete (continuation {bool(cont)}, tfp "
                        f"{bool(tfp)}, share_shift R4 {bool(ss)})")
 RuntimeError: zk0.5: incomplete (continuation True, tfp False, share_shift R4 False)
@@ -280,15 +280,15 @@ wrote uk_growth_with_ai/data/scenarios_surprise2028_korinek_zk0.5.json
 Traceback (most recent call last):
   File "<frozen runpy>", line 203, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/__main__.py", line 3, in <module>
+  File "uk_growth_with_ai/__main__.py", line 3, in <module>
     raise SystemExit(main())
                      ~~~~^^
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 134, in main
+  File "uk_growth_with_ai/cli.py", line 134, in main
     return _surprise(args)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 212, in _surprise
+  File "uk_growth_with_ai/cli.py", line 212, in _surprise
     res = sp.assemble(args.outdir, args.closure, fs=variant, rerun_dir=args.rerun_dir,
                       scenario=args.scenario, **kw)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/surprise.py", line 1066, in assemble
+  File "uk_growth_with_ai/surprise.py", line 1066, in assemble
     raise RuntimeError(f"{closure}: incomplete (continuation {bool(cont)}, tfp "
                        f"{bool(tfp)}, share_shift R4 {bool(ss)})")
 RuntimeError: zk0.5: incomplete (continuation True, tfp False, share_shift R4 False)
@@ -297,15 +297,15 @@ FAILED rc=1
 Traceback (most recent call last):
   File "<frozen runpy>", line 203, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/__main__.py", line 3, in <module>
+  File "uk_growth_with_ai/__main__.py", line 3, in <module>
     raise SystemExit(main())
                      ~~~~^^
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 134, in main
+  File "uk_growth_with_ai/cli.py", line 134, in main
     return _surprise(args)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 212, in _surprise
+  File "uk_growth_with_ai/cli.py", line 212, in _surprise
     res = sp.assemble(args.outdir, args.closure, fs=variant, rerun_dir=args.rerun_dir,
                       scenario=args.scenario, **kw)
-  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/surprise.py", line 1066, in assemble
+  File "uk_growth_with_ai/surprise.py", line 1066, in assemble
     raise RuntimeError(f"{closure}: incomplete (continuation {bool(cont)}, tfp "
                        f"{bool(tfp)}, share_shift R4 {bool(ss)})")
 RuntimeError: zk0.5: incomplete (continuation True, tfp False, share_shift R4 False)

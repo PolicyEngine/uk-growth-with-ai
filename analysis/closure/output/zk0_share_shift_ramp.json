@@ -534,7 +534,7 @@
   "note": "ENFORCE_SOLUTION_CHECKS disabled; full RC and Euler diagnostics are recorded per arm below.",
   "oguk_version": "0.3.2",
   "dask": "2026.8.0",
-  "python_executable": "/Users/vahid/ogmodels/OG-UK/.venv/bin/python"
+  "python_executable": "python"
  },
  "renamed_from": "zk0_obr_ramp (arm ids renamed after #22; numbers unchanged)"
 }

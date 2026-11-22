@@ -138,4 +138,4 @@ Max Euler error, savings: 3.0525720839946757e-12
 Max Euler error labor supply: 1.3176126856251358e-12
 OK 7.3 min | SS labour share 0.6110 | RC/Y 2026 -0.0000% | RC interior max 9.98e-07 | TPI dist 5.103159781015296e-05 in 13 its
   debt-neutral: max |D/Y error| 7.37e-06 (tol 0.0001)
-wrote /Users/vahid/ugai-surprise/analysis/surprise/output/zk0.1/korinek_share_shift_ramp_dn_r4_1.json
+wrote analysis/surprise/output/zk0.1/korinek_share_shift_ramp_dn_r4_1.json
