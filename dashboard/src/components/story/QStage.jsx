@@ -33,6 +33,14 @@ import { setStyle, subscribe } from '@/lib/scrollLoop.js';
 // guard lifts when the reader scrolls up by hand or the frame is back
 // before its start, so the sequence replays from there.
 //
+// The guard is paint only (is-landed: the band, the card's visibility).
+// The header's layout (story-bands.css section 5: its height, its
+// question's box, the stage's foot margin) follows a second state,
+// data-head-shown (nextHead), which changes only when nothing in view can
+// move: on a hard jump, or with the stage's foot below the viewport
+// (Fable 5.2, fix list 10: a fast-scroll landing, or the guard lifting on
+// the way up, moved the page by up to 42px).
+//
 // The question copies are aria-hidden, inert and data-axis (the header,
 // id="q-<block>", prints it once). Reduced motion and print: neither
 // plays (CSS); the header carries the question, static, and the chart is
@@ -89,6 +97,14 @@ export function nextSkip({ skip, jumped, past, before, up }) {
   return skip;
 }
 
+// the header's layout state: raised and lowered only when nothing in view moves
+export function nextHead({ head, skip, hard, below }) {
+  // a real jump, or the stage's foot (and so its header) under the
+  // viewport: nothing in view can move, so follow the guard
+  if (hard || below) return skip;
+  return head; // otherwise unchanged
+}
+
 // The question's visual: a plain icon, the words (key word marked), hint.
 // aria-hidden and data-axis.
 function QVisual({ question, hint, icon, keyWord, big = true }) {
@@ -134,7 +150,7 @@ function usePhase(onPhase) {
 
 // Run `read(el, f)` then `write(el, data, f)` in the page's one scroll loop
 // (lib/scrollLoop.js: all reads, then all writes, one rAF per frame), while
-// the element is within a screen of the viewport. f: { V, jumped, up, rail }.
+// the element is within a screen of the viewport. f: { V, jumped, hard, up, rail }.
 function useScrollDriver(ref, read, write, deps) {
   useEffect(() => {
     const el = ref.current;
@@ -158,6 +174,7 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
   const card = useRef(null);
   const go = usePhase(onPhase);
   const skip = useRef(false);
+  const head = useRef(false);
   useScrollDriver(
     ref,
     (el, f) => {
@@ -174,7 +191,7 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
       // hold, so setStyle writes nothing then.
       const qt = Math.round(qMid(R, V) - H / 2);
       const mt = parseFloat(getComputedStyle(hold).marginTop) || 0;
-      return { p: stagePhase({ top: r.top, bottom: r.bottom, V, R, H, mt }), qt };
+      return { p: stagePhase({ top: r.top, bottom: r.bottom, V, R, H, mt }), qt, below: r.bottom >= V };
     },
     (el, d, f) => {
       if (!d) {
@@ -187,6 +204,9 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
       // (story-bands.css), so no empty navy slab shows under the rail
       // (navy-sections-fable.md 7a, its fallback); it goes with the guard
       el.classList.toggle('is-landed', skip.current);
+      // the header's layout follows the guard only when nothing in view moves
+      head.current = nextHead({ head: head.current, skip: skip.current, hard: f.hard, below: d.below });
+      el.toggleAttribute('data-head-shown', head.current);
       setStyle(el, '--q-top', `${d.qt}px`);
       if (skip.current) {
         setVars(el, 1, 1);
@@ -218,6 +238,7 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
   const ref = useRef(null);
   const go = usePhase(onPhase);
   const skip = useRef(false);
+  const head = useRef(false);
   useScrollDriver(
     ref,
     (el, f) => {
@@ -232,7 +253,7 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
       // where it stops (sticky) or the rail
       const y1 = stop + 24;
       const y0 = Math.max(y1 + 120, V * 0.55);
-      return { p: framePhase({ top: r.top, V, y0, y1 }), past: r.top < y0 };
+      return { p: framePhase({ top: r.top, V, y0, y1 }), past: r.top < y0, below: r.bottom >= V };
     },
     (el, d, f) => {
       if (!d) {
@@ -241,6 +262,8 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
       }
       const { p } = d;
       skip.current = nextSkip({ skip: skip.current, jumped: f.jumped, past: d.past, before: !d.past, up: f.up });
+      head.current = nextHead({ head: head.current, skip: skip.current, hard: f.hard, below: d.below });
+      el.toggleAttribute('data-head-shown', head.current);
       if (skip.current) {
         setVars(el, 1, 1);
         go(el, 'done');

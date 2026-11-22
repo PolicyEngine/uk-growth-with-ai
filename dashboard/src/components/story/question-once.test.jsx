@@ -8,15 +8,16 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { cleanup } from '@testing-library/react';
 import { PAGES, renderPage } from '@/lib/probeTestUtils.jsx';
+import { nextHead } from '@/components/story/QStage.jsx';
 
 afterEach(cleanup);
 
 const css = readFileSync('src/app/story-bands.css', 'utf8');
 // the block of the motion-on screen rule that hides the header
-const HIDE = /@media screen and \(prefers-reduced-motion: no-preference\) \{\s*\.story \.q-stage:not\(\.is-landed\) \+ \.scene-head\.scene-head \{[^}]*height: 0;[^}]*\}\s*\.story \.q-stage:not\(\.is-landed\) \+ \.scene-head > \.scene-head-q \{([^}]*)\}/;
+const HIDE = /@media screen and \(prefers-reduced-motion: no-preference\) \{\s*\.story \.q-stage:not\(\[data-head-shown\]\) \+ \.scene-head\.scene-head \{[^}]*height: 0;[^}]*\}\s*\.story \.q-stage:not\(\[data-head-shown\]\) \+ \.scene-head > \.scene-head-q \{([^}]*)\}/;
 
 describe('a topic shows its question once', () => {
-  it('the header copy is hidden visually, on screen with motion on only, and not while landed', () => {
+  it('the header copy is hidden visually, on screen with motion on only, and not while its header is shown', () => {
     const m = css.match(HIDE);
     expect(m).not.toBeNull();
     // the visually-hidden pattern: still read by screen readers
@@ -48,5 +49,32 @@ describe('a topic shows its question once', () => {
     }
     // the two TopicHead topics named in review are among them
     expect(staged).toEqual(expect.arrayContaining(['story-output']));
+  });
+});
+
+// Fable 5.2, fix list 10: the landing guard (is-landed) is paint only; the
+// header's layout (data-head-shown) follows it only when nothing in view
+// can move: a hard jump, or the stage's foot below the viewport.
+describe('the header layout state (nextHead)', () => {
+  it('the layout rules key on data-head-shown; is-landed keeps paint only', () => {
+    expect(css).not.toMatch(/:not\(\.is-landed\)/);
+    expect(css.match(/\.q-stage:not\(\[data-head-shown\]\)/g)).toHaveLength(4);
+    expect(css).toMatch(/\.q-stage\.is-landed::before \{ content: none; \}/);
+  });
+  it('a fast-scroll landing with the stage\'s foot above the viewport\'s foot leaves it unchanged', () => {
+    expect(nextHead({ head: false, skip: true, hard: false, below: false })).toBe(false);
+  });
+  it('the same landing in mid-stage (foot below the viewport) raises it', () => {
+    expect(nextHead({ head: false, skip: true, hard: false, below: true })).toBe(true);
+  });
+  it('a hard jump past the start raises it', () => {
+    expect(nextHead({ head: false, skip: true, hard: true, below: false })).toBe(true);
+  });
+  it('an upward move with the stage above the viewport leaves it raised', () => {
+    // the guard lifts on the way up (skip false), the foot is above the viewport's foot
+    expect(nextHead({ head: true, skip: false, hard: false, below: false })).toBe(true);
+  });
+  it('it drops once the guard is down and the stage\'s foot is below the viewport', () => {
+    expect(nextHead({ head: true, skip: false, hard: false, below: true })).toBe(false);
   });
 });
