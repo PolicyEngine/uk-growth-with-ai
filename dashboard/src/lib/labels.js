@@ -48,11 +48,13 @@ export const TABS = [
     ] },
   { id: 'method', label: 'Method and sources', short: 'Method', icon: 'book',
     subs: [
+      // the landing, "How the study works" (Method redesign, M1)
+      { id: 'overview', label: 'Overview', short: 'Overview', icon: 'signpost' },
       { id: 'how', label: 'Macro model method', short: 'Macro model', icon: 'sigma' },
       { id: 'households', label: 'Household method', short: 'Households', icon: 'briefcase', study: true },
+      { id: 'inputs', label: 'Inputs', short: 'Inputs', icon: 'table' },
       { id: 'studies', label: 'Evidence', icon: 'library' },
       { id: 'code', label: 'Data and code', short: 'Code', icon: 'code' },
-      { id: 'detail', label: 'Detail and sources', short: 'Detail', icon: 'fileText', study: true },
     ] },
 ];
 export const tabById = (id) => TABS.find((t) => t.id === id);

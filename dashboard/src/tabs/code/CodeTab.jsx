@@ -13,41 +13,36 @@ import PageIntro from '@/components/ui/PageIntro.jsx';
 import { MACRO_ABOUT } from '@/lib/labels.js';
 import CHANGELOG from '@/data/site-changelog.json';
 import { METHOD_FACTS as MF, setHas } from '@/lib/dataKeys.js';
-import { MODEL_VERSIONS, VINTAGES, AI_FULL_RERUN, AI_STUDY, RELEASES, ledger, ledgerTable, LAST_UPDATED, version } from './ledger.js';
+import { MODEL_VERSIONS, VINTAGES, AI_FULL_RERUN, AI_STUDY, RELEASES, ledger, ledgerTable, LAST_UPDATED, longDate, version } from './ledger.js';
+import { COMMIT as STUDY_COMMIT, REPO_URL as STUDY_REPO } from '@/tabs/story/part3/sources.jsx';
 import { HISTORY } from './history.js';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
-import { Items, WhyChain } from '@/components/story/Items.jsx';
+import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from '@/tabs/method/IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { REF, DASH_REF, SP_HELPER, STEPS } from './pipeline.js';
+import HouseholdsDetail from '@/tabs/households/HouseholdsDetail.jsx';
+import { CITE_BIB, CITE_TEXT } from './cite.js';
 
-// Data and code: reproduce the results (before you start, the 2028-surprise
-// pipeline, outputs and checks), the one vintages table and the model
-// versions (each with its model: OG-UK or uk-ai-study), the source ledger,
-// citation, the one changelog (model decisions and site changes) and the
-// general OG-UK workflow. Commands are checked against the scripts and CLI;
-// see pipeline.js.
+// Data and code (Method redesign, section 8; M15): three start cards (the
+// repository, the data files, rerun it), then rerun the results (before you
+// start, the pipeline's step cards, outputs and checks), the data files and
+// versions (with the household study's result files, #detail-sources), the
+// source ledger, the one changelog (model decisions and site changes), the
+// general workflow for the macro model's package, and last the page's own
+// citation. Commands are checked against the scripts and CLI; see
+// pipeline.js. The rail lists six sections; #use-oguk sits between the
+// changelog and the citation, not in it.
 
 const SECTIONS = [
-  { id: 'before', title: 'Reproduce the results', icon: iconFor('prerequisite') },
-  { id: 'pipeline', title: 'Run it step by step', icon: iconFor('pipeline') },
-  { id: 'outputs', title: 'Outputs and checks', icon: iconFor('check') },
-  { id: 'vintages', title: 'Data vintages and versions', icon: iconFor('data') },
+  { id: 'start', title: 'Start here', icon: iconFor('code') },
+  { id: 'before', title: 'Rerun the results', icon: iconFor('prerequisite') },
+  { id: 'vintages', title: 'Data files and versions', icon: iconFor('data') },
   { id: 'ledger', title: 'Source ledger', icon: iconFor('ledger') },
-  { id: 'cite', title: 'Cite this work', icon: iconFor('source') },
   { id: 'changelog', title: 'Changelog and revisions', icon: iconFor('revision') },
-  { id: 'use-oguk', title: 'Use the macro model yourself', icon: iconFor('code') },
+  { id: 'cite', title: 'Cite this work', icon: iconFor('source') },
 ];
-const SITE_URL = 'https://uk-growth-with-ai.vercel.app';
-// one date format in both changelogs, "12 Nov 2026" (review round 2, R2-31)
-// (three-letter months by hand: en-GB's "short" month is "Sept" in newer ICU)
-const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const longDate = (d) => {
-  const [y, m, day] = d.slice(0, 10).split('-').map(Number);
-  return `${day} ${MON[m - 1]} ${y}`;
-};
-
 const firstCommand = (code) => code.split('\n').find((l) => l.trim() && !l.trim().startsWith('#')).replace(/\s+#.*$/, '').replace(/\s*\\$/, '');
 // dashboard files at the dashboard branch; the run's files at the set's ref
 const refFor = (p) => (p.startsWith('dashboard/') ? DASH_REF : REF);
@@ -70,6 +65,55 @@ const ENV = `export HF_TOKEN=hf_your_token HUGGING_FACE_TOKEN=hf_your_token   # 
 export HF_HUB_DISABLE_SHARED_BLOBS=1
 export DASK_DISTRIBUTED__SCHEDULER__WORKER_TTL=None
 : > "$WORK/un_api_token.txt"   # empty: demographics from the GitHub mirror, as every run so far`;
+
+// The solve-time sentence (elapsed_min over the solve records in
+// analysis/surprise/output: methodFacts.json solve_minutes), on the Rerun
+// it card, visible at rest (checks/cross_review.py reads its record count)
+const SOLVE_TIMES = !setHas('methodFactsFile') ? (
+  <>Solve times for the {SURPRISE_YEAR} runs are not compiled yet.</>
+) : (
+  <>
+    Solves: median {MF.solve_minutes.median.toFixed(1)} minutes, {MF.solve_minutes.min.toFixed(1)} to {MF.solve_minutes.max.toFixed(1)} across {MF.solve_minutes.records} committed solve records.
+  </>
+);
+
+// Start here: three text cards, no fold
+const STUDY_TREE = `${STUDY_REPO}/tree/${STUDY_COMMIT}`;
+function StartCards() {
+  return (
+    <div className="card-grid mx-start">
+      <InfoCard icon={iconFor('code')} title="The repository" foot={<StartLink anchor="model-versions">Model versions</StartLink>}>
+        <p>Code, solves and this site: {ext(REPO, 'uk-growth-with-ai')}</p>
+        <p>Macro model solves at {version('solves').value}.</p>
+        <p>
+          Household study at{' '}
+          <a href={STUDY_TREE} target="_blank" rel="noopener noreferrer">
+            {AI_STUDY.commit.slice(0, 7)}
+          </a>
+          .
+        </p>
+        <CopyBlock code={`git clone ${REPO}.git`} />
+      </InfoCard>
+      <InfoCard icon={iconFor('data')} title="The data files" foot={<StartLink anchor="data-files">Data files and builds</StartLink>}>
+        <p>{VINTAGES.length} files and builds feed the pages.</p>
+        <p>Data last updated {longDate(LAST_UPDATED)}.</p>
+      </InfoCard>
+      <InfoCard icon={iconFor('pipeline')} title="Rerun it" foot={<StartLink anchor="before">Before you start</StartLink>}>
+        <p>Install the model, patch OG-Core, run the pipeline, check the numbers, build the pages.</p>
+        <p>{SOLVE_TIMES}</p>
+      </InfoCard>
+    </div>
+  );
+}
+function StartLink({ anchor, children }) {
+  return (
+    <p className="mx-ov-link">
+      <NavLink tab="method" sub="code" anchor={anchor}>
+        {children} <Icon name="arrowRight" size={14} strokeWidth={2} />
+      </NavLink>
+    </p>
+  );
+}
 
 function BeforeYouStart() {
   return (
@@ -141,24 +185,12 @@ function BeforeYouStart() {
           <p className="mx-kicker">
             <IconText icon="prerequisite">You need</IconText>
           </p>
-          {/* elapsed_min over the solve records in analysis/surprise/output: methodFacts.json solve_minutes */}
+          {/* the solve times moved to the Rerun it card (Start here) */}
           <Items
             items={[
               { icon: 'prerequisite', text: 'A Hugging Face read token, as HF_TOKEN and HUGGING_FACE_TOKEN.' },
               { icon: 'data', text: 'The R1–R4 baselines in WORK: each closure’s baseline_p1 pickles.' },
               { icon: 'measure', text: 'About 15 GB of memory for a specification build.' },
-              {
-                icon: 'timing',
-                // the 2028 runs' solve times are not the active set's (R3-04)
-                text: !setHas('methodFactsFile') ? (
-                  <>Solve times for the {SURPRISE_YEAR} runs are not compiled yet.</>
-                ) : (
-                  <>
-                    Solves: median {MF.solve_minutes.median.toFixed(1)} minutes, {MF.solve_minutes.min.toFixed(1)} to{' '}
-                    {MF.solve_minutes.max.toFixed(1)} across {MF.solve_minutes.records} committed solve records.
-                  </>
-                ),
-              },
             ]}
           />
         </div>
@@ -167,35 +199,12 @@ function BeforeYouStart() {
   );
 }
 
-function PipelineMap() {
-  return (
-    <InfoCard title={`The ${SURPRISE_YEAR}-surprise pipeline`} className="mx-pipemap">
-      <p>
-        <IconText icon="stages">Nine steps, in order. Choose one for its file and commands.</IconText>
-      </p>
-      <nav aria-label="Pipeline steps">
-      <ol className="mx-pipe-row">
-        {STEPS.map((s, i) => (
-          <li key={s.id}>
-            <NavLink tab="method" sub="code" anchor={s.id} className="mx-pipe-node">
-              <span className="mx-pipe-n">{i + 1}</span>
-              <Icon name={iconFor(s.icon)} size={18} />
-              <span className="mx-pipe-label">{s.short}</span>
-            </NavLink>
-          </li>
-        ))}
-      </ol>
-      </nav>
-      <Items
-        className="mx-pipe-items"
-        items={[
-          { icon: 'data', text: <>Output: <code>dashboard/src/data/{DATA_FILE}</code>, the only file Explore&rsquo;s results views read.</> },
-          { icon: 'households', text: <>Who gains reads <code>{SET.cohorts}</code>, from <code>paper/cohort_welfare.py --json</code>.</> },
-        ]}
-      />
-    </InfoCard>
-  );
-}
+// What the pipeline writes (the pipeline map's two lines until the Method
+// redesign removed the map: the nine step cards say the same)
+const OUTPUT_LINES = [
+  { icon: 'data', text: <>Output: <code>dashboard/src/data/{DATA_FILE}</code>, the only file Explore&rsquo;s results views read.</> },
+  { icon: 'households', text: <>Who gains reads <code>{SET.cohorts}</code>, from <code>paper/cohort_welfare.py --json</code>.</> },
+];
 
 function PipelineSteps() {
   return (
@@ -402,6 +411,9 @@ function Vintages() {
           ].filter(Boolean)}
         />
       </InfoCard>
+      {/* the household study's result files and commit (#detail-sources;
+          a Method sub-tab until the Method redesign) */}
+      <HouseholdsDetail />
       {/* one column: the versions table needs the width, and the two cards
           differ in height by hundreds of pixels */}
       <div className="cards-grid mx-stack-grid">
@@ -544,17 +556,6 @@ function Ledger() {
   );
 }
 
-const year = LAST_UPDATED.slice(0, 4);
-const CITE_TEXT = `PolicyEngine (${year}). AI and the UK economy: Beyond the forecast. Interactive dashboard, data updated ${LAST_UPDATED}; macro model solves ${version('solves').value}. ${SITE_URL}`;
-const CITE_BIB = `@misc{policyengine_ai_uk_${year},
-  author       = {{PolicyEngine}},
-  title        = {{AI} and the {UK} economy: Beyond the forecast},
-  year         = {${year}},
-  howpublished = {Interactive dashboard},
-  url          = {${SITE_URL}},
-  note         = {Data updated ${LAST_UPDATED}; macro model solves ${version('solves').value}; code at ${REPO}}
-}`;
-
 function Cite() {
   return (
     <div className="cards-grid mx-cite-grid">
@@ -665,37 +666,37 @@ export default function CodeTab() {
       <OnThisPage tab="method" sub="code" sections={SECTIONS} label="Code contents" />
       <div className="page-body">
         <PageIntro icon={iconFor('code')} question="Can I check and reproduce these results?" answer={<IconText icon="check">Yes. The solves, the data files and the scripts that build every page are committed.</IconText>}>
-          <WhyChain
-            label="From a clean machine to the pages"
-            links={[
-              { icon: 'install', text: 'Install the model' },
-              { icon: 'code', text: 'Patch OG-Core' },
-              { icon: 'pipeline', text: 'Run the pipeline' },
-              { icon: 'check', text: 'Check the numbers' },
-              { icon: 'data', text: 'Build the pages' },
-            ]}
-          />
           <IconLine icon="calendar" className="updated-stamp">
             Data last updated <time dateTime={LAST_UPDATED}>{longDate(LAST_UPDATED)}</time>
           </IconLine>
         </PageIntro>
         <section>
-          <SectionHeading id="before" icon={iconFor('prerequisite')} title="Reproduce the results">
+          <SectionHeading id="start" icon={iconFor('code')} title="Start here" />
+          <StartCards />
+        </section>
+        <section>
+          <SectionHeading id="before" icon={iconFor('prerequisite')} title="Rerun the results">
             <IconText icon="code">Everything here comes from {ext(REPO, 'uk-growth-with-ai')}. The macro model is {MACRO_ABOUT}; its solves are committed, so pages rebuild without it.</IconText>
           </SectionHeading>
           <BeforeYouStart />
-        </section>
-        <section>
-          <SectionHeading id="pipeline" icon={iconFor('pipeline')} title="Run it step by step">
-            <IconText icon="stages">Each step has its file, one sentence and its commands.</IconText>
-          </SectionHeading>
-          <PipelineMap />
+          <div className="section-heading mx-subhead" id="pipeline" tabIndex={-1}>
+            <div className="section-heading-text">
+              <h3>Run it step by step</h3>
+              <p>
+                <IconText icon="stages">Each step has its file, one sentence and its commands.</IconText>
+              </p>
+            </div>
+          </div>
           <PipelineSteps />
-        </section>
-        <section>
-          <SectionHeading id="outputs" icon={iconFor('check')} title="Outputs and checks">
-            <IconText icon="measure">What the numbers are in, and how they are checked.</IconText>
-          </SectionHeading>
+          <div className="section-heading mx-subhead" id="outputs" tabIndex={-1}>
+            <div className="section-heading-text">
+              <h3>Outputs and checks</h3>
+              <p>
+                <IconText icon="measure">What the numbers are in, and how they are checked.</IconText>
+              </p>
+            </div>
+          </div>
+          <Items className="mx-pipe-items" items={OUTPUT_LINES} />
           <div className="cards-grid">
             <InfoCard title="Model units, not pounds" id="units">
               <Items
@@ -717,7 +718,7 @@ export default function CodeTab() {
           </div>
         </section>
         <section>
-          <SectionHeading id="vintages" icon={iconFor('data')} title="Data vintages and versions">
+          <SectionHeading id="vintages" icon={iconFor('data')} title="Data files and versions">
             <IconText icon="version">Which data, model and release each page is built from.</IconText>
           </SectionHeading>
           <Vintages />
@@ -727,12 +728,6 @@ export default function CodeTab() {
             <IconText icon="source">Where each figure comes from and when it was checked.</IconText>
           </SectionHeading>
           <Ledger />
-        </section>
-        <section>
-          <SectionHeading id="cite" icon={iconFor('source')} title="Cite this work">
-            <IconText icon="source">A citation, and the limitations to cite with it.</IconText>
-          </SectionHeading>
-          <Cite />
         </section>
         <section>
           <SectionHeading id="changelog" icon={iconFor('revision')} title="Changelog and revisions">
@@ -746,6 +741,14 @@ export default function CodeTab() {
             <IconText icon="install">The general workflow for any UK tax or benefit reform. It uses {ext(URLS.ogUk, 'PSLmodels/OG-UK')}.</IconText>
           </SectionHeading>
           <UseOguk />
+        </section>
+        {/* the page's own citation, last (Method redesign, M14): the full
+            section, so no "Cite this page" foot here */}
+        <section>
+          <SectionHeading id="cite" icon={iconFor('source')} title="Cite this work">
+            <IconText icon="source">A citation, and the limitations to cite with it.</IconText>
+          </SectionHeading>
+          <Cite />
         </section>
       </div>
     </div>

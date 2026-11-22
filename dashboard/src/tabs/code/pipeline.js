@@ -20,7 +20,7 @@ export const DASH_REF = 'dashboard/ab2026-redesign';
 export const REF = SET.yearFlag ? FILES_REF : DASH_REF;
 
 export const SP_HELPER = `export PY=/path/to/og-uk/.venv/bin/python   # Python 3.13, OG-Core 0.17.0 + the γ patch
-export WORK=~/ugai-rerun-work                    # holds <closure>/baseline_p1 from the R1–R4 rerun
+export WORK=/path/to/work                        # holds <closure>/baseline_p1 from the R1–R4 rerun
 export PYTHONPATH=$PWD OUT=$PWD/${SET.outputDir} RERUN=$PWD/analysis/rerun/output
 # Run the surprise CLI as driver.sh does: from $WORK, with the repo's output folders${Y ? `\n# --start ${Y} is required (the CLI defaults to the earlier timing)` : ''}
 sp() { ( cd "$WORK" && "$PY" -m uk_growth_with_ai surprise "$@" --outdir "$OUT" --rerun-dir "$RERUN"${start} ); }`;

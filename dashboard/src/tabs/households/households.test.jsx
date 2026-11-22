@@ -475,7 +475,7 @@ describe('the rules\u2019 names', () => {
 describe('HouseholdsMethod', () => {
   it('covers data, exposure, the shock, rules, take-up, draws, what it leaves out and vintages', () => {
     const { container } = render(<HouseholdsMethod />);
-    for (const id of ['hm-pipeline', 'hm-data', 'hm-exposure', 'hm-shock', 'hm-rules', 'hm-takeup', 'hm-draws', 'hm-out', 'hm-vintage'])
+    for (const id of ['hm-pipeline', 'hm-settings', 'hm-data', 'hm-exposure', 'hm-shock', 'hm-rules', 'hm-takeup', 'hm-draws', 'hm-out', 'hm-sources', 'hm-vintage'])
       expect(container.querySelector(`#${id}`), id).not.toBeNull();
     const t = container.textContent;
     expect(t).toContain(D.model_year_label);
@@ -492,17 +492,50 @@ describe('HouseholdsMethod', () => {
     const { container } = render(<HouseholdsMethod />);
     expect(text(container).match(/[+−]\d+\.\d\dpp|£\d+\.\dbn/g)).toBeNull();
   });
+
+  // Method redesign, section 5: the model pages' one anatomy, a true flow
+  it('reads in the model pages’ anatomy: a flow, six closed rows, what it leaves out, sources', async () => {
+    const { container } = render(<HouseholdsMethod />);
+    const heads = [...container.querySelectorAll('.page-body > section > .section-heading h2')].map((h) => h.textContent);
+    expect(heads).toEqual(['How it works', 'Key settings', 'What it leaves out', 'Sources']);
+    const rows = [...container.querySelectorAll('.mx-setting')];
+    expect(rows.map((r) => r.id)).toEqual(['hm-data', 'hm-exposure', 'hm-shock', 'hm-rules', 'hm-takeup', 'hm-draws']);
+    for (const r of rows) {
+      expect(r.querySelector('.mx-setting-body').hidden, r.id).toBe(true);
+      const uses = r.querySelectorAll('.mx-setting-body > .mx-uses');
+      expect(uses.length, r.id).toBe(1);
+      expect(r.querySelector('.mx-setting-body').lastElementChild, r.id).toBe(uses[0]);
+    }
+    // every typed input in a header is a quoted input, not a result
+    for (const v of container.querySelectorAll('.mx-setting-head')) {
+      const c = v.cloneNode(true);
+      c.querySelectorAll('[data-input]').forEach((n) => n.remove());
+      expect(c.textContent, v.textContent).not.toMatch(/\d+(\.\d+)?%/);
+    }
+    expect(container.querySelector('#hm-draws .mx-setting-uses').textContent).toContain(`Mean of ${D.headline.central_cost.draws} draws, main case`);
+    // the flow: six boxes, five arrows, none to the macro model
+    const flow = container.querySelector('#hm-flow');
+    expect(flow.querySelectorAll('.hf-box')).toHaveLength(6);
+    expect(flow.querySelectorAll('.hf-link')).toHaveLength(5);
+    expect(flow.textContent).not.toMatch(/macro model/i);
+    expect(flow.textContent).toContain('sets each group’s share, in the main case');
+    // each arrow names its two ends as written (PolicyEngine UK keeps its capitals)
+    expect([...flow.querySelectorAll('.hf-ends')].map((e) => e.textContent.trim())).toEqual(['AI exposure to the shock:', 'The shock to PolicyEngine UK:', 'Survey data to PolicyEngine UK:', 'PolicyEngine UK to household incomes:', 'PolicyEngine UK to public finances:']);
+    // the caution panel holds the nine tiles
+    expect(container.querySelector('#hm-out').closest('.caution-panel').querySelectorAll('.hm-out-tile')).toHaveLength(9);
+  });
 });
 
-// Item 23 (checks-words2.md): Detail and sources lives on Method and
-// sources (sub=detail); Explore > Households keeps one line linking to it.
+// Item 23 (checks-words2.md): Detail and sources is a card on Data and code
+// (#detail-sources; a sub-tab until the Method redesign); Explore >
+// Households keeps one line linking to it.
 describe('Detail and sources', () => {
-  it('is a Method sub-tab with every result file and the commit; Explore links to it in one line', async () => {
+  it('is a card on Data and code with every result file and the commit; Explore links to it in one line', async () => {
     const { default: HouseholdsDetail, FILES } = await import('./HouseholdsDetail.jsx');
     const { TABS } = await import('@/lib/labels.js');
-    expect(TABS.find((t) => t.id === 'method').subs.map((s) => s.id)).toContain('detail');
+    expect(TABS.find((t) => t.id === 'method').subs.map((s) => s.id)).not.toContain('detail');
     const page = render(<HouseholdsDetail />).container;
-    expect(page.querySelector('#detail-sources h2').textContent).toBe('Detail and sources');
+    expect(page.querySelector('#detail-sources h3').textContent).toBe('Household study: result files');
     expect(page.querySelectorAll('.hh-sources [data-reference] li')).toHaveLength(FILES.length);
     expect(page.textContent).toContain(D.source.commit.slice(0, 7));
     for (const a of page.querySelectorAll('.hh-sources > p a[target="_blank"]')) expect(a.getAttribute('rel')).toContain('noopener');
@@ -510,7 +543,7 @@ describe('Detail and sources', () => {
     expect(ex.textContent).not.toContain('Result files, commit, how the page is built.');
     const links = [...ex.querySelectorAll('a')].filter((a) => /Detail and sources/.test(a.textContent));
     expect(links).toHaveLength(1);
-    expect(links[0].getAttribute('href')).toMatch(/tab=method&sub=detail/);
+    expect(links[0].getAttribute('href')).toMatch(/tab=method&sub=code#detail-sources/);
     expect(ex.querySelector('.hh-sources')).toBeNull();
   });
 });

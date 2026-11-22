@@ -86,12 +86,13 @@ const LEGACY_TAB = {
   'public-finances': ['explore', 'finances'],
   growth: ['explore'],
   'growth/results': ['explore'],
-  'growth/method': ['method'],
+  // the macro model's method; ?tab=method alone is the landing
+  'growth/method': ['method', 'how'],
   methodology: ['method'],
-  'methodology/how': ['method'],
+  'methodology/how': ['method', 'how'],
   'methodology/code': ['method', 'code'],
   'methodology/coverage': ['method', 'studies'],
-  'methodology/obr': ['method'],
+  'methodology/obr': ['method', 'how'],
   coverage: ['method', 'studies'],
 };
 const STUDY_SUBS = { coverage: 'coverage', numbers: 'numbers', sources: 'sources', matrix: 'coverage' };
@@ -107,6 +108,8 @@ const LEGACY_SUB = {
     limits: ['method', null, 'm-limits'],
     // the revision history is the changelog on Data and code
     history: ['method', 'code', 'changelog'],
+    // Detail and sources is a card on Data and code (Method redesign, M2)
+    detail: ['method', 'code', 'detail-sources'],
     // Scenarios folded into OG-UK method; its old ids (s-*, scen-*, arm-*,
     // timing, m-jump) are kept there, so a named anchor is kept
     scenarios: ['method', null, 'm-scenarios'],
@@ -124,6 +127,9 @@ const ALIAS = {
   literature: (sub, anchor) => ['method', 'studies', anchor ?? STUDY_SUBS[sub] ?? null],
   code: (sub, anchor) => ['method', 'code', anchor],
 };
+// The anchors that live on Inputs (they were on the macro model's page):
+// the section, its old sub-heading, the table, its groups and its rows.
+const INPUT_ANCHOR = /^(m-inputs(-head)?|inputs-table|mx-group-[a-z-]+|in-[a-z0-9-]+)$/;
 const own = (o, k) => (k != null && Object.hasOwn(o, k) ? o[k] : undefined);
 
 // One step from any named place to a current one. An anchor on Method and
@@ -137,8 +143,11 @@ export function resolve(tab, sub = null, anchor = null) {
   }
   else if (own(ALIAS, tab)) [tab, sub, anchor] = ALIAS[tab](sub, anchor);
   if (tab === 'method' && anchor === 'm-history') [sub, anchor] = ['code', 'changelog'];
+  // Detail and sources is a section of Data and code
+  if (tab === 'method' && anchor === 'detail-sources') sub = 'code';
   // moved anchors: the income charts are the Economy wall
   if (tab === 'explore' && anchor === 'income') anchor = 'economy-wall';
+  if (tab === 'method' && anchor && (!sub || sub === 'how') && INPUT_ANCHOR.test(anchor)) sub = 'inputs';
   if (tab === 'method' && anchor && !sub) sub = 'how';
   return [tab, sub, anchor];
 }

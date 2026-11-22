@@ -40,7 +40,7 @@
 }
 .mx-tab .mx-facts-row .story-fact-value,
 .hm-page .mx-facts-row .story-fact-value {
-  font-size: 1.5rem;
+  font-size: var(--t-title);
 }
 
 /* household method: item lists in place of paragraphs */
@@ -108,7 +108,7 @@
 /* a sub-section heading inside a section (Scenarios: the scenarios, arms, timing) */
 .mx-tab .mx-subhead h3 {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: var(--chart-fs-head);
 }
 .mx-tab .mx-scenarios {
   display: block;
@@ -240,7 +240,7 @@
    style, as text */
 p.mx-axis-title {
   margin: 4px 0;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   font-weight: 500;
   color: var(--c-axis-title);
 }
@@ -264,7 +264,7 @@ p.mx-axis-title.is-x {
   align-items: center;
   gap: 0 4px;
   margin: -4px 0 16px;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-600);
 }
 .mx-uses-icon {
@@ -277,7 +277,7 @@ p.mx-axis-title.is-x {
 }
 .mx-foot-line {
   margin: 12px 0 24px;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-600);
 }
 
@@ -293,7 +293,7 @@ p.mx-axis-title.is-x {
 /* the source type: coloured text, no pill (round 1 de-clutter) */
 .mx-kind {
   display: inline;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   line-height: 1.4;
 }
@@ -325,12 +325,12 @@ p.mx-axis-title.is-x {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 14px;
+  font-size: var(--t-ui);
 }
 .mx-inputs-table thead th {
   padding: 6px 10px 6px 0;
   border-bottom: 1px solid var(--pe-gray-300, #d0d5dd);
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   text-align: left;
   color: var(--pe-gray-600);
@@ -342,7 +342,7 @@ p.mx-axis-title.is-x {
   padding: 16px 0 6px;
   border-bottom: 1px solid var(--pe-gray-200);
   background: var(--pe-color-bg-primary, #fff);
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   font-weight: 600;
   text-align: left;
   color: var(--pe-gray-600);
@@ -408,7 +408,7 @@ p.mx-axis-title.is-x {
 .mx-inputs-short {
   display: block;
   margin-top: 2px;
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-600);
 }
 .mx-inputs-v {
@@ -416,12 +416,12 @@ p.mx-axis-title.is-x {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
-.mx-inputs-src { font-size: 12px; }
+.mx-inputs-src { font-size: var(--chart-fs-tick); }
 .mx-inputs-more { color: var(--pe-gray-500); }
 .mx-inputs-detail td {
   padding: 0 0 12px;
   border-bottom: 1px solid var(--pe-gray-100);
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-700, #344054);
 }
 .mx-inputs-detail p {
@@ -429,7 +429,7 @@ p.mx-axis-title.is-x {
   margin: 0 0 6px;
 }
 .mx-inputs-file { color: var(--pe-gray-600); }
-.mx-inputs-foot { margin-top: 10px; font-size: 12px; }
+.mx-inputs-foot { margin-top: 10px; font-size: var(--chart-fs-tick); }
 .mx-inputs-table .visually-hidden { position: absolute; }
 @media (prefers-reduced-motion: reduce) {
   .mx-chev { transition: none; }
@@ -469,6 +469,8 @@ p.mx-axis-title.is-x {
   .mx-inputs-row > .mx-inputs-v { flex: 0 1 auto; max-width: 38%; white-space: normal; text-align: right; }
   .mx-inputs-row > .mx-inputs-k { flex: none; padding-left: 18px; }
   .mx-inputs-row > .mx-inputs-src { flex: 1 1 100%; min-width: 0; padding-left: 18px; overflow-wrap: anywhere; }
+  .mx-inputs-row > .mx-inputs-part { flex: 1 1 100%; padding-left: 18px; }
+  .mx-inputs-part-name { display: none; }
   .mx-inputs-detail td { padding: 0 0 12px 18px; }
 }
 
@@ -477,7 +479,7 @@ p.mx-axis-title.is-x {
   max-width: 78ch;
   margin: 0;
   padding: 0 0 0 18px;
-  font-size: 14px;
+  font-size: var(--t-ui);
   line-height: 1.5;
   color: var(--pe-gray-700);
 }
@@ -488,7 +490,7 @@ p.mx-axis-title.is-x {
 .mx-limit-para {
   max-width: 78ch;
   margin: 8px 0 0;
-  font-size: 14px;
+  font-size: var(--t-ui);
   line-height: 1.5;
   color: var(--pe-gray-700);
 }
@@ -538,7 +540,8 @@ p.mx-axis-title.is-x {
 
 /* a closed input group's other rows (push D, Q9.2c): hidden at every
    width, though the phone layout sets the rows' display */
-.mx-inputs-table .mx-inputs-row[hidden] { display: none !important; }
+.mx-inputs-table .mx-inputs-row[hidden],
+.mx-inputs-table tbody[hidden] { display: none !important; }
 
 /* a fiscal rule card's step in the debt rule's first year (push D, Q9.5):
    a small head, a sentence, then UK central's three figures in the
@@ -558,7 +561,7 @@ p.mx-axis-title.is-x {
   margin: 8px 0 4px;
 }
 .mx-rule-stats .why-stat-value {
-  font-size: 22px;
+  font-size: var(--t-topic);
 }
 @media (max-width: 480px) {
   .mx-rule-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -579,7 +582,573 @@ p.mx-axis-title.is-x {
   align-items: center;
   gap: 6px;
   margin: 0 0 6px;
-  font-size: 1rem;
+  font-size: var(--chart-fs-head);
   font-weight: 600;
 }
 .mx-limit-head svg { color: var(--pe-gray-500); }
+
+/* Method and sources > Overview, "How the study works" (Method redesign,
+   M1): six text cards in two rows of three, the gap token between them.
+   Each part card's three rows are a <dl>: the label (muted, the meta
+   size) over the text. */
+.mx-ov .card-grid.mx-ov-grid {
+  gap: var(--gap-card);
+  margin-top: 16px;
+}
+.mx-ov .mx-ov-card {
+  display: flex;
+  flex-direction: column;
+}
+.mx-ov .mx-ov-card .card-body {
+  flex: 1 1 auto;
+}
+.mx-ov-dl {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+.mx-ov-dl dt {
+  font-size: var(--chart-fs-tick);
+  font-weight: 600;
+  color: var(--pe-gray-500);
+}
+.mx-ov-dl dd {
+  margin: 2px 0 0;
+}
+.mx-ov-meta {
+  font-size: var(--chart-fs-tick);
+  color: var(--pe-gray-500);
+}
+.mx-ov-link {
+  margin: 16px 0 0;
+  font-size: var(--chart-fs-label);
+  font-weight: 600;
+}
+.mx-ov-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--pe-teal-700);
+}
+.mx-ov-note {
+  margin: 16px 0 0;
+  color: var(--pe-gray-600);
+}
+.mx-ov section + section {
+  margin-top: var(--gap-block);
+}
+@media (max-width: 600px) {
+  .mx-ov .card-grid.mx-ov-grid {
+    gap: var(--gap-card-phone);
+  }
+}
+
+/* Inputs (Method redesign, 6.1): the search box beside the pill, the count
+   line under them, and the "Used by" column */
+.mx-inputs-find {
+  display: flex;
+  flex: 1 1 260px;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.mx-inputs-find label {
+  font-size: var(--chart-fs-tick);
+  font-weight: 600;
+  color: var(--pe-gray-600);
+  white-space: nowrap;
+}
+.mx-inputs-search {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 32px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: var(--chart-fs-label);
+  border: 1px solid var(--pe-gray-300);
+  border-radius: 6px;
+  background: var(--pe-surface);
+}
+.mx-inputs-search:focus-visible {
+  outline: 2px solid var(--pe-teal-500);
+  outline-offset: 1px;
+}
+.mx-inputs-n {
+  margin: 0 0 8px;
+  font-size: var(--chart-fs-tick);
+  color: var(--pe-gray-600);
+}
+.mx-inputs-clear {
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--pe-teal-700);
+  text-decoration: underline;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.mx-inputs-part {
+  font-size: var(--chart-fs-tick);
+  color: var(--pe-gray-600);
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .mx-inputs-find { flex-basis: 100%; }
+}
+
+/* Data and code: the household study's result files, a card in "Data files
+   and versions" (#detail-sources; Method redesign, section 8) */
+.hh-detail-card .hh-detail-sub {
+  color: var(--pe-gray-600);
+}
+
+/* The model diagram's three stages (Method redesign, 4.2): the scenario
+   box over the firms column with the one arrow into the loop, the loop's
+   own head, then a dashed read-out line (no arrowhead) to the result */
+.md-stage {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--pe-surface);
+  border: 1px solid var(--pe-gray-300);
+  border-radius: var(--card-radius);
+}
+.md-stage-in {
+  margin-left: auto;
+  max-width: calc(2 * 100% / 3);
+  border-width: 2px;
+  border-color: var(--c-gain);
+}
+.md-stage-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: var(--fs-small);
+  line-height: 1.45;
+  color: var(--pe-gray-600);
+}
+.md-stage-text b {
+  font-size: var(--fs-body);
+  color: var(--pe-gray-800);
+}
+.md-stage-n {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: var(--chart-fs-tick);
+  font-weight: 600;
+  color: var(--pe-gray-700);
+  border: 1px solid var(--pe-gray-300);
+  border-radius: 999px;
+}
+.md-stage-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 8px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-800);
+}
+.md-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-700);
+}
+.md-link-in {
+  justify-content: flex-end;
+  padding-right: calc(100% / 6 - 40px);
+}
+.md-link-in .md-arrow {
+  color: var(--c-gain);
+}
+.md-link-out {
+  justify-content: center;
+  color: var(--pe-gray-600);
+}
+.md-dash {
+  display: inline-block;
+  width: 0;
+  height: 28px;
+  border-left: 2px dashed var(--pe-gray-400);
+}
+@media (max-width: 760px) {
+  .md-stage-in { max-width: none; margin-left: 0; }
+  .md-link-in { justify-content: flex-start; padding-right: 0; }
+  .md-link-out { justify-content: flex-start; }
+  .md-dash { display: none; }
+}
+
+/* Key settings (Method redesign, 4.3): a list of rows, each a button of
+   three columns (setting, what the study uses, what else was run) and a
+   chevron, its body below. The column heads print once above the list;
+   at 600px and below each header stacks and the labels print inline. */
+.mx-settings {
+  margin-top: 12px;
+  border-top: 1px solid var(--card-border);
+}
+.mx-setting-heads,
+.mx-setting-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.6fr) minmax(0, 1.3fr) 24px;
+  gap: 16px;
+  align-items: start;
+}
+.mx-setting-heads {
+  padding: 8px 12px;
+  font-size: var(--chart-fs-tick);
+  font-weight: 600;
+  color: var(--pe-gray-500);
+  border-bottom: 1px solid var(--card-border);
+}
+.mx-setting {
+  border-bottom: 1px solid var(--card-border);
+}
+.mx-setting-head {
+  width: 100%;
+  min-height: 44px;
+  padding: 12px;
+  font: inherit;
+  font-size: var(--chart-fs-label);
+  line-height: 1.45;
+  text-align: left;
+  color: var(--pe-gray-700);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.mx-setting-head:hover {
+  background: var(--pe-gray-50);
+}
+.mx-setting-head:focus-visible {
+  outline: 2px solid var(--c-gain-text);
+  outline-offset: -2px;
+}
+.mx-setting-name {
+  font-weight: 600;
+  color: var(--pe-gray-800);
+}
+.mx-setting-also.is-none {
+  color: var(--pe-gray-400);
+}
+.mx-setting-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.mx-setting-chev {
+  justify-self: end;
+  margin-top: 2px;
+  color: var(--pe-gray-500);
+  transition: transform 0.2s;
+}
+.mx-setting.is-open .mx-setting-chev {
+  transform: rotate(180deg);
+}
+.mx-setting-body {
+  padding: 4px 12px 20px;
+}
+.mx-setting-body > .card-grid:first-child,
+.mx-setting-body > .mx-subhead:first-child,
+.mx-setting-body > .mx-scenarios:first-child .mx-subhead:first-child {
+  margin-top: 0;
+}
+.mx-setting-lead {
+  margin: 0 0 8px;
+  color: var(--pe-gray-600);
+}
+.mx-setting-body > .mx-uses:last-child {
+  margin-top: 16px;
+}
+@media (max-width: 600px) {
+  .mx-setting-heads { display: none; }
+  .mx-setting-head {
+    grid-template-columns: minmax(0, 1fr) 24px;
+    gap: 4px 8px;
+  }
+  .mx-setting-name { grid-column: 1; }
+  .mx-setting-uses,
+  .mx-setting-also { grid-column: 1; }
+  .mx-setting-chev { grid-column: 2; grid-row: 1; }
+  .mx-setting-also.is-none { display: none; }
+  .mx-setting-label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    font-weight: 600;
+    color: var(--pe-gray-500);
+  }
+  .mx-setting-body { padding: 4px 0 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mx-setting-chev { transition: none; }
+}
+
+/* What a model leaves out (Method redesign, M16): the caution panel
+   (components/ui/CautionPanel.jsx), in the Story leaves-out band's tint
+   (--page-bg) with a hairline border and the card radius */
+.caution-panel {
+  padding: 20px 24px 24px;
+  background: var(--page-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+}
+.caution-panel > .section-heading {
+  margin-top: 0;
+}
+@media (max-width: 600px) {
+  .caution-panel { padding: 16px; }
+}
+
+/* Sensitivities (Method redesign, 4.5): one table, the row label column
+   and four value columns; group names as full-width rows. At 390 the
+   table scrolls inside its card with the label column sticky. */
+.mx-sens-wrap {
+  overflow-x: auto;
+}
+.mx-sens {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--chart-fs-label);
+  font-variant-numeric: tabular-nums;
+}
+.mx-sens th,
+.mx-sens td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--pe-gray-100);
+  text-align: right;
+  white-space: nowrap;
+}
+.mx-sens thead th {
+  font-size: var(--chart-fs-tick);
+  font-weight: 600;
+  color: var(--pe-gray-500);
+  white-space: normal;
+  vertical-align: bottom;
+}
+.mx-sens th[scope='row'],
+.mx-sens .mx-sens-corner {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  text-align: left;
+  font-weight: 500;
+  white-space: normal;
+  background: var(--pe-surface);
+}
+.mx-sens tr.is-main th,
+.mx-sens tr.is-main td {
+  font-weight: 600;
+}
+.mx-sens-group th {
+  padding-top: 14px;
+  font-size: var(--chart-fs-tick);
+  font-weight: 600;
+  text-align: left;
+  color: var(--pe-gray-600);
+}
+.mx-sens-cell.is-flip .mx-sens-v {
+  padding: 0 3px;
+  border: 1px dashed var(--pe-gray-500);
+  border-radius: 3px;
+}
+.mx-sens-cell.is-held,
+.mx-sens-cell.is-pending {
+  color: var(--pe-gray-500);
+}
+.mx-sens-dir {
+  display: inline-flex;
+  margin-left: 4px;
+  vertical-align: -2px;
+  color: var(--pe-gray-500);
+}
+.mx-sens-links {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+.mx-sens-links a {
+  color: var(--pe-teal-700);
+}
+@media (max-width: 600px) {
+  .mx-sens th[scope='row'] { min-width: 120px; max-width: 150px; }
+  .mx-sens th,
+  .mx-sens td { padding: 6px 8px; }
+}
+
+/* The household study's flow (Method redesign, 5.2): from 760px, A over B
+   at the left, then C, D, and E1 over E2 at the right, the draws tag over
+   C to the outputs; below, one column in reading order with each arrow a
+   line of words (its two ends named) between boxes. */
+.hf-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1fr minmax(0, 1fr) 1fr minmax(0, 1fr) 1fr minmax(0, 1fr);
+  grid-template-areas:
+    '.  .   tag tag tag tag tag'
+    'a  ad  ad  ad  d   de1 e1'
+    'b  bc  c   cd  d   de2 e2';
+  gap: 10px 6px;
+  align-items: center;
+}
+.hf-a { grid-area: a; }
+.hf-b { grid-area: b; }
+.hf-c { grid-area: c; }
+.hf-d { grid-area: d; }
+.hf-e1 { grid-area: e1; }
+.hf-e2 { grid-area: e2; }
+.hf-link-ad { grid-area: ad; }
+.hf-link-bc { grid-area: bc; }
+.hf-link-cd { grid-area: cd; }
+.hf-link-de1 { grid-area: de1; }
+.hf-link-de2 { grid-area: de2; }
+.hf-tag { grid-area: tag; }
+.hf-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-self: stretch;
+  padding: 10px 12px;
+  background: var(--pe-surface);
+  border: 1px solid var(--pe-gray-300);
+  border-radius: var(--card-radius);
+}
+.hf-d {
+  border-width: 2px;
+  border-color: var(--c-gain);
+}
+.hf-box-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-800);
+}
+.hf-box-head .plain-icon {
+  display: inline-flex;
+  color: var(--c-gain-text);
+}
+.hf-box-line {
+  font-size: var(--fs-caption);
+  line-height: 1.4;
+  color: var(--pe-gray-600);
+}
+.hf-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+  font-size: var(--fs-caption);
+  line-height: 1.3;
+  text-align: center;
+  color: var(--pe-gray-700);
+}
+.hf-link .md-arrow {
+  margin-top: 0;
+}
+.hf-ends {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.hf-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding-bottom: 4px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+  border-bottom: 1px dashed var(--pe-gray-300);
+}
+@media (max-width: 760px) {
+  .hf-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: none;
+    gap: 6px;
+  }
+  .hf-grid > * { grid-area: auto; }
+  .hf-link {
+    flex-direction: row;
+    align-items: flex-start;
+    text-align: left;
+    padding-left: 12px;
+  }
+  .hf-ends {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    font-weight: 600;
+    color: var(--c-gain-text);
+  }
+  .hf-tag { border-bottom: 0; padding-bottom: 0; }
+}
+
+/* Data and code > Start here (Method redesign, section 8): three text
+   cards, the gap token between them */
+.mx-code .card-grid.mx-start {
+  gap: var(--gap-card);
+  margin-top: 16px;
+}
+.mx-code .mx-start .card.info {
+  display: flex;
+  flex-direction: column;
+}
+.mx-code .mx-start .card-body {
+  flex: 1 1 auto;
+}
+@media (max-width: 600px) {
+  .mx-code .card-grid.mx-start { gap: var(--gap-card-phone); }
+}
+
+/* One gap token on every Method page (Method redesign, section 9):
+   --gap-card between cards (--gap-card-phone at 600px and below),
+   --gap-block between sections, in place of the literal gaps */
+.mx-tab .card-grid,
+.mx-tab .cards-grid,
+.hm-page .card-grid,
+.hm-page .card-grid.cols-2,
+.mx-code .cards-grid {
+  gap: var(--gap-card);
+}
+.mx-tab .page-body > section + section > .section-heading,
+.mx-tab .page-body > .cite-foot {
+  margin-top: var(--gap-block);
+}
+.mx-tab .page-body > section + section.caution-panel,
+.mx-tab .page-body > section.caution-panel + section {
+  margin-top: var(--gap-block);
+}
+.mx-tab .page-body > section.caution-panel > .section-heading {
+  margin-top: 0;
+}
+@media (max-width: 600px) {
+  .mx-tab .card-grid,
+  .mx-tab .cards-grid,
+  .hm-page .card-grid,
+  .hm-page .card-grid.cols-2,
+  .mx-code .cards-grid {
+    gap: var(--gap-card-phone);
+  }
+}

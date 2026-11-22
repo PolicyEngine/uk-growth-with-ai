@@ -14,6 +14,16 @@ import IconText from './IconText.jsx';
 // Drawn in HTML so it stays readable on a phone, where the loop becomes one
 // column; the PNG/SVG download draws the same blocks from NODES and EDGES.
 // Choosing a block opens its detail below the diagram.
+//
+// Three stages, top to bottom (Method redesign, 4.2; M7): 1 an AI scenario
+// changes two production inputs, and enters at firms only (the one drawn
+// arrow into the loop); 2 the four blocks re-clear every market, the loop
+// below; 3 the result, read as the loop's path against its path without
+// the scenario: a dashed read-out line with no arrowhead, not a flow. No
+// arrow leaves the loop for anything else.
+export const STAGE_IN = { title: 'An AI scenario', line: 'Two production inputs change: the capital share γ and productivity Z.', to: 'γ and Z' };
+export const STAGE_LOOP = 'Every market re-clears';
+export const STAGE_OUT = { title: 'Gap against the OBR’s central forecast path', line: 'Each result is the model’s path with the scenario, set against its path without.', via: 'set against the forecast path' };
 
 export const NODES = [
   {
@@ -77,21 +87,39 @@ const nameOf = (id) => NODES.find((n) => n.id === id).title;
 
 export const flowTable = () => ({
   columns: ['From', 'To', 'Flow'],
-  rows: EDGES.flatMap((e) => [
+  rows: [['An AI scenario', 'Firms', 'Capital share γ and productivity Z'], ...EDGES.flatMap((e) => [
     [nameOf(e.a), nameOf(e.b), e.ab],
     [nameOf(e.b), nameOf(e.a), e.ba],
-  ]),
+  ])],
 });
 
 // The same diagram as SVG, for the downloads
 export function diagramSvg() {
   const C = CHART_COLOURS;
   const W = 760;
-  const H = 420;
+  const L = 420; // the loop's height
+  const T = 120; // the scenario box and its arrow, above the loop
+  const B = 130; // the read-out line and the result box, below it
+  const H = T + L + B;
   const bw = 220;
   const bh = 84;
-  const pos = { households: [0, 0], firms: [W - bw, 0], world: [W - bw, H - bh], government: [0, H - bh] };
+  const pos = { households: [0, T], firms: [W - bw, T], world: [W - bw, T + L - bh], government: [0, T + L - bh] };
   let out = '';
+  // 1: the scenario, its one arrow into firms
+  out += `<rect x="${W - bw - 160}" y="0" width="${bw + 160}" height="64" rx="10" fill="${C.surface}" stroke="${C.gain}" stroke-width="2"/>`;
+  out += `<text x="${W - bw - 146}" y="26" font-size="15" font-weight="600" fill="${C.ink}">${esc(`1  ${STAGE_IN.title}`)}</text>`;
+  out += `<text x="${W - bw - 146}" y="48" font-size="12" fill="${C.muted}">${esc('The capital share γ and productivity Z change')}</text>`;
+  out += `<line x1="${W - bw / 2}" y1="70" x2="${W - bw / 2}" y2="${T - 8}" stroke="${C.gain}" stroke-width="1.5"/>`;
+  out += `<path d="M${W - bw / 2 - 5} ${T - 14} L${W - bw / 2} ${T - 6} L${W - bw / 2 + 5} ${T - 14}" fill="none" stroke="${C.gain}" stroke-width="1.5"/>`;
+  out += `<text x="${W - bw / 2 - 10}" y="${(70 + T) / 2 + 4}" font-size="12" text-anchor="end" fill="${C.ink}">${esc(STAGE_IN.to)}</text>`;
+  out += `<text x="0" y="${T - 14}" font-size="13" font-weight="600" fill="${C.ink}">${esc(`2  ${STAGE_LOOP}`)}</text>`;
+  // 3: the read-out, dashed and with no arrowhead, then the result
+  const y3 = T + L;
+  out += `<line x1="${W / 2}" y1="${y3 + 6}" x2="${W / 2}" y2="${y3 + 56}" stroke="${C.reference}" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+  out += `<text x="${W / 2 + 10}" y="${y3 + 36}" font-size="12" fill="${C.muted}">${esc(STAGE_OUT.via)}</text>`;
+  out += `<rect x="${W / 2 - 230}" y="${y3 + 62}" width="460" height="64" rx="10" fill="${C.surface}" stroke="${C.axis}" stroke-width="1"/>`;
+  out += `<text x="${W / 2 - 216}" y="${y3 + 88}" font-size="15" font-weight="600" fill="${C.ink}">${esc(`3  ${STAGE_OUT.title}`)}</text>`;
+  out += `<text x="${W / 2 - 216}" y="${y3 + 110}" font-size="12" fill="${C.muted}">${esc('The path with the scenario against the path without')}</text>`;
   for (const n of NODES) {
     const [x, y] = pos[n.id];
     out += `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="10" fill="${C.surface}" stroke="${n.id === 'firms' ? C.gain : C.axis}" stroke-width="${n.id === 'firms' ? 2 : 1}"/>`;
@@ -121,8 +149,8 @@ export function diagramSvg() {
     }
   }
   // below the side labels (which sit at H/2 - 8 and H/2 + 14)
-  out += `<text x="${W / 2}" y="${H / 2 + 52}" font-size="13" font-weight="600" text-anchor="middle" fill="${C.ink}">Markets clear</text>`;
-  out += `<text x="${W / 2}" y="${H / 2 + 72}" font-size="12" text-anchor="middle" fill="${C.muted}">wage, interest rate; firms pay corporate tax</text>`;
+  out += `<text x="${W / 2}" y="${T + L / 2 + 52}" font-size="13" font-weight="600" text-anchor="middle" fill="${C.ink}">Markets clear</text>`;
+  out += `<text x="${W / 2}" y="${T + L / 2 + 72}" font-size="12" text-anchor="middle" fill="${C.muted}">wage, interest rate; firms pay corporate tax</text>`;
   return { w: W, h: H, markup: out };
 }
 
@@ -131,7 +159,7 @@ export function diagramSvg() {
 // (households and firms on top, government and the rest of the world below);
 // the arrows are hidden in the single column, where the words carry it.
 const DIR = { hf: ['right', 'left'], fw: ['down', 'up'], wg: ['left', 'right'], gh: ['up', 'down'] };
-function Arrow({ dir }) {
+export function Arrow({ dir }) {
   return (
     <svg className={`md-arrow md-arrow-${dir}`} viewBox="0 0 24 12" width="24" height="12" aria-hidden="true">
       <path d="M1 6 H21 M16 1.5 L21.5 6 L16 10.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -163,6 +191,28 @@ export default function ModelDiagram() {
   const node = NODES.find((n) => n.id === open);
   return (
     <div className="md" data-no-axes="A diagram of flows between blocks: no scale">
+      <div className="md-stage md-stage-in">
+        <span className="md-stage-n" aria-hidden="true">
+          1
+        </span>
+        <span className="md-stage-text">
+          <b>{STAGE_IN.title}</b>
+          <span>{STAGE_IN.line}</span>
+        </span>
+      </div>
+      {/* the one arrow into the loop: AI enters at firms only */}
+      <p className="md-link md-link-in">
+        <Arrow dir="down" />
+        <span>
+          <span className="md-to">To firms:</span> {STAGE_IN.to}
+        </span>
+      </p>
+      <p className="md-stage-head">
+        <span className="md-stage-n" aria-hidden="true">
+          2
+        </span>
+        <b>{STAGE_LOOP}</b>
+      </p>
       <div className={`md-grid${open ? ' is-lit' : ''}`} role="group" aria-label="The macro model: four blocks and the flows between them">
         {NODES.map((n) => (
           <button
@@ -192,6 +242,20 @@ export default function ModelDiagram() {
           <span>The wage and the interest rate adjust until every market balances.</span>
           <span>Firms also pay corporate tax.</span>
         </div>
+      </div>
+      {/* a read-out, not a flow: a dashed line, no arrowhead */}
+      <p className="md-link md-link-out">
+        <span className="md-dash" aria-hidden="true" />
+        <span>{STAGE_OUT.via}</span>
+      </p>
+      <div className="md-stage md-stage-out">
+        <span className="md-stage-n" aria-hidden="true">
+          3
+        </span>
+        <span className="md-stage-text">
+          <b>{STAGE_OUT.title}</b>
+          <span>{STAGE_OUT.line}</span>
+        </span>
       </div>
       <p className="md-note">
         <IconText icon="caveat">A schematic: arrows show direction, not size.</IconText>

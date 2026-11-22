@@ -83,3 +83,47 @@ describe('code blocks', () => {
     expect(bib.querySelector('button').getAttribute('aria-label')).toBe('Copy the text');
   });
 });
+
+// Method redesign, section 8 (M15): three start cards open the page; the
+// solve-record sentence is visible at rest (checks/cross_review.py); the
+// citation is last; no author-specific path in the commands.
+describe('Data and code, start here', () => {
+  it('opens on three start cards, keeps the solve records visible and ends on the citation', async () => {
+    const { render } = await import('@testing-library/react');
+    const { NavProvider } = await import('@/lib/nav.jsx');
+    const { default: CodeTab } = await import('@/tabs/code/CodeTab.jsx');
+    const { METHOD_FACTS: MF, setHas } = await import('@/lib/dataKeys.js');
+    window.history.replaceState(null, '', '/?tab=method&sub=code');
+    const { container } = render(
+      <NavProvider>
+        <CodeTab />
+      </NavProvider>,
+    );
+    const heads = [...container.querySelectorAll('.page-body > section > .section-heading:not(.mx-subhead)')].map((h) => h.id);
+    // #pipeline and #outputs are h3 sub-headings under Rerun the results
+    for (const id of ['pipeline', 'outputs']) expect(container.querySelector(`#${id} h3`), id).not.toBeNull();
+    expect(heads).toEqual(['start', 'before', 'vintages', 'ledger', 'changelog', 'use-oguk', 'cite']);
+    const rail = [...container.querySelectorAll('.contents-list a')].map((a) => a.getAttribute('href').split('#')[1]);
+    expect(rail).toEqual(['start', 'before', 'vintages', 'ledger', 'changelog', 'cite']);
+    const start = container.querySelector('.mx-start');
+    expect([...start.querySelectorAll('.card-head h3')].map((h) => h.textContent)).toEqual(['The repository', 'The data files', 'Rerun it']);
+    expect(start.textContent).toContain(`${VINTAGES.length} files and builds feed the pages.`);
+    if (setHas('methodFactsFile')) {
+      const p = [...start.querySelectorAll('p')].find((x) => x.textContent.includes('committed solve records'));
+      expect(p.textContent).toContain(`${MF.solve_minutes.records} committed solve records`);
+      expect(p.closest('[hidden], .disclosure-content')).toBeNull();
+    }
+    for (const id of ['pipeline', 'outputs', 'units', 'data-files', 'detail-sources', 'model-versions', 'releases', 'source-ledger', 'citation', 'known-limits', 'revisions']) expect(container.querySelector(`#${id}`), id).not.toBeNull();
+    expect(container.querySelector('.mx-pipemap')).toBeNull();
+    expect(container.querySelectorAll('.mx-pipe-step')).toHaveLength(9);
+    // the data files card holds the household study's result files
+    expect(container.querySelector('#data-files').compareDocumentPosition(container.querySelector('#detail-sources')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(container.querySelector('.cite-foot')).toBeNull();
+  });
+  it('no command names an author-specific folder', async () => {
+    const { SP_HELPER, STEPS } = await import('@/tabs/code/pipeline.js');
+    for (const t of [SP_HELPER, ...STEPS.map((s) => s.code)]) expect(t).not.toMatch(/~\/|ugai-rerun-work/);
+    expect(SP_HELPER).toContain('export WORK=/path/to/work');
+  });
+});
+

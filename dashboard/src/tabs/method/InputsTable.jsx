@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import Pill from '@/components/ui/Pill.jsx';
 import S from '@/lib/activeData.js';
-import { INPUTS, KIND, ROWS } from './inputs.js';
+import { INPUTS, KIND, PART_USED, ROWS } from './inputs.js';
 import { SRC } from './sources.js';
 
 // Every input on one table: input, value, a chip for its kind of source and
@@ -15,8 +15,18 @@ import { SRC } from './sources.js';
 // Q9.2c) is closed under a header with its count: a closed group shows its
 // key rows only (inputs.js KEY_INPUTS); a source-type filter, or a link to a
 // row, opens what it needs.
+// Method redesign (6.1): a search box above the pill matches each row's
+// input, value, short line, derivation and source labels; the pill filters
+// by source type and by the part that uses the input ("Used by"). With a
+// search or a filter set, every group is open and only matching rows show;
+// a group with none is left out. A count line says how many are shown.
 const GROUPS = [...new Set(ROWS.map((r) => r.group))];
 const COUNTS = Object.fromEntries(Object.keys(KIND).map((k) => [k, ROWS.filter((r) => r.kind === k).length]));
+const PART_COUNTS = Object.fromEntries(Object.keys(PART_USED).map((k) => [k, ROWS.filter((r) => r.part === k).length]));
+const partText = (k) => `Part ${PART_USED[k].n} · ${PART_USED[k].name}`;
+// what a search reads in a row
+const HAY = Object.fromEntries(ROWS.map((r) => [r.id, [r.input, r.value, r.short, r.how, r.note ?? '', ...r.src.map((k) => SRC[k]?.label ?? '')].join(' ').toLowerCase()]));
+export const rowMatches = (r, { kind = null, part = null, q = '' } = {}) => (!kind || r.kind === kind) && (!part || r.part === part) && (!q.trim() || HAY[r.id].includes(q.trim().toLowerCase()));
 const SCEN_NOTE = Object.fromEntries(S.scenarios.map((s) => [s.id, s.sources ?? {}]));
 
 // The scenario file's notes say which steps are arithmetic on a published
@@ -31,8 +41,8 @@ const scenNote = (r) => (r.scen ? SCEN_NOTE[r.scen[0]]?.[r.scen[1]] : null);
 const hasDetail = (r) => r.how !== r.short || !!r.note || r.src.length > 1 || !!scenNote(r);
 
 export const inputsTable = () => ({
-  columns: ['Group', 'Input', 'Value used', 'Source type', 'How it is obtained', 'Sources'],
-  rows: INPUTS.map((r) => [r.group, r.input, r.value, r.kindLabel ?? KIND[r.kind].label, r.note ? `${r.how} ${r.note}` : r.how, r.src.map((k) => `${SRC[k].label} <${SRC[k].url}>`).join('; ')]),
+  columns: ['Group', 'Input', 'Value used', 'Source type', 'How it is obtained', 'Sources', 'Used by'],
+  rows: INPUTS.map((r) => [r.group, r.input, r.value, r.kindLabel ?? KIND[r.kind].label, r.note ? `${r.how} ${r.note}` : r.how, r.src.map((k) => `${SRC[k].label} <${SRC[k].url}>`).join('; '), partText(r.part)]),
 });
 
 function Kind({ k, label }) {
@@ -44,13 +54,15 @@ function Kind({ k, label }) {
 }
 
 const link = (k) => (
-  <a href={SRC[k].url} target="_blank" rel="noreferrer">
+  <a href={SRC[k].url} target="_blank" rel="noopener noreferrer">
     {SRC[k].label}
   </a>
 );
 
 export default function InputsTable() {
   const [kind, setKind] = useState(null);
+  const [part, setPart] = useState(null);
+  const [q, setQ] = useState('');
   const [open, setOpen] = useState(() => new Set());
   const [groups, setGroups] = useState(() => new Set());
   const root = useRef(null);
@@ -61,6 +73,8 @@ export default function InputsTable() {
       const row = ROWS.find((r) => r.id === id);
       if (row) {
         setKind(null);
+        setPart(null);
+        setQ('');
         setOpen((o) => new Set(o).add(id));
         if (!row.key) setGroups((o) => new Set(o).add(row.group));
       }
@@ -76,6 +90,8 @@ export default function InputsTable() {
       const row = tr && ROWS.find((r) => r.id === tr.id);
       if (row) {
         setKind(null);
+        setPart(null);
+        setQ('');
         setOpen((o) => new Set(o).add(row.id));
         setGroups((o) => new Set(o).add(row.group));
       }
@@ -93,10 +109,20 @@ export default function InputsTable() {
       else n.add(id);
       return n;
     });
-  const shown = ROWS.filter((r) => !kind || r.kind === kind);
+  const filtered = !!kind || !!part || !!q.trim();
+  const shown = ROWS.filter((r) => rowMatches(r, { kind, part, q }));
+  const clear = () => {
+    setKind(null);
+    setPart(null);
+    setQ('');
+  };
   return (
     <div className="mx-inputs" data-no-axes="A table of inputs" ref={root}>
       <div className="mx-inputs-filter">
+        <div className="mx-inputs-find">
+          <label htmlFor="inputs-search">Search inputs</label>
+          <input type="search" id="inputs-search" className="mx-inputs-search" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" spellCheck={false} />
+        </div>
         <Pill
           className="is-card"
           title="Options for this table"
@@ -113,9 +139,32 @@ export default function InputsTable() {
               seg: kind ? KIND[kind].label : 'All types',
               def: !kind,
             },
+            {
+              id: 'part',
+              label: 'Used by',
+              glyph: 'layers',
+              kind: 'one',
+              value: part ?? 'all',
+              options: [{ value: 'all', label: 'All parts', desc: `${ROWS.length} inputs` }, ...Object.keys(PART_USED).map((k) => ({ value: k, label: PART_USED[k].name, desc: `${PART_COUNTS[k]} of ${ROWS.length} inputs` }))],
+              onChange: (k) => setPart(k === 'all' ? null : k),
+              seg: part ? PART_USED[part].name : 'All parts',
+              def: !part,
+            },
           ]}
         />
       </div>
+      <p className="mx-inputs-n" aria-live="polite">
+        {shown.length ? (
+          `${shown.length} of ${ROWS.length} inputs`
+        ) : (
+          <>
+            No input matches. Clear the search or the filters.{' '}
+            <button type="button" className="mx-inputs-clear" onClick={clear}>
+              Clear
+            </button>
+          </>
+        )}
+      </p>
       <table className="mx-inputs-table">
         <caption className="visually-hidden">Every scenario input and model parameter, its value, its kind of source and the source</caption>
         <thead>
@@ -126,22 +175,26 @@ export default function InputsTable() {
             </th>
             <th scope="col">Source type</th>
             <th scope="col">Source</th>
+            <th scope="col">Used by</th>
           </tr>
         </thead>
         {GROUPS.map((g) => {
-          const all = shown.filter((r) => r.group === g);
-          if (!all.length) return null;
-          const full = !!kind || groups.has(g) || all.every((r) => r.key);
-          // a closed group's other rows stay in the page, hidden, so a link
-          // to one lands (its hash opens the group) and the page dump reads it
-          const rows = all;
+          const rows = ROWS.filter((r) => r.group === g);
+          // with a search or a filter: the matching rows only, the group
+          // open; a group with none is left out (hidden)
+          const all = filtered ? rows.filter((r) => shown.includes(r)) : rows;
+          const full = filtered || groups.has(g) || all.every((r) => r.key);
+          // a closed group's other rows, and rows a search leaves out, stay
+          // in the page, hidden, so a link to one lands (its reveal clears
+          // the search and opens the group) and the page dump reads it
+          const rowHidden = (r) => (filtered ? !all.includes(r) : !full && !r.key);
           const nShown = full ? all.length : all.filter((r) => r.key).length;
           const gid = `mx-group-${g.toLowerCase().replace(/[^a-z]+/g, '-')}`;
           return (
-            <tbody key={g} id={gid}>
+            <tbody key={g} id={gid} hidden={filtered && !all.length ? true : undefined}>
               <tr className="mx-inputs-group">
-                <th colSpan={4} scope="colgroup">
-                  {kind || all.every((r) => r.key) ? (
+                <th colSpan={5} scope="colgroup">
+                  {filtered || all.every((r) => r.key) ? (
                     <span>
                       {g} <span className="mx-inputs-count">({all.length})</span>
                     </span>
@@ -159,7 +212,7 @@ export default function InputsTable() {
                 const isOpen = open.has(r.id);
                 const note = scenNote(r);
                 const out = [
-                  <tr key={r.id} id={r.id} className={`mx-inputs-row${isOpen ? ' is-open' : ''}`} hidden={!full && !r.key ? true : undefined}>
+                  <tr key={r.id} id={r.id} className={`mx-inputs-row${isOpen ? ' is-open' : ''}`} hidden={rowHidden(r) ? true : undefined}>
                     <th scope="row">
                       {d ? (
                         <button type="button" className="mx-row-toggle" aria-expanded={isOpen} aria-controls={`${r.id}-detail`} onClick={() => toggle(r.id)}>
@@ -179,12 +232,16 @@ export default function InputsTable() {
                       {link(r.src[0])}
                       {r.src.length > 1 ? <span className="mx-inputs-more"> +{r.src.length - 1}</span> : null}
                     </td>
+                    <td className="mx-inputs-part" data-part={r.part}>
+                      Part {PART_USED[r.part].n}
+                      <span className="mx-inputs-part-name"> · {PART_USED[r.part].name}</span>
+                    </td>
                   </tr>,
                 ];
-                if (d && isOpen && (full || r.key))
+                if (d && isOpen && !rowHidden(r))
                   out.push(
                     <tr key={`${r.id}-d`} id={`${r.id}-detail`} className="mx-inputs-detail">
-                      <td colSpan={4}>
+                      <td colSpan={5}>
                         <p>
                           {r.how}
                           {r.note ? <> {r.note}</> : null}

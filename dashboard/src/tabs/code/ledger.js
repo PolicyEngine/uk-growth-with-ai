@@ -17,6 +17,7 @@ import { valueHref } from '@/tabs/literature/pages.js';
 // the official-figure checks, each figure read from its primary file a
 // second way (review round 2, R2-16: the file is in data/, imported directly)
 import CHECKS from '@/data/ukContextChecks.json';
+import { MODEL_YEAR as PART3_YEAR } from '@/tabs/story/part3/shared.jsx';
 
 // The versions behind the results. While the active set has no versions
 // file of its own, its solves are the data file's commit, never the 2028
@@ -51,6 +52,11 @@ export const AI_STUDY = {
   prUrl: AI.source.pr_url ?? `https://github.com/${AI.source.repo}/pull/${AI.source.pr}`,
   paperUrl: AI.source.paper_url ?? null,
 };
+// The household study's model year, as its method page and the Method
+// landing print it ("FY 2027–28"): the data file's label once it carries
+// one, else the Story's part 3 reading of the same file. One home, so the
+// two pages cannot disagree.
+export const MODEL_YEAR = AI_STUDY.modelYear ? (/^FY/.test(AI_STUDY.modelYear) ? AI_STUDY.modelYear : `FY ${AI_STUDY.modelYear}`) : PART3_YEAR;
 // the study's state, as the vintages and the ledger print it
 const aiLabel = (t) => (AI.provisional ? `${t} (provisional)` : t);
 const aiWhere = AI_MERGED
@@ -132,3 +138,12 @@ export const ledgerTable = () => ({
 
 // The date of the latest data build or read across the files
 export const LAST_UPDATED = [day(S.generated_utc), AI.source.fetched, REL.read, ...Object.values(UK.sources).map((s) => s.fetched)].filter(Boolean).sort().at(-1);
+
+// One date format on every Method page, "12 Nov 2026" (review round 2,
+// R2-31; three-letter months by hand: en-GB's "short" month is "Sept" in
+// newer ICU). Moved from CodeTab.jsx so the landing can say the same date.
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+export const longDate = (d) => {
+  const [y, m, dd] = d.slice(0, 10).split('-').map(Number);
+  return `${dd} ${MON[m - 1]} ${y}`;
+};

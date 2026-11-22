@@ -78,11 +78,12 @@ const PAGES = {
   finances: '/?tab=explore&sub=finances',
   who: '/?tab=explore&sub=who',
   households: '/?tab=explore&sub=households',
-  method: '/?tab=method',
+  method: '/?tab=method&sub=how',
+  overview: '/?tab=method',
+  inputs: '/?tab=method&sub=inputs',
   'household-method': '/?tab=method&sub=households',
   evidence: '/?tab=method&sub=studies',
   data: '/?tab=method&sub=code',
-  detail: '/?tab=method&sub=detail',
 };
 const MAX_ICONS = 220;
 const MAX_BAND = 12;

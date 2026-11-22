@@ -229,13 +229,14 @@ export function InfoCard({ id, icon, title, tag, children, more, morePreview, fo
   );
 }
 
-// A section heading: plain icon, h2, one grey sentence.
-export function SectionHeading({ id, icon, title, children }) {
+// A section heading: plain icon, h2, one grey sentence. `oldId`: a second
+// anchor kept on the h2, so links to a heading that moved still land.
+export function SectionHeading({ id, oldId, icon, title, children }) {
   return (
     <div className="section-heading" id={id} tabIndex={-1}>
       {icon ? <Icon name={icon} size={20} className="section-icon" /> : null}
       <div className="section-heading-text">
-        <h2>{title}</h2>
+        <h2 id={oldId}>{title}</h2>
         {children ? <p>{children}</p> : null}
       </div>
     </div>

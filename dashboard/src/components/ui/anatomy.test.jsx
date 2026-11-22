@@ -16,6 +16,9 @@ import ResultsTab from '@/tabs/ai/ResultsTab.jsx';
 import AllScenarios, { AcrossDebt } from '@/tabs/explore/AllScenarios.jsx';
 import WhoGainsTab from '@/tabs/cohorts/CohortsTab.jsx';
 import MethodTab from '@/tabs/method/MethodTab.jsx';
+import MethodOverview from '@/tabs/method/MethodOverview.jsx';
+import InputsPage from '@/tabs/method/InputsPage.jsx';
+import HouseholdsMethod from '@/tabs/households/HouseholdsMethod.jsx';
 import StudiesTab from '@/tabs/literature/LiteratureTab.jsx';
 import HouseholdsExplore from '@/tabs/households/HouseholdsExplore.jsx';
 import CodeTab from '@/tabs/code/CodeTab.jsx';
@@ -261,7 +264,10 @@ const PAGES = [
   ['Explore, who gains', <WhoGainsTab key="w" />, 'tab=explore&sub=who'],
   ['Explore, who gains, both', <WhoGainsTab key="wb" />, 'tab=explore&sub=who&closure=both'],
   ['Explore, households', <HouseholdsExplore key="h" />, 'tab=explore&sub=households'],
+  ['Method, overview', <MethodOverview key="o" />, 'tab=method'],
   ['Method, OG-UK', <MethodTab key="m" />, 'tab=method&sub=how'],
+  ['Method, inputs', <InputsPage key="in" />, 'tab=method&sub=inputs'],
+  ['Method, household study', <HouseholdsMethod key="hm" />, 'tab=method&sub=households'],
   ['Method, evidence', <StudiesTab key="s" />, 'tab=method&sub=studies'],
   ['Method, data and code', <CodeTab key="c" />, 'tab=method&sub=code'],
 ];

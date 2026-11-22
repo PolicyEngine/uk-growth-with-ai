@@ -1468,6 +1468,30 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   display: none;
 }
 
+/* One outlined pill for a section link (Method redesign, M4; the
+   Households nav adopts it): 1px border, radius 999px, padding 4px 12px,
+   no fill; hover and focus underline. Not a .chip or a .segment, no
+   aria-pressed. OnThisPage's links take the same look at 1024px and below
+   (the block above, in the narrower-screens media query). */
+.pill-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 4px 12px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+  text-decoration: none;
+  background: none;
+  border: 1px solid var(--pe-gray-300);
+  border-radius: 999px;
+}
+.pill-link:hover,
+.pill-link:focus-visible {
+  color: var(--pe-teal-700);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* ---------- Method and Scenarios: plain kickers, plain icon + text ---------- */
 .mx-kicker {
   font-size: var(--fs-micro) !important;
@@ -1630,28 +1654,42 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   .page-contents {
     position: static;
   }
-  .contents-title,
-  .contents-list {
+  /* Section links at 1024px and below (Method redesign, M4): the list as a
+     static row of outlined pills, wrapping, in the shared .pill-link look;
+     no active style (a highlight on a row that has scrolled away shows
+     nothing); the "Jump to" select is hidden. CSS only. */
+  .contents-title {
     display: none;
   }
-  .contents-jump {
+  .contents-list {
     display: flex;
-    gap: 10px;
-    align-items: center;
-    font-size: var(--fs-small);
-    font-weight: 600;
-    color: var(--pe-gray-600);
+    flex-wrap: wrap;
+    gap: 8px;
+    border-left: 0;
   }
-  .contents-jump select {
-    flex: 1;
-    min-height: 44px;
-    padding: 0 12px;
-    font: inherit;
-    font-size: var(--fs-small);
-    color: var(--pe-gray-900);
-    background: var(--pe-surface);
+  .contents-link,
+  .contents-link[aria-current='location'] {
+    min-height: 32px;
+    margin-left: 0;
+    padding: 4px 12px;
+    font-weight: 400;
+    color: var(--pe-gray-700);
+    background: none;
     border: 1px solid var(--pe-gray-300);
-    border-radius: var(--pe-radius-md);
+    border-radius: 999px;
+  }
+  .contents-link .plain-icon,
+  .contents-link[aria-current='location'] .plain-icon {
+    display: none;
+  }
+  .contents-link:hover,
+  .contents-link:focus-visible {
+    color: var(--pe-teal-700);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .contents-jump {
+    display: none;
   }
   .app .main-content {
     padding: 0 24px 64px;
