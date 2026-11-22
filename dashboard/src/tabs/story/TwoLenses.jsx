@@ -144,16 +144,13 @@ export const CLOSE_WHY = closeWhy();
 // sources the paper.
 const tab = (id) => TABS.find((t) => t.id === id);
 const sub = (t, id) => tab(t).subs.find((x) => x.id === id);
+// What's next (22 Nov, Vahid: "nicer… three boxes next to each"): three
+// cards, each a link with its tab's icon, a bold title, one line of 12
+// words or fewer, and a trailing arrow. Same hrefs as before.
 export const CLOSE_NEXT = [
-  {
-    tab: 'explore',
-    sub: tab('explore').subs[0].id,
-    icon: tab('explore').icon,
-    name: tab('explore').label,
-    rest: `the results by topic. ${tab('explore').subs.map((x, i) => (i ? x.label.toLowerCase() : x.label)).join(', ')}.`,
-  },
-  { tab: 'method', sub: 'how', icon: tab('method').icon, name: tab('method').label, rest: 'how each model works, every input and its source.' },
-  { tab: 'method', sub: 'code', icon: sub('method', 'code').icon, name: sub('method', 'code').label, rest: 'the data files, the model code and how to rerun it.' },
+  { tab: 'explore', sub: tab('explore').subs[0].id, icon: tab('explore').icon, name: 'Explore', rest: 'Results by topic: economy, public finances, who gains, households' },
+  { tab: 'method', sub: 'how', icon: tab('method').icon, name: 'Method and sources', rest: 'How each model works, every input and its source' },
+  { tab: 'method', sub: 'code', icon: sub('method', 'code').icon, name: 'Data and code', rest: 'The data files, the model code and how to rerun it' },
 ];
 
 // A "can say" chip: a link to its scene; hover or focus says where it goes.
@@ -344,13 +341,13 @@ export default function TwoLenses() {
         <ul className="close-next-list">
           {CLOSE_NEXT.map((l) => (
             <li key={`${l.tab}-${l.sub}`}>
-              <NavLink tab={l.tab} sub={l.sub} className="close-next-link">
-                <Icon name={l.icon} size={16} strokeWidth={1.8} className="close-ic" />
-                <span>
-                  <strong>{l.name}</strong>: {l.rest}{' '}
-                  <span className="close-next-arrow" aria-hidden="true">
-                    →
-                  </span>
+              <NavLink tab={l.tab} sub={l.sub} className="close-next-link close-next-card">
+                <IconLine as="span" icon={l.icon} tier="body" className="close-next-title" iconClassName="close-ic">
+                  <strong>{l.name}</strong>
+                </IconLine>
+                <span className="close-next-desc">{l.rest}</span>
+                <span className="close-next-arrow" aria-hidden="true">
+                  →
                 </span>
               </NavLink>
             </li>

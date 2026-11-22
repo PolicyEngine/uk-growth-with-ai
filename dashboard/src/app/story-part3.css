@@ -1601,46 +1601,77 @@ svg.p3-dim {
 .close-when {
   white-space: nowrap;
 }
-/* What's next: centred lines, each one link under a 1px rule; no card, no
-   tint, no panel */
+/* What's next (22 Nov, Vahid: "nicer… three boxes next to each"): three
+   cards in a row of equal columns from 901px, stacked full width below;
+   each wholly a link, on the surface token with a hairline border, the
+   same height in a row; a hover and a visible focus ring, no hover motion
+   under reduced motion */
 .close-next {
-  max-width: 44rem;
+  max-width: 64rem;
   margin: 40px auto 0;
-  text-align: center;
 }
 .close-next-kicker {
-  margin: 0 0 8px;
+  margin: 0 0 12px;
   font-size: 14px;
+  text-align: center;
   color: var(--pe-gray-600);
 }
 .close-next-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
-.close-next-list li {
-  border-top: 1px solid var(--card-border);
+@media (min-width: 901px) {
+  .close-next-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+  }
 }
-.close-next-link {
-  display: block;
+.close-next-list li {
+  display: flex;
+}
+.close-next-card {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 6px;
+  flex: 1;
   min-height: 44px;
-  padding: 11px 0;
-  font-size: 16px;
+  padding: 16px 18px;
+  font-size: 15px;
   line-height: 1.4;
   color: var(--pe-gray-800);
+  text-align: start;
   text-decoration: none;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius, 12px);
 }
-.close-next-link:hover,
-.close-next-link:focus-visible {
-  text-decoration: underline;
-  text-underline-offset: 3px;
+.close-next-title {
+  font-size: 16px;
+  color: var(--t-ink);
 }
-.close-next-link:focus-visible {
+.close-next-desc {
+  color: var(--pe-gray-700);
+}
+.close-next-arrow {
+  justify-self: end;
+  color: var(--pe-gray-500);
+}
+.close-next-card:hover {
+  border-color: var(--pe-gray-400);
+  background: color-mix(in srgb, var(--pe-gray-500) 4%, var(--pe-surface));
+}
+.close-next-card:focus-visible {
   outline: 2px solid var(--pe-gray-900);
   outline-offset: 2px;
 }
-.close-next-arrow {
-  color: var(--pe-gray-500);
+@media (prefers-reduced-motion: no-preference) {
+  .close-next-card {
+    transition: border-color 150ms ease, background-color 150ms ease;
+  }
 }
 
 /* Round 1f (round 2: the merged scene, #p3-changes): a dimmed mark's value

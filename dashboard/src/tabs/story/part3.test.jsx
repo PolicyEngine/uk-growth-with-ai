@@ -23,7 +23,6 @@ import StoryTab from './StoryTab.jsx';
 import { NavProvider } from '@/lib/nav.jsx';
 import { MODEL_YEAR, PROVISIONAL, ladder, rule } from './part3/shared.jsx';
 import TwoLenses, { CLOSE_NEXT, CLOSE_SUB, CLOSE_WHY, LENSES, PAY_RESULT, closeWhy } from './TwoLenses.jsx';
-import { TABS } from '@/lib/labels.js';
 import { SURPRISE_YEAR, YEARS } from '@/tabs/ai/surprise.js';
 import { readFileSync } from 'node:fs';
 import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtGini, fmtMonths, fmtPct1, fmtPctSigned0, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp, fmtShare, MINUS } from './part3/format.js';
@@ -471,7 +470,7 @@ describe('Part3', () => {
     expect(SRC.replace(/\/\/.*$/gm, '').match(/['`"][^'`"\n]*\b20\d\d\b[^'`"\n]*['`"]/g)).toBeNull();
   });
 
-  it('ends on What’s next: one linked line per tab, named as the tabs, no card or tint', () => {
+  it('ends on What’s next: three link cards, each an icon, a bold title, one short line and an arrow', () => {
     const { container } = render(<TwoLenses />);
     const nav = container.querySelector('nav.close-next');
     expect(nav.querySelector('.close-next-kicker').textContent).toBe('What’s next');
@@ -483,10 +482,20 @@ describe('Part3', () => {
       ['method', null],
       ['method', 'code'],
     ]);
-    const label = (id) => TABS.find((t) => t.id === id).label;
-    expect(links.map((a) => a.querySelector('strong').textContent)).toEqual([label('explore'), label('method'), TABS.find((t) => t.id === 'method').subs.find((x) => x.id === 'code').label]);
+    expect(links.map((a) => a.querySelector('strong').textContent)).toEqual(['Explore', 'Method and sources', 'Data and code']);
     expect(CLOSE_NEXT.map((l) => l.sub)).toEqual(['economy', 'how', 'code']);
-    expect(links[0].textContent).toContain('Economy, public finances, who gains and who loses, households.');
+    expect(links.map((a) => a.querySelector('.close-next-desc').textContent)).toEqual([
+      'Results by topic: economy, public finances, who gains, households',
+      'How each model works, every input and its source',
+      'The data files, the model code and how to rerun it',
+    ]);
+    for (const a of links) {
+      // the whole card is the link: the icon in the IconLine title, one line, the arrow
+      expect(a.classList.contains('close-next-card')).toBe(true);
+      expect(a.querySelector('.close-next-title.icon-line > .icon-line-icon svg')).not.toBeNull();
+      expect(a.querySelector('.close-next-desc').textContent.split(/\s+/).length).toBeLessThanOrEqual(12);
+      expect(a.querySelector('.close-next-arrow').textContent.trim()).toBe('→');
+    }
     expect(nav.querySelector('.story-panel, .story-frame')).toBeNull();
   });
 
