@@ -188,7 +188,16 @@ for (const [W, H] of sizes) {
         if (!(p.qa >= 1 && c.qa >= 1 && p.qm === 0 && c.qm === 0)) continue;
         held++;
         if (c.writes > p.writes) out.push(`${c.writes - p.writes} style writes`);
-        else if (Math.abs(c.y - p.y) >= 1 && Math.abs(c.y - p.y) < STEP - 0.25) out.push(`card moved ${(c.y - p.y).toFixed(2)}px`);
+        else {
+          // signed, as check_states' opener probe (fix list 8): the walk
+          // scrolls down, so a move with the page is negative; held, the
+          // card stays still or moves a whole step with the page
+          const d = c.y - p.y;
+          const m = -d;
+          if (m < -0.5) out.push(`card moved ${d.toFixed(2)}px against the page`);
+          else if (m > STEP + 0.5) out.push(`card moved ${d.toFixed(2)}px, more than the step`);
+          else if (Math.abs(d) >= 1 && m < STEP - 0.25) out.push(`card moved ${d.toFixed(2)}px`);
+        }
       }
       return { held, out };
     }, { st, STEP });

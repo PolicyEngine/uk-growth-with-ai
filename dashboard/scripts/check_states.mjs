@@ -26,8 +26,12 @@
 // the middle); a stage never held is a miss. The card is fixed in its box
 // (Vahid, 21 Nov: no zoom): at every sample on screen it is full size (its
 // box height its layout height, computed transform none), and between
-// samples it either stays still (held) or moves exactly with the page
-// (10px, no sideways move). Finding no question moment
+// samples it moves in the page's direction by 0 to 10px (the step), never
+// sideways. Signed (Fable 5.2, fix list 8): a sample is flagged
+// "sideways" (x moved), "against the page", "more than the step", or
+// "drift" (a partial move, 0.5 to 9.5px, twice in a row: one partial step
+// is the card pinning or unpinning between samples, two are not). Every
+// flagged sample is printed. Finding no question moment
 // is a miss, and so is a question header with no moment (not inline).
 // OPENERS=0 skips it.
 //
@@ -227,6 +231,8 @@ for (const [W, H] of process.env.OPENERS === '0' || JUMP === 'only' || process.e
     // down, then back up (the phase follows the scroll both ways)
     for (const dir of ['down', 'up']) {
       let prev = null;
+      // the last sample's move was partial (a pin or an unpin)
+      let partial = false;
       for (let k = 0; k <= (y1 - y0) / 10; k++) {
         const y = dir === 'down' ? y0 + 10 * k : y1 - 10 * k;
         await at(y);
@@ -235,9 +241,21 @@ for (const [W, H] of process.env.OPENERS === '0' || JUMP === 'only' || process.e
         if (!r.off && !r.ok) blank.push(`${dir} ${y} (q ${r.op.toFixed(2)})`);
         // full size, untransformed, at every sample on screen
         if (!r.off && (Math.abs(r.sc - 1) > 0.01 || r.tf !== 'none')) scaled.push(`${dir} ${y} (scale ${r.sc.toFixed(2)}, ${r.tf})`);
-        // since the last sample: still (held) or with the page (10px), never sideways
-        const dy = prev && !r.off ? Math.abs(r.cy - prev.cy) : 0;
-        if (!r.off && prev && (Math.abs(r.cx - prev.cx) > 0.5 || (dy > 0.5 && Math.abs(dy - 10) > 0.5))) moved.push(`${dir} ${y} (${Math.round(r.cy - prev.cy)}px)`);
+        // since the last sample: in the page's direction, 0 to 10px (the
+        // step), never sideways; one partial move is a pin or an unpin
+        if (!r.off && prev) {
+          const d = r.cy - prev.cy;
+          // the move in the page's direction (content goes up as the page scrolls down)
+          const m = dir === 'down' ? -d : d;
+          const cls = [];
+          if (Math.abs(r.cx - prev.cx) > 0.5) cls.push('sideways');
+          if (m < -0.5) cls.push('against the page');
+          if (m > 10.5) cls.push('more than the step');
+          const part = m > 0.5 && m < 9.5;
+          if (part && partial) cls.push('drift');
+          partial = part;
+          if (cls.length) moved.push(`${dir} ${y} (${d.toFixed(1)}px, ${cls.join(', ')})`);
+        } else partial = false;
         // the hold: no move yet and the card still since the last sample
         if (!r.off && r.qm === 0 && r.phase === 'in' && prev && Math.abs(r.mid - prev.mid) < 0.5) {
           const fh = r.V - r.R;
@@ -252,7 +270,7 @@ for (const [W, H] of process.env.OPENERS === '0' || JUMP === 'only' || process.e
     const bad = blank.length > 0 || offBad || moved.length > 0 || scaled.length > 0;
     if (bad) omiss++;
     const pos = offs.length ? `held ${offs.length} samples, centre ${(100 * lo).toFixed(1)}% to ${(100 * hi).toFixed(1)}% from target` : 'never held';
-    olines.push(`  ${bad ? 'MISS' : 'ok  '} ${W}x${H} ${st.id}: ${pos}${blank.length ? `; blank at ${blank.length} samples, e.g. ${blank.slice(0, 3).join('; ')}` : ''}${moved.length ? `; moved against the page at ${moved.length} samples, e.g. ${moved.slice(0, 3).join('; ')}` : ''}${scaled.length ? `; not at full size at ${scaled.length} samples, e.g. ${scaled.slice(0, 3).join('; ')}` : ''}`);
+    olines.push(`  ${bad ? 'MISS' : 'ok  '} ${W}x${H} ${st.id}: ${pos}${blank.length ? `; blank at ${blank.length} samples, e.g. ${blank.slice(0, 3).join('; ')}` : ''}${moved.length ? `; moved off the page at ${moved.length} samples: ${moved.join('; ')}` : ''}${scaled.length ? `; not at full size at ${scaled.length} samples, e.g. ${scaled.slice(0, 3).join('; ')}` : ''}`);
   }
   olines.push(`  ${W}x${H}: ${stages.length} question moments checked`);
   await ctx.close();
