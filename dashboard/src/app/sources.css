@@ -218,7 +218,7 @@
 }
 .story-figure-title > :not(.src-line):not(svg):not(.p1-text-icon):not(.p3-ico):not(.p3-head-actions),
 .ch-title > .ch-stack-cell,
-.card-head h3 > span:not(.src-line) {
+.card-head h3 > span:not(.src-line):not(.card-icon) {
   flex: 0 1 auto;
   min-width: 0;
   /* a title that must wrap splits into even lines, never a lone last word */
