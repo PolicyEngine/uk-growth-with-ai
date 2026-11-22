@@ -2,7 +2,7 @@
 
 import { useEnterState, useDrawIn } from '@/components/story/motion.js';
 import { TileField, tileSettleMs } from '@/components/story/primitives.jsx';
-import { ChartHover, Crosshair, Legend, ModelBadge, barPath as chartBar } from '@/components/story/chart/index.js';
+import { ChartHover, Crosshair, ModelBadge, barPath as chartBar } from '@/components/story/chart/index.js';
 import { BICS_WAVE, EXPOSURE_GROUPS, FACTS, OBR, OBR_VINTAGE, OPH_BASE, SERIES } from './data.js';
 import { WORKERS_PERIOD, aiTitle, employmentTitle, forecastTitle, outputTitle, payTitle, productivityTitle, workersTitle } from './findings.js';
 import { FigTitle, FigUnit, Figure, SourceLine, XTicks, YGrid, linePath, linear, niceTicks, useBox, useSvgId, yearTicks } from './frame.jsx';
@@ -586,9 +586,9 @@ export function AiUseChart({ notes, lines = 2 }) {
 // exposure groups DSIT reports. Same keys in both states, so the tiles
 // travel. state 0: one block in grey; 1: three groups on the rank ramp,
 // staggered by destination group then row (at most about 450ms), each
-// tile's colour changing in the last third of its travel. The legend sits
-// above the grid (consolidated-design-fable.md: swatch and short name, once
-// grouped); each block carries only its share.
+// tile's colour changing in the last third of its travel. Once grouped,
+// each block carries its name tag under it: the share, then the short
+// name (22 Nov: no separate legend).
 const GRID_W = 17;
 // polish round: 7 rows, the tallest state (the 35-tile group, five wide);
 // the one block is 17 wide and 6 high (it was 10 by 10, which left three
@@ -624,7 +624,6 @@ export function ExposureTiles({ state, source, entered = true }) {
       <ModelBadge model="official" className="p1-badge" />
       <FigTitle icon="workers" title={wHead.title} fallback={wHead.fallback} source={source} />
       <FigUnit>{`Each tile is one per cent of UK workers; two of the three groups are high exposure. IMF estimates, ${WORKERS_PERIOD}, via DSIT.`}</FigUnit>
-      <Legend className="p1-tile-legend" items={EXPOSURE_GROUPS.map((g) => ({ key: g.id, label: shortGroup(g.name), color: g.color, block: true }))} />
       {/* hover (M4): each group's share, from the data; one transparent
           cell over each block (the whole grid before it splits) */}
       <ChartHover
@@ -643,12 +642,18 @@ export function ExposureTiles({ state, source, entered = true }) {
             <span data-tip={EXPOSURE_GROUPS.length} style={{ gridColumn: '1 / -1' }} />
           )}
         </div>
-        {/* each group's share under its block, once grouped (it restates
-            the step's figures: data-axis); the names are in the legend */}
-        <ul className="p1-tile-labels" aria-hidden="true" style={{ '--cols': GRID_W }}>
-          {EXPOSURE_GROUPS.map((g, gi) => (
-            <li key={g.id} style={{ gridColumn: `${gi * 6 + 1} / span 5` }} data-axis="">
-              {share0(g.value)}
+        {/* each group's name tag under its block, once grouped (Vahid, 22
+            Nov: "name tag below each better"; it replaces the legend): the
+            share on one line, the short name under it, in the block's
+            colour. It restates the step's figures (data-axis). Three label
+            columns of 29%, 42% and 29% of the grid: their centres (14.5%,
+            50%, 85.5%) sit on the blocks' (2.5, 8.5 and 14.5 of 17 tile
+            columns), and the middle, longest name gets the widest one */}
+        <ul className="p1-tile-labels" aria-hidden="true">
+          {EXPOSURE_GROUPS.map((g) => (
+            <li key={g.id} data-axis="" style={{ '--sw': g.color }}>
+              <span className="p1-tile-share">{share0(g.value)}</span>
+              <span className="p1-tile-name">{shortGroup(g.name)}</span>
             </li>
           ))}
         </ul>

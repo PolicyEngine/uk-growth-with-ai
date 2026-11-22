@@ -329,18 +329,34 @@
    settle, out at once when they regroup */
 .p1-tile-labels {
   display: grid;
-  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
-  column-gap: 0;
+  /* label columns centred on the three blocks (charts.jsx): 29/42/29% */
+  grid-template-columns: 29% 42% 29%;
   margin: 8px 0 0;
   padding: 0;
   list-style: none;
-  font-size: var(--t-meta);
-  font-weight: 600;
+  font-size: var(--chart-fs-tick);
   line-height: 1.3;
   color: var(--t-text);
   text-align: center;
   opacity: 0;
-  transition: opacity 150ms var(--p1-ease);
+}
+.p1-tile-labels li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  padding: 0 2px;
+}
+.p1-tile-share {
+  font-size: var(--chart-fs-label);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--t-ink);
+}
+/* the name, two lines at most (balanced): the tiles above are its swatch */
+.p1-tile-name {
+  max-width: 100%;
+  text-wrap: balance;
 }
 .p1-exposure.is-grouped .p1-tile-labels {
   opacity: 1;
@@ -1213,23 +1229,3 @@ p.hero-sub {
   color: var(--t-muted);
 }
 
-/* The exposure grid's legend (Maria's review, M3): above the grid, the
-   three group names with their swatches, shown once the tiles are grouped
-   (visibility, so the one-block state's text holds no group names). */
-.p1-tile-legend {
-  margin: 4px 0 8px;
-  font-size: var(--chart-fs-label, 15px);
-  color: var(--t-text);
-  visibility: hidden;
-  opacity: 0;
-}
-.p1-exposure.is-grouped .p1-tile-legend {
-  visibility: visible;
-  opacity: 1;
-  transition: opacity 300ms var(--p1-ease) var(--p1-settle, 900ms);
-}
-@media (prefers-reduced-motion: reduce) {
-  .p1-exposure.is-grouped .p1-tile-legend {
-    transition: none;
-  }
-}

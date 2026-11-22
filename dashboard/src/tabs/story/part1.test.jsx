@@ -179,22 +179,23 @@ describe('story part 1, real data', () => {
     expect(el.querySelector('.p1-ai .story-figure-unit').textContent).toContain('using at least one AI technology: all businesses, and those with 10 or more employees,');
   });
 
-  it('puts a legend above the exposure grid: the three group names, each block its share', () => {
+  it('tags each exposure block with its share and name under it, with no separate legend', () => {
     const el = show(Part1Real);
     const fig = el.querySelector('#p1-ai .p1-exposure');
-    const legend = fig.querySelector('.p1-tile-legend');
-    expect(legend).not.toBeNull();
-    expect(legend.compareDocumentPosition(fig.querySelector('.p1-tiles')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect([...legend.querySelectorAll('li')].map((li) => li.textContent)).toEqual([
+    expect(fig.querySelector('.p1-tile-legend, .ch-legend')).toBeNull();
+    const labels = fig.querySelector('.p1-tile-labels');
+    expect(fig.querySelector('.p1-tiles .p1-tile-grid').compareDocumentPosition(labels) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const f = real.facts;
+    expect([...labels.querySelectorAll('li .p1-tile-share')].map((x) => x.textContent)).toEqual(
+      [f.workers_high_exposure_high_complementarity, f.workers_high_exposure_low_complementarity, f.workers_low_exposure].map((x) => share0(x.value)),
+    );
+    expect([...labels.querySelectorAll('li .p1-tile-name')].map((x) => x.textContent)).toEqual([
       'High exposure, AI could help',
       'High exposure, AI could replace tasks',
       'Low exposure',
     ]);
-    expect(legend.querySelectorAll('.ch-swatch.is-block')).toHaveLength(3);
-    const f = real.facts;
-    expect([...fig.querySelectorAll('.p1-tile-labels li')].map((li) => li.textContent)).toEqual(
-      [f.workers_high_exposure_high_complementarity, f.workers_high_exposure_low_complementarity, f.workers_low_exposure].map((x) => share0(x.value)),
-    );
+    // the share first, then the name
+    for (const li of labels.querySelectorAll('li')) expect(li.firstElementChild.className).toBe('p1-tile-share');
   });
 
   it('says once that the ONS advises focusing on long-term LFS movements', () => {
