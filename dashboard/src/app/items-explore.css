@@ -875,153 +875,161 @@
   .ex-wall { grid-template-columns: minmax(0, 1fr); gap: 12px; }
 }
 
-/* Some foreign capital to no foreign capital: four slope panels, 2x2 (one
-   column on a phone), one legend above them. Type from the chart scale
-   (chart-type.css), with its sizes as fallbacks. */
-.ex-slope {
-  --sl-tick: var(--chart-fs-tick, 14px);
-  --sl-label: var(--chart-fs-label, 15px);
-  --sl-head: var(--chart-fs-head, 16px);
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px 40px;
+/* Some foreign capital to no foreign capital: dumbbell rows, grouped by
+   measure, on one shared horizontal % axis (ClosureSlope.jsx). A row is its
+   version's name, then the track; on a phone the name sits above the
+   track. Positions are % of the track, so the axis always fits the width;
+   the track keeps room at each end for a value set outside its dot. Type
+   from the chart scale (chart-type.css), with its sizes as fallbacks. */
+.ex-fc {
+  --fc-tick: var(--chart-fs-tick, 14px);
+  --fc-label: var(--chart-fs-label, 15px);
+  --fc-head: var(--chart-fs-head, 16px);
+  --fc-room: 3.25rem;
+  --fc-dot: 12px;
+  --fc-muted: var(--pe-gray-400, #9ca3af);
+  margin-top: 4px;
 }
 @media (max-width: 480px) {
-  .ex-slope {
-    --sl-tick: var(--chart-fs-tick, 13px);
-    --sl-label: var(--chart-fs-label, 14px);
-    --sl-head: var(--chart-fs-head, 15px);
-    grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
+  .ex-fc {
+    --fc-tick: var(--chart-fs-tick, 13px);
+    --fc-label: var(--chart-fs-label, 14px);
+    --fc-head: var(--chart-fs-head, 15px);
+    --fc-room: 2.75rem;
   }
 }
-/* the shared unit line (the card's unit slot): the chart's tick size */
-.ex-slope-unit { font-size: var(--chart-fs-tick, 14px); }
+.ex-fc-unit { font-size: var(--chart-fs-tick, 14px); }
 @media (max-width: 480px) {
-  .ex-slope-unit { font-size: var(--chart-fs-tick, 13px); }
+  .ex-fc-unit { font-size: var(--chart-fs-tick, 13px); }
 }
-.ex-slope-legend {
-  --sl-label: var(--chart-fs-label, 15px);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 22px;
-  margin: 0 0 14px;
-  padding: 0;
-  list-style: none;
-  font-size: var(--sl-label);
-  line-height: 1.3;
-  color: var(--pe-gray-700, #344054);
+.card-legend > .ex-fc-legend { margin: 0; }
+.ch-legend.ex-fc-legend .ch-swatch.is-dot { background: var(--pe-gray-800, #1f2937); }
+.ex-fc-group {
+  padding: 8px 0 6px;
+  border-top: 1px solid var(--c-grid);
 }
-@media (max-width: 480px) {
-  .ex-slope-legend { --sl-label: var(--chart-fs-label, 14px); gap: 4px 16px; }
-}
-.ex-slope-legend li {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-.ex-slope-legend li svg { flex: none; }
-.ex-slope-legend line { stroke-width: 2.5; stroke-linecap: round; }
-.ex-slope-legend li.is-sel { font-weight: 600; color: var(--pe-gray-900, #111); }
-.ex-slope-legend li.is-sel line { stroke-width: 4; }
-.ex-slope-legend li.is-sel .ch-swatch { border-top-width: 4px; }
-.card-legend > .ex-slope-legend { margin: 0; }
-.ex-slope-xtitle {
-  margin: 0 0 12px;
-  font-size: var(--chart-fs-tick, 14px);
-  line-height: 1.35;
-  color: var(--pe-gray-600, #4b5563);
-}
-.ex-slope-xtitle [data-axis-title] { font-weight: 600; color: var(--pe-gray-800, #1f2937); }
-@media (max-width: 480px) {
-  .ex-slope-xtitle { font-size: var(--chart-fs-tick, 13px); }
-}
-.ex-slope-tick.ex-slope-zero-label {
-  fill: var(--pe-gray-800, #1f2937);
-  font-weight: 600;
-}
-.ex-slope-panel {
-  margin: 0;
-  min-width: 0;
-}
-.ex-slope-panel svg {
-  display: block;
-  overflow: visible;
-}
-.ex-slope-title {
-  margin: 0 0 4px;
-  font-size: var(--sl-head);
+.ex-fc-title {
+  margin: 0 0 2px;
+  font-size: var(--fc-head);
   font-weight: 600;
   color: var(--pe-gray-800, #1f2937);
 }
-.ex-slope-grid {
-  stroke: var(--c-grid);
-  stroke-dasharray: 1 4;
-  stroke-linecap: round;
+.ex-fc-row {
+  display: grid;
+  grid-template-columns: minmax(8rem, 11rem) minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: center;
 }
-.ex-slope-zero {
-  stroke: var(--c-zero-line);
-  stroke-width: 1.25;
+.ex-fc-rlabel {
+  font-size: var(--fc-tick);
+  line-height: 1.3;
+  color: var(--pe-gray-600, #4b5563);
 }
-.ex-slope-tick {
-  font-size: var(--sl-tick);
-  fill: var(--c-tick, #6b7280);
-  font-variant-numeric: tabular-nums;
-}
-.ex-slope-val text {
-  font-size: var(--sl-label);
+.ex-fc-row.is-sel .ex-fc-rlabel {
   font-weight: 600;
+  color: var(--pe-gray-900, #111);
+}
+.ex-fc-track {
+  position: relative;
+  height: 28px;
+  margin: 0 var(--fc-room);
+}
+.ex-fc-zero {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 0;
+  border-left: 1.25px solid var(--c-zero-line);
+}
+.ex-fc-bar {
+  position: absolute;
+  top: 50%;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 2px;
+  background: var(--arm, var(--fc-muted));
+  opacity: 0.45;
+}
+.ex-fc-row.is-muted .ex-fc-bar { opacity: 0.6; }
+.ex-fc-dot {
+  position: absolute;
+  top: 50%;
+  width: var(--fc-dot);
+  height: var(--fc-dot);
+  margin: calc(var(--fc-dot) / -2) 0 0 calc(var(--fc-dot) / -2);
+  border: 2px solid var(--arm, var(--fc-muted));
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+.ex-fc-dot.is-some { background: var(--arm, var(--fc-muted)); }
+.ex-fc-dot.is-none { background: var(--pe-surface, #fff); }
+.ex-fc-val,
+.ex-fc-hole {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--fc-label);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--pe-gray-600, #4b5563);
 }
-.ex-slope-val.is-sel text { font-weight: 700; }
-.ex-slope-leader {
-  fill: none;
-  stroke-width: 1;
-  opacity: 0.7;
-}
-.ex-slope-arm {
-  cursor: default;
-  transition: opacity 250ms var(--story-ease, ease-out);
-  outline: none;
-}
-.ex-slope-arm.is-dim {
-  opacity: 0.25;
-}
-.ex-slope-line {
-  stroke: var(--arm);
-  stroke-width: 2.5;
-  stroke-linecap: round;
-}
-.ex-slope-arm.is-sel .ex-slope-line {
-  stroke-width: 4;
-}
-.ex-slope-dot {
-  fill: var(--arm);
-  stroke: var(--pe-surface, #fff);
-  stroke-width: 1.5;
-}
-.ex-slope-arm.is-sel .ex-slope-dot { r: 4.5; }
-.ex-slope-arm:focus-visible .ex-slope-dot {
-  stroke: var(--pe-gray-900, #111);
-}
-.ex-slope-foot {
-  min-height: 24px;
-}
-.ex-slope-note,
-.ex-slope-readout {
-  margin: 2px 0 0;
-  font-size: var(--sl-tick);
+.ex-fc-row.is-sel .ex-fc-val { font-weight: 700; }
+.ex-fc-val.is-left,
+.ex-fc-hole.is-left { margin-right: calc(var(--fc-dot) / 2 + 4px); }
+.ex-fc-val.is-right,
+.ex-fc-hole.is-right { margin-left: calc(var(--fc-dot) / 2 + 4px); }
+.ex-fc-hole { font-size: var(--fc-tick); }
+.ex-fc-note {
+  margin: 4px 0 0;
+  font-size: var(--fc-tick);
   line-height: 1.35;
   color: var(--pe-gray-600, #4b5563);
-  font-variant-numeric: tabular-nums;
 }
-.ex-slope-note.is-flip {
+.ex-fc-note.is-flip {
   color: var(--pe-gray-900, #111);
   font-weight: 600;
 }
+.ex-fc-axis-head .ex-fc-track { height: 22px; }
+.ex-fc-zero-label {
+  position: absolute;
+  bottom: 2px;
+  font-size: var(--fc-tick);
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--pe-gray-800, #1f2937);
+}
+.ex-fc-zero-label.is-mid { transform: translateX(-50%); }
+.ex-fc-zero-label.is-end { transform: translateX(-100%); }
+.ex-fc-axis {
+  padding-top: 4px;
+  border-top: 1px solid var(--c-axis, var(--c-grid));
+}
+.ex-fc-axis .ex-fc-track { height: 20px; }
+.ex-fc-tick {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-size: var(--fc-tick);
+  color: var(--c-tick, #6b7280);
+  font-variant-numeric: tabular-nums;
+}
+.ex-fc-tick.is-zero { color: var(--pe-gray-800, #1f2937); font-weight: 600; }
+.ex-fc-foot {
+  margin: 12px 0 0;
+  max-width: none;
+  font-size: var(--fc-tick);
+  line-height: 1.4;
+  color: var(--pe-gray-600, #4b5563);
+}
+/* a phone: the version's name above its track; the axis rows keep no label */
+@media (max-width: 480px) {
+  .ex-fc-row { grid-template-columns: minmax(0, 1fr); row-gap: 0; }
+  .ex-fc-axis > .ex-fc-rlabel,
+  .ex-fc-axis-head > .ex-fc-rlabel { display: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .card.ex-tile.is-open { animation: none; }
-  .ex-slope-arm { transition: none; }
 }
 
 /* Across scenarios: the matrix explorer, last on Economy and on Public

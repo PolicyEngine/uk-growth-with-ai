@@ -1,4 +1,4 @@
-// Explore wave 2: the slope chart's sign flips, the Who gains heatmap and
+// Explore wave 2: the foreign-capital dumbbells' sign flips, the Who gains heatmap and
 // dot strip, and the wall. Every expectation is computed here from the raw
 // data with its own threshold, across scenarios, closures and rules.
 import { afterEach, describe, expect, it } from 'vitest';
@@ -61,28 +61,75 @@ describe('some foreign capital to no foreign capital', () => {
     expect(slopeNote({ flips: true, nearPath: null })).toBe(' Flips sign.');
     expect(slopeNote({ flips: true, nearPath: 'b' })).toBe(' About on the forecast path with no foreign capital.');
   });
-  it('end labels are the data to one decimal, and a flip is said in words with its direction', () => {
+  it('dumbbell rows: one per measure and version, each dot the data to one decimal, a flip said in words with its direction', () => {
     // one decimal, signed with a true minus; the two-decimal figures stay
     // the four-measure card's
     const one = (x) => (Math.abs(x) < 0.05 ? '0.0' : `${x > 0 ? '+' : '\u2212'}${Math.abs(x).toFixed(1)}`);
+    const pos = (el) => parseFloat(el.style.left);
     for (const s of S.scenarios) {
       const { container, unmount } = wrap(<ClosureSlope sid={s.id} />, `tab=explore&s=${s.id}`);
-      for (const fig of container.querySelectorAll('.ex-slope-panel')) {
-        const rows = slopeRows(s.id, S.arms.map((a) => a.id), 'common', fig.dataset.measure);
-        const want = rows.filter((r) => r.c != null && r.b != null).flatMap((r) => [one(r.c), one(r.b)]);
-        const got = [...fig.querySelectorAll('.ex-slope-val text')].map((t) => t.textContent);
-        for (const g of got) expect(g).toMatch(/^(0\.0|[+\u2212]\d+\.\d)$/);
-        // every end labelled, or (ends too close) the selected version's two
-        expect(got.length === want.length || got.length === 2).toBe(true);
-        for (const g of got) expect(want).toContain(g);
-      }
-      container.querySelectorAll('[data-axis]').forEach((e) => e.remove());
-      for (const fig of container.querySelectorAll('.ex-slope-panel')) {
-        const flips = slopeRows(s.id, S.arms.map((a) => a.id), 'common', fig.dataset.measure).filter((r) => r.flips);
-        const note = fig.querySelector('.ex-slope-note.is-flip');
+      const groups = [...container.querySelectorAll('.ex-fc-group')];
+      expect(groups.map((g) => g.dataset.measure)).toEqual(SLOPE_MEASURES.map((m) => m.v));
+      for (const fig of groups) {
+        const v = fig.dataset.measure;
+        const rows = [...fig.querySelectorAll('.ex-fc-row')];
+        expect(rows.map((r) => r.dataset.arm)).toEqual(S.arms.map((a) => a.id));
+        for (const row of rows) {
+          const c = raw(s.id, row.dataset.arm, 'zk0.1', 'common', v);
+          const b = raw(s.id, row.dataset.arm, 'zk0', 'common', v);
+          const some = row.querySelector('.ex-fc-val.is-some');
+          const none = row.querySelector('.ex-fc-val.is-none');
+          // each dot's printed value is the data, or no figure where the data has none
+          expect(some?.textContent ?? null).toBe(c == null ? null : one(c));
+          expect(none?.textContent ?? null).toBe(c == null || b == null ? null : one(b));
+          expect(row.querySelectorAll('.ex-fc-dot.is-some')).toHaveLength(c == null ? 0 : 1);
+          expect(row.querySelectorAll('.ex-fc-dot.is-none')).toHaveLength(c == null || b == null ? 0 : 1);
+          if (c != null && b != null) {
+            // the filled dot left of the hollow one exactly when it is smaller,
+            // and each value outside its own dot: the left one's to its left
+            const [ds, dn] = [row.querySelector('.ex-fc-dot.is-some'), row.querySelector('.ex-fc-dot.is-none')];
+            expect(pos(ds) <= pos(dn)).toBe(c <= b);
+            expect(some.classList.contains('is-left')).toBe(c <= b);
+            expect(none.classList.contains('is-left')).toBe(!(c <= b));
+            // the bar joins the two dots
+            expect(pos(row.querySelector('.ex-fc-bar'))).toBeCloseTo(Math.min(pos(ds), pos(dn)), 2);
+          }
+          expect(row.classList.contains('is-flip')).toBe(c != null && b != null && sgn(c) * sgn(b) === -1);
+        }
+        const flips = slopeRows(s.id, S.arms.map((a) => a.id), 'common', v).filter((r) => r.flips);
+        const note = fig.querySelector('.ex-fc-note.is-flip');
         expect(!!note).toBe(flips.length > 0);
-        if (note) expect(note.textContent).toContain(raw(s.id, flips[0].arm.id, 'zk0', 'common', fig.dataset.measure) > 0 ? 'above' : 'below');
+        if (note) expect(note.textContent).toContain(raw(s.id, flips[0].arm.id, 'zk0', 'common', v) > 0 ? 'above' : 'below');
+        // one short note per measure group
+        expect(fig.querySelectorAll('.ex-fc-note')).toHaveLength(1);
       }
+      // scripts/check_numbers.py reads the values from the page text, in
+      // order, from the zero line's name to the note: the same order here
+      const want = [];
+      for (const m of SLOPE_MEASURES)
+        for (const a of S.arms) {
+          const c = raw(s.id, a.id, 'zk0.1', 'common', m.v);
+          const b = raw(s.id, a.id, 'zk0', 'common', m.v);
+          if (c != null) want.push(one(c));
+          if (c != null && b != null) want.push(one(b));
+        }
+      // (the dump leaves the data-axis text out: the zero line's name, the ticks)
+      const copy = container.cloneNode(true);
+      copy.querySelectorAll('[data-axis]').forEach((e) => e.remove());
+      const txt = copy.textContent;
+      const k = txt.indexOf('Each row shows');
+      const seg = txt.slice(txt.lastIndexOf('Some foreign capital to no foreign capital', k), k);
+      expect(seg.match(/(?<![\d.])[+\u2212]?\d+\.\d(?![\d%p])/g) ?? []).toEqual(want);
+      // the selected version, the main one by default, is the coloured row
+      for (const row of container.querySelectorAll('.ex-fc-row[data-arm]')) expect(row.classList.contains('is-sel')).toBe(row.dataset.arm === 'tfp');
+      // the zero line is named, and the note under the figure takes its year from the data
+      expect(container.querySelector('.ex-fc-zero-label').textContent).toBe('Forecast path');
+      const foot = container.querySelector('.ex-fc-foot');
+      expect(foot.textContent).toContain(`${S.headline_year} result`);
+      expect(foot.textContent).toContain('the bar’s length shows how much the assumption matters');
+      expect(container.textContent).not.toMatch(/OG-UK/);
+      // the tooltips are gone with the slope panels
+      expect(container.querySelectorAll('.ch-tip, .ex-slope-panel')).toHaveLength(0);
       unmount();
     }
   });
