@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
+import { iconFor } from '@/lib/concepts.js';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtMonths, fmtPct1, fmtPctSigned0, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp } from './format.js';
@@ -387,6 +388,7 @@ function MarginPanel({ on }) {
         </div>
       </div>
       <p className="p3-margin-note">
+        <Icon name={iconFor('draws')} size={12} className="p2-tx-icon" />
         Means of {D.per_pound_20.draws} paired draws, so job loss differs slightly from the main case above. Job loss alone: {fmtPenceRange(J.min_p, J.max_p)} across them.
       </p>
     </>

@@ -13,7 +13,9 @@
 //       card (its closing line's icon not counted), a takeaway caption, an
 //       essential caveat line, a tile caption (Vahid, 21 Nov: "all text
 //       should have icon"), a beat with no numeral (push D, Q3: the
-//       OBR-sized run's "A smaller shock");
+//       OBR-sized run's "A smaller shock"); a standalone note (round 8,
+//       M3: NOTE_ICON_SEL below; the Explore and Results ones are
+//       asserted by step-icons.test.jsx, as rule (a) runs on the Story);
 //   (b) must have none: the part opener's h2, a topic header, a
 //       numbered story beat, source
 //       lines, unit lines, axis titles, the model tag, fold summaries and
@@ -58,6 +60,10 @@
 //   bun scripts/check_text.mjs http://localhost:4360   (needs Playwright;
 //   CHROMIUM may name a Chrome binary). Prints violations; exits 1 if any.
 import { chromium, webkit } from 'playwright';
+// Standalone notes that state a finding, a caveat or a reading instruction
+// (Fable round 8, D6 and M3): each leads with exactly one icon. Notes in a
+// step card stay iconless (the card's icon is the one).
+const NOTE_ICON_SEL = ['.scrolly-takeaway-note', '.p3-close-lead', '.p3-margin-note', '.p3-pound-caveat', '.close-why', '.ex-slope-note', '.db-headline-note', '.hh-note[data-caveat="bottom-decile"]'];
 
 const base = process.argv[2] ?? 'http://localhost:4360';
 const PAGES = {
@@ -87,7 +93,7 @@ for (const [name, path] of Object.entries(PAGES)) {
   await page.evaluate(() => document.querySelectorAll('details').forEach((d) => (d.open = true)));
   const story = name === 'story';
   const res = await page.evaluate(
-    ({ story, MAX_ICONS, MAX_BAND, BAND }) => {
+    ({ story, MAX_ICONS, MAX_BAND, BAND, NOTE_ICON_SEL }) => {
       const panel = document.querySelector('.tab-panel:not([hidden])') ?? document.body;
       const out = [];
       const skip = 'svg, table, header.site-header, footer, [aria-hidden="true"], .visually-hidden, [hidden], .scrolly-sizers';
@@ -180,7 +186,7 @@ for (const [name, path] of Object.entries(PAGES)) {
       }
       if (!story) return { out };
       // (a) exactly one icon
-      for (const sel of ['.ch-title', '.scrolly-card', '.story-figure-title', '.scrolly-takeaway', '.src-essential', '.p2-shock-cap', '.story-beat.has-icon']) {
+      for (const sel of ['.ch-title', '.scrolly-card', '.story-figure-title', '.scrolly-takeaway', '.src-essential', '.p2-shock-cap', '.story-beat.has-icon', ...NOTE_ICON_SEL]) {
         for (const el of panel.querySelectorAll(sel)) {
           if (el.closest(skip) || !visible(el)) continue;
           // a step card's closing line counts as its own block
@@ -210,7 +216,7 @@ for (const [name, path] of Object.entries(PAGES)) {
       for (const [b, n] of Object.entries(bands)) if (n > MAX_BAND) out.push(`${n} icons in the band ${b * BAND}-${(+b + 1) * BAND}px (at most ${MAX_BAND})`);
       return { out, icons: all.length, scenes };
     },
-    { story, MAX_ICONS, MAX_BAND, BAND },
+    { story, MAX_ICONS, MAX_BAND, BAND, NOTE_ICON_SEL },
   );
   total += res.out.length;
   console.log(`${name}: ${res.out.length}${res.icons != null ? ` (icons ${res.icons})` : ''}`);

@@ -4,7 +4,10 @@
 // body (check_text rule (a): a step card has exactly one icon; its closing
 // line is a block of its own). Every closing line (.scrolly-takeaway, from
 // Scrolly, TopicHead and OutputSplit), essential caveat line
-// (.src-essential) and tile caption (.p2-shock-cap) leads with one. The
+// (.src-essential), tile caption (.p2-shock-cap) and standalone note
+// (round 8, M3: the generations notes, Closing's lead, Changes' margin
+// note, Pound's decile caveat, the close-why, ClosureSlope's notes,
+// Headline's grey-values note, Households' decile 1 note) leads with one. The
 // eye button (.scrolly-show) is a control, not a text icon.
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup } from '@testing-library/react';
@@ -31,10 +34,13 @@ describe('every step card leads with one icon', () => {
     expect(n).toBeGreaterThan(0);
     expect(bad).toEqual([]);
   }, 60000);
-  it('every closing line, essential caveat and tile caption leads with one icon', () => {
+  it('every closing line, essential caveat, tile caption and standalone note leads with one icon', () => {
     const bad = [];
     const seen = {};
-    const SEL = ['.scrolly-takeaway', '.src-essential', '.p2-shock-cap'];
+    // with the standalone notes that state a finding, a caveat or a reading
+    // instruction (Fable round 8, D6 and M3; check_text NOTE_ICON_SEL).
+    // Notes inside a step card (.p2-note) stay iconless.
+    const SEL = ['.scrolly-takeaway', '.src-essential', '.p2-shock-cap', '.scrolly-takeaway-note', '.p3-close-lead', '.p3-margin-note', '.p3-pound-caveat', '.close-why', '.ex-slope-note', '.db-headline-note', '.hh-note[data-caveat="bottom-decile"]'];
     for (const p of PAGES) {
       const { container, unmount } = renderPage(p);
       for (const sel of SEL)

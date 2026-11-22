@@ -752,10 +752,14 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   // gives one line each (the generations scene: check_text caps each
   // block at 25 words)
   const answerNote = subObj?.answerNote;
+  // each note leads with an icon: `sub.answerNoteIcons[i]` names its
+  // concept (the generations scene: finances, age), `caveat` by default
   const notes = answerNote == null ? [] : Array.isArray(answerNote) ? answerNote.filter((x) => x != null) : [answerNote];
+  const noteIcons = subObj?.answerNoteIcons ?? [];
   const noteEl = (on) =>
     notes.map((n, i) => (
       <p key={i} className={`scrolly-takeaway-note${on ? ' is-shown' : ''}`} data-closing="note">
+        <Icon name={iconFor(noteIcons[i] ?? 'caveat')} size={12} className="p2-tx-icon" />
         {n}
       </p>
     ));

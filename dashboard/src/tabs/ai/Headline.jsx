@@ -180,6 +180,7 @@ export function HeadlineNote({ rule = 'common' }) {
   if (rule !== 'common') return null;
   return (
     <p className="db-headline-note">
+      <Icon name={iconFor('story')} size={12} className="p2-tx-icon" />
       Grey values: the{' '}
       <NavLink tab="story" anchor="story-part-2">
         Story

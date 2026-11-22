@@ -6,6 +6,7 @@ import Scrolly from '@/components/story/Scrolly.jsx';
 import Sankey from '@/components/story/Sankey.jsx';
 import StoryBeat from '@/components/story/StoryBeat.jsx';
 import Icon from '@/components/ab/Icon.jsx';
+import { iconFor } from '@/lib/concepts.js';
 import { absorbGraph, DESTS, MOST, POUR_ORDER } from '@/tabs/households/Absorb.jsx';
 import { fmtBn, fmtPence, fmtShare } from './format.js';
 import { docItem } from '@/lib/sourceItems.js';
@@ -136,6 +137,7 @@ function PoundFigure({ ctx }) {
         />
       </div>
       <p className="p3-pound-caveat">
+        <Icon name={iconFor('caveat')} size={12} className="p2-tx-icon" />
         <DecileOneWhy lead="Decile 1, dashed: " rank={false} />
       </p>
     </figure>

@@ -6,6 +6,7 @@ import Card from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { useChartBox } from '@/components/story/chart/useChartBox.js';
 import ChartHover from '@/components/story/chart/ChartHover.jsx';
+import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { MEASURE, ruleLabel } from '@/lib/labels.js';
 import { useNav } from '@/lib/nav.jsx';
@@ -231,14 +232,17 @@ function Panel({ m, rows, sc, hot, setHot, sid, sel, phone }) {
           </p>
         ) : flips.length ? (
           <p className="ex-slope-note is-flip" data-label-for="flip">
+            <Icon name={iconFor('closure')} size={12} className="p2-tx-icon" />
             {`Flips ${side(flips[0].b)} the forecast path: ${flips.map((r) => versionName(r.arm).toLowerCase()).join(', ')}`}
           </p>
         ) : pending.length ? (
           <p className="ex-slope-note">
+            <Icon name={iconFor('provisional')} size={12} className="p2-tx-icon" />
             No-foreign-capital case not solved for {pending.map((r) => versionName(r.arm).toLowerCase()).join(', ')}
           </p>
         ) : (
           <p className="ex-slope-note">
+            <Icon name={iconFor('onPath')} size={12} className="p2-tx-icon" />
             Same side of the forecast path in both cases
           </p>
         )}

@@ -273,7 +273,10 @@ export default function TwoLenses() {
             </li>
           ))}
         </ul>
-        <p className="close-why">{CLOSE_WHY}</p>
+        <p className="close-why">
+          <Icon name={iconFor('compare')} size={12} className="p2-tx-icon" />
+          {CLOSE_WHY}
+        </p>
       </header>
       <figure
         ref={ref}

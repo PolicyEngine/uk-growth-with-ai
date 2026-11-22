@@ -149,7 +149,7 @@ export default function Part2({ part }) {
       <Scrolly
         id="p2-who"
         scene
-        sub={{ ...SUBS.who, answer: whoAnswer() ?? SUBS.who.answer, answerNote: whoNote() }}
+        sub={{ ...SUBS.who, answer: whoAnswer() ?? SUBS.who.answer, answerNote: whoNote(), answerNoteIcons: ['finances', 'age'] }}
         label="Welfare change by birth year"
         steps={whoCardSteps()}
         graphic={(i) => <WelfareShape state={i} />}

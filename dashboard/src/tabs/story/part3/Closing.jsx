@@ -57,6 +57,7 @@ export default function Closing() {
       </header>
       <div ref={ref} className={`p3-close-card${entry.entered ? ' is-in' : ''}${snap ? ' is-snap' : ''}`}>
         <p className="p3-close-lead">
+          <Icon name={iconFor('limit')} size={12} className="p2-tx-icon" />
           Leaving these out, the household study shows the first year after the assumed job loss, before households or employers respond: a test, not a forecast.
         </p>
         <div className="p3-out" role="group" aria-labelledby="p3-close-h">
