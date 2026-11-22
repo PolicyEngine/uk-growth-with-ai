@@ -248,15 +248,20 @@ def tiles(c, cl=None):
                 exp[t] += 1
     return exp
 # What drives the result (item 21): the bottom and top earnings groups (box
-# B), the consumption line's two ends (box A: the first and last c_gap
-# years) and the stress test at ages 20 and 65 (box D). The age-45 transfer
-# pair is inside the closed "More info" disclosure, so it is not read.
+# B), the consumption card's two stats (box A: the first c_gap year, then
+# the year consumption first rises above the path, first_year_c_above, or
+# with no such year the last c_gap year's gap; CohortsTab consumptionStats)
+# and the stress test at ages 20 and 65 (box D). The crossing year is not a
+# percentage, so it is checked on its own below. The age-45 transfer pair
+# is inside the closed "More info" disclosure, so it is not read.
 def why(c, cl=C, rule='dn'):
     s = CO['closures'][cl]['rules'][rule]['stress']
     xs = CO['closures'][cl]['birth_year']
     ys = sorted(c['c_gap'], key=int)
-    vals = [c['alive_by_group'][0], c['alive_by_group'][6], c['c_gap'][ys[0]], c['c_gap'][ys[-1]],
-            s['cev_all'][xs.index(CO['shock_year'] - 20)], s['cev_all'][xs.index(CO['shock_year'] - 65)]]
+    vals = [c['alive_by_group'][0], c['alive_by_group'][6], c['c_gap'][ys[0]]]
+    if c.get('first_year_c_above') is None:
+        vals.append(c['c_gap'][ys[-1]])
+    vals += [s['cev_all'][xs.index(CO['shock_year'] - 20)], s['cev_all'][xs.index(CO['shock_year'] - 65)]]
     return Counter(signed(x, 2) + '%' for x in vals)
 c = CO['closures'][C]['rules']['dn']['tfp']
 def parts(c):
@@ -272,6 +277,44 @@ for sid in dump:
             print(sid, key, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
         else:
             print(sid, key, 'ok:', sum(exp.values()), 'figures')
+# The consumption card's crossing year (box A): with first_year_c_above set,
+# "First year above the path" is printed once with that year and the
+# fallback ("the last year shown") is not; with none, the label is absent.
+CROSS = re.compile(r"First year above the path\s*(\d{4})")
+cross = c.get('first_year_c_above')
+bad_cross = bad
+for sid in dump:
+    for key in EXPECT:
+        t = dump[sid].get(key, '')
+        got = CROSS.findall(t)
+        if cross is not None:
+            ok = got == [str(cross)] and 'the last year shown' not in t
+        else:
+            ok = not got
+        if not ok:
+            bad += 1; print(sid, key, 'crossing year: printed', got, 'expected', cross)
+# The data behind it, every cell with a consumption line: no c_gap year
+# before the crossing year is above the path (to 2 dp), the crossing year's
+# gap is above 0 when it is a c_gap year, and with no crossing year no
+# c_gap year is above 0.
+last_cg = None
+for cl_, cd in CO['closures'].items():
+    for rule_, rd in cd['rules'].items():
+        for arm_, cell in rd.items():
+            if not isinstance(cell, dict) or not cell.get('c_gap'):
+                continue
+            yr = cell.get('first_year_c_above')
+            cg = {int(k): v for k, v in cell['c_gap'].items()}
+            last_cg = max(cg)
+            if yr is None:
+                above = [k for k, v in cg.items() if round(v, 2) > 0]
+            else:
+                above = [k for k, v in cg.items() if k < yr and round(v, 2) > 0] + ([yr] if yr in cg and not cg[yr] > 0 else [])
+            if above:
+                bad += 1; print('crossing year: data inconsistent', cl_, rule_, arm_, 'crossing', yr, 'at', above)
+if cross is not None:
+    tail = f' (checked against the field only: it lies after the last c_gap year, {last_cg})' if last_cg is not None and cross > last_cg else ''
+    print(f'who crossing year ok: {cross}{tail}' if bad == bad_cross else f'who crossing year: {cross}{tail}')
 # Across scenarios (#explore-part-all: on Economy, and on the All scenarios
 # sub-tab while it exists; results:all) prints:
 #   - the zk0.5 sensitivity dot rows: each scenario and arm's headline-year
