@@ -15,8 +15,9 @@ import { NavLink } from '@/lib/nav.jsx';
 // #hm-out, has the full list), in three labelled groups, each a small
 // section (an h4 with one plain icon, then a list of what is left out and
 // what the study assumes in its place; item 33, item dc-B). The title is
-// said once, by the heading. Centred on the column; no tint, no box, no
-// kicker: the lead says why the list matters.
+// said once, by the heading. Centred on the column, in the caution panel's
+// tinted box (.caution-panel); no kicker: the lead says why the list
+// matters.
 // Corporation tax is not repeated here: the three-channels scene says, where
 // it matters, that dividend tax is counted and corporation tax is not.
 // Re-employment's home is this list (Two lenses names only the years after
@@ -60,7 +61,7 @@ export default function Closing() {
   const [seen, setSeen] = useState(false);
   if (entry.entered && !seen) setSeen(true);
   return (
-    <div className={`p3-close p3-close-panel${seen ? ' is-seen' : ''}`}>
+    <div className={`p3-close p3-close-panel caution-panel${seen ? ' is-seen' : ''}`}>
       <header className="topic-head p3-close-head" data-scene={CLOSING_SUB.title} id="q-p3-close">
         <IconLine as="h2" concept="limit" tier="body" className="p3-close-title" id="p3-close-h">
           {hy(CLOSING_SUB.title)}
