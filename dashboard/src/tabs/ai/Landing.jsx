@@ -409,20 +409,6 @@ export function LateLine({ sid, cl, className }) {
     </IconLine>
   );
 }
-export function ConsumptionLine({ sid }) {
-  const { cl } = useSummary(sid);
-  const w = consumptionWords(sid, cl);
-  if (!w) return null;
-  return (
-    <p className="p2-note p2-consumption" data-claim="consumption">
-      {/* the headline-year value carries its data path (check_numbers) */}
-      {w.head.slice(0, w.head.indexOf(fmt(w.cH)))}
-      <span data-path={`results.${sid}.tfp.${cl}.gaps.C.${HEADLINE_YEAR}`}>{fmt(w.cH)}</span>
-      {w.head.slice(w.head.indexOf(fmt(w.cH)) + fmt(w.cH).length)}
-      {w.why ? ` ${w.why}` : ''}
-    </p>
-  );
-}
 
 // The forecast path's tip, on the overlap (obr-overlap-fable.md, Landing
 // tooltip): the labour-share shift is all extra; the productivity gain is
@@ -491,50 +477,9 @@ export function debtLine(sid, cl) {
   return `${p.obrPace ? 'At the OBR’s repricing pace, public debt' : 'Public debt'} ${p.lead}${p.atOnce ? `; ${p.atOnce}` : ''}`;
 }
 
-// Under the tiles: the one line on public debt (its words from
-// debtParts, the OBR pace first), linking its homes: Explore > Public
-// finances and Method's repricing card.
-export function SummaryWhy({ sid }) {
-  const { cl } = useSummary(sid);
-  const p = debtParts(sid, cl);
-  if (!p) return null;
-  return (
-    <p className="p2-note p2-why">
-      <DebtWords p={p} />.
-    </p>
-  );
-}
-function DebtWords({ p }) {
-  return (
-    <>
-      {p.obrPace ? (
-        <>
-          At the{' '}
-          <NavLink tab="method" sub="how" anchor="m-debt">
-            OBR&rsquo;s repricing pace
-          </NavLink>
-          ,{' '}
-          <NavLink tab="explore" sub="finances" anchor="public-finances">
-            public debt
-          </NavLink>
-        </>
-      ) : (
-        <NavLink tab="explore" sub="finances" anchor="public-finances">
-          Public debt
-        </NavLink>
-      )}{' '}
-      {p.lead}
-      {p.atOnce ? `; ${p.atOnce}` : ''}
-    </>
-  );
-}
-
 // The GDP scene's debt lines (voice pass, item 7; Maria's point 5;
 // review round 4, R4-01). With a pinned figure the scene's caption ends
-// the last card, so the OBR-pace result sits in the ledger slot (DebtPace,
-// under the headline figures) and the caption note carries the model's
-// at-once repricing, which then reads second. Layout-neutral: the two
-// slots exchanged their sentences.
+// the last card; the caption note carries the model's at-once repricing.
 //
 // The caption note: the at-once half, then the scene's one "More on
 // Explore" link; the link alone where there is no at-once half.
@@ -550,19 +495,6 @@ export function DebtNote({ sid, cl }) {
     </>
   );
 }
-// The ledger slot, under the headline figures: the OBR-pace result (check_text:
-// one sentence, at most 25 words).
-export function DebtPace({ sid }) {
-  const { cl } = useSummary(sid);
-  const p = debtParts(sid, cl);
-  if (!p) return null;
-  return (
-    <p className="p2-note p2-debt-once" data-claim="debt-pace">
-      {p.obrPace ? 'At the OBR’s repricing pace, public debt' : 'Public debt'} {p.lead}.
-    </p>
-  );
-}
-
 export function GoDeeper() {
   return (
     <>
