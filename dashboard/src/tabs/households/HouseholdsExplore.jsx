@@ -651,6 +651,13 @@ function Rules() {
 // The three limits overlap, so three separate bars, never stacked. UC per
 // person is drawn for both take-up cases (item 24: a two-state switch that
 // changes one number is drawn as two bars).
+// Card 5's title (Fable round 7, S6): the take-up of entitled units, not
+// the 48% of all units (which counts units with no entitlement), against
+// entitled units with someone already unemployed. Within 14 words; UC is
+// spelt out on the page above (card 3).
+export function displacedWords(X = D.displaced) {
+  return `Of entitled displaced units, ${fmtShare(X.claim_uc_entitled.value)} would claim UC; of the already unemployed, ${fmtShare(X.existing_unemployed_claim.value)}`;
+}
 function Displaced() {
   const X = D.displaced;
   const [ref, e] = useSeenBeat();
@@ -676,22 +683,21 @@ function Displaced() {
       />
     </div>
   );
-  const under = X.claim_uc.value < 50;
   return (
     <Card
       id="hh-displaced"
       icon="usersRound"
-      title={under ? 'Under half of displaced workers’ benefit units would claim Universal Credit (UC)' : 'Half or more of displaced workers’ benefit units would claim Universal Credit (UC)'}
+      title={
+        // the two shares are restated from the first bar set (their home)
+        <>
+          Of entitled displaced units, <Ax>{fmtShare(X.claim_uc_entitled.value)}</Ax> would claim UC; of the already unemployed, <Ax>{fmtShare(X.existing_unemployed_claim.value)}</Ax>
+        </>
+      }
       lead={
         <Lead>
-          {[
-            <>
-              In all, <Ax>{fmtShare(X.claim_uc.value)}</Ax> would claim. Among the units entitled to UC once displaced, <Ax>{fmtShare(X.claim_uc_entitled.value)}</Ax> would.
-            </>,
-            <>
-              Among entitled units with someone already unemployed, <Ax>{fmtShare(X.existing_unemployed_claim.value)}</Ax> do.
-            </>,
-          ]}
+          <>
+            Counting units with no entitlement, <Ax>{fmtShare(X.claim_uc.value)}</Ax> of all units with a displaced worker would claim.
+          </>
         </Lead>
       }
       unit={<span data-axis-title="y">Share of benefit units with a displaced worker, %</span>}
@@ -714,7 +720,13 @@ function Displaced() {
         },
       }}
       about={about({
-        how: ['Each benefit unit keeps the UC take-up decision drawn for it in the data.', 'A partner’s earnings reduce the UC award; capital above the limit removes it; owners get no housing element.'],
+        how: [
+          'Each benefit unit keeps the UC take-up decision drawn for it in the data.',
+          // Fable round 7, S6: what the all-units share counts
+          'The share of all units counts every unit whose take-up decision is on, entitled or not; units with capital above the limit get no UC.',
+          'So fewer units receive UC than the share of all units suggests; the data do not give the share receiving it.',
+          'A partner’s earnings reduce the UC award; capital above the limit removes it; owners get no housing element.',
+        ],
         caveats: ['Shares count benefit units, not persons.', 'The three groups in “What limits entitlement” overlap; the data give no cross-tabulation.', 'The take-up decisions are the dataset’s imputation, not DWP take-up statistics.', ...FLAG],
         sources: [`${X.claim_uc.file} (diagnostics.obr, existing_unemployed)`, `UC per worker: ${X.uc_per_displaced.file}`, 'results/takeup/takeup_draws.csv', <>Capital limit: {ext(URLS.ucEligibility, 'UC eligibility (GOV.UK)')}</>],
       })}

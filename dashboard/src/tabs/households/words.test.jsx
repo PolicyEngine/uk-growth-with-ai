@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import D from '@/data/aiStudy2425.json';
-import { rulesWords, rulesTieWords, rankingsWords, rankingsLead, costWords, takeupWords, takeupLead, perPoundWords, policyWords } from './HouseholdsExplore.jsx';
+import { rulesWords, rulesTieWords, rankingsWords, rankingsLead, costWords, takeupWords, takeupLead, displacedWords, perPoundWords, policyWords } from './HouseholdsExplore.jsx';
 import { linkAiFiles } from '@/tabs/explore/sources.jsx';
 import { RULE_MARGIN_PP, ruleName, rulesGap } from './figures.js';
 
@@ -82,6 +82,15 @@ describe('households wording follows the data', () => {
     expect(perPoundWords().includes('wage cuts cost the public finances more')).toBe(p('wage_cuts') > D.per_pound_20.job_loss.government_p);
     const main = D.policy.rows.filter((r) => r.family === 'exposure');
     expect(policyWords(main).startsWith('Each response lowers')).toBe(main.every((r) => r.poverty_pp < 0 && r.gini_pp < 0));
+  });
+  // Fable round 7, S6: the title leads with the entitled units' take-up
+  // against the already unemployed, from the data, within 14 words
+  it('displaced: the title gives the entitled share and the already unemployed share', () => {
+    const X = D.displaced;
+    const t = displacedWords();
+    expect(t).toBe(`Of entitled displaced units, ${Math.round(X.claim_uc_entitled.value)}% would claim UC; of the already unemployed, ${Math.round(X.existing_unemployed_claim.value)}%`);
+    expect(t.split(/\s+/).length).toBeLessThanOrEqual(14);
+    expect(t).not.toContain(`${Math.round(X.claim_uc.value)}%`);
   });
   it('result file names link to the study at the data file commit', () => {
     const parts = linkAiFiles('results/low.json: x');
