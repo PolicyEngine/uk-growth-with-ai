@@ -12,6 +12,7 @@ import { Items } from '@/components/story/Items.jsx';
 import IconLine from '@/components/ui/IconLine.jsx';
 import RefList from '@/components/ui/RefList.jsx';
 import CiteFoot from '@/components/ui/CiteFoot.jsx';
+import CautionPanel from '@/components/ui/CautionPanel.jsx';
 import { MACRO_REFS } from '@/data/references.js';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from './IconText.jsx';
@@ -697,12 +698,15 @@ export default function MethodTab() {
           </div>
         </section>
 
-        <section>
-          <SectionHeading id="m-limits" icon={iconFor('limit')} title="What the model leaves out">
-            <IconText icon="excluded">What the model leaves out, each stated once.</IconText>
-          </SectionHeading>
+        <CautionPanel
+          heading={
+            <SectionHeading id="m-limits" icon={iconFor('limit')} title="What the model leaves out">
+              <IconText icon="excluded">What the model leaves out, each stated once.</IconText>
+            </SectionHeading>
+          }
+        >
           <Limitations />
-        </section>
+        </CautionPanel>
 
         <section>
           <SectionHeading id="m-sources" icon={iconFor('record')} title="Sources" />

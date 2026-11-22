@@ -10,6 +10,7 @@ import IconText from '@/tabs/method/IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { ModelLine, PageNotes } from '@/components/ui/PageIntro.jsx';
 import UsedBy from '@/tabs/method/UsedBy.jsx';
+import CautionPanel from '@/components/ui/CautionPanel.jsx';
 import { D, NO_CLEAN_RERUN } from '@/tabs/story/part3/shared.jsx';
 import { AI_FULL_RERUN, AI_STUDY, MODEL_YEAR } from '@/tabs/code/ledger.js';
 import { URLS } from '@/tabs/ai/links.js';
@@ -325,10 +326,13 @@ export default function HouseholdsMethod() {
           />
         </section>
 
-        <section>
-          <SectionHeading id="hm-out" icon={iconFor('excluded')} title="What it leaves out">
-            <IconText icon="excluded">The study traces current rules, not behaviour or the wider economy.</IconText>
-          </SectionHeading>
+        <CautionPanel
+          heading={
+            <SectionHeading id="hm-out" icon={iconFor('excluded')} title="What it leaves out">
+              <IconText icon="excluded">The study traces current rules, not behaviour or the wider economy.</IconText>
+            </SectionHeading>
+          }
+        >
           <ul className="mx-limit-grid hm-out-grid">
             {[
               ['excluded', 'No re-employment, partners’ hours, redundancy pay or drawing on savings.'],
@@ -356,7 +360,7 @@ export default function HouseholdsMethod() {
               ; the macro model, {MACRO_ABOUT}, has no unemployment.
             </IconText>
           </p>
-        </section>
+        </CautionPanel>
 
         <section>
           <p className="mx-moved" id="hm-vintage" tabIndex={-1}>

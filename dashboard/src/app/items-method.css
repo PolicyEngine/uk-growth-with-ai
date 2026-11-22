@@ -897,3 +897,19 @@ p.mx-axis-title.is-x {
 @media (prefers-reduced-motion: reduce) {
   .mx-setting-chev { transition: none; }
 }
+
+/* What a model leaves out (Method redesign, M16): the caution panel
+   (components/ui/CautionPanel.jsx), in the Story leaves-out band's tint
+   (--page-bg) with a hairline border and the card radius */
+.caution-panel {
+  padding: 20px 24px 24px;
+  background: var(--page-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+}
+.caution-panel > .section-heading {
+  margin-top: 0;
+}
+@media (max-width: 600px) {
+  .caution-panel { padding: 16px; }
+}
