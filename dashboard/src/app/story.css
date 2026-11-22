@@ -2746,6 +2746,15 @@
   }
 }
 
+/* Print and no JavaScript: every step card at full strength. The server
+   renders is-asking, which holds the cards at opacity 0 until QStage
+   lifts it; and no card is the active one on paper. */
+@media print, (scripting: none) {
+  .scrolly .scrolly-steps .scrolly-step .scrolly-card {
+    opacity: 1 !important;
+  }
+}
+
 /* Without JavaScript every scroll-in fade shows at once: the closing
    lines, the leaves-out panel and its groups (Part 3), the fade groups and
    the Two lenses figure. Print and reduced motion are covered where each

@@ -273,31 +273,6 @@
 }
 
 /* Legends: the exposure groups' key */
-.p1-groups {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 16px;
-  margin: 10px 0 0;
-  padding: 0;
-  list-style: none;
-  font-size: var(--t-meta);
-  color: var(--t-muted);
-}
-.p1-groups li {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-}
-.p1-groups {
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 200ms var(--p1-ease), visibility 0s linear 200ms;
-}
-.p1-groups.is-on {
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 300ms var(--p1-ease) var(--p1-settle, 1200ms), visibility 0s;
-}
 .p1-swatch {
   display: inline-block;
   flex: none;
@@ -912,11 +887,15 @@
     animation: none !important;
   }
 }
-/* Print and no JavaScript: the bars and the vitals' sparklines drawn. The
-   step layers (annual and quarterly, the board's series, the swap layers)
-   are step state and are not changed here. */
+/* Print and no JavaScript: every mark of the state on the page is drawn.
+   Entry gates only (what useDrawIn sets). The step classes React sets
+   (.is-q, .is-fc, .is-focus, .is-on on an axis, a tick or a swap layer)
+   still decide which state that is: with no JavaScript the first step,
+   in print the step on screen. The AI-use chart shows both lines: its
+   title and unit line name both. */
 @media print, (scripting: none) {
-  .p1-bar {
+  .p1-vital:not(.is-drawn) .p1-vital-value {
+    opacity: 1;
     transform: none;
   }
   .p1-spark-line {
@@ -924,6 +903,23 @@
   }
   .p1-spark-dot {
     opacity: 1;
+  }
+  .p1-bar {
+    transform: none;
+  }
+  .p1-board-series.is-focus :is(.p1-board-line, .p1-board-end) {
+    opacity: 1;
+  }
+  .p1-ai-svg .p1-ai-line {
+    stroke-dashoffset: 0;
+  }
+  .p1-ai-dot,
+  .p1-ai-area,
+  .p1-end-label {
+    opacity: 1 !important;
+  }
+  .p1-end-label.is-ten:not(.scrolly-sizers *) {
+    visibility: visible;
   }
 }
 @media (max-width: 1180px) {
