@@ -365,7 +365,8 @@ export default function HouseholdsMethod() {
             </IconText>
           </p>
           <ul className="p3-close-links">
-            <li>
+            {/* a citation (check_text exempts [data-cite]) */}
+            <li data-cite="">
               <a href={AI_STUDY.paperUrl ?? PAPER_URL} target="_blank" rel="noreferrer">
                 <Icon name="arrowRight" size={16} strokeWidth={2} /> {REFS.ahmadi.title} (PDF)
               </a>
