@@ -1,12 +1,13 @@
-/* Maths-style parameter symbols (MathSym.jsx): an italic serif letter, a
-   real subscript at about 0.75em, numbers upright. The subscript takes no
+/* Maths-style parameter symbols (MathSym.jsx): a true maths italic letter
+   (--font-math: KaTeX's Math-Italic, then serif), a real italic subscript at
+   about 0.75em (a digit falls back to the next face), numbers upright. The subscript takes no
    line height of its own, so a line holding a symbol is no taller than
    any other (pinned figure heights do not move). */
 .math-sym {
   white-space: nowrap;
 }
 .math-sym i {
-  font-family: 'STIX Two Math', 'Cambria Math', serif;
+  font-family: var(--font-math);
   font-style: italic;
   font-weight: inherit;
   /* a serif letter reads small beside the sans text */
@@ -14,8 +15,8 @@
   letter-spacing: 0;
 }
 .math-sym sub {
-  font-family: 'STIX Two Math', 'Cambria Math', serif;
-  font-style: normal;
+  font-family: var(--font-math);
+  font-style: italic;
   /* the subscript is part of the symbol, not running text: below the
      13px floor at small body sizes by design */
   font-size: 0.75em;

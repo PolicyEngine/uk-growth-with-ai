@@ -39,6 +39,19 @@ const inter = localFont({
   variable: '--font-inter',
   adjustFontFallback: 'Arial',
 });
+// The maths italic for MathSym (ζ γ ε δ, as the model's docs set them):
+// KaTeX's Math-Italic face, copied from the katex package the repo already
+// ships (fonts/KaTeX-LICENSE.txt). No generated fallback: the serif stack
+// in --font-math (ab.css) follows it.
+const mathItalic = localFont({
+  src: './fonts/KaTeX_Math-Italic.woff2',
+  weight: '400',
+  style: 'italic',
+  display: 'swap',
+  preload: false,
+  variable: '--font-math-face',
+  adjustFontFallback: false,
+});
 
 const SITE_URL = 'https://uk-growth-with-ai.vercel.app';
 const TITLE = PAGE_TITLE;
@@ -82,7 +95,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en-GB" className={inter.variable} suppressHydrationWarning>
+    <html lang="en-GB" className={`${inter.variable} ${mathItalic.variable}`} suppressHydrationWarning>
       <head>
         {/* A shared link to another tab: hide the server-rendered Story until
             the client shows the named tab (v2.css, lib/nav.jsx). */}

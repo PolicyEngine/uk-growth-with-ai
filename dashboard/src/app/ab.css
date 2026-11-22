@@ -5,6 +5,8 @@
    weight or colour, never a tick. */
 
 :root {
+  /* MathSym's maths italic (layout.tsx loads the face), then serif */
+  --font-math: var(--font-math-face), 'STIX Two Text', Cambria, 'Times New Roman', Times, serif;
   --pe-teal-50: #f0fdfa;
   --pe-teal-100: #ccfbf1;
   --pe-teal-200: #99f6e4;
