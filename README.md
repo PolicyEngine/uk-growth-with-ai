@@ -66,13 +66,27 @@ from OG-Core, not calibrated to the UK), with `zeta_D = 0.4` and a 2% world rate
 (`docs/closure_choice.md`, #16, #27). National income (GNI) leads, because about three
 quarters of the extra capital is foreign-owned at 0.1, so the GNI gap is below the GDP gap.
 
-**Results, 2030, against the OBR-central baseline** (`data/scenarios.json`, bound in
-`data/scenarios_zk0.json`): with Automation + productivity, GNI +3.8% (bound +2.9%) and
-GDP +4.9% (bound +3.1%); with Automation only, GDP is unchanged by construction, GNI
-−0.8% (bound −0.2%) and the wage rate −5.3% (bound −5.0%). The labour share falls 3.9pp
-in both. The sign of the wage change with productivity gains depends on the closure.
-Debt/GDP gaps keep moving after 2030; quote them with their 2035 values. Tables are in
-`docs/rerun_r1_r4.md`; full results and caveats are in the dashboard.
+**Results, 2030, against the OBR's central forecast path** (the dashboard's default
+set: `data/scenarios_surprise2027_*.json`, AI arriving unannounced in 2027 and ramping
+to 2030; `docs/surprise_2027.md`, `docs/results_sanity_2027.md`). Main arm (automation
++ productivity), common fiscal rule, `zeta_K = 0.1` (bound `zeta_K = 0` in brackets):
+
+| Scenario | GDP | GNI | NNI | Pay rate |
+|---|---|---|---|---|
+| UK low | +0.41% (+0.18%) | +0.27% (+0.16%) | +0.14% (+0.13%) | −0.54% (−0.72%) |
+| UK central | +0.91% (+0.37%) | +0.57% (+0.30%) | +0.27% (+0.23%) | −1.27% (−1.71%) |
+| UK high | +2.73% (+1.55%) | +2.02% (+1.43%) | +1.58% (+1.46%) | −1.28% (−2.21%) |
+| Korinek et al. | +4.88% (+3.04%) | +3.79% (+2.88%) | +3.32% (+3.09%) | −0.61% (−2.04%) |
+
+The labour share falls by exactly each scenario's input (0.7, 1.6, 2.9 and 3.9pp). The
+pay rate is below the path in every main-arm case at both closures: the share fall
+lowers it, and capital arrives too slowly to make up the difference. Only the `zeta_K =
+0.5` sensitivity puts it on the path (UK low, UK central) or above it (UK high,
+Korinek et al.), and that sensitivity's UK high and Korinek et al. files fail the
+national-accounts check (`docs/results_sanity_2027.md`). Debt/GDP gaps keep moving
+after 2030; quote them with their 2035 values. The earlier 2026-start results
+(`data/scenarios.json`, `data/scenarios_zk0.json`; tables in `docs/rerun_r1_r4.md`) are
+not shown on the dashboard. Full results and caveats are in the dashboard.
 
 ## Install
 
@@ -186,8 +200,11 @@ only for results files that predate those fields).
 cd dashboard && bun install && bun dev
 ```
 
-A Next.js app with five tabs: Economic effects, Model, Scenario design, Model
-comparison and Code. Its data files are generated, not edited by hand.
+A Next.js app with three tabs: Story (the study read in four parts), Explore (Economy,
+Public finances, Who gains and who loses, Households) and Method and sources (Overview,
+Macro model method, Household method, Inputs, Evidence, Data and code). The 2027 set is
+the default; `NEXT_PUBLIC_DATA=2028` reads the 2028-start set. Its model data files are
+generated, not edited by hand.
 
 ## Layout
 
