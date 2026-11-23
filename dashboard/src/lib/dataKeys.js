@@ -166,6 +166,11 @@ export const SET = Object.fromEntries(Object.entries(SETS[2028]).map(([k, v]) =>
 // The fields the active set takes from 2028 (empty on the 2028 set).
 export const SET_MISSING = Object.keys(SETS[2028]).filter((k) => ACTIVE_SET[k] == null);
 export { DATA_SET };
+// The +17% investment flag is defined once, in the 2028 design doc's
+// "The sanity gate after every solve" (pushed with rerun/surprise-2028);
+// the 2027 set applies the same flag and its design doc has no such
+// section, so both sets link here (results review sign-off, follow-up 4).
+export const FLAG_DOC = { ref: SETS[2028].docsRef ?? SETS[2028].branch, path: `${SETS[2028].designDoc}#the-sanity-gate-after-every-solve` };
 // The data file's name, from the file itself (its shock year), so a page
 // never names one file while showing another.
 export const DATA_FILE = `surprise${S.surprise_year}.json`;

@@ -67,7 +67,7 @@ function Cell({ row, v, main }) {
   const x = valueAt(row, v);
   if (x == null) return <td className="mx-sens-cell is-pending">not solved</td>;
   const c = row === main ? null : valueAt(main, v);
-  const flip = flipOf(x, c);
+  const flip = flipOf(x, c, v);
   const d = c == null ? null : x - c;
   const dir = d == null ? null : Math.abs(d) < 0.005 ? 'onPath' : d > 0 ? 'gapUp' : 'gapDown';
   const word = { onPath: 'the same as', gapUp: 'higher than', gapDown: 'lower than' }[dir];

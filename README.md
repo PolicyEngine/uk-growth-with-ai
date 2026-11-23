@@ -83,8 +83,10 @@ pay rate is below the path in every main-arm case at both closures: the share fa
 lowers it, and capital arrives too slowly to make up the difference. Only the `zeta_K =
 0.5` sensitivity puts it on the path (UK low, UK central) or above it (UK high,
 Korinek et al.), and that sensitivity's UK high and Korinek et al. files fail the
-national-accounts check (`docs/results_sanity_2027.md`). Korinek et al. report GDP +8.3% for the two inputs the upper case takes from them: the model gives about 60% of that, because its capital rises about 6% by 2030 against their 13.8%. Debt/GDP gaps keep moving
-after 2030; quote them with their 2035 values. The earlier 2026-start results
+national-accounts check (`docs/results_sanity_2027.md`). Korinek et al. report GDP
++8.3% for the two inputs the upper case takes from them: the model gives about 60% of
+that, because its capital rises about 6% by 2030 against their 13.8%. Debt/GDP gaps
+keep moving after 2030; quote them with their 2035 values. The earlier 2026-start results
 (`data/scenarios.json`, `data/scenarios_zk0.json`; tables in `docs/rerun_r1_r4.md`) are
 not shown on the dashboard. Full results and caveats are in the dashboard.
 

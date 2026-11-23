@@ -366,7 +366,7 @@
         "with": [
           "ifs-gb26-tfp"
         ],
-        "measure": "Real GDP, capital deepening only to with a TFP spillover",
+        "measure": "Real GDP: capital deepening only (low), with a TFP spillover (high)",
         "value": "+1.6% to +2.5%",
         "horizon": "End of 2031",
         "baseline": "Barclays forecast",
@@ -1155,7 +1155,7 @@
       "near2030": {
         "order": 7,
         "source": "Korinek et al. (US)",
-        "measure": "GDP, substantial case (US)",
+        "measure": "GDP, substantial case",
         "value": "+8.3% (+6.4% to +10.0% across capital supply)",
         "horizon": "Start of 2030",
         "baseline": "No AI",

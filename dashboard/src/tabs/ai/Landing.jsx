@@ -241,14 +241,16 @@ export function HeadlineTiles({ sid }) {
   };
   // consumption: the run below the path from the shock (consumptionWords),
   // "as households save more" only where the interest rate and investment
-  // are up (its `why`); else its side of the path in the headline year
+  // are up (its `why`), with government spending rising with GDP under
+  // the common rule these tiles show (results review sign-off, follow-up
+  // 1); else its side of the path in the headline year
   const cGloss =
     cH == null
       ? null
       : cw
         ? cw.end >= HEADLINE_YEAR
-          ? `below the path to ${cw.end}${cw.why ? ' as households save more' : ''}`
-          : `below the path to ${cw.end}${cw.why ? ' as households save more' : ''}, then ${cH > 0.005 ? 'above' : 'about on it'}`
+          ? `below the path to ${cw.end}${cw.why ? ' as households save more and government spending rises' : ''}`
+          : `below the path to ${cw.end}${cw.why ? ' as households save more and government spending rises' : ''}, then ${cH > 0.005 ? 'above' : 'about on it'}`
         : Math.abs(cH) < 0.005
           ? `on the path in ${HEADLINE_YEAR}`
           : `${cH > 0 ? 'above' : 'below'} the path in ${HEADLINE_YEAR}`;

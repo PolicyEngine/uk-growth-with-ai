@@ -10,6 +10,7 @@ const Y = S.years;
 const H = S.headline_year;
 const L = S.late_year;
 const SY = S.surprise_year;
+const LATE_YEAR = S.late_year;
 const ARMS = ['tfp', 'tz', 'ss'];
 const NAME = Object.fromEntries(S.arms.map((a) => [a.id, a.short || a.label]));
 const RK = { dn: 'debt_neutral', fixed: 'fixed_spending' };
@@ -72,7 +73,7 @@ describe('item 17: Public finances More info', () => {
           const tw = taxWhy(sid, closure, rule);
           if (closure !== 'central') expect(tw.map((i) => i.key)).toEqual(['closed', 'closed2']);
           else {
-            const every = ARMS.every((a) => Y.filter((y) => y >= SY).every((y) => sideOf(g(sid, a, cl, 'tax_gdp_pp', y, rule)) === 'below'));
+            const every = ARMS.every((a) => Y.filter((y) => y >= SY && y < LATE_YEAR).every((y) => sideOf(g(sid, a, cl, 'tax_gdp_pp', y, rule)) === 'below'));
             expect(tw.some((i) => i.key === 't1')).toBe(every);
             const t = ARMS.map((a) => ({ a, x: g(sid, a, cl, 'tax_gdp_pp', H, rule) })).sort((p, q) => Math.abs(p.x) - Math.abs(q.x));
             const t4 = text(tw, 't4');

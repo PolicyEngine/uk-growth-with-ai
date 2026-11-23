@@ -167,7 +167,11 @@ const ARM_SHORT = { tfp: 'Auto. + prod.', tz: 'Tech. unchanged', ss: 'Stress tes
 // The stress test's GDP: held on the path by construction.
 export const held = (arm, v) => arm === 'ss' && v === 'Y';
 const centralAt = (sid, arm, v) => at(resultAt(sid, arm, CENTRAL, 'common'), v);
-export function flipOf(x, c) {
+// A pay-rate cell flips only beyond PAY_EDGE (results review sign-off,
+// follow-up 2): within it the claims call the pay rate "about on the
+// forecast path", so the grid does not mark it as a change of sign.
+export function flipOf(x, c, v) {
+  if (v === 'w' && x != null && Math.abs(x) < PAY_EDGE) return false;
   return x != null && c != null && side(x) !== 'on' && side(c) !== 'on' && side(x) !== side(c);
 }
 function colMax(res, v) {
@@ -272,7 +276,7 @@ function SensGrid({ res }) {
                           </td>
                         );
                       const ce = centralAt(s.id, a.id, c.v);
-                      const flip = flipOf(x, ce);
+                      const flip = flipOf(x, ce, c.v);
                       const d = ce == null ? null : x - ce;
                       const t = Math.round((Math.abs(x) / max[c.v]) * 38 + (Math.abs(x) < 0.005 ? 0 : 6));
                       const tone = Math.abs(x) < 0.005 ? '' : x > 0 ? ' is-gain' : ' is-loss';
@@ -335,8 +339,8 @@ function GridKeyLine({ res }) {
 // The grid's key: what the arrow and the outline mean, and how many cells
 // flip sign (counted from the data).
 export function gridKey(res) {
-  const cells = SCENARIOS.flatMap((s) => ARMS.flatMap((a) => VARS.filter((c) => !held(a.id, c.v)).map((c) => ({ x: at(res[s.id]?.[a.id], c.v), c: centralAt(s.id, a.id, c.v) }))));
-  const flips = cells.filter((k) => flipOf(k.x, k.c));
+  const cells = SCENARIOS.flatMap((s) => ARMS.flatMap((a) => VARS.filter((c) => !held(a.id, c.v)).map((c) => ({ v: c.v, x: at(res[s.id]?.[a.id], c.v), c: centralAt(s.id, a.id, c.v) }))));
+  const flips = cells.filter((k) => flipOf(k.x, k.c, k.v));
   const up = flips.length && flips.every((k) => k.x > 0);
   return [
     { key: 'arrow', icon: 'compare', text: `Arrows: higher or lower than with ${CMP_NAME}` },

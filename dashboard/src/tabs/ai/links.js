@@ -1,6 +1,6 @@
 import S from '@/lib/activeData.js';
 import AI from '@/data/aiStudy2425.json';
-import { SET, COHORT_SOURCE_COMMIT, FILES_REF } from '@/lib/dataKeys.js';
+import { SET, COHORT_SOURCE_COMMIT, FILES_REF, FLAG_DOC } from '@/lib/dataKeys.js';
 
 // Every external URL on the dashboard, verified (HTTP 200) on 26 Sept 2026.
 // Code-file links point at main (the re-run, PR #11, is merged).
@@ -73,7 +73,7 @@ export const OG_RESULT_URLS = {
   cohortsDir: atRef(COHORTS_SHA, SET.cohortsDir, 'tree'),
   cohortScript: atRef(COHORTS_SHA, 'paper/cohort_welfare.py'),
   // the sanity gate: the shock-year investment flag (+17%), flagged, never failed
-  sanity: atRef(SET.docsRef, `${SET.designDoc}#the-sanity-gate-after-every-solve`),
+  sanity: atRef(FLAG_DOC.ref, FLAG_DOC.path),
   // the gilt rate is the private return less about 2pp: one for one with r
   giltRate: atRef(RESULTS_SHA, 'docs/rerun_r1_r4.md'),
   // the national-accounts check (`check`: Y - C - I - G within +/-6% of

@@ -75,7 +75,7 @@ export default function Near2030() {
           <Items
             items={[
               { icon: 'excluded', text: 'Left out: the OECD (an annual rate; DSIT’s figure is built from it) and the Bank of England (a firm survey).' },
-              { icon: 'excluded', text: 'PwC 2017 stays in the lane above: its +10.3% is mostly consumption effects.' },
+              { icon: 'excluded', text: 'PwC 2017 stays in the lane above: most of its gain is consumption effects.' },
               { icon: 'excluded', text: 'Acemoglu, Bergeaud, and Aghion and Bunel: ten-year horizons, not the UK.' },
               { icon: 'excluded', text: 'Goldman Sachs: no start date, so no level at this horizon.' },
               { icon: 'excluded', text: 'The OBR’s displacement scenario holds GDP unchanged; compare it with the stress test on Explore, Public finances.' },
