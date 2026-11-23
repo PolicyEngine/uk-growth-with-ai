@@ -446,3 +446,13 @@
 .mx-rb-row.is-hi .mx-rb-plot .mx-rb-none {
   background: var(--c-hover);
 }
+
+/* ---------- GDP around the headline year (benchmarks review, B6) ---------- */
+.ev-near .ev-wrap {
+  max-height: none;
+}
+.ev-near-note {
+  margin: 8px 0 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}

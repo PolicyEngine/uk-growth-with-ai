@@ -199,16 +199,20 @@ export function debtWhy(sid, closure, rule) {
 const ETR = S.closures[CENTRAL].reference_effective_tax_rates;
 export function taxWhy(sid, closure, rule) {
   if (closure !== 'central') {
-    // results review, ruling 2: name the scenarios whose main-version
-    // tax/GDP gap changes side with no foreign capital (UK high and
-    // Korinek et al. on both data sets)
-    const flips = SCENARIOS.filter((s) => {
+    // benchmarks review B4 (supersedes results review ruling 2): the
+    // no-foreign-capital tax figures are a model limit. The scenarios whose
+    // main-version tax/GDP gap is above the path with no foreign capital
+    // are named from the data (UK high and Korinek et al. on both sets).
+    const rises = SCENARIOS.filter((s) => {
       const a = gap(s.id, 'tfp', BOUND, 'tax_gdp_pp', HEADLINE_YEAR, rule);
-      const c = gap(s.id, 'tfp', CENTRAL, 'tax_gdp_pp', HEADLINE_YEAR, rule);
-      return a != null && c != null && side(a) !== 'on' && side(c) !== 'on' && side(a) !== side(c);
+      return a != null && side(a) === 'above';
     }).map((s) => (s.id === 'korinek' ? 'Korinek et al.' : s.label));
-    const where = flips.length ? `in ${andList(flips)}` : 'in some cases';
-    return [{ key: 'closed', text: `With no foreign capital the model’s sign for tax/GDP changes ${where}, so this explanation is for some foreign capital only: see the card below.` }];
+    // one full stop where the list ends in "et al."
+    const lead = `So tax/GDP barely falls${rises.length ? `, and rises in the main version of ${andList(rises)}` : ''}`.replace(/\.?$/, '.');
+    return [
+      { key: 'closed', text: 'With no foreign capital, household capital income rises about as much as pay falls, and the model taxes both alike.' },
+      { key: 'closed2', text: `${lead} The OBR taxes profits less than wages: treat these figures as a model limit. See the card below.` },
+    ];
   }
   const cl = CENTRAL;
   if (!solved(sid, cl, rule)) return [];

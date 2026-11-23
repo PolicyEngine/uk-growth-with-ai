@@ -70,7 +70,16 @@
       "country": "UK",
       "loc": "¶B.12",
       "checked": "2026-11-15",
-      "how": "read"
+      "how": "read",
+      "near2030": {
+        "order": 1,
+        "source": "OBR, Briefing paper No.9",
+        "measure": "Productivity, not GDP",
+        "horizon": "Year 4",
+        "baseline": "Without AI",
+        "kind": "Derived: the level read off Chart B.4, J-curve to S-curve",
+        "page": 51
+      }
     },
     {
       "id": "obr-efo-nov25-gdp",
@@ -350,7 +359,19 @@
       "hi": 1.6,
       "plotLabel": "IFS / Barclays",
       "plotHorizon": "End of 2031, UK",
-      "note": "1.6% with capital deepening only; 2.5% with a TFP spillover"
+      "note": "1.6% with capital deepening only; 2.5% with a TFP spillover",
+      "near2030": {
+        "order": 4,
+        "source": "IFS / Barclays, Green Budget 2026",
+        "with": [
+          "ifs-gb26-tfp"
+        ],
+        "measure": "Real GDP, capital deepening only to with a TFP spillover",
+        "value": "+1.6% to +2.5%",
+        "horizon": "End of 2031",
+        "baseline": "Barclays forecast",
+        "kind": "Printed, pp.34–37"
+      }
     },
     {
       "id": "ifs-gb26-tfp",
@@ -504,7 +525,15 @@
       "hi": 3.26,
       "plotLabel": "IMF UK, year 5",
       "plotHorizon": "Year 5, UK",
-      "note": "Output, baseline scenario"
+      "note": "Output, baseline scenario",
+      "near2030": {
+        "order": 6,
+        "source": "IMF, SIP/2026/072",
+        "measure": "Output, baseline scenario",
+        "horizon": "Years 4 and 5",
+        "baseline": "No AI",
+        "kind": "Year 4 derived: read off Figure 9; year 5 printed, Table 1"
+      }
     },
     {
       "id": "imf-sip-markup",
@@ -694,7 +723,18 @@
       "country": "UK",
       "loc": "Explainer, worked example",
       "checked": "2026-11-15",
-      "how": "read"
+      "how": "read",
+      "near2030": {
+        "order": 5,
+        "source": "DSIT, AI Skills Boost explainer",
+        "measure": "GVA",
+        "lo": 1.9,
+        "hi": 4.9,
+        "value": "+1.9% to +4.9% (£55bn to £140bn; medium 4.1%)",
+        "horizon": "2030",
+        "baseline": "Without AI adoption",
+        "kind": "Derived: £bn ÷ DSIT’s £2,840bn; 4.1% is printed"
+      }
     },
     {
       "id": "dsit-imf-exposure",
@@ -747,7 +787,14 @@
       "hi": 1.17,
       "plotLabel": "PwC for GO-Science, 2030",
       "plotHorizon": "2030, UK",
-      "note": "AI and machine learning"
+      "note": "AI and machine learning",
+      "near2030": {
+        "order": 3,
+        "measure": "Real GDP, AI and machine learning, productivity only",
+        "horizon": "2030",
+        "baseline": "2023 GDP, baseline adoption",
+        "kind": "Printed, Table 5.2"
+      }
     },
     {
       "id": "goscience-2035",
@@ -851,7 +898,14 @@
       "hi": 1,
       "plotLabel": "TBI, five years",
       "plotHorizon": "Five years from 2024, UK",
-      "note": "Range across four scenarios"
+      "note": "Range across four scenarios",
+      "near2030": {
+        "order": 2,
+        "measure": "GDP, four scenarios",
+        "horizon": "Five years from November 2024",
+        "baseline": "Without AI",
+        "kind": "Printed, executive summary"
+      }
     },
     {
       "id": "tbi-2035",
@@ -1097,7 +1151,16 @@
       "mark": 8.3,
       "plotLabel": "Korinek et al.",
       "plotHorizon": "2030, US",
-      "note": "Capital-supply elasticity 1 to ∞; substantial case 8.3%"
+      "note": "Capital-supply elasticity 1 to ∞; substantial case 8.3%",
+      "near2030": {
+        "order": 7,
+        "source": "Korinek et al. (US)",
+        "measure": "GDP, substantial case (US)",
+        "value": "+8.3% (+6.4% to +10.0% across capital supply)",
+        "horizon": "Start of 2030",
+        "baseline": "No AI",
+        "kind": "Printed, Tables 3 and 5"
+      }
     },
     {
       "id": "korinek-wage",

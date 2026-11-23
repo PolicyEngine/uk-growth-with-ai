@@ -70,7 +70,7 @@ describe('item 17: Public finances More info', () => {
           }
           // 2.4 only with some foreign capital
           const tw = taxWhy(sid, closure, rule);
-          if (closure !== 'central') expect(tw.map((i) => i.key)).toEqual(['closed']);
+          if (closure !== 'central') expect(tw.map((i) => i.key)).toEqual(['closed', 'closed2']);
           else {
             const every = ARMS.every((a) => Y.filter((y) => y >= SY).every((y) => sideOf(g(sid, a, cl, 'tax_gdp_pp', y, rule)) === 'below'));
             expect(tw.some((i) => i.key === 't1')).toBe(every);

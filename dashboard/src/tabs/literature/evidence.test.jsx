@@ -174,3 +174,36 @@ describe('Evidence lanes', () => {
     expect(container.querySelectorAll('#ranges-exposure .mx-share-part')).toHaveLength(row.shares.length);
   });
 });
+
+// Benchmarks review B6: the near-2030 card prints published figures only from
+// the map's flagged rows (the map stays their one home in the data), the two
+// derived ones from their own homes, and the macro model's from the data.
+describe('GDP around the headline year', () => {
+  it('reads every published figure from the map and says which are derived', async () => {
+    const { default: Near2030, NEAR_ROWS, ourValue } = await import('@/tabs/literature/Near2030.jsx');
+    const { container } = render(<Near2030 />);
+    const flagged = MAP.rows.filter((r) => r.near2030);
+    expect(NEAR_ROWS.map((r) => r.id)).toEqual([...flagged].sort((a, b) => a.near2030.order - b.near2030.order).map((r) => r.id));
+    expect(container.querySelectorAll('tbody tr')).toHaveLength(flagged.length + 1);
+    const cell = (id) => container.querySelector(`tr[data-row="${id}"] .ev-value`).textContent;
+    for (const r of flagged) {
+      // a printed row shows the map's own value, or a joined value that
+      // contains each joined row's figure
+      if (!r.near2030.kind.startsWith('Derived') && !r.near2030.kind.startsWith('Year 4 derived')) {
+        if (r.near2030.with) for (const id of [r.id, ...r.near2030.with]) expect(cell(r.id)).toContain(MAP.rows.find((x) => x.id === id).value);
+        else if (r.near2030.value) expect(r.near2030.value).toContain(num(r.lo));
+        else expect(cell(r.id)).toBe(r.value);
+      }
+      if (r.near2030.lo != null) {
+        expect(cell(r.id)).toContain(`+${r.near2030.lo}%`);
+        expect(cell(r.id)).toContain(`+${r.near2030.hi}%`);
+      }
+    }
+    expect(cell('imf-sip-y5')).toContain(MAP.rows.find((r) => r.id === 'imf-sip-y5').value);
+    // the three derived figures say so
+    expect(flagged.filter((r) => /derived/i.test(r.near2030.kind))).toHaveLength(3);
+    // the macro model's figures are the data's
+    expect(cell('oguk-near')).toBe(ourValue());
+    for (const s of SCENARIOS) expect(ourValue()).toContain(`${gap(s.id, 'tfp', CENTRAL, 'Y') < 0 ? '−' : '+'}${Math.abs(gap(s.id, 'tfp', CENTRAL, 'Y')).toFixed(1)}%`);
+  });
+});

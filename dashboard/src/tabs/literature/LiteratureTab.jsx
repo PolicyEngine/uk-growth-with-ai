@@ -11,6 +11,7 @@ import { esc } from '@/lib/download.js';
 import Card, { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import EvidenceLanes from './EvidenceLanes.jsx';
+import Near2030 from './Near2030.jsx';
 import RelatedWork from './RelatedWork.jsx';
 import IMF from './imfGap.json';
 import GrowthCheck from './GrowthCheck.jsx';
@@ -351,6 +352,7 @@ export default function StudiesTab() {
             <IconText icon="range">Published figures by measure, the macro model&rsquo;s beside them where comparable. Each row states its horizon.</IconText>
         </SectionHeading>
         <EvidenceLanes />
+        <Near2030 />
         <ImfGap />
         <GrowthCheck />
         <RelatedWork />

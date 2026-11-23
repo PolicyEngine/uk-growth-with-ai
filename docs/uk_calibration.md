@@ -27,7 +27,7 @@ UK sources give **one labour-share path each**, not a range:
      - 1.56pp at year 4;
      - 1.96pp at year 5;
      - 5.2pp at year 10, against 10pp in the long run.
-   - **The UK central scenario uses 1.6pp**, derived here as the IMF-consistent year-4 value (see the disclosure under section 2).
+   - **The UK central scenario uses 1.6pp**, derived here from the IMF's year-4 TFP and its 27% cost saving (see the disclosure under section 2). Only the inputs follow the IMF. The model's GDP gain from them is about a third of the IMF's at year 4 (+0.9% against +2.5%), because capital arrives more slowly here (docs/results_sanity_2027.md, section 7).
 2. **OBR *Fiscal risks and sustainability*, July 2026, Box 4.1.**
    - "The wage and salary share falls from 40 per cent in 2030-31 to 20 per cent in 2075-76" (p.87). The OBR calls this scale "at the upper end of the scenarios explored" in the literature.
    - The share is **wages and salaries as a share of GDP** (footnote a, p.88). It excludes employer social contributions and the labour part of mixed income, so it is not the model's factor share.
