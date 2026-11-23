@@ -1201,12 +1201,6 @@
   font-weight: 600;
   color: var(--pe-gray-800, #1f2937);
 }
-.ex-sd-flag {
-  margin-left: 2px;
-  font-weight: 600;
-  color: var(--pe-gray-900);
-  cursor: help;
-}
 .ex-sd-arm {
   display: inline-flex;
   align-items: center;
@@ -1959,7 +1953,6 @@
   .ex-sg-wrap { overflow-x: auto; }
   .ex-sg-held { display: none; }
   .ex-sg { font-size: var(--chart-fs-tick); }
-  .ex-sg-arm .ex-sd-flag { margin-left: 1px; }
   .ex-sg thead th, .ex-sg-cell, .ex-sg-arm { padding: 4px 2px; }
   .ex-sg thead th.ex-sg-corner { font-size: var(--chart-fs-tick); }
   .ex-sg-cell .ex-sd-val { font-size: var(--chart-fs-tick); }

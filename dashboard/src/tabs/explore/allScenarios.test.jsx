@@ -258,8 +258,11 @@ describe('the zeta_K 0.5 card’s More info fold', () => {
     // results review F4: the stated reason is the national-accounts check,
     // not the investment flag; no "implausible"
     expect(investmentFlags().some((f) => f.cl === 'zk0.5')).toBe(true);
-    expect(t).toContain(`* A bound, not a scenario. In UK high and Korinek et al. the investment surge would have the UK borrowing about 9% and 14% of GDP a year from abroad in ${S.surprise_year}–${S.surprise_year + 2}, with investment up to 40% of GDP; these two fail our national-accounts check. UK low and UK central pass it.`);
+    expect(t).toContain(`A bound, not a scenario. In UK high and Korinek et al. the investment surge would have the UK borrowing about 9% and 14% of GDP a year from abroad in ${S.surprise_year}–${S.surprise_year + 2}, with investment up to 40% of GDP; these two fail our national-accounts check. UK low and UK central pass it.`);
     expect(t).not.toMatch(/[Ii]mplausible/);
+    // no row marks: the failing groups carry the link (UK high, Korinek et al.)
+    expect(card.querySelectorAll('.ex-sd-flag')).toHaveLength(0);
+    expect(card.querySelectorAll('a.ex-sg-implaus')).toHaveLength(2);
     expect(body.querySelectorAll('#sens-flag a')).toHaveLength(2);
     // the comparison and settings rows last under How to read (item 36,
     // Card.jsx cardMore); the flag under Caveats; the unit is visible (item 42)

@@ -100,6 +100,9 @@ const SETS = {
     branch: 'rerun/surprise-2028',
     designDoc: 'docs/surprise_2028.md',
     sanityDoc: 'docs/results_sanity_2028.md',
+    // the national-accounts check's section in the audit (none: it is
+    // reported throughout the 2028 audit)
+    checkLogAnchor: '',
     sanityRef: 'audit/sanity-2028-final',
     nicsFile: 'nics_2028.json',
     nicsPath: 'analysis/nics/nics_2028.json',
@@ -132,6 +135,7 @@ const SETS = {
     branch: '3988c0b',
     designDoc: 'docs/surprise_2027.md',
     sanityDoc: 'docs/results_sanity_2027.md',
+    checkLogAnchor: '#the-check-log-on-the-assembled-files',
     sanityRef: '3988c0b',
     nicsFile: 'nics_2027.json',
     nicsPath: 'analysis/nics/nics_2027.json',

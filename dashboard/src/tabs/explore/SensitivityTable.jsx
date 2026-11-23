@@ -11,7 +11,7 @@ import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS } from '@/tabs/ai/links.js';
 import { sourcesItems } from './sources.jsx';
 import { docItem } from '@/lib/sourceItems.js';
-import { investmentFlags, I_FLAG_PCT } from './caveats.js';
+import { investmentFlags } from './caveats.js';
 import { OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import { NavLink } from '@/lib/nav.jsx';
 import ChartHover from '@/components/story/chart/ChartHover.jsx';
@@ -123,8 +123,9 @@ function investmentItems(res) {
 }
 
 // Rows whose shock-year investment gap is above the project's flag
-// (explore/caveats.js): marked * beside the arm, worded once under the
-// claims (#sens-flag). Korinek et al.'s main arm is the largest.
+// (explore/caveats.js). Every row from UK central up is over it at zeta_K
+// 0.5, so rows carry no mark (results review F4): the groups that fail the
+// national-accounts check link to the note under the claims (#sens-flag).
 const SENS_FLAGS = () => investmentFlags().filter((f) => f.cl === SENS);
 // The two zeta_K 0.5 files that fail `check` (results review F4): Y - C -
 // I - G, main arm, beyond the bound of +/-6% of GDP in the three ramp
@@ -148,7 +149,7 @@ export function sensFlagItem() {
     icon: 'caveat',
     text: (
       <>
-        * A bound, not a scenario. In {and(FAILS.map((f) => inText(f.sid)))} the investment surge would have the UK borrowing about {and(FAILS.map((f) => `${f.abroadPct}%`))} of GDP a year from abroad in {S.surprise_year}–{S.surprise_year + 2}, with {ext(OG_RESULT_URLS.plausibility, `investment up to ${INVEST_MAX_PCT}% of GDP`)}; these two fail our {ext(OG_RESULT_URLS.sanity, 'national-accounts check')}. {and(SCENARIOS.filter((s) => !FAILS.some((f) => f.sid === s.id)).map((s) => inText(s.id)))} pass it.
+        A bound, not a scenario. In {and(FAILS.map((f) => inText(f.sid)))} the investment surge would have the UK borrowing about {and(FAILS.map((f) => `${f.abroadPct}%`))} of GDP a year from abroad in {S.surprise_year}–{S.surprise_year + 2}, with {ext(OG_RESULT_URLS.plausibility, `investment up to ${INVEST_MAX_PCT}% of GDP`)}; these two fail our {ext(OG_RESULT_URLS.checkLog, 'national-accounts check')}. {and(SCENARIOS.filter((s) => !FAILS.some((f) => f.sid === s.id)).map((s) => inText(s.id)))} pass it.
       </>
     ),
   };
@@ -175,7 +176,6 @@ function colMax(res, v) {
 }
 
 function SensGrid({ res }) {
-  const flagged = new Set(SENS_FLAGS().map((f) => `${f.sid}|${f.arm}`));
   const max = Object.fromEntries(VARS.map((c) => [c.v, colMax(res, c.v)]));
   // hover (M4): each cell's scenario, version, foreign capital, rule, value
   // (from the data, with its path) and the comparison with ζK 0.1
@@ -251,11 +251,6 @@ function SensGrid({ res }) {
                       <span className="swatch" style={{ borderTopColor: ARM_COLOR[a.id] }} aria-hidden="true" />
                       <span className="ex-mx-long">{a.short || a.label}</span>
                       <span className="ex-mx-short">{ARM_SHORT[a.id] ?? a.short}</span>
-                      {flagged.has(`${s.id}|${a.id}`) ? (
-                        <sup className="ex-sd-flag" title={`Investment more than +${I_FLAG_PCT}% above the forecast path in ${S.surprise_year}: above our investment flag`}>
-                          *
-                        </sup>
-                      ) : null}
                     </th>
                     {VARS.map((c) => {
                       const x = at(r, c.v);

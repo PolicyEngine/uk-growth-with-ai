@@ -26,12 +26,22 @@ import { ext } from '@/tabs/shared/ui.jsx';
 import { REPO } from '@/tabs/ai/links.js';
 import { SRC } from '@/tabs/method/sources.js';
 import { HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
-// the debt-neutral transfer cut from the headline year, UK central, main
-// version, some foreign capital (results review, 22 Nov 2026, F6): TR
-// against the baseline in scenarios_surprise{2027,2028}_uk_central_debt_neutral.json
-// is -6.5% in the headline year and -6.2 to -6.4% to 2035 on both sets.
-// Not in the site's data: a rerun that moves it must update this.
-const DN_TRANSFER_CUT_PCT = 6;
+// The debt-neutral transfer cut from the headline year to 2035, UK central,
+// whole per cent, by version and foreign capital (results review, 22 Nov
+// 2026, F6): TR against the baseline in
+// scenarios_surprise{2027,2028}_uk_central_debt_neutral{,_zk0}.json, the
+// same on both sets. Main version: -6.2 to -6.5% (some), -4.7 to -5.4%
+// (none); stress test: -8.7 to -9.1% (some), -6.2 to -6.5% (none). Technology
+// unchanged is not solved under this rule. Not in the site's data: a rerun
+// that moves it must update this.
+const DN_TRANSFER_CUT_PCT = { tfp: { 'zk0.1': 6, zk0: 5 }, stress: { 'zk0.1': 9, zk0: 6 } };
+export function dnTransferCut(arm, cls) {
+  const xs = cls.map((k) => DN_TRANSFER_CUT_PCT[arm]?.[k]).filter((x) => x != null);
+  if (xs.length !== cls.length || !xs.length) return null;
+  const lo = Math.min(...xs);
+  const hi = Math.max(...xs);
+  return lo === hi ? `${lo}%` : `${lo}–${hi}%`;
+}
 // the paper draft lives on its own pushed branch, not on this history
 const PAPER_DRAFT = `${REPO}/blob/paper/first-draft/paper/main.tex`;
 
@@ -1115,10 +1125,9 @@ export default function WhoGainsTab() {
                   { key: 'fill', icon: 'young', text: `Born after 2011: up to ${c.fill_max_pp.toFixed(2)} percentage points from extending past ${HORIZON_YEAR}` },
                   { key: 'groups', icon: 'lifetimeEarnings', text: 'Earnings groups: percentiles of lifetime earnings, not income deciles' },
                   // results review F6: debt-neutral transfers pay the model's
-                  // at-once interest bill (UK central, main version: transfers
-                  // -6.5% in the headline year, about -6.3% to 2035; at the
-                  // OBR's repricing pace the debt rise is about a third)
-                  rule === 'dn' ? { key: 'reprice', icon: 'interest', text: `Transfers fall about ${DN_TRANSFER_CUT_PCT}% from ${HEADLINE_YEAR} to pay a higher interest bill on all debt at once; gilts reprice more slowly, so losses here are on the high side` } : null,
+                  // at-once interest bill (at the OBR's repricing pace the
+                  // debt rise is about a third as large)
+                  rule === 'dn' && dnTransferCut(arm, cls) ? { key: 'reprice', icon: 'interest', text: `Transfers fall about ${dnTransferCut(arm, cls)} from ${HEADLINE_YEAR} to pay a higher interest bill on all debt at once; gilts reprice more slowly, so losses here are on the high side` } : null,
                 ]}
               />
             ),

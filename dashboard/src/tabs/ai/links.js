@@ -76,6 +76,9 @@ export const OG_RESULT_URLS = {
   sanity: atRef(SET.docsRef, `${SET.designDoc}#the-sanity-gate-after-every-solve`),
   // the gilt rate is the private return less about 2pp: one for one with r
   giltRate: atRef(RESULTS_SHA, 'docs/rerun_r1_r4.md'),
+  // the national-accounts check (`check`: Y - C - I - G within +/-6% of
+  // GDP) on the assembled files, in the set's results sanity audit
+  checkLog: atRef(SET.sanityRef, `${SET.sanityDoc}${SET.checkLogAnchor ?? ''}`),
   // the real-world plausibility review: investment rows rated implausible
   plausibility: atRef('59139aa', 'docs/redesign/real-world-plausibility.md'),
 };
