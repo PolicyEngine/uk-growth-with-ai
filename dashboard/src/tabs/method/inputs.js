@@ -5,7 +5,7 @@
 // from printed figures, by a rule the source does not state), default (OG-UK's
 // default parameter, no UK estimate behind it), choice (a modelling choice,
 // not from a published source), external (an external source, linked).
-import { scenarioById, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, RAMP_WORD } from '@/tabs/ai/surprise.js';
+import { scenarioById, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, RAMP_WORD, CENTRAL, gap } from '@/tabs/ai/surprise.js';
 import { ADOPTION, ADOPTION_YEAR, OBR_B4_LEVEL, pctRange } from '@/lib/obrOverlap.js';
 
 // a scenario's name and its two inputs, as the table and the macro page's
@@ -38,15 +38,31 @@ export const KIND = {
 // slug its label had on 22 Nov 2026 under the 2028 set, typed here so a
 // reworded label or an added symbol cannot move a link. Two labels carry a
 // year or a word from the data; their ids keep the 2028 form in both sets.
+// Korinek et al.'s own labour income against ours (results review F8;
+// docs/results_sanity_audit.md, Anomaly D): in the source it rises (+1.3%)
+// with capital up 13.8%; here, main version with some foreign capital, the
+// labour income gap is the pay-rate and labour gaps combined, and the
+// capital gap is read from the data. null unless ours falls.
+const KORINEK_SRC_K_PCT = 14;
+export function korinekLabourNote() {
+  const w = gap('korinek', 'tfp', CENTRAL, 'w');
+  const l = gap('korinek', 'tfp', CENTRAL, 'L');
+  const k = gap('korinek', 'tfp', CENTRAL, 'K');
+  if (w == null || l == null || k == null) return null;
+  const li = 100 * ((1 + w / 100) * (1 + l / 100) - 1);
+  if (!(li < -0.05) || !(k > 0)) return null;
+  return `In the source, labour income rises; here it falls, because capital rises about ${Math.round(k)}% against the source’s ${KORINEK_SRC_K_PCT}%.`;
+}
+
 export const INPUTS = [
   // the scenario pairs
   { id: 'in-uk-low-output-at-fixed-inputs', group: 'Scenarios', part: 'macro', input: 'UK low: output at fixed inputs', value: pc('uk_low'), kind: 'derived', how: `OBR J-curve, 0.1pp a year by year five, phased in linearly: 0.1 × (1+2+3+4)/5 = 0.2%; Chart B.4 reads ${OBR_B4_LEVEL.J[ADOPTION_YEAR - 1].toFixed(2)}% at year ${ADOPTION_YEAR}.`, src: ['bp9B12', 'frs86'] },
-  { id: 'in-uk-low-labour-share-fall', group: 'Scenarios', part: 'macro', input: 'UK low: labour-share fall', value: pp('uk_low'), kind: 'derived', how: 'The gain divided by the IMF’s 27% cost saving: 0.2 ÷ 0.27 = 0.74pp. The IMF does not print this rule or figure.', src: ['imfSip44'] },
+  { id: 'in-uk-low-labour-share-fall', group: 'Scenarios', part: 'macro', input: 'UK low: labour-share fall', value: pp('uk_low'), kind: 'derived', how: `The gain divided by the IMF’s 27% cost saving: 0.2 ÷ 0.27 = 0.74pp. The IMF does not print this rule or figure. This pairing gives about a quarter of a per cent of productivity gain per point of share fall. Pay holds its path only at about 0.95% per point, so in this scenario pay ends below the path by ${HEADLINE_YEAR} because of how the inputs are paired.`, src: ['imfSip44'] },
   { id: 'in-uk-central-output-at-fixed-inputs', group: 'Scenarios', part: 'macro', input: 'UK central: output at fixed inputs', value: `${pc('uk_central')}, model input (rounded)`, kind: 'derived', how: `IMF Table 1 prints years 5 and 10 only; year 4 is read off Figure 9 as about 0.42% (0.41–0.44%). Cross-check: the OBR’s own AI effect at year ${ADOPTION_YEAR} is ${pctRange(ADOPTION)} (Briefing paper No.9, Chart B.4), already in the forecast path; this input is not net of it.`, src: ['imfSipT1', 'imfSipFig9', 'bp9B14', 'efoOct127'] },
-  { id: 'in-uk-central-labour-share-fall-headline', group: 'Scenarios', part: 'macro', input: 'UK central: labour-share fall (headline)', value: pp('uk_central'), kind: 'derived', how: 'Derived, not published by the IMF. Year-4 TFP is read off IMF SIP/2026/072 Figure 9 as about 0.42% (0.41–0.44%; only years 5 and 10 are printed). Divided by the IMF’s 27% cost saving, the 0.41–0.44% reading gives 1.5–1.6pp. The UK central scenario uses 1.6pp.', note: 'The share is derived from the 0.42 reading, but the TFP input is the rounded 0.4, which on its own would give 0.4 ÷ 0.27 = 1.5pp.', src: ['imfSipFig9', 'imfSip44', 'frs87'] },
+  { id: 'in-uk-central-labour-share-fall-headline', group: 'Scenarios', part: 'macro', input: 'UK central: labour-share fall (headline)', value: pp('uk_central'), kind: 'derived', how: `Derived, not published by the IMF. Year-4 TFP is read off IMF SIP/2026/072 Figure 9 as about 0.42% (0.41–0.44%; only years 5 and 10 are printed). Divided by the IMF’s 27% cost saving, the 0.41–0.44% reading gives 1.5–1.6pp. The UK central scenario uses 1.6pp. This pairing gives about a quarter of a per cent of productivity gain per point of share fall. Pay holds its path only at about 0.95% per point, so in this scenario pay ends below the path by ${HEADLINE_YEAR} because of how the inputs are paired.`, note: 'The share is derived from the 0.42 reading, but the TFP input is the rounded 0.4, which on its own would give 0.4 ÷ 0.27 = 1.5pp.', src: ['imfSipFig9', 'imfSip44', 'frs87'] },
   { id: 'in-uk-high-output-at-fixed-inputs', group: 'Scenarios', part: 'macro', input: 'UK high: output at fixed inputs', value: pc('uk_high'), kind: 'derived', how: 'The OBR’s high alternative, up to 0.8pp a year (a decade average), phased in linearly to year five: 2 × 0.8 = 1.6%. Ramping to it by year five is a modelling choice.', src: ['frs86', 'bp9B14', 'imfArt4'] },
   { id: 'in-uk-high-labour-share-fall', group: 'Scenarios', part: 'macro', input: 'UK high: labour-share fall', value: pp('uk_high'), kind: 'derived', how: `The OBR’s upper-end path, wages and salaries 40% → 20% of GDP over 45 years: 20/45 × 4 = 1.78pp, rescaled to the macro model’s 65% labour share: × 65/40 = 2.89pp. Rescaling and the ${SURPRISE_YEAR} start are modelling choices.`, src: ['frs87', 'frs88'] },
-  { id: 'in-korinek-et-al-substantial-us-labour-shar', group: 'Scenarios', part: 'macro', input: 'Korinek et al., substantial (US): labour share and TFP', value: `${pp('korinek')}; ${pc('korinek')}`, kind: 'published', how: 'The ‘substantial’ scenario of Korinek et al. (2026), a US case used as the upper case, not calibrated to the UK: labour share 60.0 → 56.1; measured TFP +3.1% in 2030.', src: ['korinekT3'] },
+  { id: 'in-korinek-et-al-substantial-us-labour-shar', group: 'Scenarios', part: 'macro', input: 'Korinek et al., substantial (US): labour share and TFP', value: `${pp('korinek')}; ${pc('korinek')}`, kind: 'published', how: 'The ‘substantial’ scenario of Korinek et al. (2026), a US case used as the upper case, not calibrated to the UK: labour share 60.0 → 56.1; measured TFP +3.1% in 2030.', ...(korinekLabourNote() ? { note: korinekLabourNote() } : {}), src: ['korinekT3'] },
   { id: 'in-stress-test-gdp-held-at-the-obr-s-centra', group: 'Scenarios', part: 'macro', input: 'Stress test: GDP held at the OBR’s central forecast path', value: `GDP gap 0 in ${HEADLINE_YEAR}`, kind: 'choice', how: 'After the OBR’s displacement scenario, GDP unchanged. The 0.01pp tolerance is a modelling choice.', src: ['efoMarBox22'] },
   { id: 'in-which-pairs-the-three-arms-the-headline', group: 'Scenarios', part: 'macro', input: 'Which pairs, the three arms, the headline', value: '—', kind: 'choice', how: 'The study’s design.', src: ['calibNote', 'fiscalRules'] },
   // timing

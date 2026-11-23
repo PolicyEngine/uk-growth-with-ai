@@ -4,10 +4,9 @@ import { MEASURE } from '@/lib/labels.js';
 import Card from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
-import { S, ARMS, ARM_COLOR, SCENARIOS, YEARS, HEADLINE_YEAR, CENTRAL, ZETA, fmt, resultAt, foreignShareOf, holeText, storedAt } from '@/tabs/ai/surprise.js';
+import { S, ARMS, ARM_COLOR, SCENARIOS, SCEN_NAME, YEARS, HEADLINE_YEAR, CENTRAL, ZETA, fmt, resultAt, foreignShareOf, holeText, storedAt } from '@/tabs/ai/surprise.js';
 import Icon from '@/components/ab/Icon.jsx';
 import { side } from '@/tabs/ai/lines.js';
-import { dirConcept } from '@/tabs/explore/direction.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS } from '@/tabs/ai/links.js';
 import { sourcesItems } from './sources.jsx';
@@ -16,7 +15,7 @@ import { investmentFlags, I_FLAG_PCT } from './caveats.js';
 import { OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import { NavLink } from '@/lib/nav.jsx';
 import ChartHover from '@/components/story/chart/ChartHover.jsx';
-import { fracWord } from '@/tabs/story/part2/caveats.js';
+import { fracWord, PAY_EDGE } from '@/tabs/story/part2/caveats.js';
 import MathSym, { mathNodes, symText } from '@/components/ui/MathSym.jsx';
 
 // The foreign-owned share of the added capital in the headline year: the
@@ -45,28 +44,34 @@ const cls = (x) => (x == null ? '' : x > 0.005 ? ' is-gain' : x < -0.005 ? ' is-
 // computed from the signs (headline year, common fiscal rule): the capital
 // stock and GDP against some foreign capital, the pay rate's side of the
 // path, and GNI against GDP. The icon follows the same comparison.
-// The card's title (item 42, item-36-fable.md section 7.1), a short finding
-// gated on the main version's signs, with the file's fallbacks: 1. pay
-// rate above the path at zeta_K 0.5 in every scenario and below it at 0.1
-// in every one; 2. on or above at 0.5 in every one; 3. GDP higher than at
-// 0.1 in every one; 4. the plain label.
+// the scenario's name in running text: "Korinek et al." without its tag
+const inText = (sid) => (sid === 'korinek' ? 'Korinek et al.' : SCEN_NAME[sid]);
 function mainRows(res) {
-  return SCENARIOS.map((s) => ({ sens: res?.[s.id]?.tfp, central: resultAt(s.id, 'tfp', CENTRAL, 'common') })).filter((r) => r.sens?.status === 'done' && r.central.status === 'done');
+  return SCENARIOS.map((s) => ({ name: inText(s.id), sens: res?.[s.id]?.tfp, central: resultAt(s.id, 'tfp', CENTRAL, 'common') })).filter((r) => r.sens?.status === 'done' && r.central.status === 'done');
 }
 // "in every scenario" holds only when every scenario is solved at both
 // closures: on a partial file (the 2027 export) no claim is made.
 const complete = (rows) => rows.length === SCENARIOS.length;
-export function payAboveGate(res) {
-  const rows = mainRows(res);
-  return complete(rows) && rows.every((r) => side(at(r.sens, 'w')) === 'above' && side(at(r.central, 'w')) === 'below');
+export function sensTitle() {
+  return 'If much more capital came from abroad: a sensitivity';
 }
-export function sensTitle(res = S.sensitivity?.[SENS]?.results) {
-  const rows = mainRows(res);
-  if (!complete(rows)) return 'Gaps with much more foreign capital';
-  if (payAboveGate(res)) return 'More foreign capital puts the main version’s pay rate above the path';
-  if (rows.every((r) => side(at(r.sens, 'w')) !== 'below')) return 'More foreign capital: main version’s pay rate on or above the path';
-  if (rows.every((r) => at(r.sens, 'Y') - at(r.central, 'Y') > 0.005)) return 'With much more foreign capital, GDP is higher in every scenario';
-  return 'Gaps with much more foreign capital';
+
+// The pay rate's side at zeta_K 0.5, main version, per scenario, against
+// PAY_EDGE: "about on" the path within it, else above or below (F4).
+// "The pay rate is about on the forecast path in UK low and UK central,
+// and above it in UK high and Korinek et al."
+export function sensPayLine(rows) {
+  const groups = [];
+  for (const r of rows) {
+    const x = at(r.sens, 'w');
+    const g = Math.abs(x) < PAY_EDGE ? 'on' : x > 0 ? 'above' : 'below';
+    const last = groups[groups.length - 1];
+    if (last && last.g === g) last.n.push(r.name);
+    else groups.push({ g, n: [r.name] });
+  }
+  const and = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0]);
+  const part = (gr, i) => `${gr.g === 'on' ? 'about on' : gr.g} ${i ? 'it' : 'the forecast path'} in ${and(gr.n)}`;
+  return `The pay rate is ${groups.map(part).join(', and ')}`;
 }
 
 export function sensClaims(res = S.sensitivity?.[SENS]?.results) {
@@ -81,12 +86,7 @@ export function sensClaims(res = S.sensitivity?.[SENS]?.results) {
     return { icon: 'compare', text: `${name}: no single direction` };
   };
   const w = rows.map((r) => at(r.sens, 'w'));
-  const wSides = new Set(w.map(side));
-  const wCentral = new Set(rows.map((r) => side(at(r.central, 'w'))));
-  const instead = wCentral.size === 1 && wCentral.has('below') ? ', not below' : '';
-  const wage = wSides.has('below')
-    ? { icon: 'gapDown', text: 'The pay rate is below the forecast path in at least one scenario' }
-    : { icon: dirConcept(Math.min(...w)) === 'onPath' && !wSides.has('above') ? 'onPath' : 'gapUp', text: `The pay rate is ${wSides.has('on') ? 'on or above' : 'above'} the forecast path${instead}` };
+  const wage = { icon: w.some((x) => x <= -PAY_EDGE) ? 'gapDown' : w.every((x) => Math.abs(x) < PAY_EDGE) ? 'onPath' : 'gapUp', text: sensPayLine(rows) };
   // "more income goes abroad" compares with some foreign capital: GDP less
   // GNI is larger at ζK 0.5 than at ζK 0.1 in every scenario (review round
   // 2, R2-21)
@@ -95,8 +95,7 @@ export function sensClaims(res = S.sensitivity?.[SENS]?.results) {
   return [
     { key: 'k', ...versus('K', 'Capital stock') },
     { key: 'y', ...versus('Y', 'GDP') },
-    // the title says it when gate 1 holds: the fact once
-    payAboveGate(res) ? null : { key: 'w', ...wage },
+    { key: 'w', ...wage },
     gniLess ? { key: 'gni', icon: 'foreign', text: 'More income goes abroad, so GNI gains less than GDP' } : { key: 'gni', icon: 'gni', text: 'GNI does not gain less than GDP in every scenario' },
   ].filter(Boolean);
 }
@@ -127,6 +126,20 @@ function investmentItems(res) {
 // (explore/caveats.js): marked * beside the arm, worded once under the
 // claims (#sens-flag). Korinek et al.'s main arm is the largest.
 const SENS_FLAGS = () => investmentFlags().filter((f) => f.cl === SENS);
+// The two zeta_K 0.5 files that fail `check` (results review F4): Y - C -
+// I - G, main arm, beyond the bound of +/-6% of GDP in the three ramp
+// years, from the check log (docs/results_sanity_2027.md, "The `check`
+// log on the assembled files"; the 2028 set's figures round the same:
+// -9.1 to -9.3% and -13.8 to -14.4%). Investment peaks at 40.5% of GDP
+// (Korinek et al.) in both sets. Not in the data file: a rerun that moves
+// them must update these.
+const FAILS = [
+  { sid: 'uk_high', abroadPct: 9 },
+  { sid: 'korinek', abroadPct: 14 },
+];
+const INVEST_MAX_PCT = 40;
+const FAILS_IDS = new Set(FAILS.map((f) => f.sid));
+const and = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0] ?? '');
 export function sensFlagItem() {
   const fl = SENS_FLAGS();
   if (!fl.length) return null;
@@ -135,7 +148,7 @@ export function sensFlagItem() {
     icon: 'caveat',
     text: (
       <>
-        * Investment jumps up to {Math.round(fl[0].x)}% above the path in {S.surprise_year}, beyond our {ext(OG_RESULT_URLS.sanity, `+${I_FLAG_PCT}% plausibility check`)}, so we treat this sensitivity as {ext(OG_RESULT_URLS.plausibility, 'implausible')}.
+        * A bound, not a scenario. In {and(FAILS.map((f) => inText(f.sid)))} the investment surge would have the UK borrowing about {and(FAILS.map((f) => `${f.abroadPct}%`))} of GDP a year from abroad in {S.surprise_year}–{S.surprise_year + 2}, with {ext(OG_RESULT_URLS.plausibility, `investment up to ${INVEST_MAX_PCT}% of GDP`)}; these two fail our {ext(OG_RESULT_URLS.sanity, 'national-accounts check')}. {and(SCENARIOS.filter((s) => !FAILS.some((f) => f.sid === s.id)).map((s) => inText(s.id)))} pass it.
       </>
     ),
   };
@@ -212,10 +225,9 @@ function SensGrid({ res }) {
           </tr>
         </thead>
         {SCENARIOS.map((s) => {
-          // the link sits on the group with the largest flag, whichever
-          // scenario that is (review round 2, R2-22)
-          const top = SENS_FLAGS()[0];
-          const fl = top && top.sid === s.id ? top : null;
+          // the link sits on each group that fails the national-accounts
+          // check (results review F4)
+          const fl = FAILS_IDS.has(s.id) && SENS_FLAGS().length > 0;
           return (
             <tbody key={s.id}>
               <tr className="ex-sg-group">
@@ -226,7 +238,7 @@ function SensGrid({ res }) {
                     // through the nav's reveal path: the note sits in the
                     // closed More info fold, which a reveal opens
                     <NavLink tab="explore" sub="economy" anchor="sens-flag" className="ex-sg-implaus">
-                      Implausible: investment +{Math.round(fl.x)}% in {S.surprise_year}
+                      Fails the national-accounts check
                     </NavLink>
                   ) : null}
                 </th>
@@ -240,7 +252,7 @@ function SensGrid({ res }) {
                       <span className="ex-mx-long">{a.short || a.label}</span>
                       <span className="ex-mx-short">{ARM_SHORT[a.id] ?? a.short}</span>
                       {flagged.has(`${s.id}|${a.id}`) ? (
-                        <sup className="ex-sd-flag" title={`Investment more than +${I_FLAG_PCT}% above the forecast path in ${S.surprise_year}: implausible`}>
+                        <sup className="ex-sd-flag" title={`Investment more than +${I_FLAG_PCT}% above the forecast path in ${S.surprise_year}: above our investment flag`}>
                           *
                         </sup>
                       ) : null}
@@ -347,7 +359,7 @@ export default function SensitivityTable() {
     <Card
       id="closure-sensitivity"
       icon={iconFor('foreign')}
-      title={sensTitle(res)}
+      title={sensTitle()}
       unit={<span data-axis-title="y">{mathNodes(`ζK = ${sens.zeta_K}, ${HEADLINE_YEAR}, % gap vs forecast path`)}</span>}
       // the definition, the claims, the grid's key, the flag and the
       // settings, in the card's one closed More info (item 14; item 36:

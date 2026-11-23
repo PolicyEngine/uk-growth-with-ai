@@ -62,7 +62,7 @@ export function economyAnswer(sid, closure, rule) {
       ? null
       : [
           { key: 'ls', icon: 'inequality', dir: ls, text: `Labour share ${{ above: '↑', below: '↓', on: 'unchanged' }[side(ls)]} (imposed)` },
-          { key: 'pay', icon: 'pay', text: side(ls) === 'below' ? 'pay grows less than output' : side(ls) === 'above' ? 'pay grows more than output' : 'pay keeps pace with output' },
+          { key: 'pay', icon: 'pay', text: side(ls) === 'below' ? 'pay grows less than output: capital is slow to arrive' : side(ls) === 'above' ? 'pay grows more than output' : 'pay keeps pace with output' },
         ];
   return { ...r, why, caveat };
 }

@@ -91,6 +91,44 @@ export function payCaveat(sid) {
   return `It stays below the forecast path with or without foreign capital${tail}.`;
 }
 
+// Why the pay rate ends below the path (results review, 22 Nov 2026, F1),
+// three steps from the scenario list and the gap, main arm:
+// 1. the share cut alone: pay = labour's share x output per unit of
+//    labour, so with output per unit unchanged it moves by s1/s0 - 1, with
+//    s0 = 1 - gamma0, s1 = 1 - gamma1 (gamma1 the scenario's terminal
+//    capital share, gamma0 = gamma1 less the share fall);
+// 2. how much of that the productivity input and more capital per hour
+//    win back by the headline year: "about half" at 40-60% of step 1,
+//    "most" above, "part" below;
+// 3. arithmetic, not a model run: with capital supplied at an unchanged
+//    return, k = ((gamma1/gamma0)(1+t))^(1/(1-gamma1)) and pay moves by
+//    (s1/s0)(1+t)k^gamma1 - 1, t the productivity input.
+// null unless the gap is below the path and the inputs are in the data.
+export function payWhy(sid, cl = CENTRAL, rule = 'common') {
+  const w = gap(sid, 'tfp', cl, 'w', HEADLINE_YEAR, rule);
+  const s = S.scenarios?.find((x) => x.id === sid);
+  if (w == null || !(w < -EPS2) || !s) return null;
+  const fall = s.labour_share_fall_pp;
+  const g1 = s.gamma_terminal;
+  const t = s.tfp_gain_pct / 100;
+  if (![fall, g1, t].every(Number.isFinite) || !(fall > 0)) return null;
+  const g0 = g1 - fall / 100;
+  const ratio = (1 - g1) / (1 - g0);
+  const step1 = 100 * (ratio - 1);
+  const back = (w - step1) / -step1;
+  const won = back > 0.6 ? 'most' : back >= 0.4 ? 'about half' : back > 0 ? 'part' : null;
+  const k = ((g1 / g0) * (1 + t)) ** (1 / (1 - g1));
+  const free = 100 * (ratio * (1 + t) * k ** g1 - 1);
+  const freeWords = Math.abs(free) < 0.05 ? 'on the path' : `about ${Math.abs(free).toFixed(1)}% ${free > 0 ? 'above' : 'below'} the path`;
+  return [
+    `Why below: this scenario moves ${fall.toFixed(1)} points of income from labour to capital, which alone lowers the pay rate about ${(-step1).toFixed(1)}%.`,
+    won ? `Higher productivity and more capital per hour win back ${won} of that by ${HEADLINE_YEAR}.` : null,
+    `Capital is slow to arrive: if it came at an unchanged return, the same inputs would put the pay rate ${freeWords} (arithmetic, not a model run).`,
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
 // The pay tile's line (review round 3, R3-17): payLine's, except where
 // pay falls only in the shock year and grows in every later year to the
 // headline year (pay_growth_pct; Korinek with no foreign capital on the

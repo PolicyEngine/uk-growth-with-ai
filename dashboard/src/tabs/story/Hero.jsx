@@ -11,7 +11,7 @@ import { REPO } from '@/tabs/ai/links.js';
 import { METHOD, MEASURE, PAGE_TITLE } from '@/lib/labels.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import { useSvgScale } from '@/lib/svgScale.js';
-import { payCaveat, payWords } from '@/tabs/story/part2/caveats.js';
+import { payCaveat, payWhy, payWords } from '@/tabs/story/part2/caveats.js';
 import { LateLine, incomeNotes, signCaveat } from '@/tabs/ai/Landing.jsx';
 import { BOUND, HEADLINE_YEAR, LATE_YEAR, S, SCENARIOS, SCENARIO_COUNT_WORD, SCEN_NAME, SURPRISE_YEAR, YEARS, fmt, gap } from '@/tabs/ai/surprise.js';
 
@@ -264,6 +264,7 @@ export function heroStats(sid, cl) {
         'Pay per unit of labour, adjusted for skill; not average earnings.',
         pay === 'slower growth, not a cut' ? 'A gap in the level: pay still rises every year, more slowly.' : null,
         payCaveat(sid),
+        payWhy(sid, cl),
       ]
         .filter(Boolean)
         .join(' '),

@@ -228,7 +228,7 @@ describe('Across scenarios: direction icons for every measure and arm', () => {
 describe('the zeta_K 0.5 card’s More info fold', () => {
   it('is closed by default, opens on click, and words the foreign share and the flag from the data', async () => {
     const S = (await import('@/lib/activeData.js')).default;
-    const { I_FLAG_PCT, investmentFlags } = await import('@/tabs/explore/caveats.js');
+    const { investmentFlags } = await import('@/tabs/explore/caveats.js');
     const { container } = at('tab=explore');
     const card = container.querySelector('#closure-sensitivity');
     const btn = card.querySelector('#sens-more .disclosure-toggle');
@@ -255,8 +255,11 @@ describe('the zeta_K 0.5 card’s More info fold', () => {
     const x = foreignShareOf(S.sensitivity['zk0.5'].results.uk_central.tfp);
     expect(defs[1]).toBe(`In ${HEADLINE_YEAR} about all of the added capital (${Math.round(x)}%) ends up foreign-owned.`);
     expect(t).not.toMatch(/new capital|further above the forecast path/);
-    const fl = investmentFlags().filter((f) => f.cl === 'zk0.5');
-    expect(t).toContain(`Investment jumps up to ${Math.round(fl[0].x)}% above the path in ${S.surprise_year}, beyond our +${I_FLAG_PCT}% plausibility check, so we treat this sensitivity as implausible.`);
+    // results review F4: the stated reason is the national-accounts check,
+    // not the investment flag; no "implausible"
+    expect(investmentFlags().some((f) => f.cl === 'zk0.5')).toBe(true);
+    expect(t).toContain(`* A bound, not a scenario. In UK high and Korinek et al. the investment surge would have the UK borrowing about 9% and 14% of GDP a year from abroad in ${S.surprise_year}–${S.surprise_year + 2}, with investment up to 40% of GDP; these two fail our national-accounts check. UK low and UK central pass it.`);
+    expect(t).not.toMatch(/[Ii]mplausible/);
     expect(body.querySelectorAll('#sens-flag a')).toHaveLength(2);
     // the comparison and settings rows last under How to read (item 36,
     // Card.jsx cardMore); the flag under Caveats; the unit is visible (item 42)
@@ -265,9 +268,10 @@ describe('the zeta_K 0.5 card’s More info fold', () => {
     expect(read.lastElementChild.textContent).toBe('Settings Spending follows GDP.');
     expect(body.querySelector('[data-group="caveats"] #sens-flag')).not.toBeNull();
     expect(card.querySelector('.card-unit [data-axis-title="y"]').textContent).toBe(`ζK = ${S.sensitivity['zk0.5'].zeta_K}, ${HEADLINE_YEAR}, % gap vs forecast path`);
-    // item 42: the gated title; the pay-rate claim is not repeated in the fold
-    expect(card.querySelector('.card-head h3').textContent).toBe('More foreign capital puts the main version’s pay rate above the path');
-    expect(t).not.toMatch(/The pay rate is/);
+    // results review F4: a neutral title; the pay rate's side is a claim in
+    // the fold, gated on PAY_EDGE
+    expect(card.querySelector('.card-head h3').textContent).toBe('If much more capital came from abroad: a sensitivity');
+    expect(t).toContain('The pay rate is about on the forecast path in UK low and UK central, and above it in UK high and Korinek et al.');
     // item 39: the key line under the grid, visible with the fold closed
     // push D, Q6d: the comparison named once, as a lead-in, with ζK from
     // the data; then the outline and the arrows, no bare "/" between icons

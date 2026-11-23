@@ -96,6 +96,8 @@ const ARITH = [
   ['tabs/cohorts/CohortsTab.jsx', 'lastFlowYear + 1', 'the debt rule starts the year after the last flow year'],
   ['tabs/story/Hero.jsx', 'LATE_YEAR - 2', 'where the UK-range label sits (layout only)'],
   ['tabs/story/part2/Morph.jsx', 'SURPRISE_YEAR - 2', 'a fallback used only when the ONS record is empty'],
+  ['tabs/ai/financesInfo.js', 'LATE_YEAR - 1', 'tax/GDP tested to the year before the debt rule’s first year (results review F7)'],
+  ['tabs/explore/SensitivityTable.jsx', 'surprise_year + 2', 'the three ramp years the national-accounts check fails in (results review F4)'],
 ];
 
 describe('no typed years or keys', () => {
@@ -188,20 +190,20 @@ for (const [name, D] of Object.entries(FILES)) {
       const holds = D.years.filter((y) => y >= D.surprise_year).every((y) => c[D.years.indexOf(y)] < 0);
       expect(belowThrough('uk_central', 'zk0.1') === D.late_year).toBe(holds);
     });
-    it('the zeta_K 0.5 title and claims say "every scenario" only with every scenario solved', async () => {
+    it('the zeta_K 0.5 claims say "every scenario" only with every scenario solved; the title is neutral', async () => {
       await pickFile(D);
       const { sensTitle, sensClaims } = await import('@/tabs/explore/SensitivityTable.jsx');
       const res = D.sensitivity['zk0.5'].results;
       const all = D.scenarios.every((s) => res[s.id]?.tfp?.status === 'done' && done(D, s.id, 'tfp', 'zk0.1'));
       if (!all) {
-        expect(sensTitle(res)).toBe('Gaps with much more foreign capital');
         expect(sensClaims(res)).toEqual([]);
       }
       // a partial copy of a complete file: one scenario pending
       const part = JSON.parse(JSON.stringify(res));
       part[D.scenarios[0].id].tfp = { status: 'pending' };
-      expect(sensTitle(part)).toBe('Gaps with much more foreign capital');
       expect(sensClaims(part)).toEqual([]);
+      // results review F4: one neutral title, never a finding
+      expect(sensTitle()).toBe('If much more capital came from abroad: a sensitivity');
     });
     it('the wage-sign lines appear only when the sign differs across closures', async () => {
       await pickFile(D);

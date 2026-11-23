@@ -26,7 +26,7 @@ import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS, efo, EFO_PAGE, OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import { SOURCES as LIT } from '@/data/literature.js';
 import { investmentFlags, I_FLAG_PCT, belowThrough, investHighTo } from '@/tabs/explore/caveats.js';
-import { payCaveat } from '@/tabs/story/part2/caveats.js';
+import { payCaveat, payWhy } from '@/tabs/story/part2/caveats.js';
 import { CENTRAL, BOUND, LATE_YEAR, SCEN_NAME as SN, ARM_COLOR } from '@/tabs/ai/surprise.js';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import { VERSION_TOKEN, versionName } from '@/lib/versionColors.js';
@@ -224,7 +224,7 @@ function consumptionFinding(sid, closure, rule = 'common') {
   if (!c || !g) return null;
   const from = WINDOW_YEARS.indexOf(SURPRISE_YEAR);
   return c.slice(from).every((x) => x < 0) && g[g.length - 1] > 0
-    ? `With automation + productivity, consumption stays below the forecast path through ${HEADLINE_YEAR} while ${MEASURE.NNI.name.toLowerCase()} is above it: households save more.`
+    ? `With automation + productivity, consumption stays below the forecast path through ${HEADLINE_YEAR} while ${MEASURE.NNI.name.toLowerCase()} is above it: households save more${rule === 'common' ? ', and government spending rises with GDP' : ''}.`
     : null;
 }
 
@@ -327,7 +327,7 @@ const ECONOMY = [
           ),
         })),
         TOP_FLAG && !shownInvestFlags(sid, closure, rule).includes(TOP_FLAG) ? { key: 'flag', icon: 'caveat', text: <>{SN[TOP_FLAG.sid]}{TOP_FLAG.arm === 'tfp' ? ', main version' : ''}, <MathSym name="zetaK" value={TOP_FLAG.zeta} />: +{Math.round(TOP_FLAG.x)}% in {SURPRISE_YEAR}</> } : null,
-        TOP_FLAG ? { key: 'flag2', icon: 'limit', text: <>Implausible: above the +{I_FLAG_PCT}% {ext(OG_RESULT_URLS.sanity, 'investment flag')}, {ext(OG_RESULT_URLS.plausibility, 'beyond any year on record')}</> } : null,
+        TOP_FLAG ? { key: 'flag2', icon: 'limit', text: <>Above our +{I_FLAG_PCT}% {ext(OG_RESULT_URLS.sanity, 'investment flag')}: a model property (no adjustment costs), not a forecast of a boom</> } : null,
       ]} />,
     }) },
   ] },
@@ -437,6 +437,8 @@ function IncomePanel({ sid }) {
                   // reads as a sign that depends on foreign capital
                   payCaveat(sid) ? { key: 'wz0', icon: 'pay', text: payCaveat(sid) } : null,
                   payCaveat(sid) && (payCaveat(sid).includes('sensitivity') || payCaveat(sid).startsWith('Its sign')) ? { key: 'wzlink', icon: 'link', text: <>Figures: Both, and the <NavLink tab="explore" sub="economy" anchor="closure-sensitivity"><MathSym name="zetaK" /> 0.5 sensitivity</NavLink></> } : null,
+                  // results review F1: why the main version's pay rate is below the path
+                  payWhy(sid, primaryClosure(st.closure), st.rule) ? { key: 'why', icon: 'capital', text: payWhy(sid, primaryClosure(st.closure), st.rule) } : null,
                   ...stressItems(sid),
                 ]}
               />

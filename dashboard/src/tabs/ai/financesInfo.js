@@ -6,7 +6,7 @@
 // sentence is gated on the conditions that file sets; a sentence whose
 // condition fails is left out or replaced by the file's alternative.
 import {
-  S, YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, ARMS, resultAt, gap, signed, R4_TOL_PP,
+  S, YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, ARMS, SCENARIOS, resultAt, gap, signed, R4_TOL_PP,
 } from '@/tabs/ai/surprise.js';
 import { closuresFor, primaryClosure, side } from '@/tabs/ai/lines.js';
 import { signMayFlip } from '@/lib/obrOverlap.js';
@@ -198,13 +198,26 @@ export function debtWhy(sid, closure, rule) {
 // 2.4: why tax/GDP is below the path. Some foreign capital (ζK 0.1) only.
 const ETR = S.closures[CENTRAL].reference_effective_tax_rates;
 export function taxWhy(sid, closure, rule) {
-  if (closure !== 'central') return [{ key: 'closed', text: 'With no foreign capital the model’s sign for tax/GDP changes in some cases, so this explanation is for some foreign capital only: see the card below.' }];
+  if (closure !== 'central') {
+    // results review, ruling 2: name the scenarios whose main-version
+    // tax/GDP gap changes side with no foreign capital (UK high and
+    // Korinek et al. on both data sets)
+    const flips = SCENARIOS.filter((s) => {
+      const a = gap(s.id, 'tfp', BOUND, 'tax_gdp_pp', HEADLINE_YEAR, rule);
+      const c = gap(s.id, 'tfp', CENTRAL, 'tax_gdp_pp', HEADLINE_YEAR, rule);
+      return a != null && c != null && side(a) !== 'on' && side(c) !== 'on' && side(a) !== side(c);
+    }).map((s) => (s.id === 'korinek' ? 'Korinek et al.' : s.label));
+    const where = flips.length ? `in ${andList(flips)}` : 'in some cases';
+    return [{ key: 'closed', text: `With no foreign capital the model’s sign for tax/GDP changes ${where}, so this explanation is for some foreign capital only: see the card below.` }];
+  }
   const cl = CENTRAL;
   if (!solved(sid, cl, rule)) return [];
   const out = [];
-  const yrs = YEARS.filter((y) => y >= SURPRISE_YEAR);
+  // to the year before the debt rule's first year (results review F7):
+  // LATE_YEAR's flows carry the rule's step
+  const yrs = YEARS.filter((y) => y >= SURPRISE_YEAR && y < LATE_YEAR);
   const every = ARMS.every((a) => yrs.every((y) => side(gap(sid, a.id, cl, 'tax_gdp_pp', y, rule)) === 'below'));
-  if (every) out.push({ key: 't1', text: `Tax/GDP is below the path in every version, every year from ${SURPRISE_YEAR}.` });
+  if (every) out.push({ key: 't1', text: `Tax/GDP is below the path in every version, every year from ${SURPRISE_YEAR} to ${LATE_YEAR - 1}.` });
   const ls = gap(sid, 'tfp', cl, 'labour_share_pp', HEADLINE_YEAR, rule);
   if (ls != null && ls < 0 && ETR.labour > ETR.capital_gross)
     out.push({ key: 't2', text: `Income moves from pay to profits (${(-ls).toFixed(1)} points of GDP by ${HEADLINE_YEAR}), and the model taxes labour income more heavily than capital income: ${ETR.labour.toFixed(1)}% against ${ETR.capital_gross.toFixed(1)}%.` });

@@ -79,7 +79,7 @@ describe('the answer chips that open Economy and Public finances', () => {
               const ls = val(sid, 'tfp', cl, 'labour_share_pp', rule);
               expect(items.why[0].dir).toBe(ls);
               expect(items.why[0].text).toContain({ above: '↑', below: '↓', on: 'unchanged' }[word(ls)]);
-              expect(items.why[1].text).toBe(ls < -0.005 ? 'pay grows less than output' : ls > 0.005 ? 'pay grows more than output' : 'pay keeps pace with output');
+              expect(items.why[1].text).toBe(ls < -0.005 ? 'pay grows less than output: capital is slow to arrive' : ls > 0.005 ? 'pay grows more than output' : 'pay keeps pace with output');
             }
           }
         });
@@ -256,11 +256,9 @@ describe('the sensitivity card', () => {
       expect(claims[v.toLowerCase()].icon).toBe(exp);
     }
     const w = SCEN.map((sid) => res[sid].tfp.gaps.w[H]);
-    // item 42: when every main-version pay rate is above the path (and was
-    // below it at zeta_K 0.1) the title says so and the claim is dropped
-    const wc = SCEN.map((sid) => S.results[sid].tfp['zk0.1'].gaps.w[H]);
-    if (w.every((x) => x > 0.005) && wc.every((x) => x < -0.005)) expect(claims.w).toBeUndefined();
-    else expect(claims.w.icon).toBe(w.some((x) => x < -0.005) ? 'gapDown' : w.some((x) => x > 0.005) ? 'gapUp' : 'onPath');
+    // results review F4: the title carries no finding, so the pay claim is
+    // always here, each scenario read against PAY_EDGE (0.25)
+    expect(claims.w.icon).toBe(w.some((x) => x <= -0.25) ? 'gapDown' : w.every((x) => Math.abs(x) < 0.25) ? 'onPath' : 'gapUp');
     expect(claims.gni.icon).toBe(SCEN.every((sid) => res[sid].tfp.gaps.GNI[H] < res[sid].tfp.gaps.Y[H]) ? 'foreign' : 'gni');
   });
 });
