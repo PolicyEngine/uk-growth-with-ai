@@ -22,7 +22,7 @@ import { AI_FULL_RERUN, AI_STUDY, MODEL_YEAR } from '@/tabs/code/ledger.js';
 import { URLS } from '@/tabs/ai/links.js';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { fmtInputPct, fmtPct1 } from '@/tabs/story/part3/format.js';
-import { RULE_NAMES, methodName } from './figures.js';
+import { RULE_DEFS, RULE_NAMES, methodName } from './figures.js';
 import { REFS } from '@/tabs/story/part3/sources.jsx';
 import { MACRO_ABOUT } from '@/lib/labels.js';
 import { AHMADI_URL, HOUSEHOLD_REFS, REFERENCES, ahmadiRef } from '@/data/references.js';
@@ -272,11 +272,11 @@ export default function HouseholdsMethod() {
               <Items
                 className="hm-items"
                 items={[
-                  { icon: 'ai', text: <><b>{methodName('exposure')}</b>, the main case: in proportion to exposure.</> },
-                  { icon: 'age', text: <><b>{methodName('junior')}:</b> higher odds under 25, same occupation quotas.</> },
-                  { icon: 'pay', text: <><b>{methodName('compression')}:</b> doubled odds: top earnings third, above-median exposure.</> },
-                  { icon: 'draws', text: <><b>{methodName('uniform')}:</b> every employee equally likely.</> },
-                  { icon: 'limit', text: <><b>{methodName('klein_top_loaded')}:</b> exposure times junior and wage-tier factors.</> },
+                  { icon: 'ai', text: <><b>{methodName('exposure')}</b>, the main case: {RULE_DEFS.exposure}.</> },
+                  { icon: 'age', text: <><b>{methodName('junior')}:</b> {RULE_DEFS.junior}.</> },
+                  { icon: 'pay', text: <><b>{methodName('compression')}:</b> {RULE_DEFS.compression}.</> },
+                  { icon: 'draws', text: <><b>{methodName('uniform')}:</b> {RULE_DEFS.uniform}.</> },
+                  { icon: 'limit', text: <><b>{methodName('klein_top_loaded')}:</b> {RULE_DEFS.klein_top_loaded}.</> },
                   { icon: 'deciles', text: 'It loads displacement on above-median earners: an upper stress case.' },
                 ]}
               />

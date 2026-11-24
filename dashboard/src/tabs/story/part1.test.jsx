@@ -786,7 +786,8 @@ describe('hero', () => {
     const h2 = el.querySelector('h2#story-q');
     expect(h2.previousElementSibling.classList.contains('hero-series')).toBe(true);
     expect(h2.textContent.trim()).toBe('How could AI affect the UK economy?');
-    expect(h2.parentElement.querySelector('.hero-sub').textContent).toBe(`Four scenarios, from ${S.surprise_year}`);
+    expect(h2.parentElement.querySelector('.hero-sub').textContent).toBe(`Four scenarios, not forecasts. In each, AI lowers labour’s share of income and raises productivity by more than the OBR expects. The change starts in ${S.surprise_year} as a surprise and is in full from ${S.headline_year}. Every figure is a gap against the OBR’s central forecast path, which already includes some AI.`);
+    expect(h2.parentElement.querySelector('.hero-howto').textContent).toBe('This icon marks each scene’s key takeaway.');
     expect(h2.textContent).not.toMatch(/arriv/i);
   });
   it('draws all four lines from the surprise year, each labelled, with axis titles', async () => {

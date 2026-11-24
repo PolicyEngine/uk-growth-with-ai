@@ -84,7 +84,11 @@ describe('story part 2', () => {
       const { container, unmount } = at(q);
       const part = container.querySelector('#story-part-2');
       const head = part.querySelector('#story-headline');
-      const all = textWithoutAxes(part).match(FIGURE) ?? [];
+      // María's pay test (re-review M1) prints its own figures in the
+      // output scene's last card; the claim test below checks each one
+      const noTest = part.cloneNode(true);
+      noTest.querySelectorAll('[data-claim="pay-test"]').forEach((n) => n.remove());
+      const all = textWithoutAxes(noTest).match(FIGURE) ?? [];
       const inHead = textWithoutAxes(head).match(FIGURE) ?? [];
       expect(all.length).toBeGreaterThan(0);
       expect(all).toEqual(inHead);
@@ -92,10 +96,39 @@ describe('story part 2', () => {
       // quoted input (data-input) and its scale (one small tile is 0.1, in
       // its unit line and strip head) are not figures
       const rest = part.cloneNode(true);
-      rest.querySelectorAll('#story-headline, #story-output, [data-axis], [data-input], #p2-shock .story-figure-unit, #p2-shock .p2-shock-strip-head').forEach((n) => n.remove());
+      rest.querySelectorAll('[data-claim="pay-test"], #story-headline, #story-output, [data-axis], [data-input], #p2-shock .story-figure-unit, #p2-shock .p2-shock-strip-head').forEach((n) => n.remove());
       expect(rest.textContent).not.toMatch(/\d\.\d/);
       unmount();
     }
+  });
+
+  // María re-review M1: every figure in the pay test is the data's, for
+  // each scenario at both closures (main arm, headline year, common rule)
+  it('the pay test’s figures equal the data, every scenario and closure', async () => {
+    const { payTest } = await import('@/tabs/story/part2/caveats.js');
+    const S = (await import('@/lib/activeData.js')).default;
+    const H = S.years.indexOf(S.headline_year);
+    for (const sc of S.scenarios)
+      for (const cl of ['zk0.1', 'zk0']) {
+        const r = S.results[sc.id]?.tfp?.[cl];
+        if (r?.status !== 'done') continue;
+        const t = payTest(sc.id, cl);
+        const after = 100 * (1 - sc.gamma_terminal);
+        const before = after + sc.labour_share_fall_pp;
+        const need = 100 * (before / after - 1);
+        const [y, w, l] = ['Y', 'w', 'L'].map((v) => r.gaps[v][H]);
+        const li = 100 * ((1 + w / 100) * (1 + l / 100) - 1);
+        if (!(y < need) || !(li < 0)) {
+          expect(t, `${sc.id} ${cl}`).toBeNull();
+          continue;
+        }
+        const text = t.lines.join(' ');
+        expect(text).toContain(`gets ${after.toFixed(1).replace(/\.0$/, '')} of every 100, down from ${before.toFixed(1).replace(/\.0$/, '')}`);
+        expect(text).toContain(`more than ${need.toFixed(1)}%`);
+        expect(text).toContain(`output grows ${y.toFixed(1)}%`);
+        expect(text).toContain(`labour income ends ${Math.abs(li).toFixed(1)}% below`);
+        if (w < 0) expect(text).toContain(`pay rate ends ${Math.abs(w).toFixed(1)}% below`);
+      }
   });
 
   it('the GDP figure’s notes hold the headline step’s reading notes and links', async () => {

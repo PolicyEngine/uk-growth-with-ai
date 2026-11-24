@@ -253,6 +253,15 @@ export function inputsLine(sid) {
   if (typeof a !== 'number' || typeof b !== 'number') return null;
   return `${signed(-a, 'pp')}, ${signed(b, '%')}`;
 }
+// The same two inputs as the line's labelled sub-lines (María re-review
+// M13): "labour share −1.6pp", "productivity +0.4%".
+export function inputsLines(sid) {
+  const x = scenarioById(sid) ?? SCENARIOS.find((c) => c.id === sid);
+  const a = x?.labour_share_fall_pp;
+  const b = x?.tfp_gain_pct;
+  if (typeof a !== 'number' || typeof b !== 'number') return null;
+  return [`labour share ${signed(-a, 'pp')}`, `productivity ${signed(b, '%')}`];
+}
 // where each scenario's inputs come from (the scene's notes)
 const INPUT_SOURCE = { uk_low: 'OBR, IMF', uk_central: 'IMF', uk_high: 'OBR upper' };
 // end-label block height per line, in viewBox units: room at phone width,
@@ -605,9 +614,9 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
         // room for a line more (the labels overlap), and a key under the plot
         // makes the figure too tall for the last card's hold at 390
         // (check_states): a phone reads them in the figure's More info
-        ...(inputsLine(l.id) && lh0 !== LH_PHONE ? [inputsLine(l.id)] : []),
+        ...(inputsLines(l.id) && lh0 !== LH_PHONE ? inputsLines(l.id) : []),
       ],
-      sub: inputsLine(l.id) && lh0 !== LH_PHONE ? inputsLine(l.id) : null,
+      sub: inputsLines(l.id) && lh0 !== LH_PHONE ? inputsLines(l.id) : null,
       color: l.id === sid ? ARM_TEXT_COLOR.tfp : 'var(--pe-gray-600)',
       on: s >= from(l.id),
       pinned: l.id === pinned,
@@ -870,7 +879,7 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
               ) : null}
               <text className={`p2-end-label${p.zero ? ' is-zero' : ''}`} y={lh * 0.7 + (p.pad ?? 0)} style={{ fill: p.color }}>
                 {p.lines.map((l, i) => (
-                  <tspan key={l} x={0} dy={i ? lh - (lh0 === LH ? 2 : 4) : 0} className={p.sub && l === p.sub ? 'p2-end-sub' : undefined} data-axis={p.sub && l === p.sub ? '' : undefined}>
+                  <tspan key={l} x={0} dy={i ? lh - (lh0 === LH ? 2 : 4) : 0} className={p.sub?.includes(l) ? 'p2-end-sub' : undefined} data-axis={p.sub?.includes(l) ? '' : undefined}>
                     {/* a trailing space between lines, for a screen reader
                         (each line has its own x, so nothing moves) */}
                     {i < p.lines.length - 1 ? `${l} ` : l}

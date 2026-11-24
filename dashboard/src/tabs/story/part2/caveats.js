@@ -6,7 +6,7 @@
 // caveat does not hold for the cell in view.
 import S from '@/lib/activeData.js';
 import { COHORTS as C } from '@/lib/dataKeys.js';
-import { YEARS, HEADLINE_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, gap, payLine, result } from '@/tabs/ai/surprise.js';
+import { YEARS, HEADLINE_YEAR, LATE_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, gap, payLine, result } from '@/tabs/ai/surprise.js';
 import { EPS2 } from './dir.js';
 
 const H = YEARS.indexOf(HEADLINE_YEAR);
@@ -127,6 +127,88 @@ export function payWhy(sid, cl = CENTRAL, rule = 'common') {
   ]
     .filter(Boolean)
     .join(' ');
+}
+
+// María's test, in the Story's visible text (María re-review M1, 24 Nov
+// 2026): labour income = labour's share x output, exactly, in the model.
+// After the shift labour gets (1 - gamma1) of every 100; its income keeps
+// up only if output grows more than s0/s1 - 1. Here it grows less, so
+// labour income ends below the path; hours fall too, which gives the pay
+// rate (labour income per hour) its last step. Main arm, headline year,
+// common rule. { lines: [..] }, or null where output meets the bar or a
+// solve is pending. Each figure from the data: the share from the scenario
+// list, the gaps from the results; labour income = (1 + w)(1 + L) - 1.
+const n1 = (x) => (Number.isInteger(Math.round(x * 10) / 10) ? String(Math.round(x)) : x.toFixed(1));
+export function payTest(sid, cl = CENTRAL) {
+  const s = S.scenarios?.find((x) => x.id === sid);
+  const y = gap(sid, 'tfp', cl, 'Y');
+  const w = gap(sid, 'tfp', cl, 'w');
+  const l = gap(sid, 'tfp', cl, 'L');
+  if (!s || y == null || w == null || l == null) return null;
+  const after = 100 * (1 - s.gamma_terminal);
+  const before = after + s.labour_share_fall_pp;
+  const need = 100 * (before / after - 1);
+  if (!(y < need)) return null;
+  const li = 100 * ((1 + w / 100) * (1 + l / 100) - 1);
+  if (!(li < -EPS2)) return null;
+  const lines = [
+    `Labour now gets ${n1(after)} of every 100, down from ${n1(before)}.`,
+    `Its income keeps up only if output grows more than ${need.toFixed(1)}%.`,
+    `Here output grows ${y.toFixed(1)}%, so labour income ends ${Math.abs(li).toFixed(1)}% below the path.`,
+  ];
+  if (w < -EPS2) lines.push(`Hours ${l < 0 ? 'fall' : 'rise'} ${Math.abs(l).toFixed(1)}%, so the pay rate ends ${Math.abs(w).toFixed(1)}% below.`);
+  return { lines, need, li };
+}
+
+// The pay rate after the headline year (María re-review M2): main arm,
+// common rule, from the headline year to LATE_YEAR. The gap is furthest
+// below the path in the headline year and narrows each year after; capital
+// per hour (1 + K)/(1 + L) keeps rising and hours keep falling. Each clause
+// only where the data shows it in every year; "above the path from <year>"
+// where the gap crosses zero. null unless the headline-year gap is below
+// the path and is the lowest of the run.
+export function payPath(sid, cl = CENTRAL) {
+  const r = result(sid, 'tfp', cl);
+  if (r?.status !== 'done') return null;
+  const i0 = YEARS.indexOf(HEADLINE_YEAR);
+  const i1 = YEARS.indexOf(LATE_YEAR);
+  const w = r.gaps.w?.slice(i0, i1 + 1);
+  const L = r.gaps.L?.slice(i0, i1 + 1);
+  const K = r.gaps.K?.slice(i0, i1 + 1);
+  if (!w || w.length < 2 || w.some((x) => typeof x !== 'number') || !(w[0] < -EPS2)) return null;
+  const narrows = w.slice(1).every((x, i) => x > w[i]);
+  if (!narrows) return null;
+  const kph = K && L ? K.map((k, i) => (1 + k / 100) / (1 + L[i] / 100)) : null;
+  const kUp = kph && kph.slice(1).every((x, i) => x > kph[i]);
+  const hDown = L && L.slice(1).every((x, i) => x < L[i]);
+  const f = (x) => `${x < 0 ? '−' : '+'}${Math.abs(x).toFixed(2)}%`;
+  const end = w[w.length - 1];
+  const upFrom = end > EPS2 ? YEARS[i0 + w.findIndex((x) => x > EPS2)] : null;
+  const why = [kUp ? 'Capital per hour worked keeps rising' : null, hDown ? 'hours keep falling' : null].filter(Boolean).join('; ');
+  // steady, not a step in the debt rule's first year: LATE_YEAR's change
+  // is no more than twice the largest change before it
+  return [
+    `The pay rate is furthest below the path in ${HEADLINE_YEAR} (${f(w[0])}) and narrows each year after, to ${f(end)} in ${LATE_YEAR}.`,
+    upFrom ? `It is above the path from ${upFrom}.` : null,
+    why ? `${why.charAt(0).toUpperCase()}${why.slice(1)}.` : null,
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
+// The pay rate's narrowing after the headline year is steady, not a step
+// in the debt rule's first year (LATE_YEAR): that year's change is no more
+// than twice the largest change before it. The first year after the
+// headline year, or null where it does not hold.
+export function paySteadyFrom(sid, cl = CENTRAL) {
+  const r = result(sid, 'tfp', cl);
+  if (r?.status !== 'done') return null;
+  const i0 = YEARS.indexOf(HEADLINE_YEAR);
+  const w = r.gaps.w?.slice(i0, YEARS.indexOf(LATE_YEAR) + 1);
+  if (!w || w.length < 4 || w.some((x) => typeof x !== 'number')) return null;
+  const steps = w.slice(1).map((x, i) => x - w[i]);
+  if (!steps.every((d) => d > 0)) return null;
+  return steps[steps.length - 1] <= 2 * Math.max(...steps.slice(0, -1)) ? YEARS[i0 + 1] : null;
 }
 
 // The pay tile's line (review round 3, R3-17): payLine's, except where

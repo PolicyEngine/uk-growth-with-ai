@@ -99,6 +99,20 @@ describe('Who gains tab', () => {
     expect(container.querySelectorAll('#welfare-chart .wg-panel')).toHaveLength(2);
   });
 
+  // María re-review M10: with Both, one set of tiles, each with both cases
+  it('with Both, one set of four tiles, each carrying both foreign-capital values', () => {
+    const { container } = at('tab=who&closure=both');
+    const rows = container.querySelectorAll('.ex-who-tiles');
+    expect(rows).toHaveLength(1);
+    expect(container.querySelectorAll('.wg-closure')).toHaveLength(0);
+    const tiles = rows[0].querySelectorAll('.stat-tile');
+    expect(tiles).toHaveLength(4);
+    for (const t of tiles) expect([...t.querySelectorAll('.stat-value .ex-two-k')].map((k) => k.textContent)).toEqual(['Some foreign capital', 'No foreign capital']);
+    const avg = tiles[2].querySelectorAll('.stat-value .ex-two-v');
+    expect(avg[0].textContent).toBe(pct(cell('zk0.1', 'dn', 'tfp').alive_avg));
+    expect(avg[1].textContent).toBe(pct(cell('zk0', 'dn', 'tfp').alive_avg));
+  });
+
   it('the tile range is worded as its rows: a true zero is none, so the range reads up to', () => {
     const { container } = at('tab=who&wrule=common');
     const c = cell('zk0.1', 'common', 'tfp');

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 
 import { iconFor } from '@/lib/concepts.js';
 import Icon from '@/components/ab/Icon.jsx';
@@ -11,7 +11,7 @@ import Card from '@/components/ui/Card.jsx';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
 import ChartHover from '@/components/story/chart/ChartHover.jsx';
-import { RANGES } from '@/data/literature.js';
+import { RANGES, HORIZON_BANDS } from '@/data/literature.js';
 import MAP from '@/data/site-evidence-map.json';
 import { DATA_FILE } from '@/lib/dataKeys.js';
 import { PENDING, gap, fmt, CENTRAL, BOUND, HEADLINE_YEAR, scenarioById, CLOSURE_LABEL } from '@/tabs/ai/surprise.js';
@@ -95,6 +95,7 @@ function rangeSvg(metric) {
     out += `<text x="0" y="${y + 28}" font-size="11" fill="${C.muted}">${esc(b)}</text>`;
   };
   const top0 = y;
+  if (pub.some((r) => r.band)) group(HORIZON_BANDS[0].label);
   if (ours.length) group(`Macro model, automation + productivity, ${HEADLINE_YEAR}`);
   for (const o of ours) {
     const cy = y + ROW / 2;
@@ -106,7 +107,13 @@ function rangeSvg(metric) {
     y += ROW;
   }
   group('Published');
+  let band = HORIZON_BANDS[0].id;
   for (const r of pub) {
+    // the horizon groups, as on the page (María re-review M8)
+    if (r.band && r.band !== band) {
+      band = r.band;
+      group(HORIZON_BANDS.find((b) => b.id === band)?.label ?? '');
+    }
     const cy = y + ROW / 2;
     label(r.label, r.unverified ? `${r.horizon} · unverified` : r.horizon);
     const fig = r.none ? 'No number published' : r.lo === r.hi ? n1(r.lo, m.suf, m.level) : `${n1(r.lo, m.suf, m.level)} to ${n1(r.hi, m.suf, m.level)}`;
@@ -213,8 +220,32 @@ function SharesLane({ metric }) {
   );
 }
 
+// Korinek et al.'s own ranges beside the macro model's figures for the two
+// inputs taken from them (María re-review M3): their GDP and wage rows in
+// the map (range across capital supply, `mark` the substantial case), ours
+// from the data (main version, some foreign capital, headline year). Where
+// ours sits against each range is computed. null while pending.
+const pctS = (x) => `${x < 0 ? '−' : '+'}${Math.abs(x).toFixed(1)}%`;
+const KOR = (id) => MAP.rows.find((r) => r.id === id);
+export function korinekTie() {
+  const g = KOR('korinek-gdp');
+  const w = KOR('korinek-wage');
+  const y = gap('korinek', 'tfp', CENTRAL, 'Y');
+  const p = gap('korinek', 'tfp', CENTRAL, 'w');
+  if (!g || !w || y == null || p == null) return null;
+  const where = (x, r) => (x < r.lo ? 'below' : x > r.hi ? 'above' : 'inside');
+  // three sentences, each its own line of at most 25 words (caption-length)
+  return [
+    `With the two inputs taken from Korinek et al., the macro model’s GDP is ${pctS(y)} in ${HEADLINE_YEAR}.`,
+    `That is ${where(y, g)} their range of ${pctS(g.lo)} to ${pctS(g.hi)} across capital supply (substantial case ${pctS(g.mark)}).`,
+    `Its pay rate is ${pctS(p)}, ${where(p, w)} their range of ${pctS(w.lo)} to ${pctS(w.hi)} (substantial case ${pctS(w.mark)}).`,
+  ].join(' ');
+}
+
 function Lane({ metric }) {
   const { m, pub, ours } = rows(metric);
+  // the GDP lane is grouped by horizon (María re-review M8)
+  const banded = pub.some((r) => r.band);
   const vals = [
     0,
     ...pub.flatMap((r) => (r.none ? [] : [r.lo, r.hi])),
@@ -251,6 +282,7 @@ function Lane({ metric }) {
       <LaneHead m={m} />
       <ChartHover label={m.title ?? metric} items={tips} onActive={setAt}>
       <div className="mx-rb">
+        {banded ? <div className="mx-rb-band" data-band={HORIZON_BANDS[0].id}>{HORIZON_BANDS[0].label}</div> : null}
         {ours.length ? <div className="mx-rb-group">Macro model, automation + productivity, {HEADLINE_YEAR}</div> : null}
         {ours.map((o) => {
           const key = `o-${o.sid}`;
@@ -285,8 +317,17 @@ function Lane({ metric }) {
         <div className="mx-rb-group">Published</div>
         {pub.map((r, i) => {
           const key = `p-${i}`;
+          // a divider where the horizon group changes (María re-review M8)
+          const prev = i ? pub[i - 1].band : HORIZON_BANDS[0].id;
+          const band = banded && r.band !== prev ? HORIZON_BANDS.find((b) => b.id === r.band) : null;
           return (
-            <div key={key} className={`mx-rb-row${hi === key ? ' is-hi' : ''}`} data-tip={keys.indexOf(key)}>
+            <Fragment key={key}>
+            {band ? (
+              <div className="mx-rb-band" data-band={band.id}>
+                {band.label}
+              </div>
+            ) : null}
+            <div className={`mx-rb-row${hi === key ? ' is-hi' : ''}`} data-tip={keys.indexOf(key)}>
               <span className="mx-rb-label">
                 <b>{r.label}</b>{' '}
                 <span>
@@ -309,6 +350,7 @@ function Lane({ metric }) {
                 {r.mark != null ? <span className="mx-rb-tick" style={{ left: `${px(r.mark)}%` }} /> : null}
               </span>
             </div>
+            </Fragment>
           );
         })}
         <div className="mx-rb-row mx-rb-axis" aria-hidden="true">
@@ -324,6 +366,22 @@ function Lane({ metric }) {
         </div>
       </div>
       </ChartHover>
+      {metric === 'wage' && korinekTie() ? (
+        <div className="mx-lane-note" data-claim="korinek-tie">
+          {korinekTie()
+            .split(/(?<=\.) (?=[A-Z])/)
+            .map((t, i) => (
+              <p key={i} className="mx-lane-s">
+                {i ? t : <IconText icon="compare">{t}</IconText>}
+              </p>
+            ))}
+        </div>
+      ) : null}
+      {banded ? (
+        <p className="mx-lane-note">
+          <IconText icon="timing">Only the first group is at the macro model’s horizon. The table below compares those like for like.</IconText>
+        </p>
+      ) : null}
     </div>
   );
 }

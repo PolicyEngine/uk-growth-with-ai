@@ -75,10 +75,10 @@
         "order": 1,
         "source": "OBR, Briefing paper No.9",
         "measure": "Productivity, not GDP",
-        "horizon": "Year 4",
         "baseline": "Without AI",
         "kind": "Derived: the level read off Chart B.4, J-curve to S-curve",
-        "page": 51
+        "page": 51,
+        "input": "The figure is productivity"
       }
     },
     {
@@ -370,8 +370,10 @@
         "value": "+1.6% to +2.5%",
         "horizon": "End of 2031",
         "baseline": "Barclays forecast",
-        "kind": "Printed, pp.34–37"
-      }
+        "kind": "Printed, pp.34–37",
+        "input": "Not published"
+      },
+      "horizonBand": "near"
     },
     {
       "id": "ifs-gb26-tfp",
@@ -391,7 +393,8 @@
       "plot": "gdp",
       "join": "ifs",
       "lo": 2.5,
-      "hi": 2.5
+      "hi": 2.5,
+      "horizonBand": "near"
     },
     {
       "id": "ifs-gb26-techgrowth",
@@ -533,7 +536,8 @@
         "horizon": "Years 4 and 5",
         "baseline": "No AI",
         "kind": "Year 4 derived: read off Figure 9; year 5 printed, Table 1"
-      }
+      },
+      "horizonBand": "near"
     },
     {
       "id": "imf-sip-markup",
@@ -555,7 +559,8 @@
       "hi": 0.54,
       "plotLabel": "IMF UK, 25% foreign markup",
       "plotHorizon": "Year 5, UK",
-      "note": "Output when foreign AI costs 25% more"
+      "note": "Output when foreign AI costs 25% more",
+      "horizonBand": "near"
     },
     {
       "id": "imf-sip-y10",
@@ -577,7 +582,8 @@
       "hi": 7.96,
       "plotLabel": "IMF UK, year 10",
       "plotHorizon": "Year 10, UK",
-      "note": "Output, baseline scenario"
+      "note": "Output, baseline scenario",
+      "horizonBand": "decade"
     },
     {
       "id": "imf-sip-tfp",
@@ -732,8 +738,9 @@
         "hi": 4.9,
         "value": "+1.9% to +4.9% (£55bn to £140bn; medium 4.1%)",
         "horizon": "2030",
-        "baseline": "Without AI adoption",
-        "kind": "Derived: £bn ÷ DSIT’s £2,840bn; 4.1% is printed"
+        "baseline": "DSIT’s projection without the AI uplift: 2024 GVA grown at the OBR’s March 2025 forecast rates",
+        "kind": "Derived: £bn ÷ DSIT’s £2,840bn; 4.1% is printed",
+        "input": "The figure is productivity"
       }
     },
     {
@@ -788,13 +795,7 @@
       "plotLabel": "PwC for GO-Science, 2030",
       "plotHorizon": "2030, UK",
       "note": "AI and machine learning",
-      "near2030": {
-        "order": 3,
-        "measure": "Real GDP, AI and machine learning, productivity only",
-        "horizon": "2030",
-        "baseline": "2023 GDP, baseline adoption",
-        "kind": "Printed, Table 5.2"
-      }
+      "horizonBand": "near"
     },
     {
       "id": "goscience-2035",
@@ -816,7 +817,8 @@
       "hi": 2.98,
       "plotLabel": "PwC for GO-Science, 2035",
       "plotHorizon": "2035, UK",
-      "note": "AI and machine learning"
+      "note": "AI and machine learning",
+      "horizonBand": "decade"
     },
     {
       "id": "pwc2017",
@@ -838,7 +840,8 @@
       "hi": 10.3,
       "plotLabel": "PwC 2017",
       "plotHorizon": "2030, UK",
-      "note": "Productivity only to total"
+      "note": "Productivity only to total",
+      "horizonBand": "near"
     },
     {
       "id": "ippr-gdp",
@@ -860,7 +863,8 @@
       "hi": 6.3,
       "plotLabel": "IPPR, central case",
       "plotHorizon": "Horizon unstated, UK",
-      "note": "‘Here and now’ to ‘integrated’ AI"
+      "note": "‘Here and now’ to ‘integrated’ AI",
+      "horizonBand": "unstated"
     },
     {
       "id": "ippr-jobs",
@@ -904,8 +908,10 @@
         "measure": "GDP, four scenarios",
         "horizon": "Five years from November 2024",
         "baseline": "Without AI",
-        "kind": "Printed, executive summary"
-      }
+        "kind": "Printed, executive summary",
+        "input": "Not published"
+      },
+      "horizonBand": "near"
     },
     {
       "id": "tbi-2035",
@@ -927,7 +933,8 @@
       "hi": 6,
       "plotLabel": "TBI, 2035",
       "plotHorizon": "2035, UK",
-      "note": "Range across four scenarios"
+      "note": "Range across four scenarios",
+      "horizonBand": "decade"
     },
     {
       "id": "tbi-2050",
@@ -950,7 +957,8 @@
       "mark": 11,
       "plotLabel": "TBI, 2050",
       "plotHorizon": "2050, UK",
-      "note": "Range across four scenarios; most likely 11%"
+      "note": "Range across four scenarios; most likely 11%",
+      "horizonBand": "long"
     },
     {
       "id": "tbi-unemployment",
@@ -1106,7 +1114,8 @@
       "hi": 4.7,
       "plotLabel": "Cerutti et al. (IMF)",
       "plotHorizon": "10 years, other advanced economies",
-      "note": "Low to high scenario"
+      "note": "Low to high scenario",
+      "horizonBand": "decade"
     },
     {
       "id": "benzell21",
@@ -1128,7 +1137,8 @@
       "hi": 10,
       "plotLabel": "Benzell et al.",
       "plotHorizon": "2050, UK",
-      "note": "Multi-region OLG"
+      "note": "Multi-region OLG",
+      "horizonBand": "long"
     },
     {
       "id": "korinek-gdp",
@@ -1159,8 +1169,10 @@
         "value": "+8.3% (+6.4% to +10.0% across capital supply)",
         "horizon": "Start of 2030",
         "baseline": "No AI",
-        "kind": "Printed, Tables 3 and 5"
-      }
+        "kind": "Printed, Tables 3 and 5",
+        "input": "Measured TFP +3.1% (Table 3)"
+      },
+      "horizonBand": "near"
     },
     {
       "id": "korinek-wage",
@@ -1221,7 +1233,8 @@
       "hi": 1.16,
       "plotLabel": "Acemoglu",
       "plotHorizon": "10 years, US",
-      "note": "GDP, numbers from NBER w32487"
+      "note": "GDP, numbers from NBER w32487",
+      "horizonBand": "decade"
     },
     {
       "id": "acemoglu-tfp",

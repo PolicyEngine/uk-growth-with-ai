@@ -17,6 +17,16 @@ export const RULE_NAMES = {
   klein_top_loaded: { plain: 'Top-loaded extreme case', short: 'Top-loaded', study: null },
 };
 export const ruleName = (id) => RULE_NAMES[id]?.plain ?? id;
+// What each rule does, in Household method's words: the one home of these
+// definitions, which Explore > Households' rule card also prints (María
+// re-review M11: one line per rule, no new definitions).
+export const RULE_DEFS = {
+  exposure: 'in proportion to exposure',
+  junior: 'higher odds under 25, same occupation quotas',
+  compression: 'doubled odds: top earnings third, above-median exposure',
+  uniform: 'every employee equally likely',
+  klein_top_loaded: 'exposure times junior and wage-tier factors',
+};
 // Card 4's title (Explore > Households): the margin a rule's poverty rise
 // must clear above the main rule's before the title calls the main rule the
 // least (Fable round 6, S4), and the largest gap, as printed ("0.03pp"), of

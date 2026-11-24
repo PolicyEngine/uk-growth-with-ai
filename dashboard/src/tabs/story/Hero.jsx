@@ -6,6 +6,7 @@ import { ChartHover } from '@/components/story/chart/index.js';
 import { asOfItems } from '@/components/story/AsOf.jsx';
 import { docItem, navItem } from '@/lib/sourceItems.js';
 import Icon from '@/components/ab/Icon.jsx';
+import IconLine from '@/components/ui/IconLine.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
 import { REPO } from '@/tabs/ai/links.js';
 import { METHOD, MEASURE, PAGE_TITLE } from '@/lib/labels.js';
@@ -283,6 +284,10 @@ export function heroStats(sid, cl) {
   ].filter(Boolean);
 }
 
+// The landing introduction (María re-review M9).
+export const heroIntro = () =>
+  `${SCENARIO_COUNT_WORD} scenarios, not forecasts. In each, AI lowers labour’s share of income and raises productivity by more than the OBR expects. The change starts in ${SURPRISE_YEAR} as a surprise and is in full from ${HEADLINE_YEAR}. Every figure is a gap against the OBR’s central forecast path, which already includes some AI.`;
+
 export default function Hero() {
   const { st } = useNav();
   const sid = st.s;
@@ -302,7 +307,12 @@ export default function Hero() {
           <h2 id="story-q" className="hero-q">
             <span className="hero-q-main">How could AI affect the UK economy?</span>
           </h2>
-          <p className="hero-sub">{SCENARIO_COUNT_WORD} scenarios, from {SURPRISE_YEAR}</p>
+          {/* María re-review M9: how the scenarios are built, then how to
+              read the page; count and years from the data */}
+          <p className="hero-sub">{heroIntro()}</p>
+          <IconLine concept="answer" tier="meta" className="hero-howto">
+            This icon marks each scene’s key takeaway.
+          </IconLine>
         </div>
         <a className="story-scroll-cue" href="#story-part-1">
           <Icon name="arrowDown" size={16} /> Start with where the UK stands

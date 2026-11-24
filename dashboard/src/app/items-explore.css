@@ -2836,3 +2836,38 @@
 [id^="explore-sub-"] :is(.ex-mi-unit, .ex-mi-note, .ex-mi-src) {
   font-size: var(--chart-fs-tick);
 }
+
+/* Who gains with Both (María re-review M10): two labelled values per tile */
+.ex-who-tiles .stat-value .ex-two {
+  display: grid;
+  gap: 2px;
+}
+.ex-two-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ex-two-k {
+  font-size: var(--fs-caption);
+  font-weight: 500;
+  color: var(--pe-gray-600);
+}
+.ex-two-v.is-gain { color: var(--gain, var(--pe-teal-700)); }
+.ex-two-v.is-loss { color: var(--loss, var(--pe-gray-900)); }
+.ex-two-note {
+  margin: 6px 0 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+
+/* Explore > Households, the rule card's definitions (María re-review M11) */
+.hh-rule-defs {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 2px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-700);
+}

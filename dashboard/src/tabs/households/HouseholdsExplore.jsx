@@ -13,7 +13,7 @@ import { D, MODEL_YEAR, OBR_SCENARIO, OUTSIDE_REBUILD, PAPER_URL, entryClass, la
 import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtInputPct, fmtPence, fmtPp, fmtPpSpread, fmtShare } from '@/tabs/story/part3/format.js';
 import { Bar, Plane, STEP, ValueTable, signedTick } from './charts.jsx';
 import SummaryStrip from './SummaryStrip.jsx';
-import { RULE_MARGIN_PP, RULE_NAMES, SMALL_DECILE_PCT, fmtGiniPts, ruleName, rulesGap } from './figures.js';
+import { RULE_DEFS, RULE_MARGIN_PP, RULE_NAMES, SMALL_DECILE_PCT, fmtGiniPts, ruleName, rulesGap } from './figures.js';
 import { REFS } from '@/tabs/story/part3/sources.jsx';
 import { iconFor } from '@/lib/concepts.js';
 
@@ -155,19 +155,34 @@ export function rulesWords(rules, central = 'exposure') {
   // the names fit the 14-word title limit, else counted; the gap itself is
   // in the card's More info (rulesTieWords)
   if (atLeast === others.length) {
-    const near = nearRules(rules, central);
-    const names = ['main', ...near.map((r) => ruleName(r.id).toLowerCase())];
-    const named = `${lead}; ${names.slice(0, -1).join(', ')} and ${names[names.length - 1]} tie lowest`;
-    return named.split(/\s+/).length <= TITLE_WORDS ? named : `${lead}; the main and ${near.length} other rules tie lowest`;
+    // María re-review M11: the title states the result only; the tie and
+    // its reason are the card's visible finding (rulesTieFinding)
+    return lead;
   }
   return `${lead}; ${atLeast} of the other ${others.length} raise it at least as much as the main rule`;
 }
-const TITLE_WORDS = 14;
 // the other rules at or above the main rule but within RULE_MARGIN_PP of it
 const nearRules = (rules, central) => {
   const c = rules.find((r) => r.id === central);
   return rules.filter((r) => r.id !== central && r.poverty_pp - c.poverty_pp >= 0 && r.poverty_pp - c.poverty_pp < RULE_MARGIN_PP);
 };
+// Card 4's finding, visible (María re-review M11): the main rule, with its
+// definition, and the rules within RULE_MARGIN_PP of it give the smallest
+// poverty rises, with each figure; the gap is within the spread across
+// draws, so they are not ranked. null when no rule ties with the main one.
+export function rulesTieFinding(rules, central = 'exposure') {
+  const c = rules.find((r) => r.id === central);
+  const others = rules.filter((r) => r.id !== central);
+  if (!c || others.every((r) => r.poverty_pp - c.poverty_pp >= RULE_MARGIN_PP) || others.some((r) => r.poverty_pp < c.poverty_pp)) return null;
+  const near = nearRules(rules, central);
+  const names = near.map((r) => ruleName(r.id).replace(/^Ages/, 'ages'));
+  const list = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0]);
+  const figs = [c, ...near].map((r) => fmtPp(r.poverty_pp));
+  // one sentence of at most 25 words (push D, Q8.2: one short lead line)
+  const head = `The main rule (${RULE_DEFS[central]}) and ${list(names)} give the smallest rises, `;
+  const tail = ', too close to rank across draws.';
+  return { head, figs, tail, text: `${head}${list(figs)}${tail}` };
+}
 // Card 4's tie, a sentence for its lead: the rules the title ties with the
 // main one and the largest gap (rulesGap); null when the title names no tie.
 export function rulesTieWords(rules, central = 'exposure') {
@@ -593,24 +608,22 @@ function rulesLead() {
       <>
         The top-loaded extreme case costs <Ax>{fmtBn(K.cost_bn)}</Ax>.
       </>,
-      tieLine(D.rules),
     ].filter(Boolean),
   };
 }
-// the tie sentence with its gap marked as restated
-function tieLine(rules) {
-  const t = rulesTieWords(rules);
-  const g = rulesGap(rules);
-  if (!t) return null;
-  const [a, b] = g ? t.split(g) : [t, ''];
-  return g ? (
-    <>
-      {a}
-      <Ax>{g}</Ax>
-      {b}
-    </>
-  ) : (
-    t
+// the tie finding, its figures marked as restated (their home is part 3)
+function TieFinding({ f }) {
+  return (
+    <span data-claim="rules-tie">
+      {f.head}
+      {f.figs.map((x, i) => (
+        <span key={x}>
+          {i ? (i === f.figs.length - 1 ? ' and ' : ', ') : null}
+          <Ax>{x}</Ax>
+        </span>
+      ))}
+      {f.tail}
+    </span>
   );
 }
 function Rules() {
@@ -624,12 +637,12 @@ function Rules() {
       id="hh-rules"
       icon="users"
       title={rulesWords(D.rules)}
-      lead={<Lead>{rulesLead().lead}</Lead>}
+      lead={<Lead>{rulesTieFinding(D.rules) ? <TieFinding f={rulesTieFinding(D.rules)} /> : rulesLead().lead}</Lead>}
       unit="Cost, £bn a year; poverty, pp; Gini, points"
       more={[
         { label: 'Measure', text: 'Absolute poverty before housing costs; the Gini on its 0 to 100 scale.' },
         { label: 'Sample', text: `${rule('uniform').draws} draws, the same seeds for every rule.` },
-        { label: 'Tie', text: `The title calls the main rule the least only when every other rule’s poverty rise is at least ${RULE_MARGIN_PP}pp higher; closer rules tie.` },
+        { label: 'Not ranked', text: `Rules whose poverty rises are within ${RULE_MARGIN_PP}pp of the main rule’s are not ranked: the spread across draws is wider.` },
       ]}
       download={{
         title: 'Five rules for who loses the job',
@@ -637,12 +650,9 @@ function Rules() {
         table: { columns: ['rule', 'draws', 'cost_bn', 'cost_sd_bn', 'poverty_bhc_pp', 'gini_points'], rows: D.rules.map((r) => [ruleName(r.id), r.draws, r.cost_bn, r.cost_sd_bn, r.poverty_pp, r.gini_pp]) },
       }}
       about={about({
-        how: ['Every rule displaces the same expected number of employees.', 'Wage and capital-income changes are the same under every rule.', ...rulesLead().more],
+        how: ['Every rule displaces the same expected number of employees.', 'Wage and capital-income changes are the same under every rule.', ...(rulesTieFinding(D.rules) ? [rulesLead().lead] : []), ...rulesLead().more],
         caveats: [
           'The rules are the study’s stylised designs.',
-          `${ruleName('junior')}: a higher chance for workers aged 16 to 24.`,
-          `${ruleName('compression')}: doubled chances for top earners in exposed occupations.`,
-          `${RULE_NAMES.klein_top_loaded.short}: displacement loaded on above-median earners.`,
           ...rulesReviewWords(D.rules),
         ],
         sources: [`${D.rules[0].file}: exchequer_cost_bn, poverty_change_bhc_pp, gini_change_pp`],
@@ -680,6 +690,14 @@ function Rules() {
           };
         })}
       />
+      {/* what each rule does, in Household method's words (María re-review M11) */}
+      <ul className="hh-rule-defs" aria-label="What each displacement rule does">
+        {RULES.map((x) => (
+          <li key={x.id}>
+            <b>{label(x)}:</b> {RULE_DEFS[x.id]}.
+          </li>
+        ))}
+      </ul>
     </Card>
   );
 }
@@ -980,9 +998,9 @@ function Policy() {
       title={policyWords(main)}
       lead={
         <Lead>
-          <>
-            The costs run from <Ax>{fmtBn(Math.min(...costs))}</Ax> to <Ax>{fmtBn(Math.max(...costs))}</Ax> a year.
-          </>
+          {/* María re-review M12 (Fable 5.2 ruling for Vahid): stylised
+              illustrations, not recommendations, said on the card */}
+          <span data-claim="policy-stylised">These three responses are stylised illustrations from the household study, not recommendations: they show how cost and poverty change under different designs.</span>
         </Lead>
       }
       // the plane carries the axis titles, as on cards 3 and 4
@@ -1006,6 +1024,9 @@ function Policy() {
           'Poverty lines are held at their shocked values.',
           'Wage insurance is an untaxed transfer that means tests ignore.',
           'The indented rows are wage insurance again, under the other two displacement rules.',
+          <>
+            The costs run from <Ax>{fmtBn(Math.min(...costs))}</Ax> to <Ax>{fmtBn(Math.max(...costs))}</Ax> a year.
+          </>,
         ],
         caveats: ['The designs are the study’s own.', ...policyReachWords(P.rows), 'They differ in aim, take-up and administration.', 'Compared on cost, poverty and the Gini only; not ranked.'],
         sources: [`${P.file}: ${P.key}`],
@@ -1027,7 +1048,7 @@ function Policy() {
         />
         {/* the costing basis, shown once, under the plane (R7.3) */}
         <IconLine concept="caveat" className="hh-note" data-caveat="costing">
-          Wage insurance is costed gross; the two UC changes are costed net of withdrawal elsewhere.
+          Wage insurance is costed gross; the two UC changes are costed net of withdrawal elsewhere, so the costs do not compare like for like.
         </IconLine>
         <ValueTable
           layout="stack"

@@ -9,7 +9,7 @@ import { ChartHover, ModelBadge, Replay, Pause } from '@/components/story/chart/
 import { useIsPhone, useReducedMotion } from '@/components/story/motion.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { SCEN_NAME, CENTRAL, BOUND, NOT_SOLVED, scenarioById } from '@/tabs/ai/surprise.js';
-import { fracWord } from './caveats.js';
+import { fracWord, payTest } from './caveats.js';
 import { Tx } from './frame.jsx';
 import { OutputSource } from './sources.jsx';
 import { SPLIT_YEAR, PART_COLOR, PART_TEXT, CAPITAL_PARTS, share, change, splitFor, sankeyGraph, waterfallRows, barColor } from './split.js';
@@ -465,9 +465,15 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
   );
 }
 
+// The second card also carries María's pay test (re-review M1, 24 Nov):
+// labour's share after the shift, the output growth it needs, and why
+// labour income and the pay rate end below the path (payTest), then the
+// one reason behind both results, linked to the pay card on Explore and,
+// for UK central, to the IMF comparison on Evidence.
 // Two steps, two stories (Maria M2): the forecast path's flows, then the scenario minus the path (the baseline's two-way split is the shock scene's first card):
 // the Sankey with both columns, then the waterfall.
-function outputSteps(sid, ch) {
+function outputSteps(sid, ch, cl) {
+  const test = ch ? payTest(sid, cl) : null;
   const k = (id, text) => <Key id={`wf-${id}`}>{text}</Key>;
   return [
     {
@@ -488,9 +494,28 @@ function outputSteps(sid, ch) {
       icon: 'compare',
       title: `${SCEN_NAME[sid]} minus the forecast path`,
       body: ch ? (
+        <>
         <Say>
           Then the change: each bar is one part in {SCEN_NAME[sid]} minus the same part on the forecast path. {k('gdp', 'GDP')} comes last.
         </Say>
+        {test ? (
+          <p className="p2-paytest" data-claim="pay-test">
+            {test.lines.join(' ')} Capital is slow to arrive in this model. That is why{' '}
+            <NavLink tab="explore" sub="economy" anchor="measures">
+              pay ends below the path
+            </NavLink>
+            {sid === 'uk_central' ? (
+              <>
+                , and why{' '}
+                <NavLink tab="method" sub="studies" anchor="imf-gap">
+                  GDP is below the IMF’s
+                </NavLink>
+              </>
+            ) : null}
+            .
+          </p>
+        ) : null}
+        </>
       ) : (
         <p>This scenario is not yet solved for the foreign-capital case chosen above.</p>
       ),
@@ -524,7 +549,7 @@ export default function OutputSplit({ sid, closure }) {
   // the part picked by a chip, a ribbon or a row, and the graphic state it
   // was picked in: { id, s }
   const [hl, setHl] = useState(null);
-  const steps = outputSteps(sid, ch);
+  const steps = outputSteps(sid, ch, cl);
   const [phoneRef, phoneSt] = useScrollState(phone);
   return (
     <section id="story-output" className="p2-output" aria-labelledby="story-output-h">

@@ -207,3 +207,51 @@ describe('GDP around the headline year', () => {
     for (const s of SCENARIOS) expect(ourValue()).toContain(`${gap(s.id, 'tfp', CENTRAL, 'Y') < 0 ? '−' : '+'}${Math.abs(gap(s.id, 'tfp', CENTRAL, 'Y')).toFixed(1)}%`);
   });
 });
+
+// María re-review M3, M4, M5, M8: every figure read from its home
+describe('María re-review: Evidence', () => {
+  it('M4: the IMF note’s multiple and inputs are the data’s; each row has an input cell', async () => {
+    const { default: Near2030, imfNote, NEAR_ROWS } = await import('@/tabs/literature/Near2030.jsx');
+    const IMF = (await import('@/tabs/literature/imfGap.json')).default;
+    const y = gap('uk_central', 'tfp', CENTRAL, 'Y');
+    expect(imfNote()).toContain(`about ${(IMF.imf_y4_output_pct / y).toFixed(1)} times`);
+    expect(imfNote()).toContain(`(+${IMF.imf_y4_tfp_pct.toFixed(2)}%)`);
+    const { container } = render(<Near2030 />);
+    for (const sentence of imfNote().split(/(?<=\.) (?=[A-Z])/)) expect(container.querySelector('[data-claim="imf-note"]').textContent).toContain(sentence);
+    for (const r of NEAR_ROWS) expect(r.input, r.id).toBeTruthy();
+    expect(NEAR_ROWS.find((r) => r.id === 'imf-sip-y5').input).toBe(`TFP +${IMF.imf_y4_tfp_pct.toFixed(2)}% (year 4)`);
+    // M7: GO-Science is growth from the 2023 level: out of the table, in Left out
+    expect(NEAR_ROWS.some((r) => r.id === 'goscience-2030')).toBe(false);
+  });
+  it('M5: the OBR row leads with the assumed clock, both sizes from lib/obrOverlap.js', async () => {
+    const { NEAR_ROWS } = await import('@/tabs/literature/Near2030.jsx');
+    const { ADOPTION, CALENDAR, OBR_YEAR_ONE } = await import('@/lib/obrOverlap.js');
+    const v = NEAR_ROWS.find((r) => r.id === 'obr-bp9').value;
+    expect(v).toContain(`+${CALENDAR.lo.toFixed(2)}% to +${CALENDAR.hi.toFixed(2)}%`);
+    expect(v).toContain(`start in ${OBR_YEAR_ONE}`);
+    expect(v).toContain(`+${ADOPTION.lo.toFixed(2)}% to +${ADOPTION.hi.toFixed(2)}%`);
+  });
+  it('M3: the Korinek tie reads their ranges from the map and ours from the data', async () => {
+    const { korinekTie } = await import('@/tabs/literature/EvidenceLanes.jsx');
+    const g = MAP.rows.find((r) => r.id === 'korinek-gdp');
+    const w = MAP.rows.find((r) => r.id === 'korinek-wage');
+    const y = gap('korinek', 'tfp', CENTRAL, 'Y');
+    const p = gap('korinek', 'tfp', CENTRAL, 'w');
+    const t = korinekTie();
+    const f = (x) => `${x < 0 ? '−' : '+'}${Math.abs(x).toFixed(1)}%`;
+    expect(t).toContain(`GDP is ${f(y)}`);
+    expect(t).toContain(`${y < g.lo ? 'below' : y > g.hi ? 'above' : 'inside'} their range of ${f(g.lo)} to ${f(g.hi)}`);
+    expect(t).toContain(`pay rate is ${f(p)}, ${p < w.lo ? 'below' : p > w.hi ? 'above' : 'inside'} their range of ${f(w.lo)} to ${f(w.hi)}`);
+    expect(t).not.toContain('same inputs');
+  });
+  it('M8: the GDP lane is grouped by horizon, the 2030 group first, with a divider for each', () => {
+    const { container } = render(<EvidenceLanes />);
+    const bands = [...container.querySelectorAll('#ranges-gdp .mx-rb-band')].map((b) => b.dataset.band);
+    expect(bands[0]).toBe('near');
+    expect(new Set(bands).size).toBe(bands.length);
+    const order = { near: 0, decade: 1, long: 2, unstated: 3 };
+    const seq = RANGES.gdp.map((r) => order[r.band]);
+    expect(seq).toEqual([...seq].sort((a, b) => a - b));
+    expect(container.querySelector('#ranges-gdp').textContent).toContain('Only the first group is at the macro model’s horizon.');
+  });
+});

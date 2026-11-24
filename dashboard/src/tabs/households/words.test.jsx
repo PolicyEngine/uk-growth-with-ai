@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import D from '@/data/aiStudy2425.json';
-import { rulesWords, rulesTieWords, rankingsWords, rankingsLead, costWords, takeupWords, takeupLead, displacedWords, rulesReviewWords, perPoundWords, policyWords } from './HouseholdsExplore.jsx';
+import { rulesWords, rulesTieWords, rulesTieFinding, rankingsWords, rankingsLead, costWords, takeupWords, takeupLead, displacedWords, rulesReviewWords, perPoundWords, policyWords } from './HouseholdsExplore.jsx';
 import { linkAiFiles } from '@/tabs/explore/sources.jsx';
 import { RULE_MARGIN_PP, ruleName, rulesGap } from './figures.js';
 
@@ -18,7 +18,9 @@ describe('households wording follows the data', () => {
     expect(rulesWords(D.rules).includes('least under the main rule')).toBe(clear);
     if (!clear && others.every((r) => r.poverty_pp >= c.poverty_pp)) {
       const near = others.filter((r) => r.poverty_pp - c.poverty_pp < RULE_MARGIN_PP);
-      expect(rulesWords(D.rules)).toContain('tie lowest');
+      // María re-review M11: the title states the result; the tie is the finding
+      expect(rulesWords(D.rules)).toBe('Poverty rises under every displacement rule');
+      expect(rulesTieFinding(D.rules).text).toContain('too close to rank across draws');
       expect(rulesTieWords(D.rules)).toContain(`within ${rulesGap(D.rules)} of the main rule`);
       for (const r of near) expect(rulesTieWords(D.rules)).toContain(ruleName(r.id));
     } else {
@@ -28,7 +30,9 @@ describe('households wording follows the data', () => {
   });
   it('rules: the current data ties the main and ages 16 to 24 rules, 0.03pp apart', () => {
     // pins aiStudy2425.json as committed: main 2.4016pp, ages 16 to 24 2.4317pp
-    expect(rulesWords(D.rules)).toBe('Poverty rises under every displacement rule; main and ages 16 to 24 tie lowest');
+    expect(rulesWords(D.rules)).toBe('Poverty rises under every displacement rule');
+    expect(rulesTieFinding(D.rules).text).toBe('The main rule (in proportion to exposure) and ages 16 to 24 give the smallest rises, +2.40pp and +2.43pp, too close to rank across draws.');
+    expect(rulesTieFinding(D.rules).text.split(/\s+/).length).toBeLessThanOrEqual(25);
     expect(rulesTieWords(D.rules)).toBe('Ages 16 to 24 is within 0.03pp of the main rule on poverty.');
   });
   it('rules: a clear margin keeps "least under the main rule"; a lower rule is counted', () => {
@@ -36,7 +40,7 @@ describe('households wording follows the data', () => {
     expect(rulesWords([r('exposure', 2), r('junior', 2.1), r('uniform', 2.5)])).toBe('Poverty rises under every displacement rule, least under the main rule');
     expect(rulesTieWords([r('exposure', 2), r('junior', 2.1), r('uniform', 2.5)])).toBeNull();
     // two rules tied with the main one: too long to name in 14 words, counted
-    expect(rulesWords([r('exposure', 2), r('junior', 2.04), r('uniform', 2.08), r('compression', 3)])).toBe('Poverty rises under every displacement rule; the main and 2 other rules tie lowest');
+    expect(rulesWords([r('exposure', 2), r('junior', 2.04), r('uniform', 2.08), r('compression', 3)])).toBe('Poverty rises under every displacement rule');
     expect(rulesTieWords([r('exposure', 2), r('junior', 2.04), r('uniform', 2.08), r('compression', 3)])).toBe('Ages 16 to 24 and Uniform are within 0.08pp of the main rule on poverty.');
     expect(rulesWords([r('exposure', 2), r('junior', 1.9), r('uniform', 2.5)])).toBe('Poverty rises under every displacement rule; 1 of the other 2 raise it at least as much as the main rule');
     expect(rulesTieWords([r('exposure', 2), r('junior', 1.9), r('uniform', 2.5)])).toBeNull();

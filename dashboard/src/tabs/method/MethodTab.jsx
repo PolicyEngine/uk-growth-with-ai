@@ -18,7 +18,7 @@ import { iconFor } from '@/lib/concepts.js';
 import IconText from './IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { METHOD, MEASURE, RULES as RULE_NAMES, MACRO_ABOUT_CAP, MACRO_FOLLOWS } from '@/lib/labels.js';
-import { ADOPTION, ADOPTION_YEAR, CALENDAR, overlapShares, pctRange, tfpInput } from '@/lib/obrOverlap.js';
+import { ADOPTION, CALENDAR, OBR_YEAR_ONE, clockText, earlyOnlyFlips, overlapShares, pctRange, tfpInput } from '@/lib/obrOverlap.js';
 import { S, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, foreignShareOf, signed, scenarioById } from '@/tabs/ai/surprise.js';
 import { SET } from '@/lib/dataKeys.js';
 import { REPO, URLS, issue, pr } from '@/tabs/ai/links.js';
@@ -46,6 +46,10 @@ const overlapList = () => {
   return xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}` : (xs[0] ?? '');
 };
 const CENTRAL_TFP = tfpInput('uk_central');
+// names for the earlier-start note (María re-review M5)
+const SN_FULL = { uk_low: 'UK low', uk_central: 'UK central', uk_high: 'UK high', korinek: 'Korinek et al.' };
+const FLIP_NAME = { Y: 'GDP', GNI: 'GNI', NNI: 'national income', w: 'pay rate', debt_gdp_pp: 'debt/GDP', tax_gdp_pp: 'tax/GDP' };
+const signedPp = (x, v) => `${x < 0 ? '−' : '+'}${Math.abs(x).toFixed(2)}${v.endsWith('_pp') ? 'pp' : '%'}`;
 
 // The macro model's method, one page in the model pages' one anatomy
 // (Method redesign, section 4; M5): what it is (the intro), how it works
@@ -312,7 +316,7 @@ function Limitations() {
       para: true,
       text: (
         <>
-          its {ext(SRC.bp9B14.url, 'forecast path')} has {pctRange(ADOPTION)} by year {ADOPTION_YEAR}
+          its {ext(SRC.bp9B14.url, 'forecast path')} adds {pctRange(CALENDAR)} over {SURPRISE_YEAR}–{HEADLINE_YEAR} if its curve starts in {OBR_YEAR_ONE} ({pctRange(ADOPTION)} if with the shock)
           {CENTRAL_TFP != null ? `, against +${CENTRAL_TFP.toFixed(1)}% in UK central` : ''}; inputs are not net of it ({ext(issue(27), 'issue #27')}).
         </>
       ),
@@ -432,11 +436,13 @@ function ShockCards() {
                 icon: 'path',
                 text: (
                   <>
-                    The OBR&rsquo;s path already has about {pctRange(ADOPTION)} of AI productivity by year {ADOPTION_YEAR} of adoption ({cite('bp9B14')}, Chart B.4), and no labour-share shift ({cite('frs87')}). Over the calendar years {SURPRISE_YEAR}–{HEADLINE_YEAR} its curves add {pctRange(CALENDAR)}.
+                    {clockText()} The curves are {cite('bp9B14')}, Chart B.4; the OBR&rsquo;s path has no labour-share shift ({cite('frs87')}).
                   </>
                 ),
               },
-              { icon: 'compare', text: `So the labour-share shift is all extra to the OBR’s path. The productivity gain is only partly extra: on the adoption clock the path already has this share of each scenario’s input: ${overlapList()}.` },
+              { icon: 'compare', text: `So the labour-share shift is all extra to the OBR’s path. The productivity gain is only partly extra: on the assumed clock the path already has this share of each scenario’s input: ${overlapList()}.` },
+              // what an earlier start would add (María re-review M5): no label changes
+              ...earlyOnlyFlips().map((f) => ({ key: `early-${f.sid}-${f.cl}-${f.v}`, icon: 'timing', text: `If the curve started a year earlier, one more direction would change: ${SN_FULL[f.sid]}’s ${FLIP_NAME[f.v] ?? f.v} with ${f.cl === 'zk0' ? 'no' : 'some'} foreign capital, ${signedPp(f.x, f.v)} in the main version, about ${signedPp(f.y, f.v)} once netted. No label changes on the assumed clock.` })),
               { icon: 'debt', text: <>Spending is set so 2030 debt/GDP matches the OBR&rsquo;s March 2026 forecast ({cite('efoMarDebt')}; {cite('debtTarget')}).</> },
               { icon: 'compare', text: 'Every gap is against that path, restarted without the scenario’s inputs.' },
               { icon: 'range', text: `For the gap against the OBR’s own forecast, read between the main version and “technology unchanged”, which has the share shift and no productivity gain${CENTRAL_TFP != null ? `: for UK central that equals netting all of its +${CENTRAL_TFP.toFixed(1)}%` : ''}.` },

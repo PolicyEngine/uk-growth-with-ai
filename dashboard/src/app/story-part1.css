@@ -1233,7 +1233,7 @@
 /* the subtitle under the question (Vahid, 19 Nov): the scenario count and
    the start year, read from the data; small and muted, like the series line */
 p.hero-sub {
-  max-width: none;
+  max-width: 62ch;
   margin: 12px 0 0;
   font-size: var(--t-label);
   font-weight: 500;
@@ -1303,4 +1303,9 @@ p.hero-sub {
   align-self: center;
   justify-self: end;
   font-size: 22px;
+}
+/* María re-review M9: the line under the introduction, with the takeaway icon */
+.hero-howto {
+  margin: 8px 0 0;
+  color: var(--t-muted);
 }

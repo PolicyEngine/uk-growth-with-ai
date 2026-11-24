@@ -409,6 +409,114 @@ export function Headline({ c, rule, cl, arm, measure = 'M' }) {
   );
 }
 
+// With Both (María re-review M10, Fable 5.2 ruling for Vahid, 24 Nov): one
+// set of the four tiles, each carrying both foreign-capital cases as two
+// labelled values, in place of two stacks of tiles. The foreign-capital
+// setting in the header pill stays the one chooser. Where "transfers pay"
+// is measured differently in the two cases (a solve to the horizon in one,
+// a first-order estimate in the other), its tag prints beside each value
+// and one line says so.
+const BOTH_CASES = [
+  { cl: 'zk0.1', label: 'Some foreign capital' },
+  { cl: 'zk0', label: 'No foreign capital' },
+];
+function TwoValues({ vals, tone: toneOf }) {
+  return (
+    <span className="ex-two">
+      {vals.map((v) => (
+        <span key={v.label} className="ex-two-row">
+          <span className="ex-two-k">{v.label}</span>{' '}
+          <span className={`ex-two-v${toneOf && toneOf(v.x) ? ` is-${toneOf(v.x)}` : ''}`}>{v.text}</span>
+        </span>
+      ))}
+    </span>
+  );
+}
+const ageText = (c, full, ch) => {
+  const fills = full ? Object.values(full.by_fill ?? {}) : [];
+  const fullAges = fills.length ? [Math.min(...fills.map((f) => f.oldest_losing_on_average)), Math.max(...fills.map((f) => f.oldest_losing_on_average))] : null;
+  const young = c.all_lose_up_to_age;
+  const ages = fullAges ?? ch?.oldest_losing_on_average;
+  return young ? (young === 20 ? 'Age 20' : `Up to age ${young}`) : ages ? `Up to age ${ages[0] === ages[1] ? ages[0] : `${ages[0]}–${ages[1]}`}` : 'The youngest';
+};
+export function HeadlineBoth({ rule, arm, measure = 'M' }) {
+  const cases = BOTH_CASES.map((k) => {
+    const c = cell(k.cl, rule, arm);
+    const full = dnfullFor(k.cl, rule, arm);
+    const ch = rule === 'dn' && !full ? c.charged : null;
+    const ms = measuresOf(c, rule, k.cl, arm);
+    const all = ms.flatMap((m) => m.losing);
+    return { ...k, c, full, ch, ms, lo: Math.min(...all), hi: Math.max(...all) };
+  });
+  const [a, b] = cases;
+  const ids = a.ms.map((m) => m.id).filter((id) => b.ms.some((m) => m.id === id));
+  const T = ids.includes('T') ? [a.ms.find((m) => m.id === 'T'), b.ms.find((m) => m.id === 'T')] : null;
+  const split = T && T[0].tag !== T[1].tag;
+  return (
+    <div className="stat-row cols-4 ex-who-tiles is-both" data-both="">
+      <StatTile icon={iconFor('households')} name="Adults who lose" value={<TwoValues vals={cases.map((k) => ({ label: k.label, text: tileRange(k.lo, k.hi) }))} />} sub={<Lead c="range">{`Share of adults alive in ${D.shock_year}, by measure`}</Lead>}>
+        <ul className="ex-mtoggle" aria-label="Share of adults who lose, by measure, with some and with no foreign capital">
+          {ids.map((id) => {
+            const [x, y] = [a.ms.find((m) => m.id === id), b.ms.find((m) => m.id === id)];
+            return (
+              <li key={id} className={`ex-mtoggle-row${id === measure ? ' is-on' : ''}`} title={x.def} aria-current={id === measure ? 'true' : undefined}>
+                <span className="ex-mtoggle-name">
+                  {x.short}
+                  {'\u00a0'}
+                </span>
+                <span className="ex-dd">
+                  {shareOf(x.losing)}
+                  {split && id === 'T' ? <span className="ex-mtag"> ({x.tag})</span> : null} · {shareOf(y.losing)}
+                  {split && id === 'T' ? <span className="ex-mtag"> ({y.tag})</span> : null}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+        <p className="ex-two-note">Each row: some foreign capital · no foreign capital.</p>
+        {split ? <p className="ex-two-note">The two are measured differently: one is a model run, the other a first-order estimate.</p> : null}
+      </StatTile>
+      <StatTile icon={iconFor('young')} name="Who loses, by age" value={<TwoValues vals={cases.map((k) => ({ label: k.label, text: ageText(k.c, k.full, k.ch) }))} />} sub={<Lead c="age">Every adult this age or younger loses, or loses on average where transfers bear the later cost</Lead>} />
+      <StatTile icon={iconFor('measure')} name="Average change" value={<TwoValues tone={tone} vals={cases.map((k) => ({ label: k.label, text: pct(k.c.alive_avg), x: k.c.alive_avg }))} />} sub={<Lead c="consumption">Of remaining-lifetime consumption and bequests</Lead>}>
+        <ul className="stat-rows ex-stat-rows">
+          {ids
+            .filter((id) => id !== 'M')
+            .map((id) => {
+              const [x, y] = [a.ms.find((m) => m.id === id), b.ms.find((m) => m.id === id)];
+              return (
+                <li key={id} className={id === measure ? 'is-on' : undefined}>
+                  <span className="ex-dt" title={x.def}>
+                    {x.short}
+                  </span>{' '}
+                  <span className="ex-dd">
+                    {avgOf(x.avg)} · {avgOf(y.avg)}
+                  </span>
+                </li>
+              );
+            })}
+        </ul>
+      </StatTile>
+      <StatTile icon={iconFor('inequality')} name="Where it comes from" value={<TwoValues tone={tone} vals={cases.map((k) => ({ label: k.label, text: pct(k.c.sources_alive.capital), x: k.c.sources_alive.capital }))} />} sub={<Lead c="capital">From capital income, at unchanged behaviour</Lead>}>
+        <ul className="stat-rows ex-stat-rows">
+          <li>
+            <span className="ex-dt">
+              <Lead c="labour">From labour income</Lead>
+            </span>{' '}
+            <span className="ex-dd">
+              {pct(a.c.sources_alive.labour)} · {pct(b.c.sources_alive.labour)}
+            </span>
+          </li>
+          <li>
+            <span className="ex-dt">
+              <Lead c="caveat">Behaviour adjusts too: the two need not sum to the average</Lead>
+            </span>
+          </li>
+        </ul>
+      </StatTile>
+    </div>
+  );
+}
+
 // The aggregate signs behind the Why cards, from the same OG-UK solves
 // (the surprise file of the cohort's own year, lib/dataKeys.js cohortGap;
 // UK central, headline year): the interest rate and the
@@ -1064,14 +1172,7 @@ export default function WhoGainsTab() {
       {/* one stack, one gap between every card (task 19) */}
       <div className="ex-stack">
         {both ? (
-          cls.map((k) => (
-            <div key={k} className="wg-closure">
-              <h3 className="wg-closure-title">
-                <Icon name={CL_HEAD[k].icon} size={16} /> {CL_HEAD[k].text}
-              </h3>
-              <Headline c={cell(k, rule, arm)} rule={rule} cl={k} arm={arm} measure={measure} />
-            </div>
-          ))
+          <HeadlineBoth rule={rule} arm={arm} measure={measure} />
         ) : (
           <Headline c={c} rule={rule} cl={cl} arm={arm} measure={measure} />
         )}

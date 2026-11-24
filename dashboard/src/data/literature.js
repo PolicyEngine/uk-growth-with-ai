@@ -328,13 +328,28 @@ function plotRows(metric) {
       mark: r.mark ?? null,
       none: Boolean(r.none),
       unverified: Boolean(r.unverified),
+      band: r.horizonBand ?? null,
     };
     if (r.join) seen[r.join] = row;
     out.push(row);
   }
   return out;
 }
-export const RANGES = { gdp: plotRows('gdp'), wage: plotRows('wage') };
+// The GDP lane's horizon groups, in order (María re-review M8): the
+// rows at or near the macro model's horizon first. A row's band is the
+// map's `horizonBand`; rows keep their map order inside a band.
+export const HORIZON_BANDS = [
+  { id: 'near', label: 'Around 2030' },
+  { id: 'decade', label: 'Ten years or 2035' },
+  { id: 'long', label: '2050 or long run' },
+  { id: 'unstated', label: 'Horizon not stated' },
+];
+const bandOrder = (b) => {
+  const i = HORIZON_BANDS.findIndex((x) => x.id === b);
+  return i < 0 ? HORIZON_BANDS.length : i;
+};
+const byBand = (rows) => rows.map((r, i) => ({ r, i })).sort((a, b) => bandOrder(a.r.band) - bandOrder(b.r.band) || a.i - b.i).map((x) => x.r);
+export const RANGES = { gdp: byBand(plotRows('gdp')), wage: plotRows('wage') };
 
 // The OBR's real GDP growth forecast by calendar year, October 2026 EFO,
 // Table A.1 (published to one decimal place). The growth check compares the

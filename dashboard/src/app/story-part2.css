@@ -1533,3 +1533,11 @@
     line-height: 1.3;
   }
 }
+/* María re-review M1: the pay test under the output scene's last sentence */
+.p2-paytest {
+  margin: 8px 0 0;
+  font-size: var(--t-label);
+  line-height: 1.45;
+  color: var(--t-text);
+  text-wrap: pretty;
+}

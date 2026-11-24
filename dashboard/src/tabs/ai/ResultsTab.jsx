@@ -26,7 +26,7 @@ import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS, efo, EFO_PAGE, OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import { SOURCES as LIT } from '@/data/literature.js';
 import { investmentFlags, I_FLAG_PCT, belowThrough, investHighTo } from '@/tabs/explore/caveats.js';
-import { payCaveat, payWhy } from '@/tabs/story/part2/caveats.js';
+import { payCaveat, payWhy, payPath, paySteadyFrom } from '@/tabs/story/part2/caveats.js';
 import { CENTRAL, BOUND, LATE_YEAR, SCEN_NAME as SN, ARM_COLOR } from '@/tabs/ai/surprise.js';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import { VERSION_TOKEN, versionName } from '@/lib/versionColors.js';
@@ -439,6 +439,9 @@ function IncomePanel({ sid }) {
                   payCaveat(sid) && (payCaveat(sid).includes('sensitivity') || payCaveat(sid).startsWith('Its sign')) ? { key: 'wzlink', icon: 'link', text: <>Figures: Both, and the <NavLink tab="explore" sub="economy" anchor="closure-sensitivity"><MathSym name="zetaK" /> 0.5 sensitivity</NavLink></> } : null,
                   // results review F1: why the main version's pay rate is below the path
                   payWhy(sid, primaryClosure(st.closure), st.rule) ? { key: 'why', icon: 'capital', text: payWhy(sid, primaryClosure(st.closure), st.rule) } : null,
+                  // María re-review M2: the main version's pay rate after the headline year
+                  payPath(sid, primaryClosure(st.closure)) ? { key: 'path', icon: 'timing', text: payPath(sid, primaryClosure(st.closure)) } : null,
+                  paySteadyFrom(sid, primaryClosure(st.closure)) ? { key: 'steady', icon: 'debt', text: `The narrowing is steady from ${paySteadyFrom(sid, primaryClosure(st.closure))}. It is not a step when the debt rule starts in ${LATE_YEAR}.` } : null,
                   ...stressItems(sid),
                 ]}
               />

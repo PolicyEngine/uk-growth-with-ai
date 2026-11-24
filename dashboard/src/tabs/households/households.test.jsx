@@ -224,7 +224,9 @@ describe('HouseholdsExplore', () => {
     expect(fold('hh-per-pound')).toMatch(/On one draw \(seed 0\)/);
     // the costing basis is said once, under the plane, not in More info
     expect(fold('hh-policy')).not.toMatch(/costed gross/);
-    expect(text(container.querySelector('#hh-policy'))).toMatch(/Wage insurance is costed gross; the two UC changes are costed net of withdrawal elsewhere\./);
+    expect(text(container.querySelector('#hh-policy'))).toMatch(/Wage insurance is costed gross; the two UC changes are costed net of withdrawal elsewhere, so the costs do not compare like for like\./);
+    // María re-review M12: the card says the responses are stylised illustrations, in view
+    expect(text(container.querySelector('#hh-policy .card-lead'))).toMatch(/stylised illustrations from the household study, not recommendations/);
     // Fable round 7, S5: the UC changes' reach, in the policy card's caveats
     expect(fold('hh-policy')).toMatch(/two UC changes are not limited to the displaced; wage insurance is paid only to the displaced/);
     expect(fold('hh-policy')).toMatch(/the study does not split it/);

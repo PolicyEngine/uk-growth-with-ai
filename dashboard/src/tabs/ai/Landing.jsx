@@ -14,7 +14,7 @@ import {
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import { Items } from '@/components/story/Items.jsx';
 import { payNote, payWords, fracWord } from '@/tabs/story/part2/caveats.js';
-import { ADOPTION, ADOPTION_YEAR, CALENDAR, SIGN_CAVEAT, breakEven, pctRange, signMayFlip, tfpInput } from '@/lib/obrOverlap.js';
+import { ADOPTION, CALENDAR, OBR_YEAR_ONE, SIGN_CAVEAT, breakEven, pctRange, signMayFlip, tfpInput } from '@/lib/obrOverlap.js';
 import { iconFor } from '@/lib/concepts.js';
 import { dirConcept, dirWord } from '@/tabs/story/part2/dir.js';
 import { A } from '@/tabs/story/part2/sources.jsx';
@@ -69,7 +69,7 @@ export function signCaveat(sid, cl, v) {
   const x = gap(sid, 'tfp', cl, v);
   const be = breakEven(sid, cl, v);
   const net = be != null && be <= (tfpInput(sid) ?? 0) + 1e-9 ? ` once ${be.toFixed(2)}% or more of the productivity input is netted` : '';
-  return `Its sign depends on the productivity gain: the forecast path already has about ${pctRange(ADOPTION)} of AI productivity by year ${ADOPTION_YEAR} of adoption, and ${pctRange(CALENDAR)} over ${SURPRISE_YEAR}–${HEADLINE_YEAR}; the gap turns ${OTHER[sideWord(x)]} the path${net} (see “technology unchanged”).`;
+  return `Its sign depends on the productivity gain: the forecast path already has about ${pctRange(CALENDAR)} of AI productivity over ${SURPRISE_YEAR}–${HEADLINE_YEAR} if the OBR’s adoption curve starts in ${OBR_YEAR_ONE}, and ${pctRange(ADOPTION)} if it starts with the shock; the gap turns ${OTHER[sideWord(x)]} the path${net} (see “technology unchanged”).`;
 }
 
 // National income's tile, shared by the hero and the ledger: NNI's line,
@@ -417,9 +417,9 @@ export function LateLine({ sid, cl, className }) {
 // not. Every figure from lib/obrOverlap.js and the data.
 export function overlapTip(sid) {
   const t = tfpInput(sid);
-  const r = pctRange(ADOPTION);
+  const r = pctRange(CALENDAR);
   if (t == null || !r) return 'The labour-share shift is extra to that path; the productivity gain is not all extra.';
-  return `The labour-share shift is extra to that path. The productivity gain is not all extra: the path already has about ${r} by year ${ADOPTION_YEAR}, against +${t.toFixed(1)}% in ${NAME[sid]}.`;
+  return `The labour-share shift is extra to that path. The productivity gain is not all extra: the path already has about ${r} over ${SURPRISE_YEAR}–${HEADLINE_YEAR} (its adoption curve assumed to start in ${OBR_YEAR_ONE}; ${pctRange(ADOPTION)} if it starts with the shock), against +${t.toFixed(1)}% in ${NAME[sid]}.`;
 }
 
 // Public debt in the main arm at the late year, in words: its side of the
