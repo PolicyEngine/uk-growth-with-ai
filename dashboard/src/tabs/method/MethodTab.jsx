@@ -17,7 +17,7 @@ import { MACRO_REFS } from '@/data/references.js';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from './IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
-import { METHOD, MEASURE, RULES as RULE_NAMES, MACRO_ABOUT_CAP, MACRO_FOLLOWS } from '@/lib/labels.js';
+import { METHOD, MEASURE, RULES as RULE_NAMES, MACRO_ABOUT, MACRO_FOLLOWS } from '@/lib/labels.js';
 import { ADOPTION, CALENDAR, OBR_YEAR_ONE, clockText, earlyOnlyFlips, overlapShares, pctRange, tfpInput } from '@/lib/obrOverlap.js';
 import { S, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, foreignShareOf, signed, scenarioById } from '@/tabs/ai/surprise.js';
 import { SET } from '@/lib/dataKeys.js';
@@ -589,7 +589,7 @@ export default function MethodTab() {
       <div className="page-body">
         <PageIntro
           question="How does the macro model turn an AI scenario into these results?"
-          answer={<IconText icon="model">{MACRO_ABOUT_CAP}. {MACRO_FOLLOWS}. Every market clears. Each result is a gap against the OBR’s central forecast path: the model’s own path on the OBR’s March 2026 productivity growth and debt target, restarted in {SURPRISE_YEAR} without the extra AI. Not a forecast.</IconText>}
+          answer={<IconText icon="model">The macro model (<span data-package="">OG-UK</span>) is {MACRO_ABOUT}. {MACRO_FOLLOWS}. Every market clears. Each result is a gap against the OBR’s central forecast path: the model’s own path on the OBR’s March 2026 productivity growth and debt target, restarted in {SURPRISE_YEAR} without the extra AI. Not a forecast.</IconText>}
         />
         <section>
           <SectionHeading id="m-model" icon={iconFor('model')} title="How it works">

@@ -40,6 +40,11 @@ const ALLOW = [
   ['tabs/story/part2/sources.jsx', "docItem('OG-UK, the model', SRC.ogUk, 'OG-UK')"],
   ['tabs/story/part2/sources.jsx', '<A href={OG_DEFAULTS}>OG-UK&rsquo;s calibration</A>'],
   ['tabs/story/part3/sources.jsx', 'OG-Core, the overlapping-generations model OG-UK is built on'],
+  // named once, at first mention, as the package (María re-review M16,
+  // Fable 5.2 ruling for Vahid, 24 Nov): Part 2's model line and the macro
+  // model method's intro, each in a [data-package] span
+  ['tabs/story/StoryTab.jsx', 'The macro model (<span data-package="">OG-UK</span>) has no unemployment'],
+  ['tabs/method/MethodTab.jsx', 'The macro model (<span data-package="">OG-UK</span>) is {MACRO_ABOUT}'],
 ];
 const allowed = (file, line) => ALLOW.some(([f, s]) => f === file && line.includes(s));
 

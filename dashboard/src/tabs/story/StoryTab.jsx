@@ -52,7 +52,12 @@ export const PARTS = [
     model: 'oguk',
     what: `the whole UK economy, year by year to ${LATE_YEAR}`,
     question: `What happens to output, incomes and the public finances if, from ${SURPRISE_YEAR}, AI does more than the OBR already expects?`,
-    line: 'The model has no unemployment: the shock shows up in pay rates, not in job losses.',
+    // the package named once, at first mention (María re-review M16)
+    line: (
+      <>
+        The macro model (<span data-package="">OG-UK</span>) has no unemployment: the shock shows up in pay rates, not in job losses.
+      </>
+    ),
     about: (
       <>
         {/* the AI shock, defined once (ai-shock-wording-fable.md) */}
