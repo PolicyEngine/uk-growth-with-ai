@@ -529,6 +529,20 @@ const other = (k) => (k === 'job' ? 'cut' : 'job');
 const Re = ({ children }) => <span data-axis="">{children}</span>;
 const [BW, BC, BD] = BREAKS;
 
+// The scene's closing line (M15 wording, Fable 5.2 ruling for Vahid, 24
+// Nov): what the panels mean, no figure from them. The first sentence
+// says "far more than the poverty rise" only where rulesClaims finds it;
+// the second only where both gain break-evens are above their main
+// settings and the duration break-even is below its main setting. Else
+// the second falls back to the old range line.
+export function changesAnswer(cs = RULES.map((r) => rule(r.id).cost_bn)) {
+  // trimmed to the 25-word block cap (part3.test, check_text): the ruled
+  // text ran to 28 words
+  const first = rulesClaims().costFar ? 'Who loses the job moves the cost far more than poverty.' : 'Who loses the job moves the cost.';
+  const gains = BW.value > BW.central && BC.value > BC.central && BD.value < BD.central;
+  return gains ? `${first} A larger assumed gain or shorter job loss would bring the cost to zero.` : `Cost ${fmtBn(Math.min(...cs))} to ${fmtBn(Math.max(...cs))} a year by rule; zero if ${BREAKS[0].prose}`;
+}
+
 export function changesSub() {
   const cs = RULES.map((r) => rule(r.id).cost_bn);
   return {
@@ -538,7 +552,7 @@ export function changesSub() {
     question: 'What would change the cost and the poverty rise?',
     hint: 'Watch the chart change with each assumption',
     key: 'change',
-    answer: `Cost ${fmtBn(Math.min(...cs))} to ${fmtBn(Math.max(...cs))} a year by rule; zero if ${BREAKS[0].prose}`,
+    answer: changesAnswer(cs),
     answerTo: 'p3-moves-step',
   };
 }

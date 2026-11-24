@@ -573,7 +573,8 @@ export function AiUseChart({ notes, lines = 2 }) {
             10 or more employees, <tspan data-axis="">{pct1(FACTS.business_ai_use_10plus.value)}</tspan>
           </text>
           <text x={X(last) - 4} y={allY} textAnchor="end" className={`p1-end-label is-all${seen ? ' is-on' : ''}`} data-mark="ai-all">
-            All businesses, <tspan data-axis="">{pct1(FACTS.business_ai_use.value)}</tspan>
+            {/* the business share's home (M15: the closing line no longer prints it) */}
+            All businesses, <tspan data-path="facts.business_ai_use.value">{pct1(FACTS.business_ai_use.value)}</tspan>
           </text>
         </g>
         </Crosshair>

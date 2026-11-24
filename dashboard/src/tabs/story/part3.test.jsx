@@ -714,3 +714,31 @@ describe('Part3', () => {
     expect(fig.textContent).not.toContain(fmtBn(ladder('takeup').cost_bn));
   });
 });
+
+// M15 wording (Fable 5.2 ruling for Vahid, 24 Nov): each closing line's gate
+describe('closing lines carry no figure from their scene', () => {
+  it('main result: the meaning, gated on cost and poverty both rising', () => {
+    const H = D.headline;
+    const holds = H.central_cost.value > 0 && H.central_poverty.value > 0;
+    expect(CENTRAL_SUB.answer === 'Even after the assumed gains, the public finances lose money and absolute poverty rises.').toBe(holds);
+    if (holds) expect(CENTRAL_SUB.answer.match(FIG)).toBeNull();
+  });
+  it('deciles: the 6-to-9 group and the top decile, each from decileShape', async () => {
+    const { DECILES_SUB, decileShape } = await import('./part3/Deciles.jsx');
+    const s = decileShape();
+    const exp = s.upperMiddle ? `Deciles 6 to 9 lose the largest share of income${s.topNearZero ? '; the top decile shows no clear change' : ''}.` : `The largest fall, as a share of income, is in decile ${s.worst}.`;
+    expect(DECILES_SUB.answer).toBe(exp);
+    expect(DECILES_SUB.answer.match(FIG)).toBeNull();
+  });
+  it('what changes the answer: costFar, then the three break-evens against their main settings', () => {
+    const [w, c, d] = BREAKS;
+    const gains = w.value > w.central && c.value > c.central && d.value < d.central;
+    const first = rulesClaims().costFar ? 'Who loses the job moves the cost far more than poverty.' : 'Who loses the job moves the cost.';
+    const a = changesSub().answer;
+    if (gains) {
+      expect(a).toBe(`${first} A larger assumed gain or shorter job loss would bring the cost to zero.`);
+      expect(a.split(/\s+/).length).toBeLessThanOrEqual(25);
+      expect(a.match(FIG)).toBeNull();
+    } else expect(a.startsWith('Cost ')).toBe(true);
+  });
+});

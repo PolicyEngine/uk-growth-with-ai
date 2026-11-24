@@ -389,7 +389,8 @@ describe('story part 1, real data', () => {
     const el = show(Part1Real);
     expect([...el.querySelectorAll('.scene-head[id]')].map((h) => h.id)).toEqual(['q-p1-output', 'q-p1-work', 'q-p1-ai']);
     // one closing line a scene: the output and work lines hold no figures;
-    // the AI line is the home of its two figures
+    // the AI line is the home of the exposed total; the business share's
+    // home is the chart's end label (M15 wording, Fable 5.2, 24 Nov)
     expect(P.OUTPUT_TAKEAWAY.match(FIGURE)).toBeNull();
     expect(P.WORK_TAKEAWAY.match(FIGURE)).toBeNull();
     const text = el.textContent;
@@ -786,7 +787,7 @@ describe('hero', () => {
     const h2 = el.querySelector('h2#story-q');
     expect(h2.previousElementSibling.classList.contains('hero-series')).toBe(true);
     expect(h2.textContent.trim()).toBe('How could AI affect the UK economy?');
-    expect(h2.parentElement.querySelector('.hero-sub').textContent).toBe(`Four scenarios, not forecasts. In each, AI lowers labour’s share of income and raises productivity by more than the OBR expects. The change starts in ${S.surprise_year} as a surprise and is in full from ${S.headline_year}. Every figure is a gap against the OBR’s central forecast path, which already includes some AI.`);
+    expect(h2.parentElement.querySelector('.hero-sub').textContent).toBe(`Four scenarios, not forecasts. In each, AI lowers labour’s share of income and raises productivity by more than the OBR expects. The change starts in ${S.surprise_year} as a surprise and is in full from ${S.headline_year}. Each scenario figure is a gap against the OBR’s central forecast path, which already includes some AI.`);
     expect(h2.parentElement.querySelector('.hero-howto').textContent).toBe('This icon marks each scene’s key takeaway.');
     expect(h2.textContent).not.toMatch(/arriv/i);
   });

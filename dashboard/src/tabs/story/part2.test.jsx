@@ -125,8 +125,8 @@ describe('story part 2', () => {
         const text = t.lines.join(' ');
         expect(text).toContain(`gets ${after.toFixed(1).replace(/\.0$/, '')} of every 100, down from ${before.toFixed(1).replace(/\.0$/, '')}`);
         expect(text).toContain(`more than ${need.toFixed(1)}%`);
-        expect(text).toContain(`output grows ${y.toFixed(1)}%`);
-        expect(text).toContain(`labour income ends ${Math.abs(li).toFixed(1)}% below`);
+        expect(text).toContain(`output is ${Math.abs(y).toFixed(1)}% ${y >= 0 ? 'above' : 'below'} the path`);
+        expect(text).toContain(`labour income ends ${Math.abs(li).toFixed(1)}% below it`);
         if (w < 0) expect(text).toContain(`pay rate ends ${Math.abs(w).toFixed(1)}% below`);
       }
   });

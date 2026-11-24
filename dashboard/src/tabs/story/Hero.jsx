@@ -286,7 +286,7 @@ export function heroStats(sid, cl) {
 
 // The landing introduction (María re-review M9).
 export const heroIntro = () =>
-  `${SCENARIO_COUNT_WORD} scenarios, not forecasts. In each, AI lowers labour’s share of income and raises productivity by more than the OBR expects. The change starts in ${SURPRISE_YEAR} as a surprise and is in full from ${HEADLINE_YEAR}. Every figure is a gap against the OBR’s central forecast path, which already includes some AI.`;
+  `${SCENARIO_COUNT_WORD} scenarios, not forecasts. In each, AI lowers labour’s share of income and raises productivity by more than the OBR expects. The change starts in ${SURPRISE_YEAR} as a surprise and is in full from ${HEADLINE_YEAR}. Each scenario figure is a gap against the OBR’s central forecast path, which already includes some AI.`;
 
 export default function Hero() {
   const { st } = useNav();

@@ -500,19 +500,24 @@ function outputSteps(sid, ch, cl) {
         </Say>
         {test ? (
           <p className="p2-paytest" data-claim="pay-test">
-            {test.lines.join(' ')} Capital is slow to arrive in this model. That is why{' '}
-            <NavLink tab="explore" sub="economy" anchor="measures">
-              pay ends below the path
-            </NavLink>
+            {test.lines.join(' ')} Capital is slow to arrive in this model.
+            {/* the pay clause only where the pay rate is below the path
+                (M1 spot-check, Fable 5.2, 24 Nov) */}
+            {test.payBelow || sid === 'uk_central' ? ' That is why ' : null}
+            {test.payBelow ? (
+              <NavLink tab="explore" sub="economy" anchor="measures">
+                pay ends below the path
+              </NavLink>
+            ) : null}
             {sid === 'uk_central' ? (
               <>
-                , and why{' '}
+                {test.payBelow ? ', and why ' : null}
                 <NavLink tab="method" sub="studies" anchor="imf-gap">
                   GDP is below the IMF’s
                 </NavLink>
               </>
             ) : null}
-            .
+            {test.payBelow || sid === 'uk_central' ? '.' : null}
           </p>
         ) : null}
         </>

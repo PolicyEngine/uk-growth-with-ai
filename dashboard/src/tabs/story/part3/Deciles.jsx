@@ -110,7 +110,12 @@ export const DECILES_SUB = {
   hint: 'Watch the bars land, the bottom decile last',
   key: 'lose most',
   answerTo: 'p3-deciles-step',
-  answer: `Largest fall: decile ${SHAPE.worst}, ${fmtDecilePct(VALUES[SHAPE.worst - 1])}`,
+  // M15 wording (Fable 5.2 ruling for Vahid, 24 Nov): no figure from the
+  // scene; the group of deciles where the falls overlap, and the top
+  // decile only where its interval spans zero
+  answer: SHAPE.upperMiddle
+    ? `Deciles 6 to 9 lose the largest share of income${SHAPE.topNearZero ? '; the top decile shows no clear change' : ''}.`
+    : `The largest fall, as a share of income, is in decile ${SHAPE.worst}.`,
 };
 // The deciles the first step lights: the upper-middle ones (6 to 9) when the
 // largest fall is there, else the largest fall alone.

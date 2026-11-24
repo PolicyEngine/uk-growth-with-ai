@@ -192,7 +192,9 @@ export const CENTRAL_SUB = {
   // in-figure form, not the full pinned screen (story-beats-fable.md)
   key: 'central',
   answerTo: 'p3-central-step',
-  answer: `${fmtBn(H.central_cost.value)} a year; poverty ${fmtPp(H.central_poverty.value)}`,
+  // M15 wording (Fable 5.2 ruling for Vahid, 24 Nov): what the figures
+  // mean, not the figures again; gated on both signs
+  answer: H.central_cost.value > 0 && H.central_poverty.value > 0 ? 'Even after the assumed gains, the public finances lose money and absolute poverty rises.' : `${fmtBn(H.central_cost.value)} a year; poverty ${fmtPp(H.central_poverty.value)}`,
 };
 
 // Two steps, each one sentence about the marks it highlights; no folds.

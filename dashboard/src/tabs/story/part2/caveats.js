@@ -154,10 +154,10 @@ export function payTest(sid, cl = CENTRAL) {
   const lines = [
     `Labour now gets ${n1(after)} of every 100, down from ${n1(before)}.`,
     `Its income keeps up only if output grows more than ${need.toFixed(1)}%.`,
-    `Here output grows ${y.toFixed(1)}%, so labour income ends ${Math.abs(li).toFixed(1)}% below the path.`,
+    `Here output is ${Math.abs(y).toFixed(1)}% ${y >= 0 ? 'above' : 'below'} the path, so labour income ends ${Math.abs(li).toFixed(1)}% below it.`,
   ];
   if (w < -EPS2) lines.push(`Hours ${l < 0 ? 'fall' : 'rise'} ${Math.abs(l).toFixed(1)}%, so the pay rate ends ${Math.abs(w).toFixed(1)}% below.`);
-  return { lines, need, li };
+  return { lines, need, li, payBelow: w < -EPS2 };
 }
 
 // The pay rate after the headline year (María re-review M2): main arm,

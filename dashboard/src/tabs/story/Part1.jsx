@@ -387,14 +387,26 @@ export const AI_HINT = 'All businesses and the larger ones, then one grid of wor
 export const OUTPUT_TAKEAWAY = 'The ONS still revises recent years; the forecast is the OBR’s central case.';
 export const WORK_TAKEAWAY = 'Three official series; the ONS advises reading the jobs figures over longer periods.';
 
+// The AI scene's closing line (M15 wording, Fable 5.2 ruling for Vahid, 24
+// Nov): the business share's home is the chart's end label, so the line
+// says what it means (most businesses do not use AI, while it is under
+// half); the exposed total stays here, its home.
 function AiAnswer() {
   const [hh, hl] = EXPOSURE_GROUPS;
+  const most = F.business_ai_use.value < 50;
   return (
     <>
-      <N path="facts.business_ai_use.value" mark="ai-all">
-        {pct1(F.business_ai_use.value)}
-      </N>{' '}
-      of businesses use AI. <N path={`facts.${hh.id}.value + facts.${hl.id}.value`}>{share0(hh.value + hl.value)}</N> of UK workers are in highly exposed jobs (IMF measure).
+      {most ? (
+        'Most businesses do not use AI.'
+      ) : (
+        <>
+          <N path="facts.business_ai_use.value" mark="ai-all">
+            {pct1(F.business_ai_use.value)}
+          </N>{' '}
+          of businesses use AI.
+        </>
+      )}{' '}
+      <N path={`facts.${hh.id}.value + facts.${hl.id}.value`}>{share0(hh.value + hl.value)}</N> of UK workers are in highly exposed jobs (IMF measure).
     </>
   );
 }
