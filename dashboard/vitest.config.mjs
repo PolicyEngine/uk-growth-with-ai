@@ -16,6 +16,9 @@ export default defineConfig({
   resolve: {
     alias: {
       'ugai-surprise2027': src2027 ?? path.join(root, SURPRISE2027_STUB),
+      // always the real 2028 files in tests (dashboard review D8)
+      'ugai-surprise2028': path.join(root, 'src/data/surprise2028.json'),
+      'ugai-cohorts2028': path.join(root, 'src/data/cohorts2028.json'),
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },

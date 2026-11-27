@@ -2,9 +2,10 @@
 // reads it through tabs/ai/surprise.js (or this module's default export);
 // none imports a surprise20xx.json directly. A test that needs a fixture
 // mocks this module: vi.doMock('@/lib/activeData.js', () => ({ default: f })).
-// The 2027 file is not in the tree (R4-16): `ugai-surprise2027` is it only
-// with NEXT_PUBLIC_DATA=2027 and the file present (data2027.mjs), else null.
-import S2028 from '@/data/surprise2028.json';
+// Each set's file is in the bundle only when that set is active: the
+// `ugai-surprise2027` and `ugai-surprise2028` aliases resolve to null stubs
+// otherwise (data2027.mjs; R4-16, dashboard review D8).
+import S2028 from 'ugai-surprise2028';
 import S2027 from 'ugai-surprise2027';
 import { DATA_SET } from '@/lib/dataFlag.js';
 

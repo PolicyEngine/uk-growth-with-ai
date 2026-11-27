@@ -18,12 +18,12 @@ import S from '@/lib/activeData.js';
 import { DATA_SET } from '@/lib/dataFlag.js';
 import NICS2028 from '@/tabs/explore/nics2028.json';
 import NICS2027 from '@/tabs/explore/nics2027.json';
-import CO2028 from '@/data/cohorts2028.json';
+import CO2028 from 'ugai-cohorts2028'; // null unless the 2028 set is active (D8)
 import CO2027 from '@/data/cohorts2027.json';
 import V2028 from '@/data/site-versions.json';
 import MF2028 from '@/data/methodFacts.json';
 import MF2027 from '@/data/methodFacts2027.json';
-import S2028 from '@/data/surprise2028.json';
+import S2028 from 'ugai-surprise2028'; // null unless the 2028 set is active (D8)
 import S2027 from 'ugai-surprise2027'; // null unless the 2027 run has its file (R4-16)
 
 const keyOf = (obj, prefix) => Object.keys(obj ?? {}).find((k) => k.startsWith(prefix)) ?? null;
@@ -42,7 +42,8 @@ export const foreignShareOf = (rec, D = S) => {
 // Each set's own cohort file (the swap: cohorts2027.json for the 2027 set);
 // its years are its own, never SURPRISE_YEAR.
 const COHORTS_BY_YEAR = { 2028: CO2028, 2027: CO2027 };
-export const COHORTS = COHORTS_BY_YEAR[S.surprise_year] ?? CO2028;
+export const COHORTS = COHORTS_BY_YEAR[S.surprise_year];
+if (!COHORTS) throw new Error(`cohorts${S.surprise_year}.json is not in this bundle (data2027.mjs)`);
 // The commit every cohort link and label names: the cohort file's own
 // source. The push C pin (2558375) is gone with the swap: that commit is not
 // an ancestor of the pushed head, and both cohort files' sources are.
@@ -53,7 +54,11 @@ export const COHORT_YEAR = COHORTS.shock_year;
 // cites comes from the surprise file of the cohort's own shock year, and
 // while the two years differ each cohort view says so in one line.
 const SURPRISE_BY_YEAR = { 2028: S2028, 2027: S2027 };
-const COHORT_SURPRISE = () => (COHORT_YEAR === S.surprise_year ? S : SURPRISE_BY_YEAR[COHORT_YEAR]);
+const COHORT_SURPRISE = () => {
+  const f = COHORT_YEAR === S.surprise_year ? S : SURPRISE_BY_YEAR[COHORT_YEAR];
+  if (!f) throw new Error(`the ${COHORT_YEAR} surprise file is not in this bundle (data2027.mjs)`);
+  return f;
+};
 export const COHORTS_MATCH = () => COHORT_YEAR === S.surprise_year;
 const RULE_FILE_KEY = { dn: 'debt_neutral', fixed: 'fixed_spending' };
 // The gap of one cell in a year (default: its headline year) in the
