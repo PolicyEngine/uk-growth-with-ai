@@ -8,15 +8,16 @@
 # analysis/rerun/output/<closure>/GATE_baseline.json).  ONE solve per python
 # process, one at a time.  `rerun next` reads the outputs already present, so a
 # finished solve is never repeated and an interrupted one is simply re-run.
-# After each solve: commit and push its JSON + log, then refresh the progress
-# comment on #27.
+# After each solve: commit its JSON + log by path.  NO_PUSH=0 also pushes to
+# BRANCH and refreshes the progress comment on #27; the default (1) does neither.
 set -uo pipefail
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 PY="${PY:?set PY to the OG-UK venv python}"
 WORK="${WORK:?set WORK to a scratch directory}"
 STAGE="$1"; shift
 BRANCH="rerun/r1-r4"
-OUT="$REPO/analysis/rerun/output"
+NO_PUSH="${NO_PUSH:-1}"
+OUT="${OUT:-$REPO/analysis/rerun/output}"
 mkdir -p "$WORK" "$OUT"
 : > "$WORK/un_api_token.txt"   # empty: OG-Core reads the GitHub mirror, as every run so far
 export PYTHONPATH="$REPO"
@@ -29,12 +30,14 @@ push() {
   git add analysis/rerun/output
   git commit -q -m "$1" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" \
     || { echo "nothing to commit"; return 0; }
+  [[ "$NO_PUSH" == 1 ]] && return 0
   for i in 1 2 3; do git push -q origin "$BRANCH" && return 0; sleep 20; done
   echo "PUSH FAILED: $1"
 }
 
 progress() {
   local body id
+  [[ "$NO_PUSH" == 1 ]] && return 0
   body="$("$PY" "$REPO/analysis/rerun/progress.py" "$OUT")" || return 0
   id="$(cat "$WORK/progress_comment_id" 2>/dev/null)"
   if [[ -n "$id" ]]; then

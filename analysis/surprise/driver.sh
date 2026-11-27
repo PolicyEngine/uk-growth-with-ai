@@ -42,7 +42,8 @@ SOLVE_TIMEOUT="${SOLVE_TIMEOUT:-1800}"   # a solve takes ~7 min; kill it (by PID
 NET_TIMEOUT="${NET_TIMEOUT:-60}"         # git push / gh calls
 # YEAR (default 2028): the announcement year.  2027 (Vahid, 18 Nov 2026) writes
 # a separate set under analysis/surprise2027/ and never touches the 2028 output.
-# NO_PUSH=1: commit by path but do not push, and post no GitHub progress comment.
+# NO_PUSH=1 (the default): commit by path but do not push, and post no GitHub
+# progress comment.  NO_PUSH=0 pushes to BRANCH and posts progress.
 # FAIL_CONTINUE=1: a failed or timed-out solve is kept (<label>.FAILED-*.log) and
 # its item skipped; the driver goes on holding the lock.  Sanity failures still stop it.
 YEAR="${YEAR:-2028}"
@@ -50,7 +51,7 @@ BRANCH="rerun/surprise-$YEAR"
 if [[ "$YEAR" == 2028 ]]; then OUT="$REPO/analysis/surprise/output"
 else OUT="$REPO/analysis/surprise$YEAR/output"; fi
 COHORT_DIR="$(dirname "$OUT")/cohorts"
-NO_PUSH="${NO_PUSH:-0}"
+NO_PUSH="${NO_PUSH:-1}"
 mkdir -p "$OUT"
 RERUN="$REPO/analysis/rerun/output"
 PLAN=("$@")

@@ -67,7 +67,9 @@ UK sources give **one labour-share path each**, not a range:
 - Low +0.2%: the OBR J-curve; the FRS describes the low end as "less than 0.1 percentage points" a year.
 - High +1.6%: the OBR's 0.8pp alternative, inside the IMF risk-matrix range.
 
-**Briefing paper No.9 was not re-read.** obr.uk redirects automated downloads of BP9 and its charts-and-tables file to a no-access page (tried again on 12 Nov 2026 with plain requests). The ¶B.12 and ¶B.14 figures are from the #31 review, which read the PDF. The FRS 2026 Box 4.1 restates the central 0.2pp and the range from "less than 0.1" to "up to 0.8".
+**Sources for the OBR figures.** Chart B.4 was read off BP9's own vector data (18 Nov 2026; `notes` in `analysis/surprise/uk_targets.json`). The FRS 2026 Box 4.1 restates the central 0.2pp and the range from "less than 0.1" to "up to 0.8".
+
+**The 2027 set.** This note is written for the 2028 set, whose ramp ends in year 4 (2031). The 2027 set uses the same inputs and reaches them in its year 4, 2030 (`docs/surprise_2027.md`).
 
 ## 3. Upper scenario, kept separately
 

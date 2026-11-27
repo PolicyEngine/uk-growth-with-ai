@@ -61,5 +61,11 @@ jobs:
       # `npm run build` here in Actions: no Vercel build or deploy.
       - name: Install (frozen lockfile)
         run: bun install --frozen-lockfile
+      - name: Lint
+        run: bun run lint
+      - name: Tests (2027 set, the default)
+        run: bun run test:2027
+      - name: Tests (2028 set)
+        run: bun run test:2028
       - name: Build
         run: npm run build

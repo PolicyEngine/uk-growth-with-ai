@@ -330,7 +330,7 @@ Cohort paths are exported for the continuation, `continuation_dnfull`, the UK ce
   - **`scenarios_surprise2028_korinek_zk0.5.json`, 3 failures.** Y − C − I − G is about −14% of GDP in 2028–30 in the tfp arm and about −6.5% in the R4 arm, against a ±6% bound. I/Y reaches 40.5%, against a 35% band.
   - **`scenarios_surprise2028_uk_high_zk0.5.json`, 1 failure.** Y − C − I − G is about −9% of GDP in 2028–30 in the tfp arm.
   - The bounds are not loosened by closure. Whether a boom this size at ζK 0.5 is reported is a judgement for Vahid. `tests/test_surprise_readers.py` pins exactly these two files as failing and the other 18 as passing.
-- **Still to do:** `dashboard_data`, the dashboard and the paper macros on the 2027–2031 window, each in its own session.
+- **Done since:** the dashboard data and the dashboard read the 2027–2031 window (`surprise2028.json`, `NEXT_PUBLIC_DATA=2028`). The paper macros are not on this branch.
 
 Command form, for any rerun:
 
