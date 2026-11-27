@@ -3,9 +3,10 @@
 // its unit. Rendered against a fixture with altered values.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { pickInPill } from '@/components/ui/pillTestUtils.js';
 
 afterEach(cleanup);
-import real from '@/data/surprise2028.json';
+import real from '@/lib/fixtureBase.js';
 
 const fixture = JSON.parse(JSON.stringify(real));
 const H = fixture.years.indexOf(fixture.headline_year);
@@ -19,30 +20,71 @@ tfpC.gaps.C[H] = 4.44;
 fixture.results.uk_central.tfp['zk0.1'] = tfpC;
 fixture.results.uk_central.tfp.zk0 = { status: 'pending' };
 
-// the debt-neutral variant: an altered main-arm GDP gap at the central closure
+// the debt-neutral variant: an altered main-arm GDP gap with some foreign capital
 fixture.rules.debt_neutral.results.uk_central.tfp['zk0.1'].gaps.Y[H] = 3.2109;
 
-vi.doMock('@/data/surprise2028.json', () => ({ default: fixture }));
+vi.doMock('@/lib/activeData.js', () => ({ default: fixture }));
 
 const { default: ResultsTab } = await import('@/tabs/ai/ResultsTab.jsx');
 const { default: LineChart } = await import('@/components/LineChart.jsx');
-const { default: MiniChart } = await import('@/components/ab/MiniChart.jsx');
+const { NavProvider } = await import('@/lib/nav.jsx');
 const { path, CENTRAL } = await import('@/tabs/ai/surprise.js');
+const { ruleFinding } = await import('@/tabs/ai/FinancesSection.jsx');
+const { ruleGapText } = await import('@/tabs/ai/lines.js');
+
+// Render Results at an address: the tab reads every choice from the URL.
+const at = (query) => {
+  window.history.replaceState(null, '', `/?${query}`);
+  return render(
+    <NavProvider>
+      <ResultsTab />
+    </NavProvider>,
+  );
+};
 
 describe('Results follows the data file', () => {
   it('shows the altered values and pending bounds', () => {
-    const at = (sub) => {
-      const { container, unmount } = render(<ResultsTab sid="uk_central" sub={sub} onSub={() => {}} onTab={() => {}} onScenario={() => {}} />);
+    const text = (query) => {
+      const { container, unmount } = at(query);
       const t = container.textContent;
       unmount();
       return t;
     };
-    const overview = at('overview');
-    expect(overview).toContain('+1.23%');
-    expect(overview).toContain('+2.35%');
-    expect(overview).toContain('closed capital pending');
-    expect(at('variables')).toContain('+4.4%');
-    expect(at('finances')).toContain('+7.78pp');
+    // The headline tiles (and the pending no-foreign-capital value with Both)
+    // live in story part 2: tested in tabs/story/part2.test.jsx.
+    // Income and output: the four-measure card; the main arm's GNI, GDP and
+    // pay rate have their home in the story: muted reference values here,
+    // named once in a line linked there
+    const income = text('sub=income&closure=both');
+    expect(income.match(/\+1\.23%/g)).toHaveLength(1);
+    // that line sits in the card's closed More info, under "How to read"
+    // (the shell, push C: every word in More info, links behind the book)
+    {
+      const { container, unmount } = at('sub=income&closure=both');
+      // the measures sentence runs the card's full width (push D, Q6b):
+      // the modifier on this card's lead only
+      expect(container.querySelector('#measures .card-finding').classList.contains('is-full')).toBe(true);
+      expect(container.querySelectorAll('.card-finding.is-full')).toHaveLength(1);
+      const fold = container.querySelector('#measures [data-more-info]');
+      expect(fold.closest('.disclosure-content').hidden).toBe(true);
+      expect(fold.textContent.match(/Story’s headline figures \(main version\)/g)).toHaveLength(1);
+      expect(income.match(/Story’s headline figures \(main version\)/g)).toHaveLength(1);
+      unmount();
+    }
+    {
+      const { container, unmount } = at('sub=income&closure=both');
+      const b = container.querySelector('#measures button.src-line-btn');
+      fireEvent.click(b);
+      const pop = document.getElementById(b.getAttribute('aria-controls')).textContent;
+      // the book icon holds links only; the words are in More info
+      expect(pop).not.toContain('How to read');
+      expect(pop).toContain('Method: Closures and income measures');
+      expect(pop.match(/Story’s headline figures \(main version\)/g)).toBeNull();
+      unmount();
+    }
+    expect(income).toContain('no foreign capital not yet solved');
+    expect(text('sub=economy')).toContain('+4.44%');
+    expect(text('sub=finances')).toContain('+7.78pp');
   });
 });
 
@@ -52,80 +94,114 @@ describe('tooltips', () => {
     const { container } = render(
       <LineChart
         x={[2027, 2028, 2029, 2030, 2031]}
-        series={[{ key: 'a', label: 'Automation + productivity', closure: 'central closure', color: 'red', values }]}
+        series={[{ key: 'a', label: 'Automation + productivity', closure: 'some foreign capital', color: 'red', values }]}
         unit="%"
         tipTitle="GNI"
         valueFormat={(x) => x.toFixed(2)}
         ariaLabel="GNI"
       />,
     );
-    const chart = container.querySelector('.linechart');
-    fireEvent.focus(chart);
-    const tip = screen.getByRole('tooltip');
+    // the one tooltip (ChartHover, M4): the arrow keys walk the years,
+    // the first press from the last year
+    const chart = container.querySelector('.linechart .ch-hover');
+    fireEvent.keyDown(chart, { key: 'ArrowLeft' });
+    const tip = container.querySelector('.ch-tip');
     expect(tip.textContent).toContain('GNI, 2031');
-    expect(tip.textContent).toContain('central closure');
+    expect(tip.textContent).toContain('some foreign capital');
     expect(tip.textContent).toContain('Automation + productivity');
     expect(tip.textContent).toContain('1.23%');
+    expect(container.querySelector('[aria-live]').textContent).toContain('1.23%');
     fireEvent.keyDown(chart, { key: 'ArrowLeft' });
-    expect(screen.getByRole('tooltip').textContent).toContain('2030');
-  });
-
-  it('small multiple: tooltip gives the year, closure and each arm with its unit', () => {
-    const { container } = render(
-      <MiniChart
-        title="Interest rate"
-        icon="percent"
-        years={[2027, 2028]}
-        lines={[{ key: 'tfp', label: 'Automation + productivity', color: 'red', values: [0, 0.38] }]}
-        domain={[-1, 1]}
-        unit="pp"
-        fmt={(x) => x.toFixed(2)}
-        endFmt={(x) => `${x.toFixed(1)}pp`}
-      />,
-    );
-    fireEvent.focus(container.querySelector('.mini-chart'));
-    const tip = screen.getByRole('tooltip').textContent;
-    expect(tip).toContain('Interest rate, 2028');
-    expect(tip).toContain('central closure');
-    expect(tip).toContain('0.38pp');
+    expect(container.querySelector('.ch-tip').textContent).toContain('2030');
   });
 
   it('dumbbell dot and tax-gap bar: focus shows arm, closure and value', () => {
-    const { unmount } = render(<ResultsTab sid="uk_central" sub="overview" onSub={() => {}} onTab={() => {}} onScenario={() => {}} />);
-    const dot = screen.getByLabelText(/Automation \+ productivity, central closure, Income UK residents keep/);
+    const { unmount } = at('sub=income');
+    const dot = screen.getByLabelText(/Automation \+ productivity, some foreign capital, National income before depreciation/);
     fireEvent.focus(dot);
     let tip = screen.getByRole('tooltip').textContent;
-    expect(tip).toContain('Central closure');
-    expect(tip).toContain('+1.23% against the OBR-central path');
+    expect(tip).toContain('Some foreign capital');
+    expect(tip).toContain('+1.23% against the OBR’s central forecast path');
     fireEvent.blur(dot);
     unmount();
-    render(<ResultsTab sid="uk_central" sub="finances" onSub={() => {}} onTab={() => {}} onScenario={() => {}} />);
-    const bar = screen.getByLabelText(/^OBR: 19–23pp/);
+    at('sub=finances');
+    const bar = screen.getByLabelText(/^OBR rates, differenced: 19–23pp/);
     fireEvent.focus(bar);
     tip = screen.getByRole('tooltip').textContent;
     expect(tip).toContain('OBR');
     expect(tip).toContain('19–23pp');
   });
 
-  it('spending-rule card: debt-neutral prints its own gaps for UK central only; fixed spending is not solved', () => {
-    const open = (sid, rule, closure = 'central') => {
-      const { container, unmount } = render(<ResultsTab sid={sid} sub="finances" closure={closure} onSub={() => {}} onTab={() => {}} onScenario={() => {}} />);
-      fireEvent.click(screen.getByRole('button', { name: rule }));
-      const t = container.querySelector('#spending-rule').textContent;
+  it('every chart follows the fiscal rule; the rule card prints its shift against the common rule', () => {
+    const page = (query) => {
+      const { container, unmount } = at(query);
+      const box = container.querySelector('#fiscal-rule');
+      const card = box ? box.textContent : null;
+      const all = container.textContent;
       unmount();
-      return t;
+      return { card, all };
     };
-    const dn = open('uk_central', 'Debt-neutral');
-    expect(dn).toContain('+3.21%');
-    expect(dn).not.toContain('No solve');
+    // the four-measure card under debt-neutral transfers prints the main
+    // arm's own GDP gap (the story shows the common rule only)
+    const { container, unmount } = at('sub=income&rule=dn');
+    expect(container.textContent).toContain('+3.21%');
+    expect(container.textContent).not.toContain('in the story');
+    unmount();
+    const dn = page('sub=finances&s=uk_central&rule=dn').card;
+    // the main arm's GDP shift: 3.2109 less the fixture's common-rule 2.3456
+    expect(dn).toContain('+0.87pp');
     // 3 arms x 4 measures at one closure, twice that with both
-    expect(dn.match(/[+−]?\d+\.\d\d%/g)).toHaveLength(12);
-    expect(open('uk_central', 'Debt-neutral', 'both').match(/[+−]?\d+\.\d\d%/g)).toHaveLength(24);
-    const other = open('uk_high', 'Debt-neutral');
-    expect(other).toContain('solved for UK central only');
-    expect(other).not.toMatch(/\d\.\d\d%/);
-    const fs = open('uk_central', 'Fixed spending');
-    expect(fs).toContain('No solve for this rule yet');
-    expect(fs).not.toMatch(/\d\.\d\d%/);
+    expect(dn.match(/[+−]?\d+\.\d\dpp/g)).toHaveLength(12);
+    expect(page('sub=finances&s=korinek&closure=both&rule=fixed').card.match(/[+−]?\d+\.\d\dpp/g)).toHaveLength(24);
+    const other = page('sub=finances&s=uk_high&rule=dn');
+    // the reason is the page answer's (ExploreTab), once; the box keeps
+    // only its lead
+    // (review round 2, R2-12)
+    expect(other.card).not.toContain('solved for UK central and Korinek et al., substantial (US) only');
+    expect(other.card).not.toMatch(/\d\.\d\d/);
+    // every chart on the page says so too, and none prints a figure
+    expect(other.all).not.toMatch(/[+−]\d+\.\d+(%|pp)/);
+    const low = page('sub=finances&s=uk_low&rule=fixed').card;
+    // the lead is title-level: no full stop (Vahid, 18 Nov)
+    expect(low).toContain('UK low is not yet solved under fixed spending');
+    expect(low).not.toContain('UK low is not yet solved under fixed spending.');
+    // R2-12: the reason is the page answer's (ruleGapText), once; the box
+    // keeps only its lead
+    expect(low).not.toContain('Fixed spending is solved for UK central and Korinek et al., substantial (US) only');
+    expect(ruleFinding('fixed', 'uk_low', 'central').lines).toEqual([]);
+    // R3-02: the advice points at a solved view only (here the common rule)
+    expect(ruleGapText('fixed', 'uk_low')).toContain('Fixed spending is solved for UK central and Korinek et al., substantial (US) only');
+    expect(ruleGapText('fixed', 'uk_low')).toContain('Choose the common fiscal rule.');
+    // the common rule has nothing to compare: no box
+    expect(page('sub=finances&s=uk_central').card).toBeNull();
+    // the box prints no figures outside its dumbbells and table
+    const { container: c2, unmount: u2 } = at('sub=finances&s=uk_central&rule=fixed');
+    const words = [...c2.querySelectorAll('#fiscal-rule .finding-lead, #fiscal-rule .finding-lines li')].map((e) => e.textContent);
+    u2();
+    expect(words[0]).toMatch(/^Under fixed spending, debt\/GDP ends (higher|lower|where)/);
+    // the lead is title-level, with no full stop (Vahid, 18 Nov); every line
+    // under it is a sentence that ends in one
+    expect(/\.$/.test(words[0])).toBe(false);
+    expect(words.slice(1).every((w) => /\.$/.test(w))).toBe(true);
+    expect(words.every((w) => !/\d\.\d/.test(w))).toBe(true);
+  });
+
+  it('the rule and the arms are in the address', async () => {
+    // the rule is in the page's settings pill (components/ui/SettingsBar.jsx)
+    const { PagePill } = await import('@/components/ui/SettingsBar.jsx');
+    window.history.replaceState(null, '', '/?tab=explore&sub=finances');
+    const { container } = render(
+      <NavProvider>
+        <div className="model-row">
+          <PagePill pick={{ rule: true }} sub="finances" />
+        </div>
+        <ResultsTab sub="income" />
+      </NavProvider>,
+    );
+    pickInPill(container.querySelector('.model-row'), 'Budget assumption', 'Debt-neutral');
+    expect(window.location.search).toContain('rule=dn');
+    // versions shown: the four-measure card's pill (tick any)
+    pickInPill(container.querySelector('#measures'), 'Versions shown', 'Stress test');
+    expect(window.location.search).toContain('arms=tfp,tz');
   });
 });

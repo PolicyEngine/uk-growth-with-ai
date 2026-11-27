@@ -1,0 +1,48 @@
+{
+  "_note": "Commits and software versions behind the results that no data file records itself, with where each was read. The data files' own build fields (generated_utc, source_commit, source, fetched, released) are read from those files directly, not copied here.",
+  "entries": [
+    {
+      "id": "solves",
+      "label": "OG-UK solves (2028 surprise)",
+      "value": "ba2e7b0",
+      "where": "PolicyEngine/uk-growth-with-ai, branch rerun/surprise-2028: the final solves, merged into the dashboard at b0a20a4 (git log, 15 Nov 2026)"
+    },
+    {
+      "id": "oguk",
+      "label": "OG-UK",
+      "value": "PSLmodels/OG-UK at d0e6ae5",
+      "url": "https://github.com/PSLmodels/OG-UK/tree/d0e6ae535da4ffbface55f0e64fb2074583a46a6",
+      "where": "The commit every solve installed (pipeline install step)"
+    },
+    {
+      "id": "ogcore",
+      "label": "OG-Core",
+      "value": "0.17.0, plus the γ patch",
+      "where": "patches/ogcore-0.17.0-firm-gamma-tv.diff"
+    },
+    {
+      "id": "policyengine",
+      "label": "policyengine",
+      "value": "5.0.4",
+      "where": "The solves' environment"
+    },
+    {
+      "id": "pe_uk",
+      "label": "PolicyEngine-UK",
+      "value": "2.90.2",
+      "where": "The solves' environment and analysis/nics/measure_nics.py"
+    },
+    {
+      "id": "python",
+      "label": "Python",
+      "value": "3.13.15",
+      "where": "The solves' environment"
+    },
+    {
+      "id": "numpy",
+      "label": "NumPy, pandas",
+      "value": "2.3.5, 3.0.5",
+      "where": "The solves' environment"
+    }
+  ]
+}

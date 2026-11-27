@@ -1,3 +1,7 @@
+import S from '@/lib/activeData.js';
+import AI from '@/data/aiStudy2425.json';
+import { SET, COHORT_SOURCE_COMMIT, FILES_REF, FLAG_DOC } from '@/lib/dataKeys.js';
+
 // Every external URL on the dashboard, verified (HTTP 200) on 26 Sept 2026.
 // Code-file links point at main (the re-run, PR #11, is merged).
 export const REPO = 'https://github.com/PolicyEngine/uk-growth-with-ai';
@@ -27,8 +31,14 @@ export const URLS = {
   ogCore: 'https://github.com/PSLmodels/OG-Core',
   ogCore017: 'https://github.com/PSLmodels/OG-Core/releases/tag/v0.17.0',
   ogCoreDocs: 'https://pslmodels.github.io/OG-Core/',
+  ogCoreParams: 'https://pslmodels.github.io/OG-Core/content/intro/parameters.html',
+  ogUkDefaults: 'https://github.com/PSLmodels/OG-UK/blob/master/oguk/oguk_default_parameters.json',
+  hmrcEmployerRates: 'https://www.gov.uk/guidance/rates-and-thresholds-for-employers-2026-to-2027',
+  hbai: 'https://www.gov.uk/government/collections/households-below-average-income-hbai--2',
+  ucEligibility: 'https://www.gov.uk/universal-credit/eligibility',
+  jsa: 'https://www.gov.uk/jobseekers-allowance',
   ogUk: 'https://github.com/PSLmodels/OG-UK',
-  ogUkFork: 'https://github.com/vahid-ahmadi/OG-UK/commit/d0e6ae535da4ffbface55f0e64fb2074583a46a6',
+  ogUkFork: 'https://github.com/PSLmodels/OG-UK/commit/d0e6ae535da4ffbface55f0e64fb2074583a46a6',
   unWpp: 'https://population.un.org/wpp/',
   popData: 'https://github.com/EAPD-DRB/Population-Data',
   peUk: 'https://github.com/PolicyEngine/policyengine-uk',
@@ -45,3 +55,35 @@ export const URLS = {
   scenariosJson: `${REPO_BLOB}/uk_growth_with_ai/data/scenarios.json`,
   obrComparison: `${REPO_BLOB}/docs/OG_UK_OBR_COMPARISON.md`,
 };
+
+// Result files on GitHub, pinned to the commit each data file records (never
+// main, so a link shows the file the page was built from).
+
+export const atRef = (ref, p, kind = 'blob') => `${REPO}/${kind}/${ref}/${p}`;
+export const RESULTS_SHA = S.source_commit;
+export const COHORTS_SHA = COHORT_SOURCE_COMMIT;
+export const ogOutput = (zk) => atRef(RESULTS_SHA, `${SET.outputDir}/${zk}`, 'tree');
+export const ogResult = (zk, label) => atRef(RESULTS_SHA, `${SET.outputDir}/${zk}/${label}.json`);
+export const ogScenarioFile = (sid) => atRef(FILES_REF, SET.scenarioFile(sid));
+export const OG_RESULT_URLS = {
+  assemble: atRef(RESULTS_SHA, 'uk_growth_with_ai/surprise.py'),
+  doc: atRef(SET.docsRef, SET.designDoc),
+  // the cohort state files at the pinned cohort commit (R3-03): the 2028
+  // results commit lacks the _dnfull files cohorts2028.json reads
+  cohortsDir: atRef(COHORTS_SHA, SET.cohortsDir, 'tree'),
+  cohortScript: atRef(COHORTS_SHA, 'paper/cohort_welfare.py'),
+  // the sanity gate: the shock-year investment flag (+17%), flagged, never failed
+  sanity: atRef(FLAG_DOC.ref, FLAG_DOC.path),
+  // the gilt rate is the private return less about 2pp: one for one with r
+  giltRate: atRef(RESULTS_SHA, 'docs/rerun_r1_r4.md'),
+  // the national-accounts check (`check`: Y - C - I - G within +/-6% of
+  // GDP) on the assembled files, in the set's results sanity audit
+  checkLog: atRef(SET.sanityRef, `${SET.sanityDoc}${SET.checkLogAnchor ?? ''}`),
+  // the real-world plausibility review: investment rows rated implausible
+  plausibility: atRef('59139aa', 'docs/redesign/real-world-plausibility.md'),
+};
+// uk-ai-study PR #18: a file at the PR's commit (GitHub's blob view renders a
+// CSV as a table).
+export const AI_SHA = AI.source.commit;
+export const aiFile = (p) => (AI.source.files_base_url ? `${AI.source.files_base_url}${p}` : `https://github.com/${AI.source.repo}/blob/${AI_SHA}/${p}`);
+export const AI_PR = `https://github.com/${AI.source.repo}/pull/${AI.source.pr}`;

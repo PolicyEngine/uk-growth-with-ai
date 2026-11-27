@@ -72,7 +72,8 @@ def main(argv=None) -> int:
     p_sp.add_argument("--closure", required=True, choices=["zk0.1", "zk0", "zk0.5"])
     p_sp.add_argument("--start", type=int, default=2028,
                       help="the announcement year; every arm equals the baseline before it")
-    p_sp.add_argument("--stage", choices=["continuation", "arms", "arms_dn", "arms_fs", "arms_dnfull"],
+    p_sp.add_argument("--stage", choices=["continuation", "continuation_dnfull", "arms", "arms_dn", "arms_fs",
+                               "arms_dnfull"],
                       default="continuation",
                       help="continuation: the no-shock restart that must reproduce the "
                            "baseline; arms_fs: G and TR at baseline levels")
@@ -87,7 +88,9 @@ def main(argv=None) -> int:
                            "(decided 12 Nov 2026: the continuation)")
     p_sp.add_argument("--approve", action="store_true")
     p_sp.add_argument("--note", default="")
-    p_sp.add_argument("--outdir", default="analysis/surprise/output")
+    p_sp.add_argument("--outdir", default=None,
+                      help="default: analysis/surprise/output for --start 2028, "
+                           "analysis/surprise<start>/output otherwise")
     p_sp.add_argument("--rerun-dir", default="analysis/rerun/output",
                       help="the committed R1-R4 solves; the baselines are reused from here")
     p_sp.add_argument("--work", default=None,
@@ -161,6 +164,15 @@ def _surprise(args) -> int:
     from pathlib import Path
     from . import surprise as sp
     kw = {"year": args.start}
+    if args.outdir is None:
+        args.outdir = ("analysis/surprise/output" if args.start == 2028
+                       else f"analysis/surprise{args.start}/output")
+    ext = Path(args.outdir) / args.closure / "baseline_ext.json"
+    if args.action != "prepare" and ext.exists():
+        made_for = json.loads(ext.read_text()).get("surprise", {}).get("surprise_year")
+        if made_for is not None and made_for != args.start:
+            raise SystemExit(f"{ext} was prepared for a {made_for} surprise, not --start "
+                             f"{args.start}: pass the matching --outdir or --start")
     if args.action == "prepare":
         if not args.work:
             raise SystemExit("--work is required for prepare (it reads the baseline pickle)")

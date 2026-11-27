@@ -3,15 +3,31 @@ import '@policyengine/ui-kit/styles.css';
 import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
+import { SURPRISE_YEAR, LATE_YEAR } from '@/tabs/ai/surprise.js';
+import { DATA_FILE } from '@/lib/dataFlag.js';
 import './panels.css';
 // The PolicyEngine tokens, bundled (as the Autumn Budget 2026 dashboard)
 import '@policyengine/ui-kit/legacy/tokens.css';
 import './fonts.css';
 import './siteHeader.css';
 import './ab.css';
+import './v2.css';
+import './story.css';
+import './story-part1.css';
+import './story-part2.css';
+import './story-part3.css';
+import './story-identity.css';
+import './story-bands.css';
+import './sources.css';
+import './items-explore.css';
+import './items-method.css';
+import './households.css';
+import './chart-type.css';
+import './icon-line.css';
 import 'katex/dist/katex.min.css';
 import SiteFooter from '@/components/ab/SiteFooter.jsx';
 import { SITE_HEADER_STYLES, SITE_NAV_ITEMS } from '@/lib/siteNav.js';
+import { PAGE_TITLE } from '@/lib/labels.js';
 
 // Inter, self-hosted (fonts/, SIL Open Font License in fonts/OFL.txt): no
 // third-party font request.
@@ -23,11 +39,24 @@ const inter = localFont({
   variable: '--font-inter',
   adjustFontFallback: 'Arial',
 });
+// The maths italic for MathSym (ζ γ ε δ, as the model's docs set them):
+// KaTeX's Math-Italic face, copied from the katex package the repo already
+// ships (fonts/KaTeX-LICENSE.txt). No generated fallback: the serif stack
+// in --font-math (ab.css) follows it.
+const mathItalic = localFont({
+  src: './fonts/KaTeX_Math-Italic.woff2',
+  weight: '400',
+  style: 'italic',
+  display: 'swap',
+  preload: false,
+  variable: '--font-math-face',
+  adjustFontFallback: false,
+});
 
 const SITE_URL = 'https://uk-growth-with-ai.vercel.app';
-const TITLE = 'The macroeconomic effects of AI on the UK';
+const TITLE = PAGE_TITLE;
 const DESCRIPTION =
-  'AI as an unanticipated 2028 shock to the capital share, with or without a productivity gain, in UK low, central and high scenarios calibrated to the IMF and OBR and an upper case from Korinek et al.’s US “substantial” scenario, run through OG-UK, the UK overlapping-generations model, 2027–2031, against the OBR-central path. National income and GDP, with a closed-capital bound. One sector.';
+  `Four scenarios of AI doing more work than the OBR expects, from ${SURPRISE_YEAR}: what an overlapping-generations model of the UK economy projects for UK output, pay and the public finances to ${LATE_YEAR}, and what a one-year PolicyEngine UK test shows for household incomes and poverty. Gaps against the OBR’s central forecast path, not forecasts.`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -58,12 +87,27 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+// The hash keys: lib/nav.jsx's LEGACY_TAB and ALIAS (old addresses).
+const OLD_HASHES = ['cohorts', 'literature', 'finances', 'public-finances', 'growth', 'methodology', 'coverage', 'results', 'who', 'scenarios', 'studies', 'code'];
+const NAV_PENDING = `try{var q=new URLSearchParams(location.search),t=q.get('tab'),h=location.hash.replace(/^#/,'').split('/')[0];if((t&&t!=='story')||q.get('sub')||(!t&&${JSON.stringify(OLD_HASHES)}.indexOf(h)>=0))document.documentElement.setAttribute('data-nav-pending','')}catch(e){}`;
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en-GB" className={inter.variable}>
-      <body>
+    <html lang="en-GB" className={`${inter.variable} ${mathItalic.variable}`} suppressHydrationWarning>
+      <head>
+        {/* A shared link to another tab: hide the server-rendered Story until
+            the client shows the named tab (v2.css, lib/nav.jsx). */}
+        <script dangerouslySetInnerHTML={{ __html: NAV_PENDING }} />
+      </head>
+      {/* the active result file, for browser checks that compare a printed
+          value with the data (check_hover) */}
+      <body data-data-file={DATA_FILE}>
+        {/* first tab stop, before the PolicyEngine site nav */}
+        <a className="skip-link" href="#main-content">
+          Skip to content
+        </a>
         <PolicyEngineShell country="uk" showFooter={false} headerProps={{ navItems: SITE_NAV_ITEMS, styles: SITE_HEADER_STYLES }}>
           {children}
           <SiteFooter />

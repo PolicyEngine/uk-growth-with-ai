@@ -84,4 +84,4 @@ Max absolute value resource constraint error: 0.1714302733842629
 Checking time path for violations of constraints.
 Max Euler error, savings: 2.597033699203166e-12
 Max Euler error labor supply: 1.4550582960737302e-12
-OK zk0.1_anthropic_ramp 6.9 min | TPI iters 8 dist 5.052363637766435e-05 converged=True | RC/Y 2026 -0.9479% | wrote /Users/vahid/uk-growth-with-ai/.claude/worktrees/agent-acd7a17b5472b735f/analysis/closure/output/zk0.1_anthropic_ramp.json
+OK zk0.1_anthropic_ramp 6.9 min | TPI iters 8 dist 5.052363637766435e-05 converged=True | RC/Y 2026 -0.9479% | wrote analysis/closure/output/zk0.1_anthropic_ramp.json

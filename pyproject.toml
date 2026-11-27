@@ -20,7 +20,10 @@ dependencies = [
 # to ogcore's firm.py), and `report`/`obr` must work without them. solve.py imports them
 # lazily at run time.
 [project.optional-dependencies]
-test = ["pytest"]
+# numpy pinned for the tests (CI installs ".[test]"): the committed results and
+# dashboard data files record numpy 2.3.5, and numpy 2.5 changes the float
+# output, so the generator check fails on an unpinned install.
+test = ["pytest", "numpy>=2.3,<2.5"]
 
 [project.scripts]
 uk-growth-with-ai = "uk_growth_with_ai.cli:main"

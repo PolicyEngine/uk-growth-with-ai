@@ -8,7 +8,7 @@ build/
 .pytest_cache/
 
 # Node / Next
-node_modules/
+node_modules
 .next/
 out/
 *.tsbuildinfo

@@ -1,0 +1,3009 @@
+/* ---------- The story (tabs/story): scroll-driven reveals ----------
+   Motion is CSS transitions only, keyed off classes the components set
+   from scroll position. prefers-reduced-motion removes every transition
+   and shows each final state at once. Nothing takes over the scroll. */
+
+.story {
+  /* ---- Round 1 type scale (plan section 1): one scale, five sizes ----
+     display 28-44 / 700, title 24 / 700, topic 20 / 600 (19 at 600px and
+     under: the settled scene question, item 31), body 17 / 400, label
+     14 / 600, ui 14 / 400, meta 12 / 400. Weights 400 and 600; 700 for display and
+     title only. Three greys (ink 900, text 700, muted 500) and one link
+     teal. Part files set type only through these roles. */
+  --t-display: clamp(28px, 3.6vw, 44px);
+  --t-title: 24px;
+  --t-topic: 20px;
+  --t-body: 17px;
+  --t-label: 14px;
+  --t-ui: 14px;
+  --t-meta: 12px;
+  --t-ink: var(--pe-gray-900);
+  --t-text: var(--pe-gray-700);
+  --t-muted: var(--pe-gray-500);
+  --t-link: var(--pe-teal-700, #0f766e);
+  /* the shared size tokens (ab.css, v2.css), mapped onto the five steps
+     inside the Story only (Explore and Method keep theirs) */
+  --fs-stat: var(--t-title);
+  --fs-xl: var(--t-title);
+  --fs-section: var(--t-title);
+  --fs-card-title: var(--t-body);
+  --fs-body-lg: var(--t-body);
+  --fs-body: var(--t-body);
+  --fs-lead: var(--t-body);
+  --fs-small: var(--t-ui);
+  --fs-caption: var(--t-meta);
+  --fs-micro: var(--t-meta);
+  /* three greys: the in-between text greys fold into their neighbours */
+  --pe-gray-800: #111827;
+  --pe-gray-600: #374151;
+  /* part identity is neutral (story-identity.css): no tints */
+  --part-tint: transparent;
+  --story-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --story-dur: 700ms;
+  /* below the tab row and the story rail */
+  --story-graphic-top: calc(var(--sticky-offset) + 44px);
+}
+
+/* Hero */
+.story-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 40px;
+  align-items: center;
+  padding: 32px 0 24px;
+}
+.story-hero-text h2 {
+  margin: 0 0 16px;
+  font-size: clamp(2rem, 4.2vw, 3.25rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: var(--pe-gray-900);
+}
+.story-hero-text p {
+  max-width: 52ch;
+  margin: 0 0 12px;
+  font-size: var(--fs-lead);
+  line-height: 1.6;
+  color: var(--pe-gray-600);
+}
+.story-hero-art {
+  min-width: 0;
+}
+.story-hero-art svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.story-scroll-cue {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  /* padding: a hit area at least 24px tall */
+  margin-top: 8px;
+  padding: 4px 0;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-500);
+}
+.hero-path {
+  fill: none;
+}
+.story-hero-lead {
+  margin-top: 16px !important;
+}
+.story-hero .hero {
+  padding: 0;
+}
+
+/* Part openers */
+.story-part {
+  padding: 32px 0 8px;
+  scroll-margin-top: calc(var(--sticky-offset) + 40px);
+}
+
+/* The part head sits on a full-bleed teal-50 band (box-shadow and
+   clip-path widen the background to the viewport without a scrollbar),
+   with a large part numeral: the story reads as chapters. */
+.story-part-head {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 70ch);
+  justify-content: start;
+  gap: 4px 28px;
+  align-items: start;
+  margin-bottom: 40px;
+  padding: 36px 0 32px;
+  background: var(--pe-teal-50);
+  box-shadow: 0 0 0 100vmax var(--pe-teal-50);
+  clip-path: inset(0 -100vmax);
+}
+.story-part-head .story-part-numeral {
+  grid-row: 1 / span 3;
+  margin: -6px 0 0;
+  font-size: clamp(3.5rem, 7vw, 5.5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-highlight);
+}
+.story-part-head > :not(.story-part-numeral) {
+  grid-column: 2;
+}
+.story-part-kicker {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 8px;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--c-gain-text);
+}
+.story-part-head h2 {
+  margin: 0 0 10px;
+  font-size: clamp(1.5rem, 2.6vw, 2.125rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--pe-gray-900);
+}
+.story-part-head p {
+  margin: 0;
+  font-size: var(--fs-lead);
+  line-height: 1.6;
+  color: var(--pe-gray-600);
+}
+.story-provisional {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  max-width: 70ch;
+  margin: 12px 0 0;
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  color: var(--pe-gray-700);
+}
+
+/* Scrolly block */
+.scrolly {
+  position: relative;
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 48px;
+  margin: 0 0 var(--gap-block, 40px);
+}
+/* The figure sticks below the rail while the step column beside it is
+   taller; it is never taller than itself (no empty band round it). */
+.scrolly-graphic {
+  grid-column: 2;
+  grid-row: 1;
+  position: sticky;
+  top: var(--story-graphic-top);
+  align-self: start;
+}
+.scrolly.is-single .scrolly-graphic {
+  position: relative;
+  top: auto;
+}
+.scrolly-graphic-inner {
+  position: relative;
+  width: 100%;
+  padding: 20px;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+}
+.scrolly-steps {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+  /* no lead-in and no tail: the block ends with its last card */
+  padding: 0;
+  list-style: none;
+}
+/* Cards follow one another 32px apart: no step is taller than its card. */
+.scrolly-step {
+  /* a link to a step lands its card below the rail */
+  scroll-margin-top: calc(var(--story-graphic-top) + 16px);
+  padding-bottom: var(--gap-card, 32px);
+  display: flex;
+  align-items: flex-start;
+}
+.scrolly-step:nth-last-child(2) {
+  padding-bottom: 0;
+}
+/* a card-less step (old step lists): a zero-height marker */
+.scrolly-step.is-spacer,
+.scrolly-step.is-spacer:nth-last-child(2) {
+  height: 0;
+  min-height: 0;
+  padding: 0;
+}
+.scrolly-end {
+  height: 1px;
+}
+/* Step cards are text on the page, not boxes (round 1): one sentence led
+   by one icon, no border, rule, fill, kicker or visible title; the active
+   one is at full strength, the others dimmed. */
+.scrolly-card {
+  padding: 0;
+  background: transparent;
+  opacity: 0.55;
+  transition: opacity 400ms var(--story-ease);
+}
+/* with an icon, the card is a shared .icon-line (icon-line.css, body
+   tier: 18px column, 10px gap, the icon on the sentence's first line) */
+.scrolly-card-icon {
+  --il-color: var(--t-muted);
+}
+.scrolly-step.is-active .scrolly-card {
+  opacity: 1;
+}
+.scrolly-step.is-active .scrolly-card-icon {
+  --il-color: var(--t-ink);
+}
+.scrolly.is-single .scrolly-card {
+  opacity: 1;
+}
+/* Level (b), the topic header (typography spec, 17 Nov): the question
+   alone, an h3, 17/600 in ink, spanning both columns at the full content
+   width (balanced lines, no 60ch cap). No icon, kicker or hairline: the
+   topic name is data-scene (the rail). */
+.scene-head {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  margin: 0;
+  scroll-margin-top: calc(var(--story-graphic-top) + 8px);
+  /* item 31 (Vahid: "in the middle and a bit bigger"): centred on the
+     content column, a step above the body */
+  text-align: center;
+}
+.scene-head-q {
+  max-width: 52rem;
+  margin: 0 auto;
+  font-size: var(--t-topic);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: normal;
+  color: var(--t-ink);
+  text-wrap: balance;
+}
+.scrolly.has-sub > .scrolly-graphic,
+.scrolly.has-sub > .scrolly-steps {
+  grid-row: 2;
+}
+/* 16px between the header and its block */
+.scrolly.has-sub {
+  row-gap: 16px;
+}
+@media (max-width: 600px) {
+  .story {
+    --t-topic: 19px;
+  }
+}
+/* Part 4's heading (Two lenses) centred on the column like the other
+   part headings and the scene questions (item 31, 3d) */
+#story-close .story-part-head {
+  text-align: center;
+}
+/* The question-led sequence (QStage.jsx). Full pin (sub.pin: 'full', four
+   topics): one pinned screen, --q-pin tall, above the topic's header; at
+   900px and below scaled by --q-pin-phone. Every other topic: QFrame, the
+   question inside the figure frame (no added height). */
+.story {
+  /* item 16: every question moment on its own full-width navy section
+     (story-bands.css, navy-sections-fable.md); polish round:
+     tall enough that the question holds centred and still for about 40vh
+     of scroll before it moves (QStage stagePhase) */
+  /* 22 Nov (Vahid: "lower the height of the box color"): about 60% of
+     the screen, never under 420px or over 640px; about 70% at 900px and
+     below (the rule below) */
+  --q-pin: clamp(420px, 60svh, 640px);
+  --q-pin-phone: clamp(380px, 70svh, 640px);
+}
+/* browsers before svh (Safari < 15.4): the layout viewport */
+@supports not (height: 1svh) {
+  .story {
+    --q-pin: clamp(420px, 60vh, 640px);
+    --q-pin-phone: clamp(380px, 70vh, 640px);
+  }
+}
+/* the stage takes the block's first row only where it is shown (not under
+   reduced motion or in print, where the rows stay as they were) */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .scrolly.has-stage > .q-stage {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+  .scrolly.has-stage > .scene-head {
+    grid-row: 2;
+  }
+  .scrolly.has-stage.has-sub > .scrolly-graphic,
+  .scrolly.has-stage.has-sub > .scrolly-steps {
+    grid-row: 3;
+  }
+  .scrolly.has-stage > .scrolly-foot {
+    grid-row: 4;
+  }
+}
+.q-stage {
+  --qa: 0;
+  --qm: 0;
+  position: relative;
+  /* the question centred in its box, vertically and horizontally, by the
+     box's own grid: it moves with the box and the page, never inside it */
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  height: var(--q-pin);
+  margin-bottom: -8px;
+  pointer-events: none;
+}
+/* The question's holder (22 Nov): a plain block, centred in the stage by
+   the stage's grid. Before, it was sticky at --q-top (the optical centre
+   below the rail), so as the page scrolled the box moved and the question
+   stayed, sliding inside its box and jumping at the pin and unpin points.
+   Now nothing holds it: no sticky, no transform, no scroll-linked write
+   on the card; it moves with the page. */
+.q-stage-hold {
+  /* static (22 Nov): no hold that slides the question inside its box */
+  position: static;
+  width: 100%;
+  margin: 0;
+}
+.q-visual {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+}
+.q-stage-card {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 0 16px;
+  text-align: center;
+  /* fixed in its box (Vahid, 21 and 22 Nov): full size, no scale, no
+     translate, no fade, centred by the stage's grid and moving with it.
+     --qa and --qm set the phase (QStage boxPhase) and the chart's reveal
+     only. */
+}
+/* landed past the start (the landing guard) with its header showing the
+   question (story-bands.css drops the navy band): the white question
+   would sit on the white sheet, so the card is hidden until the guard
+   lifts. With its header collapsed the band and the card stay: the
+   question's one copy */
+.q-stage.is-landed[data-head-shown] .q-stage-card {
+  visibility: hidden;
+}
+.q-stage-icon {
+  display: inline-flex;
+  color: var(--t-ink);
+}
+.q-stage-q {
+  font-size: var(--t-display);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--t-ink);
+  text-wrap: balance;
+}
+/* the words are on screen from the first frame (round 2, review 3 B2: the
+   card was blank while it waited); the arrival is the card's scale and
+   the icon's fade, not the words */
+.q-stage-w {
+  display: inline-block;
+  white-space: pre;
+}
+.q-stage-w.is-key {
+  color: var(--t-ink);
+}
+.q-stage-hint {
+  font-size: var(--t-body);
+  color: var(--t-text);
+}
+@media (max-width: 900px) {
+  .q-stage {
+    height: var(--q-pin-phone);
+  }
+  .q-stage-card {
+    gap: 10px;
+  }
+}
+/* The closing line (Scrolly sub.answer, else sub.takeaway): a takeaway
+   caption inside the figure frame, directly under the plot and above the
+   source line (typography spec, option b). It fades up once the last card
+   is reached (opacity only: always in the DOM, its height reserved).
+   Every Story closing line carries data-closing (QStage Answer, Scrolly's
+   answer note): one style for all of them, a
+   plain line in body type at its column's full measure (Vahid, 18 Nov:
+   "more x width for these text, normal text"): no rule, no bold; its
+   caveat line (data-closing="note") muted. check_spacing asserts the
+   measure and line count on every [data-closing]. */
+.story {
+  /* polish round: every closing or answer line is this far below its chart */
+  --gap-answer: 24px;
+}
+.story [data-closing] {
+  min-width: 0;
+  max-width: 70ch;
+  padding: 0;
+  border: 0;
+  font-size: var(--t-body);
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--t-ink);
+  text-wrap: pretty;
+}
+.story [data-closing='note'] {
+  font-size: var(--t-ui);
+  line-height: 1.45;
+  color: var(--t-muted);
+}
+.scrolly-takeaway {
+  position: relative;
+  z-index: 2;
+  margin: var(--gap-answer, 24px) 0 0;
+  opacity: 0;
+  transition: opacity 300ms var(--story-ease);
+}
+.scrolly-takeaway.is-shown {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .q-stage,
+  .q-frame {
+    display: none;
+  }
+  .scrolly-takeaway {
+    opacity: 1;
+    transition: none;
+  }
+}
+@media print {
+  .q-stage,
+  .q-frame {
+    display: none;
+  }
+  .scrolly-takeaway {
+    opacity: 1;
+  }
+}
+/* One step, one highlight (highlight.jsx): while a step names marks, the
+   figure carries data-hl, its named marks data-on; the rest dim to --mark-dim */
+/* dimmed by filter, not opacity, and the transition at zero specificity:
+   the chart primitives' own opacity and draw transitions (.draw-path,
+   .grow-rect, .fade-g, .draw-end) keep working on a mark */
+:where([data-hl] [data-mark]) {
+  transition: filter 300ms var(--story-ease);
+}
+/* The shared dim (round 2): a mark the step does not name stays readable.
+   --mark-dim for marks (never below 0.4), --label-dim for any text a part
+   dims on its own (labels stay legible). Parts use these, not numbers. */
+:root {
+  --mark-dim: 0.45;
+  --label-dim: 0.75;
+}
+[data-hl] [data-mark]:not([data-on]) {
+  filter: opacity(var(--mark-dim));
+}
+.hl-key {
+  display: inline-flex;
+  gap: 4px;
+  align-items: baseline;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.hl-key .mark-shape {
+  align-self: center;
+  flex: none;
+}
+/* a keyed term: the mark's swatch and weight 600 in ink; no underline
+   (round 1: only real links are underlined) */
+.hl-key-text {
+  color: var(--t-ink);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 200ms var(--story-ease);
+}
+.hl-key[tabindex],
+.hl-fig[tabindex],
+.hl-num[tabindex] {
+  cursor: pointer;
+}
+.hl-key.is-pointed .hl-key-text {
+  color: var(--key-c, var(--t-ink));
+}
+.hl-key:focus-visible,
+.hl-fig:focus-visible,
+.hl-num:focus-visible {
+  outline: 2px solid var(--part-accent, var(--c-highlight));
+  outline-offset: 2px;
+}
+/* a number in a sentence: 600 in ink, no box (round 1) */
+.hl-fig {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--t-ink);
+}
+.hl-fig.is-pointed {
+  color: var(--t-ink);
+  text-decoration: none;
+}
+.hl-num,
+.hl-nummark text {
+  font-size: var(--t-meta);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.hl-num {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5em;
+  height: 1.5em;
+  margin: 0 2px;
+  border-radius: 50%;
+  vertical-align: 0.1em;
+  color: var(--pe-surface, #fff);
+  background: var(--pe-gray-800);
+}
+.hl-num.is-pointed {
+  background: var(--part-accent, var(--c-highlight));
+}
+.hl-nummark circle {
+  fill: var(--pe-gray-800);
+  stroke: var(--pe-surface, #fff);
+  stroke-width: 1.5;
+}
+.hl-nummark text {
+  fill: var(--pe-surface, #fff);
+}
+.hl-nummark[data-on] circle {
+  fill: var(--part-accent, var(--c-highlight));
+}
+/* a mark pointed at from the text pulses once */
+[data-hl] [data-mark][data-on] {
+  animation: hl-pulse 700ms var(--story-ease) 1;
+}
+@keyframes hl-pulse {
+  40% {
+    filter: drop-shadow(0 0 4px color-mix(in srgb, var(--part-accent, var(--c-highlight)) 70%, transparent));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :where([data-hl] [data-mark]) {
+    transition: none;
+  }
+  [data-hl] [data-mark][data-on] {
+    animation: none;
+  }
+}
+/* Scrolly `foot`: the figure's one-line source and legend */
+.scrolly-foot {
+  margin-top: 8px;
+  font-size: var(--t-meta);
+  color: var(--t-muted);
+}
+.scrolly-graphic-inner.is-inline {
+  margin-bottom: 16px;
+}
+.scrolly-body {
+  max-width: 36ch;
+  font-size: var(--t-body);
+  line-height: 1.45;
+  color: var(--t-text);
+  text-wrap: pretty;
+}
+.scrolly.is-wide .scrolly-body,
+.scrolly.is-single .scrolly-body {
+  max-width: 60ch;
+}
+.scrolly-body p {
+  margin: 0 0 8px;
+}
+.scrolly-body p:last-child {
+  margin-bottom: 0;
+}
+.scrolly-body a {
+  color: var(--t-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+.story-source {
+  display: block;
+  max-width: 75ch;
+  margin-top: 8px;
+  font-size: var(--t-meta);
+  line-height: 1.4;
+  color: var(--t-muted);
+}
+.story-source a {
+  color: var(--t-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+}
+.story-figure-title {
+  margin: 0 0 4px;
+  font-size: var(--t-label);
+  font-weight: 600;
+  color: var(--t-ink);
+}
+.story-figure-unit {
+  margin: 0 0 12px;
+  font-size: var(--t-meta);
+  color: var(--t-muted);
+}
+.story-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* SVG primitives */
+.draw-path {
+  fill: none;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 700ms var(--story-ease);
+}
+/* The dot at a drawn line's end appears as the draw finishes, so a line
+   mid-draw never reads as data that stops early. */
+.draw-end {
+  opacity: 0;
+  transition: opacity 200ms ease 650ms;
+}
+.draw-end.is-on {
+  opacity: 1;
+}
+.draw-path.is-on {
+  stroke-dashoffset: 0;
+}
+.grow-rect {
+  transition: transform var(--story-dur) var(--story-ease);
+  transform-box: fill-box;
+}
+.grow-rect.is-v {
+  transform-origin: 50% 100%;
+  transform: scaleY(0);
+}
+.grow-rect.is-h {
+  transform-origin: 0% 50%;
+  transform: scaleX(0);
+}
+.grow-rect.is-on {
+  transform: none;
+}
+.fade-g {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 500ms var(--story-ease), transform 500ms var(--story-ease);
+}
+.fade-g.is-on {
+  opacity: 1;
+  transform: none;
+}
+.tile-grid {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.tile {
+  transition: transform 900ms var(--story-ease), fill 600ms var(--story-ease), opacity 600ms var(--story-ease);
+}
+.tile.is-dim {
+  opacity: var(--mark-dim);
+}
+/* TileField: staggered travel (--d per tile), colour in the last third */
+.tile-field .tile {
+  transition:
+    transform 750ms var(--ch-ease) var(--d, 0ms),
+    fill 250ms ease calc(var(--d, 0ms) + 500ms),
+    opacity 300ms ease var(--d, 0ms);
+}
+.tile-field .tile.is-drop {
+  animation: tile-drop 450ms var(--ch-ease) var(--d, 0ms) backwards;
+}
+@keyframes tile-drop {
+  from {
+    translate: 0 -28px;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+/* Tab change: the panel that appears eases in. Only after the reader
+   changes tab (is-swap, set by lib/nav.jsx and cleared when the fade ends),
+   never on first show, so a shared link opens at full opacity. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .tab-panel.is-swap:not([hidden]) {
+    animation: panel-in 200ms var(--story-ease, ease-out);
+  }
+}
+@keyframes panel-in {
+  from { opacity: 0; }
+}
+
+/* "You are here" (StoryRail.jsx): one segment per part under the tab row,
+   each filling as its part is read; the current part is named */
+.story-rail {
+  position: sticky;
+  top: var(--sticky-offset);
+  z-index: 5;
+  margin: 0 calc(-1 * var(--page-gutter, 16px));
+  padding: 6px var(--page-gutter, 16px) 0;
+  background: var(--page-bg);
+}
+.story-rail ol {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.story-rail-link {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px 6px;
+  align-items: baseline;
+  padding-bottom: 6px;
+  color: var(--pe-gray-600);
+  text-decoration: none;
+  font-size: var(--fs-micro);
+}
+.story-rail-n {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.story-rail-t {
+  /* never clipped and never wrapped (check_header): the names are short
+     enough to fit their segment on one line, so the rail stays one row */
+  min-width: 0;
+  overflow: visible;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+.story-rail-bar {
+  grid-column: 1 / -1;
+  display: block;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--card-border);
+}
+.story-rail-bar i {
+  display: block;
+  height: 100%;
+  background: var(--pe-gray-400);
+  transform-origin: 0 50%;
+}
+.story-rail li.is-current .story-rail-link {
+  color: var(--pe-gray-900);
+  font-weight: 600;
+}
+.story-rail li.is-current .story-rail-bar i,
+.story-rail li.is-read .story-rail-bar i {
+  background: var(--c-highlight);
+}
+.story-rail-link:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 2px;
+}
+
+/* The close: the two models side by side */
+.lens-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.lens {
+  padding: 18px 20px;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+}
+.lens h3 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 8px;
+  font-size: var(--fs-card-title);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.lens-what {
+  margin: 0 0 12px;
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--pe-gray-700);
+}
+.lens dl {
+  margin: 0;
+}
+.lens dt {
+  margin-top: 10px;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--pe-gray-600);
+}
+.lens dd {
+  margin: 2px 0 0;
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--pe-gray-700);
+}
+.lens-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 14px 0 0;
+}
+.lens-links a {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  color: var(--c-gain-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Phone: graphic sticky at the top, cards scroll over its lower part */
+@media (max-width: 900px) {
+  .story-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+    padding-top: 20px;
+  }
+  .story-part {
+    padding-top: 24px;
+  }
+  .story-part-head {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 2px 16px;
+    margin-bottom: 24px;
+    padding: 24px 0 20px;
+  }
+  .story-part-head .story-part-numeral {
+    font-size: 3rem;
+  }
+  .lens-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* phones: numbers for every part, the name only for the current one,
+     which takes the room */
+  .story-rail ol {
+    display: flex;
+    gap: 6px;
+  }
+  .story-rail li {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .story-rail li.is-current {
+    flex: 5 1 0;
+  }
+  /* hidden, not removed: the row keeps the height the name gives it, so the
+     bars do not jump 3px when the current part changes (layout shift) */
+  .story-rail li:not(.is-current) .story-rail-t {
+    visibility: hidden;
+    overflow: hidden;
+  }
+  .scrolly {
+    display: block;
+  }
+  /* Several steps: the graphic sticks below the rail on an opaque backing
+     (its box-shadow fills the strip up to the rail) and the cards scroll up
+     beneath it, so no card covers the chart. Scrolly.jsx gives the inner box
+     the height of its tallest state, so nothing below it moves. */
+  .scrolly-graphic {
+    display: block;
+    height: auto;
+    z-index: 3;
+    padding-bottom: 10px;
+    /* the band colour (story-bands.css): the scene sits on white */
+    background: var(--band-bg, var(--page-bg));
+    box-shadow: 0 -12px 0 var(--band-bg, var(--page-bg));
+  }
+  .scrolly-graphic-inner {
+    padding: 12px;
+  }
+  /* tablets: a narrower figure is a shorter one, so more graphics fit the
+     45% of the screen a sticky graphic may take */
+  .scrolly-graphic-inner,
+  .scrolly-sizers {
+    max-width: 600px;
+    margin-inline: auto;
+  }
+  /* the foot follows the last card */
+  .scrolly > .scrolly-foot {
+    margin: 0 0 24px;
+  }
+  /* phone="once": the figure once, complete, above the cards; not sticky */
+  .scrolly.is-once .scrolly-graphic {
+    position: relative;
+    top: auto;
+    z-index: auto;
+    padding-bottom: 0;
+    box-shadow: none;
+  }
+  .scrolly.is-once .scrolly-step:nth-last-child(2) {
+    padding-bottom: 0;
+  }
+  .scrolly.is-once .scrolly-step.is-past .scrolly-card {
+    opacity: 1;
+  }
+  .scrolly.is-inline .scrolly-step,
+  .scrolly.is-inline .scrolly-step:nth-last-child(2) {
+    display: block;
+    padding-bottom: 24px;
+  }
+  .scrolly.is-inline .scrolly-steps {
+    padding-top: 0;
+  }
+  .scrolly-sizers {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .scrolly-steps {
+    position: relative;
+    z-index: 1;
+    padding: 12px 0 0;
+  }
+  /* The chart changes as the next card enters (trigger 0.88). By then
+     the card before has mostly passed under the opaque graphic; any tail
+     still showing is dimmed a little, never hidden, so text on screen
+     always reads. The last card of a block stays at full strength until
+     it passes under the graphic. Single-step blocks never dim. */
+  .scrolly:not(.is-single) .scrolly-step.is-past .scrolly-card {
+    opacity: 0.6;
+  }
+  /* inline blocks have no graphic for a past card to slide under: it may
+     still be mid-screen, so it never dims */
+  .scrolly.is-inline .scrolly-step.is-past .scrolly-card {
+    opacity: 1;
+  }
+  .scrolly-step {
+    min-height: 0;
+    padding-bottom: var(--gap-card-phone, 24px);
+  }
+  .scrolly-step:nth-last-child(2),
+  .scrolly-step.is-spacer {
+    padding-bottom: 0;
+  }
+  .scrolly-card {
+    opacity: 1;
+  }
+  /* One step: figure, then its text; nothing sticky. */
+  .scrolly.is-single .scrolly-graphic {
+    position: relative;
+    top: auto;
+    padding-bottom: 0;
+    box-shadow: none;
+  }
+  .scrolly.is-single .scrolly-steps {
+    padding: 12px 0 0;
+  }
+  .scrolly.is-single .scrolly-step,
+  .scrolly.is-single .scrolly-step:nth-last-child(2) {
+    padding-bottom: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .draw-path,
+  .grow-rect,
+  .fade-g,
+  .tile,
+  .tile-field .tile,
+  .scrolly-card,
+  .scrolly-graphic,
+  .draw-end,
+  .story-callout,
+  .story-next {
+    transition: none !important;
+  }
+  .fade-g {
+    transform: none;
+  }
+  .tile-field .tile.is-drop {
+    animation: none;
+  }
+}
+
+/* Sankey (components/story/Sankey.jsx): ribbons and nodes morph between
+   states through their geometry; labels carry a halo so they read over
+   ribbons. */
+.sankey {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.sankey-link {
+  transition: --morph 800ms var(--story-ease, ease), opacity 400ms ease;
+}
+.sankey-rect {
+  transition: --morph 800ms var(--story-ease, ease);
+}
+.sankey-label {
+  font-size: 12px;
+  font-weight: 600;
+  fill: var(--pe-gray-800);
+  paint-order: stroke;
+  stroke: var(--pe-surface);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  transition: transform 800ms var(--story-ease, ease);
+}
+.sankey-sub {
+  font-weight: 400;
+  fill: var(--pe-gray-600);
+}
+/* the space between a node's name and value: in the text for a screen
+   reader, no width in the drawing (the value keeps its own dx) */
+.sankey-gap {
+  font-size: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sankey-link,
+  .sankey-rect,
+  .sankey-label {
+    transition: none !important;
+  }
+}
+
+/* A tab with a short label (labels.js `short`) shows it on narrow phones,
+   so the three tabs fit without scrolling; the full label stays for screen
+   readers. */
+.view-tab-short {
+  display: none;
+}
+@media (max-width: 480px) {
+  .view-tab-long {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .view-tab-short {
+    display: inline;
+  }
+}
+
+/* The scope line under the tabs: what this page's model can and cannot say */
+.scope-strip {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  max-width: 110ch;
+  margin: 12px 0 0;
+  font-size: var(--fs-caption);
+  line-height: 1.5;
+  color: var(--pe-gray-600);
+}
+.scope-strip svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--pe-gray-500);
+}
+
+/* Hero fan: scenario names at the line ends, the zero line and 2028 named */
+/* phones and tablets: the fan is drawn about 0.45x, so 25 viewBox units
+   render at about 11px */
+.hero-name {
+  font-size: 25px;
+  font-weight: 600;
+  fill: var(--pe-gray-700);
+}
+.hero-name.is-zero {
+  font-weight: 400;
+  fill: var(--pe-gray-500);
+}
+.hero-names.is-wide {
+  display: none;
+}
+@media (min-width: 901px) {
+  .hero-name {
+    font-size: 15px;
+  }
+  .hero-names.is-wide {
+    display: inline;
+  }
+  .hero-names.is-narrow {
+    display: none;
+  }
+}
+
+/* Source links under the story's figures: a hit area at least 24px tall
+   without changing the line layout */
+.tab-story :is(p, figcaption) a {
+  /* vertical padding on an inline box grows its hit area, not the line */
+  padding-block: 3px;
+}
+.tab-story .story-source a,
+.tab-story .p1-figure figcaption a,
+.tab-story .p3-figure .story-source a {
+  padding-block: 5px;
+}
+.tab-story .story-next-links a,
+.tab-story .p3-close-links a,
+.tab-story .p3-close-link {
+  padding-block: 2px;
+}
+
+/* Count-ups (components/story/CountUp.jsx): the moving copy is drawn from
+   data attributes; a hidden copy of the final string holds the width. */
+.count-up {
+  display: inline-grid;
+}
+.count-up-vis {
+  display: inline-grid;
+  font-variant-numeric: tabular-nums;
+}
+.count-up-vis::before,
+.count-up-vis::after {
+  grid-area: 1 / 1;
+}
+.count-up-vis::before {
+  content: attr(data-final);
+  visibility: hidden;
+}
+.count-up-vis::after {
+  content: attr(data-text);
+}
+
+/* The story's one call-out (components/story/Callout.jsx) */
+.story-callout {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  max-width: 78ch;
+  margin: 0 0 32px;
+  padding: 14px 18px;
+  background: var(--c-highlight-band);
+  border-left: 3px solid var(--c-highlight);
+  border-radius: 0 var(--pe-radius-md) var(--pe-radius-md) 0;
+  font-size: var(--fs-small);
+  line-height: 1.55;
+  color: var(--pe-gray-700);
+}
+.story-callout-icon {
+  flex: none;
+  margin-top: 1px;
+  color: var(--c-highlight);
+}
+.story-callout-body {
+  min-width: 0;
+}
+.story-callout-title {
+  margin: 0 0 4px;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.story-callout-body p {
+  margin: 0 0 6px;
+}
+.story-callout-body p:last-child {
+  margin-bottom: 0;
+}
+.story-callout a {
+  color: var(--c-gain-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* "Next: part N" (components/story/NextPart.jsx): a plain line that ends
+   each part; the next part's head is the one band at the boundary */
+.story-next {
+  margin: 48px 0 0;
+  padding: 24px 0 0;
+  border-top: 1px solid var(--card-border);
+}
+.story-next-inner {
+  max-width: 70ch;
+}
+.story-next-link {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--pe-gray-900);
+  text-decoration: none;
+}
+.story-next-kicker {
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--c-highlight);
+}
+.story-next-title {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: var(--fs-body);
+  font-weight: 600;
+  line-height: 1.25;
+}
+.story-next-link:hover .story-next-title,
+.story-next-link:focus-visible .story-next-title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.story-next-link:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 4px;
+}
+.story-next-lead {
+  margin: 8px 0 0;
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--pe-gray-700);
+}
+.story-next-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-top: 12px;
+  font-size: var(--fs-small);
+}
+.story-next-links a {
+  padding-block: 3px;
+  color: var(--c-gain-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Items (components/story/Items.jsx): short lines, each led by a plain
+   icon; key facts; the why chain; two-column comparisons */
+.story-items {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.story-items li {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  line-height: 1.5;
+}
+.story-item-icon {
+  display: inline-flex;
+  margin-top: 3px;
+  color: var(--pe-gray-500);
+}
+.scrolly-body .story-items {
+  margin: 0 0 8px;
+}
+.scrolly-body .story-items:last-child {
+  margin-bottom: 0;
+}
+.story-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.story-fact {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 2px 10px;
+  align-items: baseline;
+}
+.story-fact-icon {
+  grid-row: 1 / span 3;
+  display: inline-flex;
+  align-self: start;
+  margin-top: 6px;
+  color: var(--pe-gray-500);
+}
+.story-fact-value {
+  font-size: var(--fs-stat);
+  font-weight: 700;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-900);
+}
+.story-fact-label {
+  font-size: var(--fs-small);
+  line-height: 1.35;
+  color: var(--pe-gray-600);
+}
+.story-fact-sub {
+  font-size: var(--fs-micro);
+  color: var(--pe-gray-500);
+}
+.story-chain {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 6px;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.story-chain-link {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.story-chain-node {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 2px;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--pe-gray-800);
+}
+.story-chain-icon {
+  display: inline-flex;
+  color: var(--c-highlight);
+}
+.story-chain-arrow {
+  display: inline-flex;
+  color: var(--pe-gray-400);
+}
+.story-compare {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 32px;
+}
+.story-compare-title {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 10px;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+@media (max-width: 600px) {
+  .story-compare {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .story-chain {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .story-chain-arrow {
+    transform: rotate(90deg);
+  }
+}
+.scrolly-title {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.scrolly-title-icon {
+  display: inline-flex;
+  flex: none;
+  margin-top: 2px;
+  color: var(--c-highlight);
+}
+
+
+/* ---------- Chart primitives (components/story/chart/*) ----------
+   Type in real pixels from the --ch-* tokens (ab.css); nothing below 11px;
+   numbers tabular. Motion: transforms, opacity and stroke-dashoffset only. */
+.ch-frame {
+  margin: 0;
+}
+.ch-frame-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 22px;
+  margin: 0 0 6px;
+}
+.ch-frame-actions {
+  display: inline-flex;
+  gap: 4px;
+}
+.ch-badge {
+  display: inline-flex;
+  align-items: center;
+  font: 400 12px/1.3 var(--ch-font);
+  color: var(--t-muted);
+}
+.ch-badge-icon {
+  display: inline-flex;
+}
+.ch-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0 0 2px;
+  font: 600 var(--t-label) / 1.35 var(--ch-font);
+  color: var(--t-ink);
+}
+.ch-title-icon {
+  display: inline-flex;
+  margin-top: 2px;
+  color: var(--t-ink);
+}
+.ch-unit {
+  margin: 0 0 10px;
+  font: 400 var(--t-meta) / 1.4 var(--ch-font);
+  color: var(--t-muted);
+}
+/* axis titles (chart/Axis.jsx `title`, Frame.jsx `yTitle` / `xTitle`) */
+.ch-axis-title {
+  font: var(--ch-unit);
+  font-weight: 600;
+  fill: var(--pe-gray-700);
+}
+.ch-axis-title-html {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0 0 6px;
+  font: 600 var(--t-meta) / 1.4 var(--ch-font);
+  color: var(--t-text);
+}
+.ch-axis-title-html.is-x {
+  justify-content: flex-end;
+  margin: 4px 0 0;
+}
+.ch-axis-title-icon {
+  display: inline-flex;
+  margin-top: 2px;
+  color: var(--pe-gray-400);
+}
+.ch-unit-icon {
+  display: inline-flex;
+  margin-top: 2px;
+  color: var(--pe-gray-400);
+}
+.ch-stack-cell {
+  display: grid;
+}
+.ch-stack-cell > * {
+  grid-area: 1 / 1;
+}
+.ch-ghost {
+  visibility: hidden;
+  pointer-events: none;
+}
+.ch-plot {
+  position: relative;
+}
+.ch-plot svg {
+  display: block;
+  overflow: visible;
+}
+.ch-foot {
+  margin-top: 8px;
+}
+.ch-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0 0 4px;
+  padding: 0;
+  list-style: none;
+  font: 400 12px/1.4 var(--ch-font);
+  color: var(--pe-gray-600);
+}
+.ch-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ch-legend li.is-off {
+  opacity: var(--label-dim);
+}
+.ch-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 0;
+  border-top: 2.5px solid var(--sw);
+}
+.ch-swatch.is-dashed {
+  border-top-style: dashed;
+}
+.ch-swatch.is-block {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--sw);
+}
+.ch-source-row {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.ch-source {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  margin: 0;
+  font: 400 var(--t-meta) / 1.4 var(--ch-font);
+  color: var(--t-muted);
+}
+.ch-source-text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ch-source-icon {
+  display: inline-flex;
+  align-self: center;
+}
+.ch-source a {
+  color: var(--t-link);
+}
+.ch-sources {
+  flex: 0 0 auto;
+  font: var(--ch-source);
+  color: var(--ch-source-color);
+}
+.ch-sources > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  list-style: none;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.ch-sources > summary::-webkit-details-marker {
+  display: none;
+}
+/* opens over the figure, so the card's height never changes */
+.ch-sources-body {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  z-index: 4;
+  width: min(420px, 100%);
+  max-height: 60vh;
+  overflow: auto;
+  padding: 10px 12px;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px var(--shadow-soft);
+  font: var(--ch-source);
+  color: var(--pe-gray-600);
+}
+.ch-tick {
+  font: var(--ch-tick);
+  fill: var(--ch-tick-color);
+  font-variant-numeric: tabular-nums;
+}
+.ch-tick-g,
+.ch-grid-line,
+.ch-zero {
+  transition: transform 600ms var(--ch-ease), opacity 300ms ease;
+}
+.ch-tick-g {
+  animation: ch-fade-in 300ms ease both;
+}
+@keyframes ch-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+.ch-grid-line {
+  stroke: var(--ch-grid);
+  stroke-width: 1;
+  stroke-dasharray: var(--ch-grid-dash);
+  stroke-linecap: round;
+}
+.ch-zero {
+  stroke: var(--ch-zero);
+  stroke-width: 1;
+}
+.ch-band-rect {
+  fill: var(--ch-band);
+}
+.ch-band.is-shock .ch-band-rect {
+  fill: var(--ch-band-shock);
+}
+.ch-note {
+  font: var(--ch-note);
+  fill: var(--ch-note-color);
+}
+.ch-label {
+  font: var(--ch-label);
+  paint-order: stroke;
+  stroke: var(--pe-surface);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+/* a series line: hidden until on, then draws along its path; once drawn
+   the dash is gone (the animation ends), so a View rescale never shows a
+   dash seam */
+.ch-line {
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.ch-line.is-on {
+  stroke-dasharray: none;
+  stroke-dashoffset: 0;
+  animation: ch-draw 700ms var(--ch-ease) var(--ch-delay, 0ms) backwards;
+}
+.ch-line.is-dashed {
+  stroke-dashoffset: 0;
+  opacity: 0;
+}
+.ch-line.is-dashed.is-on {
+  opacity: 1;
+  animation: ch-fade-in 300ms ease var(--ch-delay, 0ms) backwards;
+}
+@keyframes ch-draw {
+  from {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+}
+.ch-end {
+  stroke: var(--pe-surface);
+  stroke-width: 2;
+  paint-order: stroke;
+  opacity: 0;
+}
+/* end dot and area appear as the draw finishes (animations, so they also
+   wait on first render) */
+.ch-end.is-on,
+.ch-area.is-on {
+  opacity: 1;
+  animation: ch-fade-in 300ms ease var(--ch-delay, 0ms) backwards;
+}
+.ch-area {
+  opacity: 0;
+}
+.ch-bar {
+  transform-box: fill-box;
+  transition: transform 500ms var(--ch-ease);
+}
+.ch-bar.is-v {
+  transform: scaleY(0);
+}
+.ch-bar.is-h {
+  transform: scaleX(0);
+}
+.ch-bar.is-on {
+  transform: none;
+}
+.ch-view {
+  transition: transform 600ms var(--ch-ease);
+}
+.ch-view path,
+.ch-view line,
+.ch-view rect,
+.ch-view circle,
+.ch-view polyline {
+  vector-effect: non-scaling-stroke;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ch-tick-g,
+  .ch-grid-line,
+  .ch-zero,
+  .ch-line,
+  .ch-end,
+  .ch-area,
+  .ch-bar,
+  .ch-view {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Desktop, several cards: the figure box has a set height range, so a short
+   figure does not leave the right half blank while pinned (A2.4); the
+   figure is centred in it, a taller one grows past it. */
+@media (min-width: 901px) {
+  .scrolly:not(.is-single) .scrolly-graphic-inner {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: clamp(400px, calc(100vh - var(--story-graphic-top) - 200px), 620px);
+  }
+}
+/* "Show on chart" (the figure drawn once, phones): an icon button at the
+   card's top right that sets the figure's state; it adds no height */
+.scrolly.is-once .scrolly-card {
+  position: relative;
+  padding-right: 40px;
+}
+.scrolly-show {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--card-border);
+  border-radius: 50%;
+  background: var(--pe-surface);
+  color: var(--pe-gray-500);
+  cursor: pointer;
+}
+.scrolly-show[aria-pressed='true'] {
+  border-color: var(--part-accent, var(--c-highlight));
+  color: var(--part-accent, var(--c-highlight));
+}
+.scrolly-show:focus-visible {
+  outline: 2px solid var(--part-accent, var(--c-highlight));
+  outline-offset: 2px;
+}
+
+/* IconGrid (Items.jsx): plain icon, a short name, a short line */
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--icon-grid-cols, 3), minmax(0, 1fr));
+  gap: 16px 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.icon-grid li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px 10px;
+  align-items: start;
+}
+.icon-grid-icon {
+  grid-row: span 2;
+  display: inline-flex;
+  margin-top: 2px;
+  color: var(--pe-gray-500);
+}
+.icon-grid-title {
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.icon-grid-text {
+  font-size: var(--fs-caption);
+  line-height: 1.45;
+  color: var(--pe-gray-600);
+}
+@media (max-width: 900px) {
+  .icon-grid {
+    grid-template-columns: repeat(min(2, var(--icon-grid-cols, 3)), minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .icon-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* Replay and pause (chart/Replay.jsx): a 24px icon button in the frame head */
+.ch-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--pe-gray-500);
+  cursor: pointer;
+}
+.ch-icon-btn:hover {
+  color: var(--pe-gray-800);
+  background: var(--pe-gray-100);
+}
+.ch-icon-btn:focus-visible {
+  outline: 2px solid var(--part-accent, var(--c-highlight));
+  outline-offset: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ch-icon-btn.is-motion {
+    display: none;
+  }
+}
+
+/* Print: every reveal visible, count-ups at their final value, nothing
+   flows or waits on scroll */
+@media print {
+  .fade-g,
+  .draw-end,
+  .ch-end,
+  .ch-area,
+  .ch-line.is-dashed {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .draw-path,
+  .ch-line {
+    stroke-dasharray: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+  .grow-rect,
+  .ch-bar {
+    transform: none !important;
+  }
+  .count-up-vis::after {
+    content: attr(data-final);
+  }
+  .sankey-flow,
+  .ch-icon-btn {
+    display: none !important;
+  }
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Sankey, wave 2 (opt-in props; see Sankey.jsx) */
+.sankey-value {
+  font: 600 12px/1 var(--ch-font);
+  font-variant-numeric: tabular-nums;
+  fill: #fff;
+  pointer-events: none;
+}
+.sankey-leader {
+  stroke: var(--pe-gray-500);
+  stroke-width: 1;
+}
+/* pour: ribbons revealed left to right; nodes and labels within 300ms
+   (the in-figure text cap), ahead of their ribbons */
+.sankey-link.is-pour {
+  clip-path: inset(-2px 100% -2px 0);
+  transition: clip-path 200ms ease, opacity 250ms ease;
+}
+.sankey-link.is-pour.is-on {
+  clip-path: inset(-2px 0 -2px 0);
+  transition: clip-path 800ms var(--ch-ease) var(--pour-delay, 0ms), opacity 250ms ease;
+}
+.sankey-node.is-pour {
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+.sankey-node.is-pour.is-on {
+  opacity: 1;
+  transform: none;
+  transition: opacity 250ms ease min(var(--pour-delay, 0ms), 300ms), transform 250ms var(--ch-ease) min(var(--pour-delay, 0ms), 300ms);
+}
+.sankey-node.is-src {
+  transform: none;
+}
+.sankey-node.is-src .sankey-rect {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  transform: scaleY(0);
+  transition: transform 150ms ease;
+}
+.sankey-node.is-src.is-on .sankey-rect {
+  transform: none;
+  transition: transform 400ms var(--ch-ease) var(--pour-delay, 0ms);
+}
+/* living flow: one speed (28px a second), density follows width */
+.sankey-flow {
+  pointer-events: none;
+  animation: ch-fade-in 400ms ease var(--flow-delay, 0ms) backwards;
+}
+.sankey-flow-lane {
+  fill: none;
+  stroke: var(--pe-surface);
+  stroke-opacity: 0.35;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 2 14;
+  animation: sankey-flow 571ms linear infinite;
+}
+.sankey-flow-lane.is-thin {
+  stroke-dasharray: 2 46;
+  animation-duration: 1714ms;
+}
+@keyframes sankey-flow {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+.sankey-flow-lane.is-thin {
+  animation-name: sankey-flow-thin;
+}
+@keyframes sankey-flow-thin {
+  to {
+    stroke-dashoffset: -48;
+  }
+}
+/* interactive: focus is visible; unrelated nodes recede; the tooltip */
+.sankey-wrap {
+  position: relative;
+}
+.sankey.is-interactive .sankey-link,
+.sankey.is-interactive .sankey-node {
+  cursor: default;
+}
+.sankey .sankey-link:focus,
+.sankey .sankey-node:focus {
+  outline: none;
+}
+.sankey .sankey-link:focus-visible,
+.sankey .sankey-node:focus-visible {
+  stroke: var(--pe-gray-900);
+  stroke-width: 1.5;
+}
+.sankey .sankey-node:focus-visible .sankey-rect {
+  stroke: var(--pe-gray-900);
+  stroke-width: 1.5;
+}
+.sankey.is-interactive .sankey-node.is-dim {
+  opacity: var(--mark-dim);
+}
+.sankey-tip {
+  position: absolute;
+  z-index: 5;
+  max-width: 240px;
+  margin: 0 0 0 12px;
+  padding: 8px 10px;
+  transform: translateY(-50%);
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px var(--shadow-soft);
+  font: 400 12px/1.45 var(--ch-font);
+  color: var(--pe-gray-700);
+  pointer-events: none;
+}
+.sankey-tip.is-left {
+  margin: 0 0 0 -12px;
+  transform: translate(-100%, -50%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sankey-link.is-pour,
+  .sankey-node.is-pour,
+  .sankey-node.is-src .sankey-rect {
+    transition: none !important;
+  }
+  .sankey-flow {
+    display: none;
+  }
+}
+
+/* Crosshair (chart/Crosshair.jsx) */
+.ch-cross {
+  position: relative;
+  outline: none;
+  touch-action: pan-y;
+}
+.ch-cross:focus-visible {
+  box-shadow: 0 0 0 2px var(--part-accent, var(--c-highlight));
+  border-radius: 4px;
+}
+.ch-cross > svg {
+  display: block;
+  overflow: visible;
+}
+.ch-cross-line {
+  stroke: var(--ch-cross);
+  stroke-width: 1;
+}
+.ch-cross-dot {
+  stroke: var(--pe-surface);
+  stroke-width: 2;
+  paint-order: stroke;
+}
+.ch-tip {
+  position: absolute;
+  z-index: 5;
+  min-width: 150px;
+  max-width: 280px;
+  margin-left: 12px;
+  padding: 8px 10px;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px var(--shadow-soft);
+  pointer-events: none;
+}
+.ch-tip.is-left {
+  margin-left: -12px;
+  transform: translateX(-100%);
+}
+.ch-tip-head {
+  margin-bottom: 4px;
+  /* the chart type tokens: 13px or more at every width (push D review, B2) */
+  font: 600 var(--chart-fs-label)/1.3 var(--ch-font);
+  color: var(--pe-gray-900);
+}
+.ch-tip-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 6px;
+  font: 400 var(--chart-fs-tick)/1.5 var(--ch-font);
+  color: var(--pe-gray-600);
+}
+.ch-tip-icon {
+  display: inline-flex;
+  color: var(--pe-gray-400);
+}
+.ch-tip-name {
+  white-space: nowrap;
+}
+.ch-tip-value {
+  font: 600 var(--chart-fs-tick)/1.5 var(--ch-font);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.ch-tip-unit {
+  margin-top: 4px;
+  font: 400 var(--chart-fs-tick)/1.35 var(--ch-font);
+  color: var(--pe-gray-500);
+}
+
+/* ChartHover (chart/ChartHover.jsx, M4): the same card for a chart of
+   separate marks; placed by transform from the mark's box, read once */
+.ch-hover {
+  position: relative;
+  outline: none;
+  touch-action: pan-y;
+}
+.ch-hover:focus-visible {
+  box-shadow: 0 0 0 2px var(--part-accent, var(--c-highlight));
+  border-radius: 4px;
+}
+/* a transparent hover target over a line's points (one column per x) */
+.ch-hit {
+  fill: transparent;
+  stroke: none;
+  pointer-events: all;
+}
+.ch-tip.ch-tip-m {
+  margin-left: 0;
+  will-change: transform;
+}
+.ch-tip-sw {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+@media (max-width: 600px) {
+  .ch-tip.ch-tip-m.is-top {
+    max-width: 100%;
+  }
+}
+
+/* Recap (Items.jsx): "What you just learned", a chip row ending a part */
+.story-recap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  margin: 0 0 var(--gap-block, 40px);
+  padding: 12px 0;
+  border-top: 1px solid var(--card-border);
+  border-bottom: 1px solid var(--card-border);
+}
+/* the last thing on the page: no gap of its own above the footer */
+.story-recap:last-child {
+  margin-bottom: 0;
+}
+.story-recap-title {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-800);
+}
+.story-recap-icon {
+  display: inline-flex;
+  color: var(--part-accent, var(--c-highlight));
+}
+.story-recap-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.story-recap-chip {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: var(--fs-small);
+  line-height: 1.35;
+  color: var(--pe-gray-800);
+  text-decoration: none;
+  background: var(--part-tint, var(--pe-teal-50));
+  border: 1px solid color-mix(in srgb, var(--part-accent, var(--c-highlight)) 25%, transparent);
+  border-radius: 999px;
+  transition: border-color 200ms var(--story-ease), background-color 200ms var(--story-ease);
+}
+.story-recap-chip:hover {
+  border-color: var(--part-accent, var(--c-highlight));
+}
+.story-recap-chip:focus-visible {
+  outline: 2px solid var(--part-accent, var(--c-highlight));
+  outline-offset: 2px;
+}
+.story-recap-chip-icon {
+  flex: none;
+  display: inline-flex;
+  color: var(--part-accent, var(--c-highlight));
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-recap-chip {
+    transition: none;
+  }
+}
+
+/* DownloadMenu: the copy actions under the downloads, and the status line */
+.download-sep {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--pe-gray-200);
+}
+.download-item-icon {
+  display: inline-flex;
+  vertical-align: -2px;
+  margin-right: 6px;
+  color: var(--pe-gray-500);
+}
+.download-status {
+  padding: 0 10px;
+  font-size: var(--fs-caption);
+  color: var(--pe-teal-700);
+}
+.download-status:empty {
+  display: none;
+}
+
+/* AboutFold `replication` (Card.jsx): code and result file */
+.replication-link {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  margin: 8px 0 0;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+}
+.replication-link > svg {
+  flex: none;
+  align-self: center;
+  color: var(--pe-gray-500);
+}
+
+/* AsOf (components/story/AsOf.jsx): the page's as-of stamp, once in the shell */
+.as-of {
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+  margin: 0;
+  font-size: var(--fs-caption);
+  line-height: 1.4;
+  color: var(--pe-gray-600);
+}
+.as-of-icon {
+  flex: none;
+  display: inline-flex;
+  align-self: center;
+  color: var(--pe-gray-500);
+}
+.as-of a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--pe-gray-300);
+  text-underline-offset: 2px;
+}
+.as-of a:hover {
+  text-decoration-color: currentColor;
+}
+.as-of code {
+  font-size: 0.95em;
+}
+/* Recap with questions and answers ({ q, a }): a chip per question, the
+   answer under it in bold; three across on desktop, one per row on phones */
+.story-recap.is-qa .story-recap-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  width: 100%;
+}
+.story-recap-chip.is-qa {
+  align-items: flex-start;
+  height: 100%;
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+.story-recap-qa {
+  display: grid;
+  gap: 2px;
+}
+.story-recap-q,
+.story-recap-a {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  margin: 0;
+}
+.story-recap-q {
+  color: var(--pe-gray-700);
+}
+.story-recap-a {
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.story-recap-qa .story-recap-chip-icon {
+  align-self: center;
+  flex: none;
+}
+/* A step's sentence anchored to its mark (MarkCallout.jsx, step.callout) */
+.mark-callout {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  top: 0;
+  max-width: min(260px, 60%);
+  padding: 6px 10px;
+  font-size: var(--fs-small);
+  line-height: 1.35;
+  font-weight: 500;
+  color: var(--pe-gray-900);
+  background: var(--pe-surface);
+  border: 1px solid color-mix(in srgb, var(--part-accent, var(--c-highlight)) 45%, transparent);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.08);
+  pointer-events: none;
+  visibility: hidden;
+}
+.mark-callout.is-placed {
+  visibility: visible;
+  animation: mark-callout-in 350ms var(--story-ease) both;
+}
+@keyframes mark-callout-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.mark-callout-leader {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: visible;
+  pointer-events: none;
+}
+.mark-callout-leader line {
+  stroke: var(--part-accent, var(--c-highlight));
+  stroke-width: 1;
+}
+.mark-callout-leader circle {
+  fill: var(--part-accent, var(--c-highlight));
+}
+@media (max-width: 900px) {
+  .mark-callout {
+    max-width: min(220px, 70%);
+    font-size: var(--fs-caption);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mark-callout.is-placed {
+    animation: none;
+  }
+}
+/* TopicHead (QStage.jsx) outside a Scrolly: the answer under the header */
+.topic-head-answer {
+  margin: 0 0 16px;
+}
+/* Desktop: a sticky figure is held inside the whole block (Chrome takes the
+   grid container, not the grid area, as its sticky bound), so it can slide
+   down to the takeaway line under the block; the line stays on top (a
+   margin on the figure would cut the last state's hold) */
+.scrolly > .scrolly-takeaway {
+  position: relative;
+  z-index: 2;
+}
+
+/* QFrame: the question inside the scene's own figure frame (the default;
+   no added height). The tint covers the chart until the move, then fades
+   as the question fades in place (21 Nov: no shrink) and the header takes
+   it. */
+.q-frame {
+  --qa: 0;
+  --qm: 0;
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.q-frame-tint {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--pe-surface);
+  /* opaque until qm 0.78 (the chart starts to draw), then a quick fade;
+     the question overlaps it (card gone at 0.86), never a blank
+     frame */
+  opacity: calc(1 - (var(--qm) - 0.78) * 5);
+}
+.q-frame.is-done {
+  visibility: hidden;
+}
+.q-frame-card {
+  position: absolute;
+  top: clamp(16px, 20%, 140px);
+  left: 0;
+  right: 0;
+  max-width: 36rem;
+  margin: 0 auto;
+  padding: 0 16px;
+  text-align: center;
+  /* fixed in the frame (Vahid, 21 Nov: no zoom): full size in place, no
+     translate, no scale; it only fades. Full until qm 0.61, gone at 0.86:
+     it is still leaving when the cover starts to fade at 0.78 (the chart
+     starts to draw, and the header's copy is shown), so the frame is never
+     blank (round 2 sign-off #1: it was gone by 0.74) */
+  opacity: calc((0.86 - var(--qm)) * 4);
+  will-change: opacity;
+}
+.q-frame .q-stage-q {
+  font-size: var(--t-display);
+}
+.q-frame .q-visual {
+  gap: 10px;
+}
+@media (max-width: 900px) {
+  .q-frame-card {
+    top: clamp(12px, 14%, 80px);
+  }
+}
+/* ---- Round 1: hyphenated names (Hy.jsx), the shell's one meta line,
+   items of one kind ---- */
+.hy {
+  white-space: nowrap;
+}
+.hy-dash {
+  margin: 0 -0.06em;
+}
+.scope-line {
+  max-width: none;
+  margin: 12px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--pe-gray-500);
+}
+.scope-line .as-of.is-inline {
+  display: inline;
+  font-size: inherit;
+  color: inherit;
+}
+.story-items:not(.has-icons) > li {
+  display: grid;
+  grid-template-columns: 4px minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: baseline;
+}
+.story-items:not(.has-icons) > li::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
+  transform: translateY(-0.2em);
+}
+/* landed by a jump or a link: the pour shows complete at once */
+.sankey.is-instant :is(.sankey-link, .sankey-node, .sankey-rect) {
+  transition: none !important;
+  animation-duration: 0s !important;
+}
+
+/* ---- Round 1: step text against the chart (Scrolly is-anchored) ----
+   Desktop: the column sits 24px from the chart; the active card is moved
+   level with its mark (Scrolly writes the transform); inactive cards fade
+   out entirely, so no ghost card floats in white space. */
+.scrolly {
+  column-gap: 24px;
+}
+.scrolly.is-anchored .scrolly-card {
+  position: relative;
+  z-index: 3;
+  transition: opacity 300ms var(--story-ease);
+}
+.scrolly.is-anchored .scrolly-step:not(.is-active) .scrolly-card {
+  opacity: 0;
+  pointer-events: none;
+}
+/* the swap runs in sequence, not as a cross-fade: each card is pinned at
+   its own mark's place and those places overlap (the last card's closing
+   caption most of all), so the outgoing card fades out first (120ms,
+   Fix A2) and the incoming one fades in once it has gone, in both
+   directions */
+@media (prefers-reduced-motion: no-preference) {
+  .scrolly.is-anchored .scrolly-step:not(.is-active) .scrolly-card {
+    transition: opacity 120ms linear;
+  }
+  .scrolly.is-anchored .scrolly-step.is-active .scrolly-card {
+    transition: opacity 240ms var(--story-ease) 120ms;
+  }
+}
+@media (min-width: 901px) {
+  .scrolly.is-anchored .scrolly-card {
+    justify-self: end;
+    margin-left: auto;
+  }
+  /* polish round E: each step's item is pinned by the browser at its
+     sentence's place beside the stuck figure (Scrolly writes --pin-top per
+     step change and resize, never per frame). Fix A1 (headline-tiles
+     ruling): the chart and the text move as one body: every item shares
+     the column's one cell, starts where the chart starts (--fig-top, its
+     stuck top), sticks when it sticks and is as tall as the chart's foot
+     (--fig-h), so the same column foot lets both go. */
+  .scrolly.is-anchored > .scrolly-steps {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 1fr;
+  }
+  .scrolly.is-anchored > .scrolly-steps > .scrolly-step:not(.is-spacer) {
+    grid-area: 1 / 1;
+    align-self: start;
+    position: sticky;
+    top: var(--pin-top, var(--fig-top, 0px));
+    margin-top: calc(var(--pin-top, var(--fig-top, 0px)) - var(--fig-top, 0px));
+    height: calc(var(--fig-top, 0px) + var(--fig-h, 0px) - var(--pin-top, var(--fig-top, 0px)));
+    padding-bottom: 0;
+  }
+  .scrolly.is-anchored > .scrolly-steps > .scrolly-step.is-spacer {
+    grid-area: 1 / 1;
+  }
+  .scrolly.is-anchored > .scrolly-steps > .scrolly-step:not(.is-active) {
+    pointer-events: none;
+  }
+  .scrolly.is-anchored > .scrolly-steps > .scrolly-step.is-active {
+    z-index: 4;
+  }
+  .scrolly.is-anchored > .scrolly-steps > .scrolly-end {
+    grid-area: 1 / 1;
+    align-self: end;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scrolly.is-anchored .scrolly-card {
+    transition: none;
+  }
+}
+
+
+/* ---- Round 1 review: one highlight system, one icon per step, one
+   progress marker ---- */
+/* a keyed term is colour/weight only: no swatch beside it; and so plain
+   inline text, not an inline-flex box (an atomic box lets WebKit break
+   before the comma after it: sign-off r3 minor 6) */
+.hl-key {
+  display: inline;
+}
+.hl-key .mark-shape {
+  display: none;
+}
+/* a card's one icon is Scrolly's; an icon the sentence brings (an
+   aria-hidden icon span leading its first line) is not drawn */
+.scrolly-card.has-icon .scrolly-body > .plain-icon:first-child,
+.scrolly-card.has-icon .scrolly-body > :is(p, div):first-of-type > span[aria-hidden='true']:first-child:has(> svg),
+.scrolly-card.has-icon .scrolly-body > :is(p, div):first-of-type > .plain-icon:first-child {
+  display: none;
+}
+/* no per-step kind labels ("Finding", "Assumed", "Key takeaway") in a
+   step card: one closing line per scene says the finding */
+.scrolly-card :is(.p2-kind, [data-kind-label]) {
+  display: none;
+}
+/* the rail marks the current part by weight; the figure's dots are the one
+   progress marker */
+.story-rail-bar i {
+  visibility: hidden;
+}
+.story-rail li.is-current .story-rail-bar {
+  background: var(--pe-gray-900);
+}
+/* phones and tablets (no anchoring): the step cards keep one 1px hairline
+   on the left, the length of the card and its floor, so a card's floor
+   reads as part of the card, not as blank page */
+@media (max-width: 900px) {
+  .scrolly:not(.is-single) .scrolly-card {
+    padding-left: 12px;
+    border-left: 1px solid var(--card-border);
+  }
+  .scrolly:not(.is-single) .scrolly-step.is-active .scrolly-card {
+    border-left-color: var(--pe-gray-500);
+  }
+}
+
+/* ---- Round 1 fix (review #3): the question on screen once ----
+   While the big question is up in the frame (Scrolly .is-asking: before
+   the chart starts to draw), the header's small copy waits, and so does the
+   step text (and, round 2, for the 400ms after it while the figure's entry
+   hold runs: .is-arming): no sentence states the answer beside a blank sheet. Opacity
+   only (the text stays in innerText and the accessibility tree). Under
+   reduced motion and in print nothing waits. */
+.scene-head-q {
+  transition: opacity 400ms var(--story-ease);
+}
+@media screen and (prefers-reduced-motion: no-preference) {
+  .scrolly.is-asking > .scene-head .scene-head-q {
+    opacity: 0;
+  }
+  .scrolly.is-asking .scrolly-steps .scrolly-step .scrolly-card,
+  .scrolly.is-arming .scrolly-steps .scrolly-step .scrolly-card {
+    opacity: 0;
+    transform: none;
+  }
+}
+/* stacked (900px and below): dimmed to a trace, not blank (the gap check
+   counts text under 5% opacity as blank page) */
+@media screen and (prefers-reduced-motion: no-preference) and (max-width: 900px) {
+  .scrolly.is-asking .scrolly-steps .scrolly-step .scrolly-card,
+  .scrolly.is-arming .scrolly-steps .scrolly-step .scrolly-card {
+    opacity: 0.12;
+  }
+}
+
+/* ---- The hold rule on phones and tablets (Fix B2, Vahid 18 Nov) ----
+   900px and below, a sticky scene: each card sticks 8px under the stuck
+   chart's foot (--scene-foot, from Scrolly) and holds there while its
+   item's spacer scrolls by: 40% of the screen height (60% for the first
+   card), plus 64px, the distance from the trigger line (72px under the
+   foot, Scrolly lineGap) to where the card sticks. The last card's hold
+   ends as the chart lets go (Scrolly, Fix A4), so both leave together.
+   A card taller than the room under the chart ([data-tall]) is not
+   stuck. The vh line before each svh line serves Safari before 15.4. */
+@media (max-width: 900px) {
+  .scrolly.is-scene.has-foot > .scrolly-steps > .scrolly-step:not(.is-spacer) {
+    display: block;
+    padding-bottom: 0;
+  }
+  .scrolly.is-scene.has-foot > .scrolly-steps > .scrolly-step:not(.is-spacer)::after {
+    content: '';
+    display: block;
+    height: calc(40vh + 64px);
+    height: calc(40svh + 64px);
+  }
+  .scrolly.is-scene.has-foot > .scrolly-steps > .scrolly-step:first-child::after {
+    height: calc(60vh + 64px);
+    height: calc(60svh + 64px);
+  }
+  .scrolly.is-scene.has-foot .scrolly-card {
+    position: sticky;
+    top: calc(var(--scene-foot) + 8px);
+    min-height: 0;
+  }
+  .scrolly.is-scene.has-foot .scrolly-card[data-tall] {
+    position: relative;
+    top: auto;
+  }
+}
+/* 768-900px, a figure drawn once (not sticky): its cards sit side by side
+   directly under it, not stacked down the page (the second card was up to
+   173px below the figure); the closing line spans both. A card drawn once
+   never dims (the stacked past-card rule above is for sticky scenes). */
+@media (min-width: 768px) and (max-width: 900px) {
+  .scrolly.is-once > .scrolly-steps {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 32px;
+    align-items: start;
+  }
+  .scrolly.is-once > .scrolly-steps > .scrolly-step,
+  .scrolly.is-once > .scrolly-steps > .scrolly-step:nth-last-child(2) {
+    padding-bottom: 0;
+  }
+  .scrolly.is-once > .scrolly-steps > .scrolly-end {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 900px) {
+  .scrolly.is-once:not(.is-single, .is-asking) .scrolly-step.is-past .scrolly-card {
+    opacity: 1;
+  }
+}
+
+/* ---- Round 2: landed, not scrolled (Scrolly .is-snap, motion.js useSnap) ----
+   For a moment after a jump, a reload mid-page or a nav link, the block
+   shows its current step's final state at once: no transitions, delays or
+   entry animations (the Part 3 beats, the step-text fade), so it is never
+   seen empty or half drawn. Scrolling in still plays every move. */
+.scrolly.is-snap :is(*, *::before, *::after) {
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  animation-duration: 1ms !important;
+  animation-delay: 0s !important;
+}
+
+/* ---- Story structure (typography spec, 17 Nov): topics are separated by
+   whitespace, not rows. --gap-topic from the bottom of one topic block to
+   the top of the next topic's header; the part opener keeps its own 32px
+   (24px at 900px and below) below it. ---- */
+.story {
+  --gap-topic: 64px;
+}
+@media (max-width: 900px) {
+  .story {
+    --gap-topic: 48px;
+  }
+}
+.story-part > :is(.scrolly.has-sub, .p1-vitals, .p2-output, .p3-close, .story-beat) {
+  margin-top: var(--gap-topic);
+  margin-bottom: 0;
+}
+.story-part > .part-opener + :is(.scrolly.has-sub, .p1-vitals, .p2-output, .p3-close, .story-beat) {
+  margin-top: 0;
+}
+.story-part > :is(.scrolly.has-sub, .p1-vitals, .p2-output, .p3-close):last-child {
+  margin-bottom: var(--gap-block, 40px);
+}
+.p2-output > .scrolly {
+  margin-bottom: 0;
+}
+.story-part.story-close {
+  margin-top: calc(var(--gap-topic) - 80px);
+}
+/* a non-Scrolly topic's header (TopicHead): 16px above its block */
+.topic-head {
+  margin: 0 0 16px;
+}
+/* the shared card for a framed block that is not a chart (the study's
+   omissions list; the vitals and lens table after the sources merge) */
+.story-frame {
+  padding: 20px;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+}
+@media (max-width: 600px) {
+  .story-frame {
+    padding: 16px;
+  }
+}
+/* the part opener's model label opens "which model?" (PartHead ModelTip):
+   a dotted underline, no icon */
+.part-opener-model-tip {
+  position: relative;
+  text-decoration: underline dotted var(--pe-gray-400);
+  text-underline-offset: 3px;
+  cursor: help;
+}
+.part-opener-model-tip .tip-box {
+  max-width: 36ch;
+  font-size: var(--t-meta);
+  line-height: 1.4;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .part-opener-model-tip .tip-box {
+    animation: part-tip-in 120ms ease both;
+  }
+}
+@keyframes part-tip-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (max-width: 600px) {
+  .part-opener-model-tip .tip-box {
+    top: calc(100% + 6px);
+    bottom: auto;
+  }
+}
+/* one muted caveat line under the closing line (Scrolly sub.answerNote:
+   the GDP scene's debt line); type from [data-closing='note'] */
+.scrolly-takeaway-note {
+  position: relative;
+  z-index: 2;
+  margin: 4px 0 0;
+  opacity: 0;
+  transition: opacity 300ms var(--story-ease);
+}
+.scrolly-takeaway-note.is-shown {
+  opacity: 1;
+}
+.scrolly-takeaway-note a {
+  color: var(--t-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .scrolly-takeaway-note {
+    opacity: 1;
+    transition: none;
+  }
+}
+@media print {
+  .scrolly-takeaway-note {
+    opacity: 1;
+  }
+}
+
+/* Print and no JavaScript: every step card at full strength. The server
+   renders is-asking, which holds the cards at opacity 0 until QStage
+   lifts it; and no card is the active one on paper. */
+@media print, (scripting: none) {
+  .scrolly .scrolly-steps .scrolly-step .scrolly-card {
+    opacity: 1 !important;
+  }
+}
+
+/* Without JavaScript every scroll-in fade shows at once: the closing
+   lines, the leaves-out panel and its groups (Part 3), the fade groups,
+   the Two lenses figure and the shared draw-ins. Print and reduced
+   motion are covered where each is defined. */
+@media (scripting: none) {
+  .p3-close-panel,
+  .p3-close-card .p3-out-group,
+  .scrolly-takeaway,
+  .scrolly-takeaway-note,
+  .fade-g,
+  .lens-fig :is(.lens-ring, .lens-circle, .lens-chip-li, .lens-overlap, .lens-outside, .lens-pay) {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  /* the shared draw-ins, as in print: lines, their ends and areas, and
+     the grown bars */
+  .draw-end,
+  .ch-end,
+  .ch-area,
+  .ch-line.is-dashed {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .draw-path,
+  .ch-line {
+    stroke-dasharray: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+  .grow-rect,
+  .ch-bar {
+    transform: none !important;
+  }
+}
+
+/* ---- Story beats (StoryBeat.jsx): the question moments' visual family
+   (item 16): centred on the page background, no box; the big numeral in
+   place of the icon, the statement at the title size, the meaning line
+   like the hint. Not sticky (only the header, rail and pinned charts
+   stick): --ba / --bh from the scroll loop scale and fade the numeral as
+   the questions' cards do. ---- */
+.story {
+  --t-beat: clamp(64px, 7.5vw, 96px);
+}
+.story-beat {
+  --ba: 1;
+  --bh: 0;
+  position: relative;
+}
+/* a beat leads into its scene, with the same clear space above the scene's
+   question as between topics (polish round), less the beat's own padding */
+.story-part > .story-beat + :is(.scrolly.has-sub, .p2-output) {
+  margin-top: calc(var(--gap-topic) - 8px);
+}
+.story-beat-card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  max-width: 44rem;
+  margin: 0 auto;
+  /* height-cut-fable.md cut 4: less padding, a shorter rule, a wider
+     meaning line (three lines become two) */
+  padding: 8px 16px 12px;
+  text-align: center;
+}
+.beat-rule {
+  display: block;
+  width: 1px;
+  height: 16px;
+  background: var(--pe-gray-400);
+  transform-origin: 50% 100%;
+}
+.story-beat.is-from-above .beat-rule {
+  transform-origin: 50% 0;
+}
+.beat-num {
+  margin: 0;
+  font-size: var(--t-beat);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--t-ink);
+  transform-origin: 50% 100%;
+}
+.beat-text {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+.beat-head {
+  margin: 0;
+  font-size: var(--t-title);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--t-ink);
+  text-wrap: balance;
+}
+.beat-line {
+  max-width: 58ch;
+  margin: 0;
+  font-size: var(--t-body);
+  line-height: 1.5;
+  color: var(--t-text);
+  text-wrap: balance;
+}
+/* the beat's sources line (StoryBeat cite): the label size, muted */
+.beat-cite {
+  max-width: 58ch;
+  margin: 0;
+  font-size: var(--t-label);
+  line-height: 1.5;
+  color: var(--t-muted);
+  text-wrap: balance;
+}
+@media (max-width: 900px) {
+  .story-beat-card {
+    gap: 6px;
+    padding: 4px 16px 8px;
+  }
+  .beat-rule {
+    height: 12px;
+  }
+  .beat-num {
+    font-size: 56px;
+  }
+  .beat-head {
+    font-size: 22px;
+  }
+  .beat-line {
+    font-size: 16px;
+  }
+}
+@media screen and (prefers-reduced-motion: no-preference) {
+  .beat-rule {
+    transform: scaleY(var(--ba));
+  }
+  .beat-num {
+    opacity: calc((0.3 + 0.7 * var(--ba)) * (1 - 0.4 * var(--bh)));
+    transform: scale(calc(0.96 + 0.04 * var(--ba)));
+  }
+}
+@media (prefers-reduced-motion: reduce) and (min-width: 901px) {
+  .beat-num {
+    font-size: 64px;
+  }
+}
+/* the caption in the last card (a sticky phone scene, or a short laptop
+   screen where it does not fit in the frame) */
+.scrolly-takeaway-in-step {
+  margin-top: 10px;
+}
+/* height-cut-fable.md cut 1: the closing caption never in the 18px icon
+   column of an icon-led card (auto-placed there it went one word per
+   line); 18 Nov: it spans the whole card, the column's full measure, and
+   the card's rows are packed at its top */
+.scrolly-card.has-icon > .scrolly-takeaway-in-step {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.scrolly-card.has-icon {
+  align-content: start;
+}
+.scrolly-takeaway-in-step .scrolly-takeaway,
+.scrolly-takeaway-in-step .scrolly-takeaway-note {
+  opacity: 1;
+}
+/* in a step card it follows the sentence, not a chart */
+.scrolly-takeaway-in-step .scrolly-takeaway {
+  margin-top: 12px;
+}
+/* ---- One-panel lists (item: "need boxes or something"): one tinted
+   panel, one radius, hairline dividers between tiles, no card per tile.
+   Used by What this one-year test leaves out and Go deeper. ---- */
+.story-panel {
+  --panel-bg: color-mix(in srgb, var(--pe-gray-500) 5%, var(--pe-surface));
+  padding: 0;
+  overflow: hidden;
+  background: var(--panel-bg);
+}
+.story-panel > ul {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--card-border);
+}
+.story-panel > ul > li {
+  background: var(--panel-bg);
+}
+.p3-close-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: center;
+}
+/* desktop: the step column's length, so each state is held for its scroll
+   (Fix B1, Vahid's floors): C = F + 0.6 * 100vh + 0.4 * 100vh (n - 1) +
+   40px n (Scrolly SLACK), from the figure box's floor (F) and the card
+   count (--n, prerendered) before any script runs; Scrolly raises it to
+   the measured figure (--col-min). The end marker stays at the column's
+   foot, and the pinned items inside it. */
+@media (min-width: 901px) {
+  .scrolly.is-anchored > .scrolly-steps {
+    min-height: max(calc(clamp(400px, calc(100vh - var(--story-graphic-top) - 200px), 620px) + (0.6 + 0.4 * (var(--n, 1) - 1)) * 100vh + 40px * var(--n, 1)), var(--col-min, 0px));
+  }
+}
+/* the OBR-run figure's chip */
+.p3-pound-caveat {
+  margin: 10px 0 0;
+  font-size: var(--t-meta);
+  color: var(--t-muted);
+}
+
+/* Every <ol> in the Story is layout (step cards, rows, the rail): no number
+   or bullet, ever, so no bare "1." shows while a step's text is hidden or
+   before its stylesheet rule applies (Vahid, 18 Nov). check_text asserts it. */
+.tab-story ol,
+.tab-story ol > li,
+.p2-output-texts,
+.p2-output-texts > li,
+.p2-wf,
+.p2-wf > li {
+  list-style: none;
+}
+.tab-story ol > li::marker,
+.p2-output-texts > li::marker,
+.p2-wf > li::marker {
+  content: none;
+}
+/* no list numbering on a Scrolly's steps, whatever wraps the Story (22
+   Nov: "1." and "2." showed under a figure at 900px and below); the <ol>
+   stays for its semantics */
+.scrolly-steps > .scrolly-step {
+  list-style: none;
+}
+.scrolly-steps > .scrolly-step::marker {
+  content: none;
+}
+/* desktop: an anchored step card never runs past its column (22 Nov, the
+   GDP scene at 1280: the step text was cut at the page's left edge). It is
+   pushed to the column's chart side (justify-self: end), so a card wider
+   than the 340px column overflowed to the left, off the column: it now
+   wraps within the column. */
+@media (min-width: 901px) {
+  .scrolly.is-anchored .scrolly-card {
+    min-width: 0;
+    max-width: 100%;
+  }
+}

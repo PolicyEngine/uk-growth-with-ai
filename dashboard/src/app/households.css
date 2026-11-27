@@ -1,0 +1,477 @@
+/* Explore > Households (item-24-fable.md): the page head's section links,
+   the value tables, the bars, the plane's phone numbers and the deciles'
+   value column. Type from chart-type.css tokens: labels and values
+   --chart-fs-label (values 600), heads --chart-fs-head, column heads,
+   ticks and notes --chart-fs-tick. Nothing under 14 / 13. */
+
+/* ---- page head (Households redesign, Fable 5.2 ruling for Vahid): the
+   main-case strip of four link tiles, then the section links as outlined
+   pills (anchors: not sticky, no active state) ---- */
+.hh-strip-wrap {
+  margin: 16px 0 0;
+}
+.hh-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hh-strip > li {
+  display: flex;
+  min-width: 0;
+}
+.hh-tile {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px 14px;
+  color: var(--pe-gray-900);
+  text-decoration: none;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+}
+.hh-tile:hover,
+.hh-tile:focus-visible {
+  border-color: var(--pe-gray-400);
+}
+.hh-tile:hover .hh-tile-label > .icon-line-text,
+.hh-tile:focus-visible .hh-tile-label > .icon-line-text {
+  text-decoration: underline;
+}
+/* an IconLine (ui tier): the icon on the label's first line */
+.hh-tile-label {
+  font-size: var(--chart-fs-tick);
+  color: var(--pe-gray-600);
+}
+.hh-tile-value {
+  font-size: var(--chart-fs-title);
+  font-weight: 600;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-900);
+}
+.hh-tile-sub {
+  margin: 0;
+  font-size: var(--chart-fs-tick);
+  line-height: 1.35;
+  color: var(--pe-gray-500);
+}
+.hh-strip-cap {
+  margin: 8px 0 0;
+  font-size: var(--chart-fs-tick);
+  color: var(--pe-gray-500);
+}
+.hh-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0 0;
+  font-size: var(--chart-fs-tick);
+}
+/* the section links take the one pill look, v2.css .pill-link (Method
+   redesign, M4; Fable push E, D12); .hh-nav-link stays as a hook only */
+/* 390 (Households redesign, section 6): the strip two by two with a 12px
+   gap, each value on its own line (a range may wrap, balanced); the pills
+   wrap to a second row rather than scroll */
+@media (max-width: 768px) {
+  .hh-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .hh-tile {
+    padding: 10px 12px;
+  }
+  .hh-tile-value {
+    text-wrap: balance;
+  }
+}
+
+/* ---- card lead: one or two sentences, each a line ---- */
+.hh-page .card-lead .hh-lead-s {
+  margin: 0;
+  font-size: var(--chart-fs-sub);
+}
+.hh-page .card-lead .hh-lead-s + .hh-lead-s {
+  margin-top: 4px;
+}
+.hh-abbr {
+  text-decoration: none;
+  border-bottom: 1px dotted var(--pe-gray-400);
+}
+
+/* ---- the value table ---- */
+.hh-tblwrap {
+  container-type: inline-size;
+  margin-top: 12px;
+}
+.hh-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--chart-fs-label);
+  font-variant-numeric: tabular-nums;
+}
+.hh-tbl th,
+.hh-tbl td {
+  padding: 3px 0;
+  font-weight: 400;
+  text-align: left;
+  vertical-align: middle;
+}
+.hh-tbl thead th,
+.hh-tbl thead td {
+  padding-bottom: 4px;
+  font-size: var(--chart-fs-tick);
+  color: var(--pe-gray-500);
+}
+.hh-tbl .hh-tbl-label {
+  color: var(--pe-gray-700);
+  overflow-wrap: break-word;
+}
+.hh-tbl-name {
+  vertical-align: middle;
+}
+.hh-tbl .hh-tbl-num {
+  width: 6.4em;
+  padding-left: 10px;
+  text-align: right;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.hh-tbl .hh-tbl-num:last-child {
+  width: 7.8em;
+}
+.hh-tbl thead .hh-tbl-num {
+  font-weight: 400;
+  white-space: normal;
+  color: var(--pe-gray-500);
+}
+.hh-tbl .hh-tbl-bar {
+  width: 34%;
+  padding-left: 12px;
+}
+.hh-tbl tr.is-main .hh-tbl-label {
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+/* a sub-row (the policy card's wage insurance under the other rules,
+   push D, Q8.6): indented under its parent row, with a hairline on its left */
+.hh-tbl tr.is-sub .hh-tbl-label {
+  padding-left: 1.2em;
+  box-shadow: inset 2px 0 0 var(--card-border);
+  font-size: var(--chart-fs-tick);
+  color: var(--pe-gray-500);
+}
+.hh-tbl tr.is-sub .hh-tbl-num {
+  font-size: var(--chart-fs-tick);
+  font-weight: 500;
+  color: var(--pe-gray-700);
+}
+.hh-tbl-group th {
+  padding-top: 12px;
+  font-size: var(--chart-fs-head);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.hh-tbl tbody .hh-tbl-group:first-child th {
+  padding-top: 4px;
+}
+.hh-tbl tbody .hh-tbl-group + tr th,
+.hh-tbl tbody .hh-tbl-group + tr td {
+  padding-top: 4px;
+}
+.hh-tbl tbody tr.hh-tbl-group:not(:first-child) th {
+  border-top: 1px solid var(--card-border);
+}
+.hh-tbl tr[data-row='net'] th,
+.hh-tbl tr[data-row='net'] td {
+  padding-top: 6px;
+  border-top: 1px solid var(--card-border);
+}
+.hh-tbl .hh-muted {
+  font-size: var(--chart-fs-tick);
+  font-weight: 400;
+  color: var(--pe-gray-500);
+}
+/* the table's markers: the plane's dots, with their phone numbers */
+.hh-tbl .hh-pt-key {
+  position: relative;
+  margin-right: 8px;
+  vertical-align: -1px;
+}
+.hh-pt-n {
+  display: none;
+}
+.hh-pt.is-off,
+.hh-pt-key.is-off {
+  background: var(--pe-gray-500);
+  border-radius: 4px;
+}
+/* the 0, 50, 100p scale under the per-pound bars */
+.hh-tbl tfoot td {
+  padding-top: 2px;
+}
+.hh-scale {
+  position: relative;
+  display: block;
+  height: 1.2em;
+  font-size: var(--chart-fs-tick);
+  font-weight: 400;
+  color: var(--pe-gray-500);
+}
+.hh-scale span {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.hh-scale span:first-child {
+  transform: none;
+}
+.hh-scale span:last-child {
+  transform: translateX(-100%);
+}
+
+/* ---- bars ---- */
+.hh-bar {
+  position: relative;
+  display: block;
+  height: 12px;
+  background: var(--pe-gray-100);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.hh-bar.is-thin {
+  height: 6px;
+}
+.hh-bar-seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 500ms var(--story-ease);
+}
+.is-on .hh-bar-seg {
+  transform: none;
+}
+.hh-bar-seg.is-neutral {
+  background: var(--pe-gray-800);
+}
+.hh-bar-seg.is-ref {
+  background: var(--pe-gray-400);
+}
+.hh-bar-seg.is-hh {
+  background: var(--rank-3);
+}
+.hh-bar-seg.is-gov {
+  background: var(--rank-1);
+}
+.hh-tbl tr.is-sub .hh-bar-seg.is-neutral {
+  background: var(--pe-gray-500);
+}
+
+/* the waterfall's track inside the table */
+.hh-tbl .hh-wf-track {
+  display: block;
+}
+
+/* ---- card 5: three bar sets under 16px heads ---- */
+.hh-set + .hh-set {
+  margin-top: 18px;
+}
+.hh-set-head {
+  margin: 0;
+  font-size: var(--chart-fs-head);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.hh-set .hh-tblwrap {
+  margin-top: 4px;
+}
+.hh-set-tbl thead {
+  display: none;
+}
+
+/* ---- planes on a narrow card: numbered points ---- */
+.hh-pt-lab.is-num {
+  font-size: var(--chart-fs-tick);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+
+/* ---- card 6: the value column ---- */
+.hh-db-table .hh-db-axis,
+.hh-db-table .hh-db-row {
+  grid-template-columns: 6em minmax(0, 1fr) 5.2em;
+}
+.hh-db-head,
+.hh-db-val {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.hh-db-head {
+  font-size: var(--chart-fs-tick);
+  color: var(--pe-gray-500);
+}
+.hh-db-val {
+  font-size: var(--chart-fs-label);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.hh-db-val.hh-muted {
+  color: var(--pe-gray-500);
+}
+.hh-db-table {
+  display: grid;
+  gap: 4px;
+}
+.hh-db-table .hh-db-axis {
+  margin-top: 4px;
+}
+
+/* ---- narrow cards (a 390 phone, or a narrow column) ---- */
+@container (max-width: 460px) {
+  .hh-pt-n {
+    display: inline;
+  }
+  .hh-tbl .hh-pt-key {
+    width: auto;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    font-size: 12px;
+    line-height: 18px;
+    text-align: center;
+    border-radius: 9px;
+    color: var(--pe-surface);
+  }
+  .hh-tbl .hh-pt-key.is-ring {
+    line-height: 14px;
+    color: var(--pe-gray-900);
+  }
+  .hh-pt-n {
+    font-size: var(--chart-fs-tick);
+    font-weight: 600;
+  }
+}
+@container (max-width: 500px) {
+  /* stack: the label on its own line, the values under fixed column heads */
+  .hh-tblwrap:not(.is-inline) .hh-tbl,
+  .hh-tblwrap:not(.is-inline) .hh-tbl thead,
+  .hh-tblwrap:not(.is-inline) .hh-tbl tbody,
+  .hh-tblwrap:not(.is-inline) .hh-tbl tfoot {
+    display: block;
+  }
+  .hh-tblwrap:not(.is-inline) .hh-tbl tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) repeat(var(--hh-n), 6em);
+    column-gap: 8px;
+    align-items: center;
+  }
+  .hh-tblwrap:not(.is-inline) .hh-tbl .hh-tbl-num {
+    width: auto;
+    padding-left: 0;
+  }
+  .hh-tblwrap:not(.is-inline) .hh-tbl tbody .hh-tbl-label,
+  .hh-tblwrap:not(.is-inline) .hh-tbl-group th {
+    grid-column: 1 / -1;
+  }
+  .hh-tblwrap:not(.is-inline) .hh-tbl tbody tr:not(.hh-tbl-group) {
+    padding: 4px 0;
+  }
+  /* narrow: the whole sub-row sits indented under its parent */
+  .hh-tblwrap:not(.is-inline) .hh-tbl tbody tr.is-sub {
+    margin-left: 1.2em;
+    box-shadow: inset 2px 0 0 var(--card-border);
+  }
+  .hh-tblwrap:not(.is-inline) .hh-tbl tbody tr.is-sub .hh-tbl-label {
+    padding-left: 0.6em;
+    box-shadow: none;
+  }
+  .hh-tblwrap:not(.is-inline) .hh-tbl tbody tr:not(.hh-tbl-group) > td:nth-child(2):not(.hh-tbl-bar) {
+    grid-column: 2;
+  }
+  /* stack with a bar: the bar on its own line under the label */
+  .hh-tblwrap.is-stack .hh-tbl .hh-tbl-bar {
+    grid-column: 1 / -1;
+    width: auto;
+    padding: 4px 0;
+  }
+  .hh-tblwrap.is-stack .hh-tbl thead .hh-tbl-bar {
+    display: none;
+  }
+  .hh-tblwrap.is-stack .hh-tbl tbody tr:not(.hh-tbl-group) > .hh-tbl-bar + .hh-tbl-num {
+    grid-column: 2;
+  }
+  /* barline: the bar shares the second line with the values */
+  .hh-tblwrap.is-barline .hh-tbl .hh-tbl-bar {
+    grid-column: 1;
+    width: auto;
+    padding-left: 0;
+  }
+  .hh-tblwrap.is-barline .hh-tbl thead .hh-tbl-label {
+    display: none;
+  }
+  .hh-tblwrap.is-barline .hh-tbl thead .hh-tbl-bar {
+    display: block;
+  }
+  .hh-tblwrap.is-barline .hh-tbl tfoot .hh-tbl-label {
+    display: none;
+  }
+  .hh-tblwrap.is-barline .hh-tbl tfoot .hh-tbl-bar {
+    grid-column: 1;
+  }
+  .hh-tblwrap.is-barline .hh-tbl tr {
+    grid-template-columns: minmax(0, 1fr) repeat(var(--hh-n), 4.6em);
+  }
+  /* inline (the waterfall): label 42%, bar 30%, value 28% */
+  .hh-tblwrap.is-inline .hh-tbl .hh-tbl-label {
+    width: 42%;
+  }
+  .hh-tblwrap.is-inline .hh-tbl .hh-tbl-bar {
+    width: 30%;
+    padding-left: 8px;
+  }
+  .hh-tblwrap.is-inline .hh-tbl .hh-tbl-num {
+    width: 28%;
+    padding-left: 8px;
+  }
+  /* deciles: label 24%, track 52%, value 24% */
+  .hh-db-table .hh-db-axis,
+  .hh-db-table .hh-db-row {
+    grid-template-columns: 24% minmax(0, 1fr) 24%;
+    column-gap: 6px;
+  }
+  /* card 5's bar sets: the head names the set; no column head */
+  .hh-tblwrap.hh-set-tbl .hh-tbl thead {
+    display: none;
+  }
+  /* ticks every 2% */
+  .hh-db-ticks .is-odd {
+    display: none;
+  }
+}
+.hh-db {
+  container-type: inline-size;
+}
+
+/* ---- card 1: the waterfall's step guides (Households redesign, R5): a
+   1px line at each bar's end, down to the next row's bar; over a group
+   head it runs one row further ---- */
+.hh-wf-guide {
+  position: absolute;
+  top: 12px;
+  height: var(--hh-wf-step, 18px);
+  border-left: 1px solid var(--pe-gray-300);
+  pointer-events: none;
+}
+.hh-wf-guide.is-over-head {
+  /* the group head row: 12px + one 16px line + 3px, and 1px more above
+     the next bar */
+  height: calc(var(--hh-wf-step, 18px) + 38px);
+}

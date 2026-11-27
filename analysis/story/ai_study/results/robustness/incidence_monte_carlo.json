@@ -1,0 +1,413 @@
+{
+  "exposure": {
+    "exchequer_cost_bn": {
+      "mean": 7.342153400320001,
+      "sd": 1.9146722475454665,
+      "mcse": 0.27077554599781745,
+      "q025": 2.9764009984,
+      "median": 7.597359104,
+      "q975": 10.1768716288,
+      "min": 2.676260864,
+      "max": 11.250761728
+    },
+    "poverty_change_bhc_pp": {
+      "mean": 2.401613758859843,
+      "sd": 0.20866727864479678,
+      "mcse": 0.029510009548295732,
+      "q025": 2.0111727856867914,
+      "median": 2.388710889432931,
+      "q975": 2.7613011365931173,
+      "min": 1.8724755560178896,
+      "max": 3.100716574435451
+    },
+    "poverty_change_ahc_pp": {
+      "mean": 2.565146395214345,
+      "sd": 0.2222740607335431,
+      "mcse": 0.03143429912531177,
+      "q025": 2.1241263116839755,
+      "median": 2.5495694972714755,
+      "q975": 3.038174981350863,
+      "min": 2.095070032554078,
+      "max": 3.0888013139782124
+    },
+    "gini_change_pp": {
+      "mean": 1.7614871353018726,
+      "sd": 0.12151971151522929,
+      "mcse": 0.017185482412050323,
+      "q025": 1.5054261689686943,
+      "median": 1.7737632677477244,
+      "q975": 1.9284368360606245,
+      "min": 1.3978749913398758,
+      "max": 2.09570396857921
+    }
+  },
+  "junior": {
+    "exchequer_cost_bn": {
+      "mean": 7.04695631872,
+      "sd": 1.6277830188816875,
+      "mcse": 0.23020328219031022,
+      "q025": 4.0905654272000005,
+      "median": 7.076937728000001,
+      "q975": 9.7766064128,
+      "min": 3.345711104,
+      "max": 11.14996736
+    },
+    "poverty_change_bhc_pp": {
+      "mean": 2.431745597817267,
+      "sd": 0.23021106586703508,
+      "mcse": 0.03255676115575269,
+      "q025": 2.1131262361795047,
+      "median": 2.406344197685359,
+      "q975": 2.926464850468006,
+      "min": 2.0688408846439534,
+      "max": 3.047175324291375
+    },
+    "poverty_change_ahc_pp": {
+      "mean": 2.588508116887612,
+      "sd": 0.2535924163562424,
+      "mcse": 0.03586338345259627,
+      "q025": 2.169833066149531,
+      "median": 2.550434999689412,
+      "q975": 3.0314818895408338,
+      "min": 2.1339566962829544,
+      "max": 3.265912613004457
+    },
+    "gini_change_pp": {
+      "mean": 1.7719846682124853,
+      "sd": 0.11306342285647623,
+      "mcse": 0.015989582601195287,
+      "q025": 1.5769891432200067,
+      "median": 1.7795595486267801,
+      "q975": 1.98952737964819,
+      "min": 1.5631903469919717,
+      "max": 2.016618131477821
+    }
+  },
+  "compression": {
+    "exchequer_cost_bn": {
+      "mean": 11.28368242688,
+      "sd": 2.5868589774796695,
+      "mcse": 0.3658371049898345,
+      "q025": 6.8151975936,
+      "median": 11.887624192,
+      "q975": 15.823424716799998,
+      "min": 5.826445312,
+      "max": 16.55537664
+    },
+    "poverty_change_bhc_pp": {
+      "mean": 2.6544138836834144,
+      "sd": 0.21469020889991355,
+      "mcse": 0.03036178051349707,
+      "q025": 2.1658151274662454,
+      "median": 2.6953560035891138,
+      "q975": 3.0457017341753736,
+      "min": 2.125920672211808,
+      "max": 3.07738494775142
+    },
+    "poverty_change_ahc_pp": {
+      "mean": 2.7630091862002475,
+      "sd": 0.2459250506031791,
+      "mcse": 0.03477905418903056,
+      "q025": 2.3326006325039343,
+      "median": 2.7784012955905286,
+      "q975": 3.169367909482151,
+      "min": 2.200505692102786,
+      "max": 3.1861593349215984
+    },
+    "gini_change_pp": {
+      "mean": 1.7805818122843002,
+      "sd": 0.10720566935813125,
+      "mcse": 0.015161171156955495,
+      "q025": 1.5628210062491208,
+      "median": 1.7973790209017626,
+      "q975": 1.9927519159744278,
+      "min": 1.52781256701503,
+      "max": 2.0017717865416507
+    }
+  },
+  "uniform": {
+    "exchequer_cost_bn": {
+      "mean": 1.9480687411199997,
+      "sd": 1.9551221706972386,
+      "mcse": 0.276496028989636,
+      "q025": -1.9355099136,
+      "median": 1.74235648,
+      "q975": 5.424345087999999,
+      "min": -3.002793984,
+      "max": 6.5667072
+    },
+    "poverty_change_bhc_pp": {
+      "mean": 2.517005930662437,
+      "sd": 0.21852245148512978,
+      "mcse": 0.030903741457328722,
+      "q025": 2.172625829324808,
+      "median": 2.50166261435273,
+      "q975": 3.023039989619062,
+      "min": 2.0802250580570876,
+      "max": 3.174334558255694
+    },
+    "poverty_change_ahc_pp": {
+      "mean": 2.5536545172906036,
+      "sd": 0.21543990668721422,
+      "mcse": 0.030467803791345238,
+      "q025": 2.076931491930784,
+      "median": 2.575280844438056,
+      "q975": 2.8719771005424595,
+      "min": 2.0521814003835543,
+      "max": 3.0325570113760274
+    },
+    "gini_change_pp": {
+      "mean": 1.8805428900491048,
+      "sd": 0.12365794960823774,
+      "mcse": 0.017487874943121855,
+      "q025": 1.6532858935156416,
+      "median": 1.8950730514651184,
+      "q975": 2.1122683036637873,
+      "min": 1.6317588703844588,
+      "max": 2.1215896230515896
+    }
+  },
+  "klein_top_loaded": {
+    "exchequer_cost_bn": {
+      "mean": 27.65655179264,
+      "sd": 2.7307464980625777,
+      "mcse": 0.3861858732962932,
+      "q025": 22.796207718399998,
+      "median": 27.224342528,
+      "q975": 33.0574667776,
+      "min": 19.704578048,
+      "max": 33.701756928
+    },
+    "poverty_change_bhc_pp": {
+      "mean": 2.998899060945968,
+      "sd": 0.2732191991553085,
+      "mcse": 0.038639029694615294,
+      "q025": 2.577241583186009,
+      "median": 2.9228624299560106,
+      "q975": 3.549350491676846,
+      "min": 2.5571391763305376,
+      "max": 3.681688736235015
+    },
+    "poverty_change_ahc_pp": {
+      "mean": 3.3752430468830243,
+      "sd": 0.27942787476487413,
+      "mcse": 0.03951706901975757,
+      "q025": 2.903208604829498,
+      "median": 3.3300345086542382,
+      "q975": 3.8910423529527134,
+      "min": 2.8859297986492254,
+      "max": 4.019407650328316
+    },
+    "gini_change_pp": {
+      "mean": 1.7666740444357194,
+      "sd": 0.14369274258410733,
+      "mcse": 0.020321222537703056,
+      "q025": 1.4819582626758143,
+      "median": 1.773288706361292,
+      "q975": 2.0302402158481585,
+      "min": 1.385583359993403,
+      "max": 2.047572070650905
+    }
+  },
+  "_metadata": {
+    "certified_data_build_id": "microcosm-uk-2024-25-national-20261107T020434Z-eeb6093e",
+    "draws": 50,
+    "seeds": [
+      0,
+      49
+    ],
+    "interval_interpretation": "Quantiles, SDs and MCSEs describe assignment-draw variation only; they are not survey-sampling confidence intervals.",
+    "convergence_vs_20_draws": {
+      "exposure": {
+        "exchequer_cost_bn": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 7.1784415232,
+          "full_mean": 7.342153400320001,
+          "mean_change": 0.1637118771200008,
+          "full_mcse": 0.27077554599781745,
+          "passes_two_mcse": true
+        },
+        "poverty_change_bhc_pp": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 2.37854399897247,
+          "full_mean": 2.401613758859843,
+          "mean_change": 0.02306975988737303,
+          "full_mcse": 0.029510009548295732,
+          "passes_two_mcse": true
+        },
+        "poverty_change_ahc_pp": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 2.5542744026488515,
+          "full_mean": 2.565146395214345,
+          "mean_change": 0.010871992565493649,
+          "full_mcse": 0.03143429912531177,
+          "passes_two_mcse": true
+        },
+        "gini_change_pp": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 1.7311287186779918,
+          "full_mean": 1.7614871353018726,
+          "mean_change": 0.030358416623880835,
+          "full_mcse": 0.017185482412050323,
+          "passes_two_mcse": true
+        }
+      },
+      "junior": {
+        "exchequer_cost_bn": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 6.967934976,
+          "full_mean": 7.04695631872,
+          "mean_change": 0.07902134272000083,
+          "full_mcse": 0.23020328219031022,
+          "passes_two_mcse": true
+        },
+        "poverty_change_bhc_pp": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 2.348180204145755,
+          "full_mean": 2.431745597817267,
+          "mean_change": 0.08356539367151194,
+          "full_mcse": 0.03255676115575269,
+          "passes_two_mcse": false
+        },
+        "poverty_change_ahc_pp": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 2.519489820456593,
+          "full_mean": 2.588508116887612,
+          "mean_change": 0.06901829643101909,
+          "full_mcse": 0.03586338345259627,
+          "passes_two_mcse": true
+        },
+        "gini_change_pp": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 1.7186649331075514,
+          "full_mean": 1.7719846682124853,
+          "mean_change": 0.05331973510493393,
+          "full_mcse": 0.015989582601195287,
+          "passes_two_mcse": false
+        }
+      },
+      "compression": {
+        "exchequer_cost_bn": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 12.0368562176,
+          "full_mean": 11.28368242688,
+          "mean_change": -0.75317379072,
+          "full_mcse": 0.3658371049898345,
+          "passes_two_mcse": false
+        },
+        "poverty_change_bhc_pp": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 2.6947911963600264,
+          "full_mean": 2.6544138836834144,
+          "mean_change": -0.04037731267661204,
+          "full_mcse": 0.03036178051349707,
+          "passes_two_mcse": true
+        },
+        "poverty_change_ahc_pp": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 2.822914538005021,
+          "full_mean": 2.7630091862002475,
+          "mean_change": -0.05990535180477341,
+          "full_mcse": 0.03477905418903056,
+          "passes_two_mcse": true
+        },
+        "gini_change_pp": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 1.7724229306619137,
+          "full_mean": 1.7805818122843002,
+          "mean_change": 0.008158881622386538,
+          "full_mcse": 0.015161171156955495,
+          "passes_two_mcse": true
+        }
+      },
+      "uniform": {
+        "exchequer_cost_bn": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 2.2765436928,
+          "full_mean": 1.9480687411199997,
+          "mean_change": -0.32847495168000007,
+          "full_mcse": 0.276496028989636,
+          "passes_two_mcse": true
+        },
+        "poverty_change_bhc_pp": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 2.5216717934682156,
+          "full_mean": 2.517005930662437,
+          "mean_change": -0.00466586280577852,
+          "full_mcse": 0.030903741457328722,
+          "passes_two_mcse": true
+        },
+        "poverty_change_ahc_pp": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 2.6049402766557543,
+          "full_mean": 2.5536545172906036,
+          "mean_change": -0.051285759365150785,
+          "full_mcse": 0.030467803791345238,
+          "passes_two_mcse": true
+        },
+        "gini_change_pp": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 1.8971716817492386,
+          "full_mean": 1.8805428900491048,
+          "mean_change": -0.01662879170013376,
+          "full_mcse": 0.017487874943121855,
+          "passes_two_mcse": true
+        }
+      },
+      "klein_top_loaded": {
+        "exchequer_cost_bn": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 27.794974310400004,
+          "full_mean": 27.65655179264,
+          "mean_change": -0.1384225177600058,
+          "full_mcse": 0.3861858732962932,
+          "passes_two_mcse": true
+        },
+        "poverty_change_bhc_pp": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 3.0450743196478416,
+          "full_mean": 2.998899060945968,
+          "mean_change": -0.046175258701873556,
+          "full_mcse": 0.038639029694615294,
+          "passes_two_mcse": true
+        },
+        "poverty_change_ahc_pp": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 3.4281891738906594,
+          "full_mean": 3.3752430468830243,
+          "mean_change": -0.05294612700763501,
+          "full_mcse": 0.03951706901975757,
+          "passes_two_mcse": true
+        },
+        "gini_change_pp": {
+          "checkpoint_draws": 20,
+          "full_draws": 50,
+          "checkpoint_mean": 1.8120670283917384,
+          "full_mean": 1.7666740444357194,
+          "mean_change": -0.045392983956018984,
+          "full_mcse": 0.020321222537703056,
+          "passes_two_mcse": false
+        }
+      }
+    }
+  }
+}

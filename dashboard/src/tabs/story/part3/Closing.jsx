@@ -1,0 +1,105 @@
+'use client';
+
+import { useState } from 'react';
+import IconLine from '@/components/ui/IconLine.jsx';
+import { hy } from '@/components/story/Hy.jsx';
+import { useEntry, useSnap } from '@/components/story/motion.js';
+import { NavLink } from '@/lib/nav.jsx';
+
+// After part 3, its own section (StoryTab, push D Q4: a full-width band
+// between part 3 and the bridge to part 4, with a section-level h2): not
+// sticky, no figures. What the one-year test leaves
+// out (paper discussion.tex and results.tex; Method > Household method,
+// #hm-out, has the full list), in three labelled groups, each a small
+// section (an h4 with one plain icon, then a list of what is left out and
+// what the study assumes in its place; item 33, item dc-B). The title is
+// said once, by the heading. Centred on the column, in the caution panel's
+// tinted box (.caution-panel); no kicker: the lead says why the list
+// matters.
+// Corporation tax is not repeated here: the three-channels scene says, where
+// it matters, that dividend tax is counted and corporation tax is not.
+// Re-employment's home is this list (Two lenses names only the years after
+// the first). The groups fade in in turn as the list enters (useEntry,
+// reversible; final on a jump; static under reduced motion). One "See
+// also" line carries the two links onward.
+export const OUT_GROUPS = [
+  { id: 'respond', title: 'How people respond', icon: 'households' },
+  { id: 'pay', title: 'Payments', icon: 'benefits' },
+  { id: 'cover', title: 'Who is covered', icon: 'labour' },
+];
+
+// `text` keeps the whole row as one line (16 words or fewer) for tests.
+export const LEFT_OUT = [
+  { id: 'reemploy', group: 'respond', left: 'Finding another job', assumes: 'Everyone who loses a job stays out of work all year' },
+  { id: 'partners', group: 'respond', left: 'Partners working more', assumes: 'Partners’ hours do not change' },
+  { id: 'savings', group: 'respond', left: 'Drawing on savings', assumes: 'No household runs down its savings' },
+  { id: 'redundancy', group: 'pay', left: 'Redundancy pay', assumes: 'None is paid' },
+  // reported awards are paid; only the newly jobless get none (discussion.tex:14)
+  { id: 'jsa', group: 'pay', left: 'New-style Jobseeker’s Allowance', assumes: 'Paid only where the survey already records it' },
+  { id: 'young', group: 'cover', left: 'Fewer young people hired', assumes: 'Only existing jobs are lost, not jobs never offered' },
+  { id: 'self', group: 'cover', left: 'The self-employed', assumes: 'Job loss and pay changes apply to employees only' },
+  { id: 'occ', group: 'cover', left: 'Differences within each job group', assumes: 'AI exposure is one score for each of nine groups' },
+].map((t) => ({ ...t, text: `${t.left}: ${t.assumes}` }));
+
+// A level-(b) topic header (item 1).
+export const CLOSING_SUB = {
+  title: 'What this one-year test leaves out',
+};
+
+// 22 Nov (Vahid: "how enter to this is important… have a separate thing or
+// color box?"): the whole block is one tinted panel (the notice tokens, a
+// soft amber, not the question cards' teal), on top of the section's grey
+// band: its title led by the limits icon (IconLine), a one-line lead, the
+// list, and the "See also" links as its footer. It fades in once as it
+// enters (no movement; none under reduced motion).
+export default function Closing() {
+  const [ref, entry] = useEntry({ line: 0.85 });
+  const snap = useSnap(ref, entry);
+  // once: the panel stays shown after its first entry
+  const [seen, setSeen] = useState(false);
+  if (entry.entered && !seen) setSeen(true);
+  return (
+    <div className={`p3-close p3-close-panel caution-panel${seen ? ' is-seen' : ''}`}>
+      <header className="topic-head p3-close-head" data-scene={CLOSING_SUB.title} id="q-p3-close">
+        <IconLine as="h2" concept="limit" tier="body" className="p3-close-title" id="p3-close-h">
+          {hy(CLOSING_SUB.title)}
+        </IconLine>
+      </header>
+      <div ref={ref} className={`p3-close-card${entry.entered ? ' is-in' : ''}${snap ? ' is-snap' : ''}`}>
+        <p className="p3-close-lead">The first year after the job loss, before households or employers respond. A test, not a forecast.</p>
+        <div className="p3-out" role="group" aria-labelledby="p3-close-h">
+          <div className="p3-out-heads">
+            <span>Left out</span>
+            <span>What the study assumes</span>
+          </div>
+          {OUT_GROUPS.map((g, i) => (
+            <section key={g.id} className="p3-out-group" data-group={g.id} aria-labelledby={`p3-out-${g.id}`} style={{ '--i': i }}>
+              <IconLine as="h4" concept={g.icon} tier="ui" className="p3-out-group-h" id={`p3-out-${g.id}`}>
+                {g.title}
+              </IconLine>
+              <dl className="p3-out-rows">
+                {LEFT_OUT.filter((t) => t.group === g.id).map((t) => (
+                  <div key={t.id} className="p3-out-row" data-item={t.id}>
+                    <dt className="p3-out-left">{t.left}</dt>
+                    <dd className="p3-out-assumes">{t.assumes}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          ))}
+        </div>
+        <p className="p3-close-foot p3-close-panel-foot">
+          <span className="p3-close-see">See also:</span>{' '}
+          <NavLink tab="explore" sub="households" anchor="hh-ladder">
+            Explore, households
+          </NavLink>
+          , with full take-up and Jobseeker’s Allowance;{' '}
+          <NavLink tab="method" sub="households" anchor="hm-out">
+            Household method
+          </NavLink>
+          , for every limit.
+        </p>
+      </div>
+    </div>
+  );
+}

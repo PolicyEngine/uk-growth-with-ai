@@ -1,0 +1,445 @@
+/* The quiet "Sources and notes" button (components/ui/SourceLine.jsx):
+   one small plain BookOpen icon after every figure title; the sources,
+   the period and the notes open behind it, in a popover (a bottom sheet
+   on phones). */
+
+.src-line {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: 6px;
+  line-height: 1;
+}
+.src-line-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: -4px 0;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--pe-gray-500, #6b7280);
+  cursor: pointer;
+}
+.src-line-icon {
+  display: inline-flex;
+}
+.src-line-btn:hover,
+.src-line-btn[aria-expanded='true'] {
+  color: var(--pe-teal-700, #0f766e);
+  background: var(--pe-gray-100, #f3f4f6);
+}
+.src-line-btn:focus-visible {
+  outline: 2px solid var(--pe-teal-700, #0f766e);
+  outline-offset: 1px;
+}
+
+/* the popover */
+.src-pop {
+  position: absolute;
+  z-index: 1000;
+  max-height: min(60vh, 420px);
+  overflow: auto;
+  padding: 10px 14px 12px;
+  background: #fff;
+  border: 1px solid var(--pe-gray-200, #e5e7eb);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgb(16 24 40 / 0.12);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--pe-gray-700, #374151);
+  text-align: left;
+}
+.src-pop.is-above {
+  transform: translateY(-100%);
+}
+.src-pop-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.src-pop-title,
+.src-pop-sub {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pe-gray-900, #111827);
+}
+.src-pop-sub {
+  display: block;
+  margin-top: 10px;
+}
+.src-pop-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin: -4px -8px -4px 0;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--pe-gray-500, #6b7280);
+  cursor: pointer;
+}
+.src-pop-close:hover {
+  color: var(--pe-gray-900, #111827);
+}
+.src-pop-list,
+.src-pop-notes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.src-pop-item,
+.src-pop-note {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.src-pop-ic {
+  display: inline-flex;
+  flex: none;
+  margin-top: 2px;
+  color: var(--pe-gray-500, #6b7280);
+}
+.src-pop-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.src-pop-note .src-pop-body {
+  display: block;
+}
+.src-pop-item {
+  padding: 6px 0;
+  border-top: 1px solid var(--pe-gray-100, #f3f4f6);
+}
+.src-pop-item:first-child {
+  border-top: 0;
+}
+.src-pop-link {
+  color: var(--pe-teal-700, #0f766e);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+.src-pop-name {
+  color: var(--pe-gray-900, #111827);
+}
+.src-pop-meta {
+  color: var(--pe-gray-500, #6b7280);
+}
+.src-pop-notes li {
+  padding: 4px 0;
+}
+.src-pop-notes a {
+  color: var(--pe-teal-700, #0f766e);
+}
+
+/* phones: a bottom sheet over a dimmed page */
+.src-pop-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgb(16 24 40 / 0.28);
+}
+.src-pop.is-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: auto;
+  max-height: 70vh;
+  padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  border-radius: 12px 12px 0 0;
+  border-bottom: 0;
+  font-size: 14px;
+  transform: none;
+}
+.src-pop.is-sheet .src-pop-item {
+  padding: 9px 0;
+}
+.src-pop.is-sheet .src-pop-title,
+.src-pop.is-sheet .src-pop-sub {
+  font-size: 14px;
+}
+
+
+.src-pop-pubs {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--pe-gray-500, #6b7280);
+}
+.src-pop-through {
+  margin: 8px 0 0;
+  color: var(--pe-gray-700, #374151);
+}
+.src-pop-group + .src-pop-group {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--pe-gray-200, #e5e7eb);
+}
+.src-pop-group .src-pop-sub {
+  margin: 0 0 4px;
+  text-transform: none;
+}
+/* the one muted essential caveat a figure may keep under its chart */
+.src-essential {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--pe-gray-500, #6b7280);
+}
+
+/* The figure header, every figure on the Story and Explore: kicker, title
+   and the sources button on one left edge. The title takes the whole row
+   and wraps only when it must; the sources button sits at the row's far
+   right (never in a column sized by a longer state's title), beside any
+   head actions (Replay, Pause, Download). One icon per header. */
+.story-figure-title.p1-title-row,
+.p2-title-row,
+.p3-title-row,
+.story-figure-title.p3-iconed,
+.p2-output-title,
+.ch-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.story-figure-title,
+.ch-title,
+.card-head h3 {
+  text-wrap: balance;
+}
+.story-figure-title > :not(.src-line):not(svg):not(.p1-text-icon):not(.p3-ico):not(.p3-head-actions),
+.ch-title > .ch-stack-cell,
+.card-head h3 > span:not(.src-line):not(.card-icon) {
+  flex: 0 1 auto;
+  min-width: 0;
+  /* a title that must wrap splits into even lines, never a lone last word */
+  text-wrap: balance;
+}
+.story-figure-title > .src-line,
+.ch-title > .src-line,
+.card-head h3 > .src-line {
+  flex: none;
+  margin-left: auto;
+  margin-top: 1px;
+  padding-left: 8px;
+}
+.story-figure-title > .src-line + .p3-head-actions {
+  margin-left: 0;
+}
+/* a badge that shares a head row with the title (part 2's output split)
+   gets the row to itself, so the title starts on the badge's left edge */
+.p2-output-head > .ch-badge {
+  flex-basis: 100%;
+}
+/* the hero's figure has no title: its button sits at the frame's top right */
+.story-hero-art {
+  position: relative;
+}
+.hf-src {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+}
+
+/* the shell's scope line ends in the "As of" button: no separator before it */
+.scope-line .scope-item:has(+ .as-of) .scope-sep {
+  display: none;
+}
+
+/* A figure control (a label and a text input, e.g. "Mark a birth year"):
+   on the title's left edge, one line, no icon of its own (the figure's
+   title carries the one icon), no native number spinners. */
+.fig-control {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  margin: 2px 0 8px;
+  padding: 0;
+  font: 500 var(--t-meta, 13px) / 1.3 var(--ch-font, inherit);
+  color: var(--pe-gray-700, #374151);
+}
+.fig-control label {
+  cursor: pointer;
+}
+.fig-input {
+  width: 8.5em;
+  min-height: 32px;
+  padding: 4px 10px;
+  font: 400 14px/1.3 var(--ch-font, inherit);
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-900, #111827);
+  background: var(--pe-surface, #fff);
+  border: 1px solid var(--pe-gray-300, #d1d5db);
+  border-radius: 6px;
+  box-shadow: 0 1px 1px rgba(17, 24, 39, 0.04);
+  -moz-appearance: textfield;
+  appearance: textfield;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+.fig-input::placeholder {
+  color: var(--pe-gray-400, #9ca3af);
+}
+.fig-input:hover {
+  border-color: var(--pe-gray-400, #9ca3af);
+}
+.fig-input:focus-visible {
+  outline: none;
+  border-color: var(--c-highlight, #0f766e);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-highlight, #0f766e) 25%, transparent);
+}
+.fig-input::-webkit-outer-spin-button,
+.fig-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fig-input {
+    transition: none;
+  }
+}
+
+/* An Explore tile's title is its "enlarge" button: the arrow follows the
+   last word of the title (inline), not a column of its own. */
+.card-head h3 .ex-tile-open {
+  display: inline;
+  text-align: left;
+}
+.card-head h3 .ex-tile-open > span {
+  display: inline;
+}
+.card-head h3 .ex-tile-open .plain-icon {
+  display: inline-block;
+  margin-left: 4px;
+  vertical-align: -2px;
+}
+.story-figure-title > .p2-tx-icon {
+  flex: none;
+  margin: 2px 0 0;
+}
+
+/* a figure's kicker as text (which run it shows): muted, on the title's
+   left edge, like the model badge above other figures */
+.story-figure-kicker {
+  margin: 0 0 6px;
+  font: 400 12px/1.3 var(--ch-font, inherit);
+  color: var(--t-muted);
+}
+
+/* ---------- One reference list (Method redesign, section 7) ----------
+   components/ui/RefList.jsx: one entry a line, key · full reference ·
+   where. The whole entry is one link; the external mark (the Story's, a
+   Lucide external-link mask) is drawn after the reference in CSS, so no
+   text enters the DOM. The same mark follows the inputs table's source
+   links. */
+.ref-list,
+.mx-inputs {
+  --ic-external: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 3h6v6'/%3E%3Cpath d='M10 14 21 3'/%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3C/svg%3E");
+}
+.ref-list {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ref-link {
+  display: block;
+  color: var(--pe-gray-700);
+  text-decoration: none;
+}
+.ref-link:hover .ref-key,
+.ref-link:focus-visible .ref-key {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.ref-key {
+  font-weight: 600;
+  color: var(--pe-teal-700);
+}
+.ref-title::before,
+.ref-loc::before {
+  content: '· ';
+  color: var(--pe-gray-400);
+}
+.ref-loc {
+  color: var(--pe-gray-500);
+}
+.ref-use,
+.ref-read {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--chart-fs-tick);
+  color: var(--pe-gray-600);
+}
+.ref-list a[target='_blank'] .ref-key:last-child::after,
+.ref-list a[target='_blank'] .ref-title::after,
+.mx-inputs-src a[target='_blank']::after,
+.mx-inputs-cites a[target='_blank']::after {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-left: 4px;
+  vertical-align: -1px;
+  background: currentColor;
+  -webkit-mask: var(--ic-external) center / contain no-repeat;
+  mask: var(--ic-external) center / contain no-repeat;
+}
+@media (max-width: 600px) {
+  .ref-key {
+    display: block;
+  }
+  .ref-key + .ref-title::before {
+    content: none;
+  }
+}
+
+/* "Cite this page" at the foot of each Method page (M14) */
+.cite-foot {
+  margin-top: var(--gap-block);
+  padding-top: 16px;
+  border-top: 1px solid var(--card-border);
+}
+.cite-foot-h {
+  margin: 0 0 8px;
+  font-size: var(--chart-fs-head);
+  font-weight: 600;
+}
+.cite-foot-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.cite-foot .page-cite {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--chart-fs-tick);
+  color: var(--pe-gray-600);
+  overflow-wrap: anywhere;
+}
+.cite-foot .cite-foot-copy {
+  position: static;
+  flex: none;
+}
+.cite-foot-link {
+  margin: 8px 0 0;
+  font-size: var(--chart-fs-tick);
+}
+.cite-foot-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--pe-teal-700);
+}

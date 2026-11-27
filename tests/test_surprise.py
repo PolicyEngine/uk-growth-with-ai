@@ -101,7 +101,7 @@ def test_offset_zero_reproduces_the_old_ramp_bit_for_bit():
 
 
 def test_surprise_ramp_is_the_old_shape_one_year_later():
-    w = sp.ramp_weights(10, K - 1).ravel()          # model t = 0 is 2028
+    w = sp.ramp_weights(10, sp.SURPRISE_OFFSET).ravel()   # model t = 0 is 2028
     assert w[:5].tolist() == [0.25, 0.5, 0.75, 1.0, 1.0]
     cal = sp.calendar_weights(2028)
     assert [cal[y] for y in range(2026, 2033)] == [0, 0, 0.25, 0.5, 0.75, 1.0, 1.0]
@@ -670,3 +670,39 @@ def test_cli_accepts_every_planner_stage():
     src = inspect.getsource(cli)
     for stage in sp.STAGE_VARIANT:
         assert f'"{stage}"' in src, stage
+
+
+@pytest.mark.parametrize("year", [2027, 2028, 2029])
+def test_surprise_ramp_matches_the_calendar_for_every_shock_year(year):
+    """Model period 0 is the shock year, so the run's ramp must equal the calendar
+    weights from the shock year on, whatever k is (the k - 1 offset was right
+    for 2028 only)."""
+    w = sp.ramp_weights(8, sp.SURPRISE_OFFSET).ravel()
+    cal = sp.calendar_weights(year, years=range(2026, 2045))
+    assert w.tolist() == [cal[year + t] for t in range(8)]
+    assert cal[sp.window(year)["headline_year"]] == 1.0
+    assert cal[sp.window(year)["headline_year"] - 1] < 1.0
+
+
+def test_run_arm_uses_the_calendar_ramp_at_k1(tmp_path):
+    """run_arm under a 2027 surprise state (k = 1): gamma and Z weight 0.25 in
+    2027 (model period 0), full from 2030; the debt rule still starts in 2036."""
+    st = sp.baseline_state(_tpi(), 1)
+    c = {}
+    with pytest.raises(_Stop):
+        solve.run_arm("arm", 0.389, True, 0.94, str(tmp_path), None, _handles(c),
+                      surprise=st)
+    p = c["p"]
+    assert p.tG1 == TG1 - 1 and p.start_year == 2027
+    w = (np.asarray(p.gamma).ravel() - G_BASE) / (0.389 - G_BASE)
+    assert np.allclose(w[:5], [0.25, 0.5, 0.75, 1.0, 1.0])
+    z = np.asarray(p.Z).ravel()
+    assert np.allclose((z[:5] - 1) / (0.94 - 1), [0.25, 0.5, 0.75, 1.0, 1.0])
+
+
+def test_source_of_is_repo_relative_or_bare_name(tmp_path):
+    assert sp._source_of(sp.UK_TARGETS) == "analysis/surprise/uk_targets.json"
+    f = tmp_path / "targets.json"
+    f.write_text("{}")
+    with pytest.warns(UserWarning, match="outside the repo"):
+        assert sp._source_of(f) == "targets.json"

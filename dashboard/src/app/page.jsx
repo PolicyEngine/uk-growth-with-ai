@@ -1,177 +1,126 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import ResultsTab, { SUBS } from '@/tabs/ai/ResultsTab.jsx';
-import MethodTab from '@/tabs/method/MethodTab.jsx';
-import LiteratureTab from '@/tabs/literature/LiteratureTab.jsx';
-import CodeTab from '@/tabs/code/CodeTab.jsx';
-import CohortsTab from '@/tabs/cohorts/CohortsTab.jsx';
-import ViewTabs from '@/components/ab/ViewTabs.jsx';
-import BandPill from '@/components/ab/BandPill.jsx';
-import { S, SCENARIOS, scenarioById } from '@/tabs/ai/surprise.js';
+import { useRef, useState } from "react";
+import StoryTab from "@/tabs/story/StoryTab.jsx";
+import ExploreTab from "@/tabs/explore/ExploreTab.jsx";
+import MethodSourcesTab from "@/tabs/method/MethodSourcesTab.jsx";
+import ViewTabs from "@/components/ab/ViewTabs.jsx";
+import { NavProvider, useNav, subOf } from "@/lib/nav.jsx";
+import {
+  BandPill,
+  CopyLink,
+  SettingsChip,
+  useCondensed,
+} from "@/components/ui/SettingsBar.jsx";
+import { TABS, tabById, pickersFor, PAGE_TITLE } from "@/lib/labels.js";
 
-// Six flat tabs, no sub-tabs. The open tab is ?tab=, the scenario ?s=.
-const TABS = [
-  { id: 'results', label: 'Results', icon: 'trend', scenario: true },
-  { id: 'cohorts', label: 'Cohorts', icon: 'usersRound', scenario: true },
-  { id: 'method', label: 'Scenarios and method', icon: 'book' },
-  { id: 'literature', label: 'Literature', icon: 'scale' },
-  { id: 'code', label: 'Code', icon: 'code' },
-];
+// The shell. The title band scrolls away on every tab (on the Story it
+// holds the OG-UK settings pill: scenario and capital closure). The sticky
+// stack (.sticky-stack) is the tab row, and on the two tabs with sub-tabs
+// (Explore, Method and sources) the sub-tab header under it: the sub-tabs
+// (a secondary level, scrolling sideways with fade edges on a phone), then
+// on the right the settings pill (SettingsChip; shown once the page's own
+// pill, in the model row after the page title, has gone under the stack:
+// data-condensed, set from the page's one scroll loop) and the copy-link
+// icon. On the Story the stack is the tab row only, and the story's rail
+// sticks under it. The stack's height is --sticky-offset (v2.css), which
+// every anchor's scroll-margin reads. Which settings a page reads is set
+// per tab and sub-tab (labels.js). All state lives in the address
+// (lib/nav.jsx).
 
-// Old #hash links keep working.
-const LEGACY = {
-  finances: 'results',
-  'public-finances': 'results',
-  growth: 'results',
-  'growth/results': 'results',
-  'growth/method': 'method',
-  scenarios: 'method',
-  methodology: 'method',
-  'methodology/how': 'method',
-  'methodology/code': 'code',
-  'methodology/coverage': 'literature',
-  'methodology/obr': 'method',
-  coverage: 'literature',
-  code: 'code',
+// No scope line under the tabs (Vahid, 17 Nov): the Story's "As of" items
+// (the latest ONS and OBR releases read, the model commit) are in the
+// hero's sources-and-notes (Hero.jsx); on Explore and Method they are in
+// each page's sources-and-notes icon (PageIntro.jsx).
+
+const PANELS = {
+  story: StoryTab,
+  explore: ExploreTab,
+  method: MethodSourcesTab,
 };
 
-const SCEN_NOTE = { uk_central: 'Headline', korinek: 'US “substantial” inputs' };
-const OPTIONS = SCENARIOS.map((s) => ({
-  value: s.id,
-  label: s.label,
-  short: s.label,
-  note: SCEN_NOTE[s.id],
-}));
-
-function readUrl() {
-  const q = new URLSearchParams(window.location.search);
-  const h = window.location.hash.replace(/^#/, '');
-  let tab = q.get('tab');
-  let sub = q.get('sub');
-  // Public finances is now a sub-tab of Results
-  if (tab === 'finances' || h === 'finances' || h === 'public-finances') sub = 'finances';
-  if (!TABS.some((t) => t.id === tab)) tab = LEGACY[tab] || LEGACY[h] || LEGACY[h.split('/')[0]] || null;
-  if (!SUBS.some((x) => x.id === sub)) sub = null;
-  if (sub && !tab) tab = 'results';
-  const s = q.get('s');
-  const c = q.get('closure');
-  return { tab, sub, s: s && scenarioById(s) ? s : null, closure: ['central', 'closed', 'both'].includes(c) ? c : null };
-}
-
-function writeUrl(tab, s, sub, closure) {
-  const u = new URL(window.location.href);
-  u.hash = '';
-  if (closure && closure !== 'central') u.searchParams.set('closure', closure);
-  else if (closure) u.searchParams.delete('closure');
-  u.searchParams.set('tab', tab);
-  if (tab === 'results' && sub) u.searchParams.set('sub', sub);
-  else u.searchParams.delete('sub');
-  u.searchParams.set('s', s);
-  window.history.replaceState(null, '', u.toString());
-}
-
-export default function HomePage() {
-  const [tab, setTab] = useState('results');
-  const [sid, setSid] = useState(S.default_scenario);
-  const [sub, setSub] = useState('overview');
-  const [closure, setClosure] = useState('central');
-  const [visited, setVisited] = useState({ results: true });
-
-  useEffect(() => {
-    const apply = () => {
-      const u = readUrl();
-      if (u.tab) {
-        setTab(u.tab);
-        setVisited((v) => ({ ...v, [u.tab]: true }));
-      }
-      if (u.s) setSid(u.s);
-      if (u.closure) setClosure(u.closure);
-      if (u.sub) {
-        setSub(u.sub);
-        // an old #public-finances or ?tab=finances link: rewrite to the new form
-        writeUrl(u.tab, u.s || S.default_scenario, u.sub);
-      }
-    };
-    apply();
-    window.addEventListener('hashchange', apply);
-    return () => window.removeEventListener('hashchange', apply);
-  }, []);
-
-  const chooseTab = (id) => {
-    setTab(id);
-    setVisited((v) => ({ ...v, [id]: true }));
-    writeUrl(id, sid, sub);
-    window.scrollTo({ top: 0 });
-  };
-  const chooseScenario = (s) => {
-    setSid(s);
-    writeUrl(tab, s, sub);
-  };
-  const chooseClosure = (c) => {
-    setClosure(c);
-    writeUrl(tab, sid, sub, c);
-  };
-  const chooseSub = (id) => {
-    setSub(id);
-    writeUrl('results', sid, id);
-    window.scrollTo({ top: 0 });
-  };
-  const scenarioApplies = TABS.find((t) => t.id === tab)?.scenario;
-
-  const panels = {
-    results: (
-      <ResultsTab
-        sid={sid}
-        sub={sub}
-        onSub={chooseSub}
-        onTab={chooseTab}
-        onScenario={chooseScenario}
-        closure={closure}
-        onClosure={chooseClosure}
-      />
-    ),
-    cohorts: <CohortsTab sid={sid} />,
-    method: <MethodTab onTab={chooseTab} active={tab === 'method'} />,
-    literature: <LiteratureTab active={tab === 'literature'} />,
-    code: <CodeTab active={tab === 'code'} />,
-  };
+function Shell() {
+  const { st, go, swapTab, clearSwap } = useNav();
+  const tab = tabById(st.tab);
+  const sub = subOf(st);
+  const pick = pickersFor(st.tab, sub);
+  const [visited, setVisited] = useState({});
+  if (!visited[st.tab]) setVisited((v) => ({ ...v, [st.tab]: true }));
+  const inRow = Boolean(tab.subs);
+  const hasPickers = Boolean(pick.scenario || pick.closure);
+  // the header pill: on a tab with sub-tabs, when the page reads a setting
+  const settings = inRow && !pick.study && (hasPickers || pick.arm || pick.rule);
+  const app = useRef(null);
+  // data-stuck (a shadow under the stack once the page has scrolled) and
+  // data-condensed (the page pill has gone under the stack): attributes
+  // only, written from the page's scroll loop
+  useCondensed(app, `${st.tab}|${sub}`);
 
   return (
-    <div className="app">
-      <div className="main-content">
-        <header className="title-row">
-          <h1>AI and the UK economy</h1>
-          <div className="band-scenario">
-            <BandPill
-              icon="sliders"
-              label="Scenario"
-              value={sid}
-              options={OPTIONS}
-              onChange={chooseScenario}
-              inactive={!scenarioApplies}
-              inactiveNote="The scenario applies to Results and Cohorts"
-            />
+    <div
+      className={`app${inRow ? " has-subs" : ""}`}
+      ref={app}
+    >
+      <header className={`band${!inRow && hasPickers ? "" : " no-pickers"}`}>
+        <h1>{PAGE_TITLE}</h1>
+        {!inRow && hasPickers ? (
+          <div className="band-pickers">
+            <BandPill pick={pick} />
           </div>
-        </header>
-        <ViewTabs tabs={TABS} value={tab} onChange={chooseTab} />
-
-        {TABS.map(({ id }) =>
-          visited[id] ? (
+        ) : null}
+      </header>
+      <div className="sticky-stack" data-sticky-bar="" data-hold="chrome">
+        <div className="tabs-bar">
+          <ViewTabs tabs={TABS} value={st.tab} onChange={(id) => go(id)} />
+          {inRow ? null : <CopyLink />}
+        </div>
+        {inRow ? (
+          <div className="subhead">
+            <div className="subtabs-bar">
+              <ViewTabs
+                key={tab.id}
+                tabs={tab.subs}
+                value={sub}
+                onChange={(id) => go(tab.id, { sub: id })}
+                idPrefix={`${tab.id}-sub`}
+                label={`${tab.label} sections`}
+                variant="sub"
+              />
+            </div>
+            {settings ? (
+              <SettingsChip key={`${st.tab}|${sub}`} pick={pick} sub={sub} />
+            ) : null}
+            <CopyLink />
+          </div>
+        ) : null}
+      </div>
+      <div className="main-content" id="main-content" tabIndex={-1}>
+        {TABS.map(({ id }) => {
+          const Panel = PANELS[id];
+          return visited[id] || id === st.tab ? (
             <section
               key={id}
               id={`tab-${id}`}
-              className={`tab-panel tab-${id}`}
+              className={`tab-panel tab-${id}${id === swapTab ? " is-swap" : ""}`}
+              onAnimationEnd={(e) => e.target === e.currentTarget && clearSwap()}
               role="tabpanel"
               aria-labelledby={`tabbtn-${id}`}
-              hidden={id !== tab}
+              hidden={id !== st.tab}
+              tabIndex={-1}
             >
-              {panels[id]}
+              <Panel active={id === st.tab} />
             </section>
-          ) : null,
-        )}
+          ) : null;
+        })}
       </div>
-
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <NavProvider>
+      <Shell />
+    </NavProvider>
   );
 }

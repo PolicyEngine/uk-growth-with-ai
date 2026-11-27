@@ -1,0 +1,29 @@
+/* Maths-style parameter symbols (MathSym.jsx): a true maths italic letter
+   (--font-math: KaTeX's Math-Italic, then serif), a real italic subscript at
+   about 0.75em (a digit falls back to the next face), numbers upright. The subscript takes no
+   line height of its own, so a line holding a symbol is no taller than
+   any other (pinned figure heights do not move). */
+.math-sym {
+  white-space: nowrap;
+}
+.math-sym i {
+  font-family: var(--font-math);
+  font-style: italic;
+  font-weight: inherit;
+  /* a serif letter reads small beside the sans text */
+  font-size: 1.08em;
+  letter-spacing: 0;
+}
+.math-sym sub {
+  font-family: var(--font-math);
+  font-style: italic;
+  /* the subscript is part of the symbol, not running text: below the
+     13px floor at small body sizes by design */
+  font-size: 0.75em;
+  line-height: 0;
+  vertical-align: -0.3em;
+}
+/* the Method inputs table: the symbol before the row's label */
+.mx-inputs-sym {
+  margin-right: 0.15em;
+}

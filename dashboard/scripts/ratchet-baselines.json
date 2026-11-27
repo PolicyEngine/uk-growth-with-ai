@@ -1,0 +1,116 @@
+{
+  "_about": "Failure-count baselines for scripts/ratchet.mjs and the browser-free probes. A count may only fall: the ratchet fails when one rises above its baseline, and `bun scripts/ratchet.mjs --update` lowers a baseline to the count measured, never raises it. Browser suites are measured by hand (one browser slot) and passed in with --counts; each entry names where its baseline was recorded.",
+  "probes": {
+    "vitest_failures_2028": {
+      "baseline": 0,
+      "source": "bun run test at the C1 head"
+    },
+    "vitest_failures_2027": {
+      "baseline": 0,
+      "source": "bun run test:2027 at the C1 head (partial surprise2027.json)"
+    },
+    "year_keys": {
+      "baseline": 0,
+      "source": "claims-and-years.test.jsx: year-suffixed names outside lib/dataKeys.js"
+    },
+    "typed_years": {
+      "baseline": 0,
+      "source": "claims-and-years.test.jsx: year literals outside the allowlist"
+    },
+    "caption_length": {
+      "baseline": 20,
+      "source": "caption-length.test.jsx, both data files, lowered to 20 by ratchet --update at perf/c-swap2 (C0 fixes)"
+    },
+    "label_joins": {
+      "baseline": 0,
+      "source": "label-joins.test.jsx, both data files, lowered to 21 by ratchet --update at perf/c-swap2 (C0 fixes to R1-21)"
+    },
+    "eslint_ugai_one_chooser": {
+      "baseline": 0,
+      "source": "ugai/one-chooser: 0 at perf/c-hh (item 24 removed the HouseholdsExplore role=switch; the ResultsTab ControlBar was already gone at the push C base)"
+    },
+    "eslint_ugai_one_fold": {
+      "baseline": 4,
+      "source": "ugai/one-fold, widened in R3-13 to any Disclosure whose title is not the literal \"More info\": CodeTab x5 (four scoped folds plus the older changes), Card.jsx AboutFold (title prop), chart/Frame.jsx <summary>Sources>, PartHead <summary>About this model>. Was 2 under the narrower rule"
+    },
+    "eslint_ugai_one_card_shell": {
+      "baseline": 3,
+      "source": "ugai/one-card-shell: ab/InfoCard.jsx in HouseholdsMethod, MethodTab, ScenariosSection"
+    },
+    "year_arithmetic_unnamed": {
+      "baseline": 0,
+      "source": "claims-and-years.test.jsx: every piece of year arithmetic named; R2-01 landed with push B, so FinancesSection's SURPRISE_YEAR + 1 is now the named debt-neutral lead"
+    },
+    "mixed_cohort_years": {
+      "baseline": 0,
+      "source": "claims-and-years.test.jsx: cohort views print no active-set shock year that differs from the cohort file year (R2-03), and no source line mixes the two"
+    },
+    "fold_titles": {
+      "baseline": 1,
+      "source": "caption-length.test.jsx fold probe, both data files: Data and code \"Earlier changes\" (measured 1 on both, push E fix 5). The part openers' one \"About this model\" fold (PartHead, approved by Vahid, 22 Nov) is asserted in the same test (at most one fold per opener, titled About this model), not counted"
+    },
+    "typed_years_wide": {
+      "baseline": 51,
+      "source": "claims-and-years.test.jsx (round 3): year literals 1950-2025 and 2040-2099 outside comments, at perf/c-swap2; mostly source and history years (part3 sources, part1 findings, Households method); includes \"Born after 2011\" (CohortsTab), which waits for a cohort field"
+    },
+    "commit_mixing": {
+      "baseline": 0,
+      "source": "claims-and-years.test.jsx (round 3): the other data set's results commit or data file name on Data and code, Method, Explore, the Story (text, links, aria), the dated changelog excepted"
+    },
+    "pending_sentences": {
+      "baseline": 0,
+      "source": "claims-and-years.test.jsx (round 3): a sentence or aria-label naming a scenario not solved together with a direction word"
+    },
+    "label_joins_letters": {
+      "baseline": 56,
+      "source": "label-joins.test.jsx (R3-18, R2-33): word-word, date-word, year-word, commit-word, paren-word and sentence joins in row textContent and aria-labels, at perf/c-swap2 (2028 file; 197 on 2027). Most are responsive long/short label pairs (Some foreign capitalSome) and More info button previews; C0 adds the spaces"
+    }
+  },
+  "browser": {
+    "check_sticky": {
+      "baseline": 124,
+      "unit": "failures",
+      "source": "checks-dropdowns.md and dashboard-overnight-log.md (scrolly-step x122, q-stage-hold x2); not re-measured in push B"
+    },
+    "check_gaps_390": {
+      "baseline": 267,
+      "unit": "px, largest blank band (limit 120)",
+      "source": "checks-pushB.md: 390 FAIL 267px, the B2 phone hold blank"
+    },
+    "check_orphans": {
+      "baseline": 54,
+      "unit": "failures",
+      "source": "checks-pushB.md: FAIL 54 (rule 1: 34, rule 2: 20)"
+    },
+    "check_jitter_1024": {
+      "baseline": 0,
+      "unit": "failures",
+      "source": "pushD-final-fixes.md: fix list 20 (the output figure keeps one height on desktop): 1024 PASS 0 frames; was 1 (checks-pushB.md, p2-out-2 down 9px)"
+    },
+    "check_jitter_1280": {
+      "baseline": 0,
+      "unit": "failures",
+      "source": "checks-pushB.md: PASS"
+    },
+    "check_jitter_390": {
+      "baseline": 0,
+      "unit": "failures",
+      "source": "checks-pushB.md: PASS"
+    },
+    "check_states_landing_chrome": {
+      "baseline": 3,
+      "unit": "landing misses",
+      "source": "swap-golive-opus.md point 6, ruled (a): 3 misses at 390 reload (p2-morph cards 3-4, plus p2-shock card 2 on the 2027 data, a probe race on an off-screen scene after Chrome's reload scroll restore). Was 2 (checks-pushB.md). Follow-ups: restore offset and the probe's reload wait."
+    },
+    "check_states_landing_webkit": {
+      "baseline": 82,
+      "unit": "landing misses",
+      "source": "checks-pushB.md: 82 misses, run under two-lane load (before: 20-21; checks-part4.md: 29)"
+    },
+    "check_animations_chrome": {
+      "baseline": 1,
+      "unit": "failures",
+      "source": "checks-pushB.md: FAIL 1, the p2-morph entry (expected, rule ii)"
+    }
+  }
+}

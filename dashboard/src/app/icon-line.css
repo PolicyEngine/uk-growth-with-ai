@@ -1,0 +1,68 @@
+/* ---- IconLine (components/ui/IconLine.jsx): every icon-led line of text.
+   Loaded last, so its geometry wins over a role's own display or gap.
+   The icon sits in a fixed first column and the text in the second: a
+   wrapped line hangs under the first line's text, never under the icon.
+   The icon's span is one line box tall (1lh, the line height of the text
+   beside it) and centres the glyph in it, so the icon sits on the first
+   line, not on the middle of the block. No margin-top or vertical-align
+   nudges. One icon size and gap per text tier:
+     .is-body  16-17px text: 18px icon, 10px gap
+     .is-ui    14-15px text: 16px icon,  8px gap
+     .is-meta  11-13px text: 14px icon,  6px gap
+   Each role keeps its own text size and colour (icon-align-audit.md); the
+   icon is grey (--il-color) unless the role sets it. ---- */
+.icon-line {
+  --il-icon: 16px;
+  --il-gap: 8px;
+  display: grid;
+  grid-template-columns: var(--il-icon) minmax(0, 1fr);
+  column-gap: var(--il-gap);
+  row-gap: 0;
+  align-items: start;
+  justify-content: start;
+}
+.icon-line.is-body {
+  --il-icon: 18px;
+  --il-gap: 10px;
+}
+.icon-line.is-meta {
+  --il-icon: 14px;
+  --il-gap: 6px;
+}
+.icon-line > .icon-line-icon {
+  grid-column: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--il-icon);
+  height: 1.45em;
+  height: 1lh;
+  margin: 0;
+  vertical-align: baseline;
+  color: var(--il-color, var(--pe-gray-500));
+}
+.icon-line > .icon-line-text {
+  grid-column: 2;
+  min-width: 0;
+}
+/* anything after the text (a source button, a closing line spanning the
+   card) starts under the text, or spans the block when it says so */
+.icon-line > :where(:not(.icon-line-icon):not(.icon-line-text)) {
+  grid-column: 2;
+}
+/* a step card (Scrolly.jsx) is an icon line too: its icon on the first
+   line of its sentence, in the body tier's column, so the scene's closing
+   line under it (its own icon line, spanning the card) puts its icon and
+   text at the same x as the card's */
+.scrolly-card.has-icon > .scrolly-card-icon {
+  font-size: var(--t-body);
+  line-height: 1.45;
+}
+/* in a centred block (a part or close opener, the leaves-out card) the icon
+   and its text centre as one group; a wrapped line still hangs under the
+   first line's text (start-aligned in its column, by design) */
+:is(.part-opener, .p3-close-card) .icon-line {
+  grid-template-columns: var(--il-icon) minmax(0, max-content);
+  justify-content: center;
+  text-align: start;
+}

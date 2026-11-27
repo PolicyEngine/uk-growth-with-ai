@@ -1,0 +1,369 @@
+/* Section identity on the Story (scene plan section 5, addendum A2.9):
+   per-part colours, the chapter opener strip (tabs/story/PartHead.jsx),
+   the tight link row that ends a part (components/story/NextPart.jsx), the
+   call-out in the part's colours (Callout.jsx), the rail as a sticky
+   chapter indicator (StoryRail.jsx) and the hero art cap. Owner: shell (E).
+   Loaded after story-part3.css. Clearly separate parts, not more gap: the
+   strip replaces the old head band and its padding.
+
+   Colours are chrome only (an edge, the numeral, the badge, the rail):
+   never a data hue. Grey reads as the record, the site's teal as OG-UK,
+   the notice colours as the provisional household study. */
+
+/* Round 1 (plan section 1): part identity is neutral. Teal and amber are
+   reserved for gains and losses, so no part wears them: a part is marked
+   by its number and name in the rail and one thin rule above its opener;
+   no tints. */
+.story-part[data-part],
+.story-leaves,
+.story-rail li[data-part],
+#story-close {
+  --part-accent: var(--pe-gray-900);
+  --part-tint: transparent;
+}
+
+/* ---------- Part spacing: 48px above the strip, 32px below it ---------- */
+.story > .story-part[data-part] {
+  padding-top: 16px;
+}
+.story > .story-part[data-part]:has(.part-links) + .story-part,
+.story > .story-part[data-part]:has(.part-links) + .story-close {
+  padding-top: 16px;
+}
+/* B2's 16px above the close is the close sheet's own padding, not a margin,
+   so it is white, not a strip of page grey between two sheets (go-live note) */
+.story > .story-part[data-part]:has(.part-links) + .story-close { margin-top: 0; padding-top: 32px; }
+/* push D, Q4: part 4's bridge now ends the leaves-out section after part 3 */
+.story > .story-leaves + .story-close { margin-top: 0; padding-top: 32px; }
+
+/* ---------- The chapter opener: a kicker and the question (h2) under one
+   thin rule, at the full content width (item 6) ---------- */
+.part-opener {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 32px;
+  padding: 16px 0 0;
+  border-top: 2px solid var(--pe-gray-900);
+}
+.part-opener-meta {
+  margin: 0;
+  font-size: var(--t-meta);
+  line-height: 1.4;
+  color: var(--pe-gray-500);
+}
+.part-opener h2 {
+  margin: 0;
+  font-size: var(--t-title);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--pe-gray-900);
+  text-wrap: balance;
+}
+.part-opener-about {
+  margin-top: 4px;
+}
+.part-opener-about summary {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  font-size: var(--t-ui);
+  font-weight: 600;
+  color: var(--pe-gray-700);
+  cursor: pointer;
+}
+.part-opener-about-body {
+  margin-top: 6px;
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  color: var(--pe-gray-700);
+}
+.part-opener-about-body p {
+  margin: 0 0 6px;
+}
+
+/* ---------- The call-out, in the part's colours ---------- */
+.story-callout.part-callout {
+  border-left-color: var(--part-accent, var(--c-highlight));
+}
+.story-part[data-part] .story-callout.part-callout {
+  background: var(--c-notice-bg);
+}
+.story-callout.part-callout .story-callout-icon,
+.story-callout-title-icon {
+  color: var(--part-accent, var(--c-highlight));
+}
+.story-callout.has-title .story-callout-title {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+/* directly under the opener: tucked to the strip, no second gap */
+.part-opener + .story-callout {
+  margin-top: -16px;
+}
+
+/* ---------- The end of a part: one tight line of links ---------- */
+.part-links.story-next {
+  margin: 32px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--card-border);
+}
+.part-links .part-links-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  align-items: center;
+  max-width: none;
+  overflow-x: visible;
+  white-space: normal;
+}
+.part-links .part-links-inner > * {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.part-links .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.part-links .part-links-next {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 6px;
+  align-items: center;
+  min-height: 32px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-900);
+  text-decoration: none;
+}
+.part-links-next .plain-icon,
+.part-links-kicker {
+  color: var(--part-accent, var(--c-highlight));
+}
+.part-links-kicker {
+  font-weight: 600;
+}
+.part-links-title {
+  font-weight: 600;
+}
+.part-links-next:hover .part-links-title,
+.part-links-next:focus-visible .part-links-title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.part-links-next:focus-visible {
+  outline: 2px solid var(--part-accent, var(--c-highlight));
+  outline-offset: 2px;
+}
+/* the row wraps: the kicker and icons never split, the title and lead wrap */
+.part-links-kicker,
+.part-links-next .plain-icon {
+  flex: none;
+  white-space: nowrap;
+}
+/* item dc-A (Vahid, "these text in middle"; Opus 5.5, Fable unavailable):
+   the bridge's words are centred on the part's column, like the openers
+   and the scene questions (item 31). The arrow hangs out of flow just left
+   of the kicker, so the words, not words plus arrow, sit on the centre;
+   the link keeps 22px (the arrow and its gap) free on each side so the
+   arrow never leaves the column. At 600px and below the kicker sits over
+   the title, each line centred, the arrow still beside the kicker. */
+.part-links.story-next .part-links-inner {
+  justify-content: center;
+  text-align: center;
+}
+.part-links.story-next .part-links-next {
+  max-width: calc(100% - 44px);
+}
+.part-links-kick {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+}
+.part-links-kick > .plain-icon {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 6px);
+  display: inline-flex;
+  color: var(--part-accent, var(--c-highlight));
+  transform: translateY(-50%);
+}
+@media (max-width: 600px) {
+  .part-links.story-next .part-links-next {
+    flex-direction: column;
+    gap: 2px;
+    justify-content: center;
+  }
+  .part-links.story-next .part-links-title {
+    text-wrap: balance;
+  }
+}
+.part-links-lead {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  margin: 0;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+}
+.part-links .part-links-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 12px;
+  align-items: center;
+  margin: 0;
+  font-size: var(--fs-small);
+}
+.part-links-lead .plain-icon {
+  flex: none;
+  align-self: flex-start;
+  margin-top: 0.2em;
+}
+.part-links-label {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  font-weight: 600;
+  color: var(--pe-gray-600);
+}
+.part-links-label .plain-icon {
+  color: var(--part-accent, var(--c-highlight));
+}
+.part-links .part-links-row a {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  padding-block: 4px;
+  color: var(--c-gain-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+/* a link that brings no icon gets one: a link mark, or the external-link
+   mark when it leaves the dashboard (Lucide link-2 and external-link) */
+.part-links .part-links-row a:not(:has(svg))::before {
+  content: '';
+  flex: none;
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  -webkit-mask: var(--ic-link) center / contain no-repeat;
+  mask: var(--ic-link) center / contain no-repeat;
+}
+.part-links .part-links-row a[target='_blank']:not(:has(svg))::before {
+  -webkit-mask-image: var(--ic-external);
+  mask-image: var(--ic-external);
+}
+.part-links {
+  --ic-link: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 17H7A5 5 0 0 1 7 7h2'/%3E%3Cpath d='M15 7h2a5 5 0 1 1 0 10h-2'/%3E%3Cline x1='8' x2='16' y1='12' y2='12'/%3E%3C/svg%3E");
+  --ic-external: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 3h6v6'/%3E%3Cpath d='M10 14 21 3'/%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3C/svg%3E");
+}
+
+/* ---------- The rail: a sticky chapter indicator ---------- */
+.story-rail {
+  background: var(--page-bg);
+  backdrop-filter: none;
+}
+.story-rail-n {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.story-rail-ic {
+  display: inline-flex;
+  color: var(--part-accent);
+}
+.story-rail li.is-current .story-rail-link {
+  color: var(--pe-gray-900);
+}
+.story-rail li.is-current .story-rail-bar i,
+.story-rail li.is-read .story-rail-bar i {
+  background: var(--part-accent);
+}
+.story-rail-scene {
+  font-weight: 400;
+  color: var(--pe-gray-600);
+}
+
+/* ---------- Anchors land below the stuck bars and the rail ---------- */
+.story > .story-part[data-part],
+.story > .story-leaves,
+.story > .story-close {
+  scroll-margin-top: calc(var(--sticky-offset) + 40px);
+}
+
+/* ---------- 900px and below ---------- */
+@media (max-width: 900px) {
+  .story > .story-part[data-part] {
+    padding-top: 8px;
+  }
+  .story > .story-part[data-part]:has(.part-links) + .story-part,
+  .story > .story-part[data-part]:has(.part-links) + .story-close {
+    padding-top: 8px;
+  }
+  .story > .story-part[data-part]:has(.part-links) + .story-close,
+  .story > .story-leaves + .story-close {
+    padding-top: 24px;
+  }
+  .part-opener {
+    margin-bottom: 24px;
+  }
+  .part-opener + .story-callout {
+    margin-top: -8px;
+  }
+  .part-links.story-next {
+    margin-top: 24px;
+  }
+  .part-links .part-links-next { min-height: 44px; }
+  .story-rail-scene {
+    display: none;
+  }
+  /* the hero art at most 300px tall: a shorter fan, the key in two columns */
+  .story-hero-art svg {
+    max-height: 300px;
+    max-width: 460px;
+    margin-inline: auto;
+  }
+  .story-hero-art .hero-key {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 16px;
+    margin-top: 8px;
+  }
+}
+@media (max-width: 520px) {
+  .story-hero-art .hero-key {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .part-chip {
+    transition: none;
+  }
+}
+.part-opener-part {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+}
+
+/* Story anchors land below the stuck bars and the rail (36px) */
+:where(.story [id]:not(.p1-anchor)) {
+  scroll-margin-top: calc(var(--sticky-offset) + 52px);
+}
+/* the opener's one fold: a caret, no icon */
+.part-opener-about summary::before {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 5px solid currentColor;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  transition: transform 150ms ease;
+}
+.part-opener-about[open] summary::before {
+  transform: rotate(90deg);
+}

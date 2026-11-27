@@ -40,7 +40,6 @@
     }
 
     * { margin:0; padding:0; box-sizing:border-box; }
-    html { scroll-behavior: smooth; }
     body {
       font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
       -webkit-font-smoothing: antialiased;
@@ -51,23 +50,17 @@
     }
     a { color: var(--pe-color-primary-600); transition: opacity 150ms ease; text-decoration: underline; text-underline-offset: 2px; }
     a:hover { opacity: 0.8; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     /* App shell */
     .app-shell {
       min-height: 100vh;
       background: linear-gradient(135deg, var(--pe-color-gray-50), var(--pe-color-bg-secondary), var(--pe-color-gray-50));
     }
-    .app-shell::before {
-      content:""; position: fixed; inset:0; opacity: 0.015; pointer-events:none; z-index:0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-    }
 
     /* Sticky header */
     .title-row {
       position: sticky; top: 0; z-index: 100;
-      background: color-mix(in srgb, var(--pe-color-primary-700) 94%, transparent);
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      background: var(--pe-color-primary-700);
       box-shadow: 0 2px 12px color-mix(in srgb, var(--pe-color-gray-900) 16%, transparent);
     }
     .title-row-inner {
@@ -94,7 +87,6 @@
     .intro-text {
       font-size: 1.05rem; line-height: 1.65;
       color: var(--pe-color-gray-600); margin-bottom: 8px;
-      animation: fadeIn 0.4s ease-out;
     }
     .intro-text strong { color: var(--pe-color-gray-800); }
 
@@ -118,7 +110,7 @@
       border-bottom-color: var(--pe-color-primary-600);
       font-weight: 600;
     }
-    .tab-panel { display: none; animation: fadeIn 0.4s ease-out; }
+    .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
     /* Section card */
@@ -734,7 +726,6 @@
       border: 1px solid var(--pe-color-border-light);
     }
 
-
     .code-block {
       position: relative;
       background: #0F172A;
@@ -841,7 +832,7 @@
     /* ---------------------------------------------------------------- */
 
     /* Chart series palette — the single source of truth for every line,
-       bar and swatch on the growth tab (src/tabs/ai/series.js points here,
+       bar and swatch on the growth tab (src/tabs/ai/lines.js points here,
        and PlotPanel resolves these for Plotly). Built from the PolicyEngine
        ramp, plus the gold the shared .legend-line vocabulary already uses as
        the secondary accent. UK OBR-central grey, UK share shift gold, UK share shift + TFP the
@@ -867,7 +858,6 @@
       --status-partial-fg:     color-mix(in srgb, var(--chart-uk-obr) 70%, var(--pe-color-gray-900));
       --status-neg:            #b03a3a;
     }
-
 
     /* Call-outs reuse the template's own two tiers: .key-diff for the
        headline finding, .results-note for caveats. Only the outer spacing
@@ -1065,7 +1055,7 @@
 /* Type scale follows Methodology: 1.35rem card heading (.obr-head h3), */
 /* 0.95rem lede, 0.7rem uppercase eyebrow (.workflow-phases h3).        */
 /* ================================================================== */
-.growth-page [id^="caveat-"], #growth-caveats, .growth-page [id^="effect-"] { scroll-margin-top: 110px; }
+#growth-caveats { scroll-margin-top: 110px; }
 
 .growth-eyebrow {
   font-size: 0.7rem; font-weight: 600; color: var(--pe-color-gray-500);
@@ -1107,10 +1097,6 @@
   font-size: 0.86rem; font-weight: 500; color: var(--pe-color-gray-500);
   letter-spacing: 0; margin-top: 4px;
 }
-.growth-page .plot-fig { min-width: 0; }
-.growth-page .plot-fig figcaption { margin-bottom: 14px; }
-.growth-page .plot-fig-caption { font-size: 0.82rem; margin-top: 12px; }
-.growth-page .plot-fig + .plot-fig { border-top: none; padding-top: 0; margin-top: 0; }
 
 /* Two- and three-column grids; children may shrink below their content. */
 .grid-2, .grid-3 { display: grid; gap: 28px; }
@@ -1251,19 +1237,6 @@
 .growth-details > .plot-fig { padding: 18px 20px 20px; background: var(--pe-color-bg-primary); border-radius: 0 0 12px 12px; }
 
 /* ---- Channel table: grouped rows, status pill under the name ---- */
-.growth-page .channels-table th:first-child { width: 22%; }
-.growth-page .channels-table th:nth-child(2) { width: 28%; }
-.growth-page .channels-table .ch-badge { display: table; margin-top: 6px; }
-.growth-page .channels-table tr.group-row th {
-  padding: 16px 20px 6px; border-bottom: 1px solid var(--pe-color-gray-200);
-  font-size: 0.66rem; color: var(--pe-color-gray-500); background: transparent;
-  text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;
-  width: auto;
-}
-.growth-page .channels-table tbody tr.group-row:hover th { background: transparent; }
-.growth-page .channels-table tbody tr:last-child td { border-bottom: 1px solid var(--pe-color-gray-200); }
-.growth-page .table-wrap { overflow-x: auto; }
-.growth-page .channels-table { min-width: 620px; }
 
 /* ---- Scenario cards ---- */
 .scenario-grid { margin-top: 4px; }
@@ -1278,21 +1251,12 @@
   font-size: 0.98rem; font-weight: 700; color: var(--pe-color-gray-900);
 }
 .scenario-head .cell-tag { margin-top: 0; }
-.scenario-part + .scenario-part { border-top: 1px solid var(--pe-color-gray-100); padding-top: 12px; }
+
 .scenario-label {
   font-size: 0.66rem; font-weight: 600; color: var(--pe-color-gray-500);
   text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;
 }
-.scenario-part p {
-  font-size: 0.88rem; line-height: 1.65; color: var(--pe-color-gray-700); margin: 0;
-}
-.scenario-part p + p, .scenario-part blockquote + p { margin-top: 8px; }
-.scenario-part b { color: var(--pe-color-gray-900); }
-.scenario-part blockquote {
-  margin: 8px 0 0; padding: 8px 12px;
-  border-left: 3px solid var(--pe-color-gray-300);
-  font-size: 0.85rem; line-height: 1.6; font-style: italic; color: var(--pe-color-gray-600);
-}
+
 .reference-strip {
   margin-top: 16px; padding: 12px 16px;
   border: 1px dashed var(--pe-color-gray-300); border-radius: 12px;
@@ -1302,7 +1266,6 @@
 .reference-strip .scenario-name { font-size: 0.9rem; color: var(--pe-color-gray-600); }
 .reference-strip .cell-tag { margin-top: 0; }
 .reference-strip p { flex-basis: 100%; margin: 0; font-size: 0.85rem; line-height: 1.6; color: var(--pe-color-gray-500); }
-.growth-page .results-note { margin-top: 16px; }
 
 /* ---- Summary table ---- */
 .summary-table thead tr.group-head th {
@@ -1337,19 +1300,10 @@
   text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 12px;
 }
 .caveat-group.primary .caveat-group-title { color: var(--accent); }
-.growth-page ol.caveat-list { list-style: decimal; padding-left: 22px; }
-.growth-page ol.caveat-list li::marker { font-weight: 700; color: var(--pe-color-gray-500); }
+
 .growth-details .plot-fig-svg { max-width: 980px; }
 
 /* Scenario design: the two-pane story.                                  */
-.ai-story .step-content > p,
-.ai-story .step-content li { font-size: 0.95rem; line-height: 1.7; color: var(--pe-color-gray-600); }
-.ai-story .step-content .scenario-card p { font-size: 0.92rem; }
-.ai-story ol.caveat-list { list-style: decimal; padding-left: 22px; }
-.ai-story ol.caveat-list li { margin-bottom: 14px; }
-.ai-story ol.caveat-list li::marker { font-weight: 700; color: var(--pe-color-gray-500); }
-.ai-story [id^="caveat-"] { scroll-margin-top: 110px; }
-.ai-story .example-output-line .icon { min-width: 1.3em; text-align: center; }
 
 /* Economic effects: "Results by variable" and "Context since 2000" side by
    side. Each card is head / toolbar / chart / footer; subgrid lines those
@@ -1417,23 +1371,15 @@
 .prose .sub-heading:first-child, .step-content .sub-heading:first-child { margin-top: 0; }
 
 /* Numbered list. */
-.txt-numbered,
-.ai-story ol.caveat-list,
-.growth-page ol.caveat-list {
+.txt-numbered {
   list-style: none; padding-left: 0; margin: 0 0 14px; max-width: none;
 }
-.txt-numbered > li,
-.ai-story ol.caveat-list > li,
-.growth-page ol.caveat-list > li {
+.txt-numbered > li {
   position: relative; padding-left: 40px; margin-bottom: 16px;
   font-size: 0.95rem; line-height: 1.65; color: var(--pe-color-gray-600);
 }
-.txt-numbered > li:last-child,
-.ai-story ol.caveat-list > li:last-child,
-.growth-page ol.caveat-list > li:last-child { margin-bottom: 0; }
-.txt-numbered > li::before,
-.ai-story ol.caveat-list > li::before,
-.growth-page ol.caveat-list > li::before {
+.txt-numbered > li:last-child { margin-bottom: 0; }
+.txt-numbered > li::before {
   content: counter(list-item);
   position: absolute; left: 0; top: 1px;
   width: 26px; height: 26px; border-radius: 50%;
@@ -1442,9 +1388,7 @@
   font-size: 0.75rem; font-weight: 700; font-variant-numeric: tabular-nums;
   background: var(--pe-color-bg-primary);
 }
-.txt-numbered > li + li,
-.ai-story ol.caveat-list > li + li { padding-top: 16px; border-top: 1px solid var(--border); }
-.ai-story ol.caveat-list > li + li::before { top: 17px; }
+.txt-numbered > li + li { padding-top: 16px; border-top: 1px solid var(--border); }
 
 /* Bulleted list. */
 .txt-bullets,
@@ -1500,14 +1444,8 @@
 
 /* Existing call-outs, lede and quotes on the same rhythm. */
 .growth-lede { line-height: 1.65; }
-.scenario-part p { line-height: 1.65; }
-.scenario-part blockquote {
-  border-left-color: var(--pe-color-primary-300);
-  background: var(--pe-color-gray-50); border-radius: 0 6px 6px 0;
-}
+
 .narrative-step .step-content .table-wrap:last-child .comparison-table { margin-bottom: 0; }
-
-
 
 /* ------------------------------------------------------------------ */
 /* Accessibility: focus, scroll targets, table row heads              */
@@ -1542,20 +1480,7 @@
 .linechart .axis-unit { font-size: 11px; fill: var(--pe-color-gray-600); }
 
 /* ---- Headline table: GNI, GDP and wages; central closure large, bound small ---- */
-.headline-table-wrap { margin: 18px 0 10px; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-.headline-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-.headline-table th, .headline-table td { padding: 14px 16px; text-align: right; vertical-align: top; }
-.headline-table thead th {
-  font-size: 0.72rem; font-weight: 600; color: var(--pe-color-gray-500);
-  text-transform: uppercase; letter-spacing: 0.06em; line-height: 1.35;
-  border-bottom: 1px solid var(--border); background: var(--pe-color-gray-50);
-}
-.headline-table thead th:first-child { text-align: left; width: 34%; }
-.headline-table tbody th {
-  text-align: left; font-size: 0.9rem; font-weight: 600; color: var(--pe-color-gray-800);
-}
-.headline-table tbody th .legend-line { margin-right: 8px; vertical-align: middle; }
-.headline-table tbody tr + tr > * { border-top: 1px solid var(--border); }
+
 .headline-value {
   display: block; font-size: 1.6rem; font-weight: 700; line-height: 1.1;
   color: var(--pe-color-gray-900); letter-spacing: -0.02em;
@@ -1565,22 +1490,16 @@
   display: block; margin-top: 4px; font-size: 0.78rem; line-height: 1.35;
   color: var(--pe-color-gray-500); font-variant-numeric: tabular-nums;
 }
-.headline-table-note { margin-bottom: 14px; }
+
 .effect-late {
   display: block; font-size: 0.72rem; font-weight: 500; color: var(--pe-color-gray-500);
   white-space: nowrap;
 }
 @media (max-width: 639px) {
-  .headline-table th, .headline-table td { padding: 10px 6px; }
-  .headline-table thead th { font-size: 0.62rem; letter-spacing: 0.03em; }
-  .headline-table thead th:first-child { width: 28%; }
-  .headline-table tbody th { font-size: 0.78rem; }
-  .headline-table tbody th .legend-line { display: block; margin: 0 0 6px; width: 18px; }
+
   .headline-value { font-size: 1.15rem; }
   .headline-bound { font-size: 0.68rem; }
 }
-
-.growth-page [id^="effect-"] { scroll-margin-top: 110px; }
 
 /* 2028 surprise: pending figures and the notice on tabs not yet updated. */
 .is-pending { color: var(--pe-color-text-secondary, #6b7280); font-style: italic; font-weight: 400; }
@@ -1591,13 +1510,6 @@
   margin: 0 0 16px; padding: 10px 14px; border-left: 3px solid var(--chart-uk-obr);
   background: var(--status-partial-bg); font-size: 0.875rem; line-height: 1.5;
 }
-@media (max-width: 639px) {
-  /* Four figure columns: tighter type so 2dp values fit at 390px. */
-  .headline-table th, .headline-table td { padding: 10px 4px; }
-  .headline-table thead th:first-child { width: 24%; }
-  .headline-table .headline-value { font-size: 0.95rem; letter-spacing: -0.03em; }
-  .headline-table .headline-value.is-pending { font-size: 0.78rem; }
-  .headline-table .headline-bound { font-size: 0.62rem; }
-}
+
 .takeaway .growth-details { margin-top: 12px; }
 .growth-details > .fold-body { margin: 0; padding: 12px 16px; font-size: 0.9rem; line-height: 1.55; }

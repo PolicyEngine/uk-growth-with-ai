@@ -1,0 +1,40 @@
+### zk0.1 uk_low common
+wrote uk_growth_with_ai/data/scenarios_surprise2027_uk_low.json
+### zk0.1 uk_central common
+wrote uk_growth_with_ai/data/scenarios_surprise2027_uk_central.json
+### zk0.1 uk_central --fixed-spending
+wrote uk_growth_with_ai/data/scenarios_surprise2027_uk_central_fixed_spending.json
+### zk0.1 uk_central --debt-neutral
+wrote uk_growth_with_ai/data/scenarios_surprise2027_uk_central_debt_neutral.json
+### zk0.1 uk_high common
+wrote uk_growth_with_ai/data/scenarios_surprise2027_uk_high.json
+### zk0.1 korinek common
+wrote uk_growth_with_ai/data/scenarios_surprise2027_korinek.json
+### zk0.1 korinek --fixed-spending
+wrote uk_growth_with_ai/data/scenarios_surprise2027_korinek_fixed_spending.json
+### zk0.1 korinek --debt-neutral
+wrote uk_growth_with_ai/data/scenarios_surprise2027_korinek_debt_neutral.json
+### zk0 uk_low common
+wrote uk_growth_with_ai/data/scenarios_surprise2027_uk_low_zk0.json
+### zk0 uk_central common
+wrote uk_growth_with_ai/data/scenarios_surprise2027_uk_central_zk0.json
+### zk0 uk_central --fixed-spending
+wrote uk_growth_with_ai/data/scenarios_surprise2027_uk_central_fixed_spending_zk0.json
+### zk0 uk_central --debt-neutral
+wrote uk_growth_with_ai/data/scenarios_surprise2027_uk_central_debt_neutral_zk0.json
+### zk0 uk_high common
+wrote uk_growth_with_ai/data/scenarios_surprise2027_uk_high_zk0.json
+### zk0 korinek common
+wrote uk_growth_with_ai/data/scenarios_surprise2027_korinek_zk0.json
+### zk0 korinek --fixed-spending
+wrote uk_growth_with_ai/data/scenarios_surprise2027_korinek_fixed_spending_zk0.json
+### zk0 korinek --debt-neutral
+wrote uk_growth_with_ai/data/scenarios_surprise2027_korinek_debt_neutral_zk0.json
+### zk0.5 uk_low common
+wrote uk_growth_with_ai/data/scenarios_surprise2027_uk_low_zk0.5.json
+### zk0.5 uk_central common
+wrote uk_growth_with_ai/data/scenarios_surprise2027_uk_central_zk0.5.json
+### zk0.5 uk_high common
+wrote uk_growth_with_ai/data/scenarios_surprise2027_uk_high_zk0.5.json
+### zk0.5 korinek common
+wrote uk_growth_with_ai/data/scenarios_surprise2027_korinek_zk0.5.json

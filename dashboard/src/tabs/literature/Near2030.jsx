@@ -1,0 +1,213 @@
+'use client';
+
+import Card from '@/components/ui/Card.jsx';
+import { Items } from '@/components/story/Items.jsx';
+import { NavLink } from '@/lib/nav.jsx';
+import { iconFor } from '@/lib/concepts.js';
+import IconText from '@/tabs/method/IconText.jsx';
+import MAP from '@/data/site-evidence-map.json';
+import { SCENARIOS, SURPRISE_YEAR, HEADLINE_YEAR, CENTRAL, BOUND, gap } from '@/tabs/ai/surprise.js';
+import { ADOPTION, ADOPTION_YEAR, CALENDAR, OBR_YEAR_ONE, overlapAmount, tfpInput } from '@/lib/obrOverlap.js';
+import { valueHref } from './pages.js';
+import IMF from './imfGap.json';
+
+// GDP around the headline year: the macro model beside the published
+// estimates that are a level at or near it (benchmarks review, 22 Nov 2026,
+// B6). The published figures stay in data/site-evidence-map.json: the rows
+// flagged `near2030` carry this card's measure, horizon, baseline and
+// whether the figure is printed or derived, and a joined or derived value
+// text where the row's own value is not the level shown. Two figures are
+// read from their homes, not typed: the OBR's year-4 level (lib/obrOverlap.js)
+// and the IMF's year-4 output (imfGap.json). The macro model's figures come
+// from the data (automation + productivity, headline year, common rule).
+
+// PwC for GO-Science's 2030 row, left out of the table (María re-review M7)
+const GOSCI = MAP.rows.find((r) => r.id === 'goscience-2030');
+const pct1 = (x) => `${x < 0 ? '−' : '+'}${Math.abs(x).toFixed(1)}%`;
+const pct2 = (x) => `+${x.toFixed(2)}%`;
+
+// the level shown for a flagged row. The OBR's on the assumed clock first,
+// then at year 4 of its curve (María re-review M5).
+export function nearValue(r) {
+  if (r.id === 'obr-bp9')
+    return CALENDAR && ADOPTION
+      ? `${pct2(CALENDAR.lo)} to ${pct2(CALENDAR.hi)} added over ${SURPRISE_YEAR}–${HEADLINE_YEAR} (curve assumed to start in ${OBR_YEAR_ONE}); ${pct2(ADOPTION.lo)} to ${pct2(ADOPTION.hi)} at year ${ADOPTION_YEAR} of the curve`
+      : null;
+  if (r.id === 'imf-sip-y5') return `${pct1(IMF.imf_y4_output_pct)} (year 4); ${r.value} (year 5)`;
+  return r.near2030.value ?? r.value;
+}
+
+// the horizon shown for a flagged row (the OBR's from the data's years)
+const nearHorizon = (r) => (r.id === 'obr-bp9' ? `${SURPRISE_YEAR}–${HEADLINE_YEAR}; clock assumed, see Method` : r.near2030.horizon ?? r.horizon);
+// each row's productivity input, where its source publishes one (María
+// re-review M4): the IMF's year-4 TFP from imfGap.json, the rest from the
+// map's flag ("Not published", or "The figure is productivity" where the
+// figure is itself labour productivity)
+const nearInput = (r) => (r.id === 'imf-sip-y5' ? `TFP ${pct2(IMF.imf_y4_tfp_pct)} (year 4)` : r.near2030.input ?? 'Not published');
+
+export const NEAR_ROWS = MAP.rows
+  .filter((r) => r.near2030 && !r.unverified)
+  .sort((a, b) => a.near2030.order - b.near2030.order)
+  .map((r) => ({ id: r.id, source: r.near2030.source ?? r.institution, href: r.near2030.page && r.url ? `${r.url}#page=${r.near2030.page}` : valueHref(r), measure: r.near2030.measure, value: nearValue(r), input: nearInput(r), horizon: nearHorizon(r), baseline: r.near2030.baseline ?? r.baseline, kind: r.near2030.kind }));
+
+// the macro model's row: every scenario, some foreign capital, then none
+export function ourValue() {
+  const at = (cl) => SCENARIOS.map((s) => ({ s, x: gap(s.id, 'tfp', cl, 'Y') }));
+  const some = at(CENTRAL);
+  const none = at(BOUND);
+  if ([...some, ...none].some((c) => c.x == null)) return null;
+  return `${some.map((c) => `${c.s.id === 'korinek' ? c.s.short : c.s.label} ${pct1(c.x)}`).join('; ')}. No foreign capital: ${none.map((c) => pct1(c.x)).join(', ')}`;
+}
+
+// the macro model's productivity inputs, every scenario
+export function ourInput() {
+  const xs = SCENARIOS.map((s) => ({ s, t: tfpInput(s.id) }));
+  if (xs.some((c) => c.t == null)) return null;
+  return `Productivity at given inputs: ${xs.map((c) => `${c.s.id === 'korinek' ? c.s.short : c.s.label} ${pct1(c.t)}`).join('; ')}`;
+}
+
+// The IMF against UK central, in view under the table (María re-review
+// M4): inputs close, output about N times; N from imfGap.json and the data.
+export function imfNote() {
+  const y = gap('uk_central', 'tfp', CENTRAL, 'Y');
+  const t = tfpInput('uk_central');
+  if (y == null || !(y > 0) || t == null) return null;
+  return `The IMF’s productivity input at year 4 (${pct2(IMF.imf_y4_tfp_pct)}) is close to UK central’s (${pct1(t)}). Its output is about ${(IMF.imf_y4_output_pct / y).toFixed(1)} times UK central’s: ${pct1(IMF.imf_y4_output_pct)} against ${pct1(y)}. ${capitalLine()}`;
+}
+
+// Dashboard review D4 (Fable 5.2 ruling for Vahid, 26 Nov): capital's speed
+// could account for the gap, not "is" it. The unchanged-return range is
+// one set's arithmetic (imfGap.json records which), so the other set prints
+// the line alone.
+function capitalLine() {
+  const u = IMF.unchanged_return_gdp_pct;
+  if (!u || u.surprise_year !== SURPRISE_YEAR) return 'Capital’s speed could account for the gap (arithmetic, not a model run). The baselines differ too: the IMF’s has no AI.';
+  return `Capital’s speed could account for the gap: at an unchanged return, UK central’s inputs would give about ${pct1(u.lo)} to ${pct1(u.hi)} (arithmetic, not a model run). The baselines differ too: the IMF’s has no AI.`;
+}
+
+// The overlap note: how much of UK low's and UK central's inputs the OBR's
+// path already holds, on the assumed clock (María re-review M5).
+export function overlapNote() {
+  const lo = overlapAmount('uk_low');
+  const ce = overlapAmount('uk_central');
+  if (!lo || !ce) return 'The OBR’s effect is already in the macro model’s forecast path, so the smaller scenarios overlap with it.';
+  return `The OBR’s effect is already in the forecast path: ${lo} UK low and ${ce} UK central overlap with it.`;
+}
+
+// the headline year is year RAMP_STEPS of the shock (lib/obrOverlap.js)
+const YEAR_N = ADOPTION_YEAR;
+const COLS = ['Source', 'Measure', 'Level, % above baseline', 'Productivity input', 'Horizon', 'Baseline', 'Printed or derived'];
+
+export function nearTable() {
+  return {
+    columns: COLS,
+    rows: [
+      ['Macro model (this study)', 'GDP, automation + productivity', ourValue() ?? 'not yet solved', ourInput() ?? 'not yet solved', `${HEADLINE_YEAR}, year ${YEAR_N}`, 'Forecast path, which already includes the OBR’s AI effect', 'From the data'],
+      ...NEAR_ROWS.map((r) => [r.source, r.measure, r.value, r.input, r.horizon, r.baseline, r.kind]),
+    ],
+  };
+}
+
+export default function Near2030() {
+  const ours = ourValue();
+  return (
+    <Card
+      id="gdp-near-2030"
+      icon={iconFor('gdp')}
+      title={`GDP around ${HEADLINE_YEAR}: the macro model beside published estimates`}
+      className="ev-card ev-near"
+      finding={<IconText icon="range">Level above each study’s own baseline, at or near {HEADLINE_YEAR}. No annual growth rate is converted to a level; three figures are derived, and say so.</IconText>}
+      logo={false}
+      aboutTitle="About this table"
+      about={{
+        caveats: (
+          <Items
+            items={[
+              { icon: 'excluded', text: 'Left out: the OECD (an annual rate; DSIT’s figure is built from it) and the Bank of England (a firm survey).' },
+              { icon: 'excluded', text: 'PwC 2017 stays in the lane above: most of its gain is consumption effects.' },
+              // María re-review M7: GO-Science Table 5.2 prints "Total GDP change (%) from 2023"
+              GOSCI ? { icon: 'excluded', text: `PwC for GO-Science: its ${GOSCI.value} is real GDP growth from the 2023 level (${GOSCI.loc}), not a gap against a path without AI.` } : null,
+              { icon: 'excluded', text: 'Acemoglu, Bergeaud, and Aghion and Bunel: ten-year horizons, not the UK.' },
+              { icon: 'excluded', text: 'Goldman Sachs: no start date, so no level at this horizon.' },
+              { icon: 'excluded', text: 'The OBR’s displacement scenario holds GDP unchanged; compare it with the stress test on Explore, Public finances.' },
+            ]}
+          />
+        ),
+        sources: (
+          <Items
+            items={[
+              { icon: 'data', text: 'Published figures: data/site-evidence-map.json, the rows flagged near2030.' },
+            ]}
+          />
+        ),
+      }}
+      download={{
+        title: `GDP around ${HEADLINE_YEAR}`,
+        context: `Level above each study’s own baseline; macro model: automation + productivity, ${HEADLINE_YEAR} gap against the OBR’s central forecast path`,
+        table: nearTable,
+      }}
+    >
+      <div className="ev-wrap" data-no-axes="A table of published figures">
+        <table className="data-table evidence-table ev-table ev-near-table">
+          <thead>
+            <tr>
+              {COLS.map((c) => (
+                <th key={c} scope="col">
+                  {c}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="is-ours" data-row="oguk-near">
+              <th scope="row" data-label="Source">
+                <NavLink tab="explore" sub="economy" anchor="economy-wall">
+                  Macro model (this study)
+                </NavLink>
+              </th>
+              <td data-label="Measure">GDP, automation + productivity</td>
+              <td data-label="Level" className="ev-value">
+                {ours ?? 'not yet solved'}
+              </td>
+              <td data-label="Productivity input">{ourInput() ?? 'not yet solved'}</td>
+              <td data-label="Horizon">
+                {HEADLINE_YEAR}, year {YEAR_N}
+              </td>
+              <td data-label="Baseline">Forecast path, which already includes the OBR’s AI effect</td>
+              <td data-label="Printed or derived">From the data</td>
+            </tr>
+            {NEAR_ROWS.map((r) => (
+              <tr key={r.id} data-row={r.id}>
+                <th scope="row" data-label="Source">
+                  <a href={r.href} target="_blank" rel="noreferrer">
+                    {r.source}
+                  </a>
+                </th>
+                <td data-label="Measure">{r.measure}</td>
+                <td data-label="Level" className="ev-value">
+                  {r.value}
+                </td>
+                <td data-label="Productivity input">{r.input}</td>
+                <td data-label="Horizon">{r.horizon}</td>
+                <td data-label="Baseline">{r.baseline}</td>
+                <td data-label="Printed or derived">{r.kind}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {imfNote() ? (
+        <div className="ev-near-note" data-claim="imf-note">
+          {imfNote()
+            .split(/(?<=\.) (?=[A-Z])/)
+            .map((t, i) => (
+              <p key={i}>{i ? t : <IconText icon="compare">{t}</IconText>}</p>
+            ))}
+        </div>
+      ) : null}
+      <p className="ev-near-note">
+        <IconText icon="forecast">{overlapNote()}</IconText>
+      </p>
+    </Card>
+  );
+}

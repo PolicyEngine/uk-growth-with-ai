@@ -1,39 +1,106 @@
 'use client';
 
+import { Fragment } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
-import InfoCard from '@/components/ab/InfoCard.jsx';
 import { TipBox } from '@/components/ab/Tip.jsx';
 import { SOURCES, MODELS, CHANNELS } from '@/data/literature.js';
 import { REPO } from '@/tabs/ai/links.js';
 import { ext, useHover } from '../shared/ui.jsx';
-import SubTabs, { SubTabPanel, useSubTabParam } from '../shared/subtabs.jsx';
-import RangeBars from './RangeBars.jsx';
+import { CHART_COLOURS } from '@/lib/chartTheme.js';
+import { esc } from '@/lib/download.js';
+import Card, { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
+import { NavLink } from '@/lib/nav.jsx';
+import EvidenceLanes from './EvidenceLanes.jsx';
+import Near2030 from './Near2030.jsx';
+import RelatedWork from './RelatedWork.jsx';
+import IMF from './imfGap.json';
 import GrowthCheck from './GrowthCheck.jsx';
-import { CENTRAL, HEADLINE_YEAR, gap } from '@/tabs/ai/surprise.js';
+import EvidenceMap from './EvidenceMap.jsx';
+import PageIntro from '@/components/ui/PageIntro.jsx';
+import OnThisPage from '@/components/ui/OnThisPage.jsx';
+import { Items } from '@/components/story/Items.jsx';
+import { iconFor } from '@/lib/concepts.js';
+import IconText from '@/tabs/method/IconText.jsx';
+import { SRC } from '@/tabs/method/sources.js';
+import RefList from '@/components/ui/RefList.jsx';
+import { REF_GROUPS } from '@/data/references.js';
+import { CENTRAL, HEADLINE_YEAR, SURPRISE_YEAR, gap } from '@/tabs/ai/surprise.js';
+import { SET } from '@/lib/dataKeys.js';
+import { MACRO_ABOUT, MACRO_FOLLOWS } from '@/lib/labels.js';
 
 // Why UK central's GDP gap is below the IMF's for the same productivity gain
-// (results sanity audit, docs/results_sanity_2028.md section 7). The IMF
-// year-4 output figure is digitised from SIP/2026/072 Figure 9
-// (docs/uk_calibration.md); the bound is arithmetic, not a solve.
-const IMF_Y4 = 2.52;
+// (results sanity audit, SET.sanityDoc section 7). The IMF
+// year-4 output figure (digitised from SIP/2026/072 Figure 9) and the
+// unchanged-return bound (arithmetic, not a solve) are read from
+// imfGap.json, which carries each one's source.
+const IMF_Y4 = IMF.imf_y4_output_pct;
+const BOUND_GDP = IMF.unchanged_return_gdp_pct;
+const pct1 = (x) => `+${x.toFixed(1)}%`;
+// The bound's own shock year, read from its source (the results sanity
+// audit it comes from); until it is recomputed for the active set, the
+// card says which timing it is from (review round 2, readiness list).
+const BOUND_YEAR = Number(/results_sanity_(\d{4})/.exec(IMF.unchanged_return_source ?? '')?.[1]) || null;
+// No note when the active set has its own audit (both sets since the swap):
+// the 2028 and 2027 audits give the same bound (results_sanity_2027.md,
+// ruling 5).
+const boundNote = () => (BOUND_YEAR && BOUND_YEAR !== SURPRISE_YEAR && !SET.sanityDoc.includes(String(SURPRISE_YEAR)) ? `; from the runs with the shock in ${BOUND_YEAR}, not yet recomputed for ${SURPRISE_YEAR}` : '');
 function ImfGap() {
   const y = gap('uk_central', 'tfp', CENTRAL, 'Y');
   if (y == null) return null;
   return (
-    <InfoCard icon="globe" title="Why UK central GDP is below the IMF’s" className="mx-card imf-gap">
-      <p>
-        For about the same productivity gain, UK central&rsquo;s {HEADLINE_YEAR} GDP gain (on Results) is roughly{' '}
-        {Math.round((y / IMF_Y4) * 3) === 1 ? 'a third' : `${Math.round((y / IMF_Y4) * 100)}%`} of the IMF&rsquo;s about +
-        {IMF_Y4.toFixed(1)}% at year 4.
-      </p>
-      <p>
-        The capital closure is enough to account for the difference. Here the return on capital rises as capital grows
-        (both on Results, By variable); if capital came in at an unchanged return, GDP would be about +2.9% to +3.2%
-        (arithmetic, not a solve).
-      </p>
+    <InfoCard icon={iconFor('foreign')} title="Why UK central GDP is below the IMF’s" className="imf-gap" id="imf-gap">
+      <Items
+        items={[
+          {
+            icon: 'gdp',
+            text: (
+              <>
+                UK central&rsquo;s {HEADLINE_YEAR} GDP gain (
+                <NavLink tab="explore" sub="economy" anchor="economy-wall" patch={{ s: 'uk_central' }}>Explore</NavLink>): roughly{' '}
+                {Math.round((y / IMF_Y4) * 3) === 1 ? 'a third' : `${Math.round((y / IMF_Y4) * 100)}%`} of the IMF&rsquo;s.
+              </>
+            ),
+          },
+          { icon: 'foreign', text: <>IMF: about <span data-path="imfGap.imf_y4_output_pct">+{IMF_Y4.toFixed(1)}%</span> at year 4, read off its {ext(SRC.imfSipFig9.url, 'Figure 9')}.</> },
+          { icon: 'closure', text: 'Arithmetic suggests foreign capital (the capital closure) could account for the difference.' },
+          // review round 2, R2-10 (with M1's overlap statement): the
+          // baselines differ too, in two items of at most 12 words
+          { icon: 'compare', text: 'The baselines differ too: the IMF’s has no AI.' },
+          {
+            icon: 'forecast',
+            text: (
+              <>
+                The forecast path includes the OBR&rsquo;s own (
+                <NavLink tab="method" sub="how" anchor="m-shock">
+                  Method: the shock
+                </NavLink>
+                ).
+              </>
+            ),
+          },
+          {
+            icon: 'interest',
+            text: (
+              <>
+                Here the return on capital rises as capital grows (
+                <NavLink tab="explore" sub="economy" anchor="explore-part-economy" patch={{ s: 'uk_central' }}>Explore, economy</NavLink>).
+              </>
+            ),
+          },
+          { icon: 'capital', text: 'If capital came in at an unchanged return:' },
+          {
+            icon: 'arithmetic',
+            text: (
+              <>
+                GDP would be about <span data-path="imfGap.unchanged_return_gdp_pct">{pct1(BOUND_GDP.lo)} to {pct1(BOUND_GDP.hi)}</span> (arithmetic, not a solve{boundNote()}).
+              </>
+            ),
+          },
+        ]}
+      />
       <p className="mx-src">
-        {ext(`${REPO}/blob/audit/sanity-2028/docs/results_sanity_2028.md`, 'Results sanity audit, section 7')}; IMF
-        figure read from SIP/2026/072, Figure 9.
+        <IconText icon="source">{ext(`${REPO}/blob/${SET.sanityRef}/${SET.sanityDoc}`, 'Results sanity audit, section 7')}; IMF
+        figure read from SIP/2026/072, Figure 9.</IconText>
       </p>
     </InfoCard>
   );
@@ -41,19 +108,16 @@ function ImfGap() {
 
 // Literature: the comparison matrix first, then where our numbers sit, then
 // the sources. Published figures come from data/literature.js (each with its
-// location); ours from surprise2028.json and methodFacts.json.
+// location); ours from the active set's surprise and method-facts files.
 
-export const LIT_SUBS = [
-  { id: 'matrix', label: 'Comparison matrix', icon: 'layoutGrid' },
-  { id: 'numbers', label: 'Where our numbers sit', icon: 'ruler' },
-  { id: 'sources', label: 'Sources', icon: 'book' },
-];
-
+// `key`: the download legend's label and mark (built from the levels used,
+// as the on-page key is: review round 2, R2-15). `text`: the page key's
+// gloss, empty where the label says it all (R2-25).
 const LEVELS = {
-  yes: { label: 'Modelled', text: 'In the model' },
-  part: { label: 'Partly', text: 'Assumed, imposed or partial' },
-  no: { label: 'No', text: 'Not in the model' },
-  na: { label: 'Not stated', text: 'The source does not say' },
+  yes: { label: 'Modelled', text: '', key: { label: 'Modelled', shape: 'dot' } },
+  part: { label: 'Partly', text: 'assumed, imposed or partial', key: { label: 'Partly: assumed, imposed or partial', shape: 'half' } },
+  no: { label: 'Not in the model', text: '', key: { label: 'Not in the model', shape: 'ring', off: true } },
+  na: { label: 'Not stated', text: 'the source does not say', key: { label: 'Not stated: the source does not say', shape: 'dash' } },
 };
 
 // Coverage marks: a filled, half or empty circle, or a dash. Shape and text
@@ -75,17 +139,22 @@ export function Mark({ level, size = 14 }) {
   );
 }
 
+// The key lists only the levels some cell uses.
+const USED = new Set(CHANNELS.flatMap((ch) => Object.values(ch.cells).map((c) => c[0])));
 function Legend() {
   return (
     <ul className="mx-legend" aria-label="Key">
-      {Object.entries(LEVELS).map(([k, v]) => (
-        <li key={k}>
-          <Mark level={k} />
-          <span>
-            <b>{v.label}</b> {v.text.toLowerCase()}
-          </span>
-        </li>
-      ))}
+      {Object.entries(LEVELS)
+        .filter(([k]) => USED.has(k))
+        .map(([k, v]) => (
+          <li key={k}>
+            <Mark level={k} />
+            <span>
+              <b>{v.label}</b>
+              {v.text ? `: ${v.text}` : ''}
+            </span>
+          </li>
+        ))}
     </ul>
   );
 }
@@ -109,24 +178,84 @@ function Cell({ ch, m, hi, bind }) {
   );
 }
 
+// The matrix as SVG, for the PNG and SVG downloads: the same marks.
+function matrixSvg() {
+  const C = CHART_COLOURS;
+  const lw = 230;
+  const cw = 110;
+  const rh = 30;
+  const W = lw + MODELS.length * cw;
+  const mark = (lv, cx, cy) => {
+    const ring = `<circle cx="${cx}" cy="${cy}" r="6" fill="${lv === 'yes' ? C.mark : C.surface}" stroke="${lv === 'no' ? C.markOff : C.mark}" stroke-width="1.5"/>`;
+    if (lv === 'na') return `<line x1="${cx - 6}" x2="${cx + 6}" y1="${cy}" y2="${cy}" stroke="${C.muted}" stroke-width="1.5"/>`;
+    if (lv === 'part') return `${ring}<path d="M${cx} ${cy - 6} A6 6 0 0 1 ${cx} ${cy + 6} Z" fill="${C.mark}"/>`;
+    return ring;
+  };
+  let out = '';
+  MODELS.forEach((m, j) => {
+    out += `<text x="${lw + j * cw + cw / 2}" y="16" font-size="12" font-weight="600" text-anchor="middle" fill="${C.ink}">${esc(m.short)}</text>`;
+  });
+  CHANNELS.forEach((ch, i) => {
+    const y = 30 + i * rh;
+    out += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="${C.grid}"/>`;
+    out += `<text x="0" y="${y + 19}" font-size="12" fill="${C.ink}">${esc(ch.label)}</text>`;
+    MODELS.forEach((m, j) => {
+      out += mark(ch.cells[m.id][0], lw + j * cw + cw / 2, y + rh / 2);
+    });
+  });
+  return { w: W, h: 30 + CHANNELS.length * rh + 4, markup: out };
+}
+
 function Matrix() {
   const { hi, ref, bind } = useHover();
   return (
-    <div className="info-card mx-card mx-figure mx-matrix-card" ref={ref}>
-      <div className="mx-fig-cap">
-        <span className="mx-fig-title">Coverage by channel</span>
-        <span className="mx-fig-sub">Hover, tap or tab to a cell for the detail.</span>
-      </div>
+    <Card
+      id="coverage-matrix"
+      icon={iconFor('coverage')}
+      title="Coverage by channel"
+      className="mx-matrix-card"
+      finding={<IconText icon="coverage">Whether each source models each channel.</IconText>}
+      logo={false}
+      // references behind the book icon, the method sentence in More info
+      // (c0-rulings-opus.md ruling 4)
+      about={{
+        how: 'Each cell is read from the primary text or inferred from the model’s set-up.',
+        sources: (
+          <Items
+            items={[
+              { icon: 'forecast', text: 'OBR: March 2026 displacement scenario; July 2026 FRS labour-share box.' },
+              { icon: 'foreign', text: 'IMF UK: SIP/2026/072 and its model, Rockall et al. (IMF WP/25/68).' },
+            ]}
+          />
+        ),
+      }}
+      download={{
+        title: 'Coverage by channel',
+        table: () => ({
+          columns: ['Channel', ...MODELS.map((m) => m.short)],
+          rows: CHANNELS.map((ch) => [ch.label, ...MODELS.map((m) => ch.cells[m.id][1])]),
+        }),
+        svg: matrixSvg,
+        legend: () =>
+          Object.entries(LEVELS)
+            .filter(([k]) => USED.has(k))
+            .map(([, v]) => ({ label: v.key.label, color: v.key.off ? CHART_COLOURS.markOff : CHART_COLOURS.mark, shape: v.key.shape })),
+      }}
+    >
+      <div ref={ref}>
       <Legend />
-      <div className="mx-matrix" role="table" aria-label="Channels by source">
+      <div className="mx-matrix" data-no-axes="A table of channels by source" role="table" aria-label="Channels by source">
         <div className="mx-mrow mx-mhead" role="row">
           <span className="mx-mch" role="columnheader">
             Channel
           </span>
           {MODELS.map((m) => (
-            <span key={m.id} className={`mx-mcol${m.id === 'oguk' ? ' is-ours' : ''}`} role="columnheader">
-              {m.src ? ext(SOURCES[m.src].url, m.short) : m.short}
-            </span>
+            <Fragment key={m.id}>
+              {' '}
+              <span className={`mx-mcol${m.id === 'oguk' ? ' is-ours' : ''}`} role="columnheader">
+                {m.src ? ext(SOURCES[m.src].url, m.short) : m.short}
+              </span>
+            </Fragment>
           ))}
         </div>
         {CHANNELS.map((ch) => (
@@ -143,103 +272,101 @@ function Matrix() {
           </div>
         ))}
       </div>
-      <p className="mx-fig-note">
-        OBR: the March 2026 displacement scenario and the July 2026 FRS labour-share box. IMF UK: SIP/2026/072.
-      </p>
-    </div>
+      </div>
+    </Card>
   );
 }
 
 function Takeaways() {
   return (
-    <div className="card-grid">
-      <InfoCard icon="usersRound" title="Only OG-UK: households" className="mx-card">
-        <p>Households by age and ability. Only OG-UK and the OBR have a tax system.</p>
+    <div className="cards-grid">
+      <InfoCard icon={iconFor('generations')} title="Of the five, only the overlapping-generations model has households by age">
+        <Items
+          items={[
+            { icon: 'households', text: 'The IMF’s households differ by income and wealth, not by age.' },
+            { icon: 'tax', text: 'Only the macro model and the OBR have a tax system.' },
+          ]}
+        />
       </InfoCard>
-      <InfoCard icon="briefcase" title="Only Korinek et al.: jobs and tasks" className="mx-card">
-        <p>They model new tasks and unemployment. OG-UK has neither.</p>
+      <InfoCard icon={iconFor('labour')} title="Of the five, only Korinek et al.: new tasks and unemployment">
+        <Items
+          items={[
+            { icon: 'excluded', text: 'The macro model has neither; the OBR assumes higher unemployment.' },
+          ]}
+        />
       </InfoCard>
-      <InfoCard icon="cart" title="What nobody models" className="mx-card">
-        <p>Demand shifting to goods that stay scarce. Moll and Imas argue it but do not model it.</p>
+      <InfoCard icon={iconFor('scarceGoods')} title="What none of the five models" className="mx-take-wide">
+        <Items
+          items={[
+            { icon: 'scarceGoods', text: 'Demand shifting to goods that stay scarce.' },
+            { icon: 'source', text: 'Moll and Imas argue it but do not model it.' },
+          ]}
+        />
       </InfoCard>
     </div>
   );
 }
 
+// One group of the reference list (Method redesign, M12): the registry
+// (data/references.js) in its group, each entry #src-<id>; the first two
+// groups keep their ids (#src-uk, #src-model).
 function SourceList({ group, title, icon }) {
-  const list = Object.entries(SOURCES).filter(([, s]) => s.group === group);
   return (
     <section className="mx-src-group" aria-labelledby={`src-${group}`}>
       <h3 id={`src-${group}`} className="mx-src-h">
         <Icon name={icon} size={18} />
         <span>{title}</span>
       </h3>
-      <div className="card-grid cols-2">
-        {list.map(([id, s]) => (
-          <a key={id} id={`src-${id}`} className="link-card mx-src" href={s.url} target="_blank" rel="noreferrer">
-            <span className="mx-src-top">
-              <span className="link-card-title">{s.short}</span>
-              <Icon name="externalLink" size={14} />
-            </span>
-            <span className="mx-src-title">{s.title}</span>
-            <span className="mx-src-use">{s.use}</span>
-            <span className="mx-src-loc">{s.loc}</span>
-            {s.read ? <span className="mx-src-read">{s.read}</span> : null}
-          </a>
-        ))}
-      </div>
+      <RefList group={group} />
     </section>
   );
 }
 
-export default function LiteratureTab({ active = true }) {
-  const [sub, setSub] = useSubTabParam(LIT_SUBS.map((t) => t.id), active);
+// The page's four sections, for "On this page" (ids match the headings).
+const SECTIONS = [
+  { id: 'coverage', title: 'What each source can represent', icon: iconFor('coverage') },
+  { id: 'numbers', title: 'Where the macro model’s results sit', icon: iconFor('measure') },
+  { id: 'related-work', title: 'Related PolicyEngine work', icon: iconFor('external') },
+  { id: 'evidence-map', title: 'UK evidence map', icon: iconFor('table') },
+  { id: 'sources', title: 'Sources', icon: iconFor('source') },
+];
+
+export default function StudiesTab() {
+  // Coverage, our numbers and sources, in order on one page (each was a
+  // sub-tab until the tabs were consolidated; old links land on its anchor).
   return (
-    <div className="mx-tab mx-lit">
-      <SubTabs
-        tabs={LIT_SUBS.map((t) => ({ value: t.id, label: t.label, icon: t.icon }))}
-        value={sub}
-        onChange={setSub}
-        ariaLabel="Literature sections"
-        idPrefix="lsub"
-      />
-      <SubTabPanel idPrefix="lsub" value={sub}>
-        {sub === 'matrix' ? (
-          <>
-            <header className="mx-intro">
-              <h2>What each source can represent</h2>
-              <p>Nine channels against five sources. OG-UK is the first column.</p>
-            </header>
-            <Matrix />
-            <Takeaways />
-          </>
-        ) : null}
-        {sub === 'numbers' ? (
-          <>
-            <header className="mx-intro">
-              <h2>Where our numbers sit</h2>
-              <p>Our headline-year results against published ranges. Horizons differ, so each row states its own.</p>
-            </header>
-            <RangeBars metric="gdp" />
-            <ImfGap />
-            <RangeBars metric="wage" />
-            <GrowthCheck />
-          </>
-        ) : null}
-        {sub === 'sources' ? (
-          <>
-            <header className="mx-intro">
-              <h2>Sources</h2>
-              <p>
-                Every figure was read from the primary text. The checks are in{' '}
-                {ext(`${REPO}/pull/37`, 'the literature comparison (PR #37)')}.
-              </p>
-            </header>
-            <SourceList group="uk" title="UK official and UK-specific" icon="landmark" />
-            <SourceList group="model" title="Model-based studies" icon="sigma" />
-          </>
-        ) : null}
-      </SubTabPanel>
+    <div className="page-with-contents mx-tab mx-lit">
+      <OnThisPage tab="method" sub="studies" sections={SECTIONS} label="Evidence contents" />
+      <div className="page-body">
+        <PageIntro
+          icon={iconFor('source')}
+          question="How do the macro model’s results compare with other work on AI and the UK economy?"
+          answer={<IconText icon="compare">The macro model is {MACRO_ABOUT}. {MACRO_FOLLOWS}. The sources model different channels, from households by age to jobs, tasks or the world economy. Each published figure keeps its own baseline.</IconText>}
+        />
+        <SectionHeading id="coverage" icon={iconFor('coverage')} title="What each source can represent">
+            <IconText icon="coverage">Nine channels against five sources. The macro model is the first column.</IconText>
+        </SectionHeading>
+        <Matrix />
+        <Takeaways />
+        <SectionHeading id="numbers" icon={iconFor('measure')} title="Where the macro model’s results sit">
+            <IconText icon="range">Published figures by measure, the macro model&rsquo;s beside them where comparable. Each row states its horizon.</IconText>
+        </SectionHeading>
+        <EvidenceLanes />
+        <Near2030 />
+        <ImfGap />
+        <GrowthCheck />
+        <RelatedWork />
+        <SectionHeading id="evidence-map" icon={iconFor('table')} title="UK evidence map">
+            <IconText icon="source">Official, think-tank, international, private and academic estimates, each with baseline, horizon and check date. Published figures live here.</IconText>
+        </SectionHeading>
+        <EvidenceMap />
+        <SectionHeading id="sources" icon={iconFor('source')} title="Sources">
+            <IconText icon="link">Behind the coverage matrix and the growth check; figures in the evidence map. Earlier checks: {ext(`${REPO}/pull/41`, 'the literature comparison (PR #41)')}.</IconText>
+        </SectionHeading>
+        {REF_GROUPS.map((g) => (
+          <SourceList key={g.id} group={g.id} title={g.title} icon={iconFor(g.icon)} />
+        ))}
+      </div>
     </div>
   );
 }

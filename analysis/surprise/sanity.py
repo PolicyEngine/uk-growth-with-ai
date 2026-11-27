@@ -166,7 +166,7 @@ def check(closure, label, outdir=OUTDIR, year=sp.SURPRISE_YEAR) -> dict:
     if k_ == "continuation":
         ref = {**base_ext, "reference": "baseline"}
     else:
-        ref = sp.reference_ext(outdir, closure, base_ext)
+        ref = sp.reference_ext(outdir, closure, base_ext, label=label)
     s, b = rec["series"], ref["series"]
     n = len(s["Y"])
     res = []
@@ -188,30 +188,44 @@ def check(closure, label, outdir=OUTDIR, year=sp.SURPRISE_YEAR) -> dict:
     add("NNI < GNI", not bad, bad)
     from uk_growth_with_ai import rerun
     base_rec = rerun.accepted_baseline(rerun.load(RERUN, closure))
-    rc = [abs(base_rec["diagnostics"]["rc_rel_Y_signed"][1])] + \
-        [abs(x) for x in rec["diagnostics"]["rc_rel_Y_signed"][:n - 2]]
-    add("|RC/GDP| <= 1e-5, 2027-2036", max(rc) <= RC_TOL, dict(zip(range(2027, 2037), rc)))
+    H = sp.window(year)["headline_year"]
+    k = sp.k_of(year)
+    y0, y1 = year - 1, START + n - 1          # RC: the ramp's zero year to 2036
+    rc = [abs(base_rec["diagnostics"]["rc_rel_Y_signed"][y0 - START])] + \
+        [abs(x) for x in rec["diagnostics"]["rc_rel_Y_signed"][:y1 - year + 1]]
+    add(f"|RC/GDP| <= 1e-5, {y0}-{y1}", max(rc) <= RC_TOL, dict(zip(range(y0, y1 + 1), rc)))
 
-    # 2. single point
-    diff = [v for v in s if v in b and (s[v][0] != b[v][0] or s[v][1] != b[v][1])]
-    add("every gap exactly 0 in 2026 and 2027", not diff, diff)
+    # 2. single point: every year before the shock
+    diff = [v for v in s if v in b and any(s[v][i] != b[v][i] for i in range(k))]
+    pre = " and ".join(str(START + i) for i in range(k))
+    add(f"every gap exactly 0 in {pre}", not diff, diff)
 
+    if k_ == "continuation" and var == "dnfull":
+        # not the continuation gate: households anticipate the post-2036 TR rule,
+        # so it is not expected to reproduce the baseline (reported, not failed)
+        c = rec.get("dn_check") or {}
+        add(f"dnfull: D/Y on the continuation's path {year + 1}-36", bool(c.get("ok")), c)
+        f = rec.get("dn_check_full") or {}
+        add("dnfull: D/Y to T-1 and G/Y = alpha_G", bool(f.get("ok")), f)
+        add(f"vs baseline {year}-2036 (info)", True,
+            sp.continuation_report(rec, base_ext, year), level="info")
+        return _finish(closure, label, res, {}, {}, H, year)
     if k_ == "continuation":
         rep = sp.continuation_report(rec, base_ext, year)
-        add("restart reproduces the baseline 2028-2036", rep["ok"], rep)
-        return _finish(closure, label, res, {}, {})
+        add(f"restart reproduces the baseline {year}-2036", rep["ok"], rep)
+        return _finish(closure, label, res, {}, {}, H, year)
 
-    i31, i28 = HEADLINE - START, year - START
+    i31, i28 = H - START, year - START
     g31, g28 = gaps(s, b, i31), gaps(s, b, i28)
 
     # 3. signs and the labour share on the ramp
     r4_ok = k_ == "r4_iter" and abs(g31["Y"]) <= sp.R4_TOL_PP
     for v, rule in SIGNS["r4" if r4_ok else k_].items():
-        add(f"sign 2031 {v} {rule}", _sign_ok(g31[v], rule), g31[v])
+        add(f"sign {H} {v} {rule}", _sign_ok(g31[v], rule), g31[v])
     w = sp.calendar_weights(year)
     target = sp.scenario_grid()[scen]
     fall = target["labour_share_fall_pp"]
-    ls = {y: gaps(s, b, y - START)["labour_share_pp"] for y in range(year, HEADLINE + 1)}
+    ls = {y: gaps(s, b, y - START)["labour_share_pp"] for y in range(year, H + 1)}
     off = {y: ls[y] + fall * w[y] for y in ls}
     add("labour share = -target x ramp weight", max(abs(x) for x in off.values()) <= LS_TOL_PP,
         {"target_fall_pp": fall, "gap_pp": ls, "minus_expected_pp": off})
@@ -227,16 +241,16 @@ def check(closure, label, outdir=OUTDIR, year=sp.SURPRISE_YEAR) -> dict:
             new, ref_old = g31[v], old[v]
             flipped = abs(new) > fl and abs(ref_old) > fl and new * ref_old < 0
             far = abs(new - ref_old) > max(BAND_REL * abs(ref_old), fl)
-            add(f"band 2031 {v} vs old 2030", not (flipped or far),
-                {"new_2031": new, "old_2030": ref_old, "flipped": flipped})
+            add(f"band {H} {v} vs old 2030", not (flipped or far),
+                {f"new_{H}": new, "old_2030": ref_old, "flipped": flipped})
 
     # 5. variants
     if closure == "zk0":
         add("zk0: K_f = 0", max(abs(x) for x in s["K_f"]) <= 1e-10, max(abs(x) for x in s["K_f"]))
-        other = sp.load(OUTDIR, "zk0.1").get(label)
+        other = sp.load(outdir, "zk0.1").get(label)
         if other is not None:
             try:
-                ref1 = sp.reference_ext(OUTDIR, "zk0.1")
+                ref1 = sp.reference_ext(outdir, "zk0.1")
                 dr1 = gaps(other["series"], ref1["series"], i31)["r_bp"]
                 add("zk0: r rises more than at zk0.1", g31["r_bp"] > dr1,
                     {"zk0_bp": g31["r_bp"], "zk0.1_bp": dr1})
@@ -245,19 +259,20 @@ def check(closure, label, outdir=OUTDIR, year=sp.SURPRISE_YEAR) -> dict:
     if var == "fs":
         G, Gb = s["G"], base_ext["series"]["G"]
         e = max(rel(G[i], Gb[i]) for i in range(i28, START + sp.TG1 - START))
-        add("fixed spending: G at the baseline level 2028-35", e <= ID_TOL, e)
+        add(f"fixed spending: G at the baseline level {year}-35", e <= ID_TOL, e)
     if var in ("dn", "dnfull"):
-        c = rec.get("dn_check") or sp.dn_check(rec, ref, year)
-        add("debt-neutral: D/Y tracks the reference 2029-36", c["ok"], c)
+        # the D/Y target is the continuation's for both variants (not reference_for)
+        c = rec.get("dn_check") or sp.dn_check(rec, sp.reference_ext(outdir, closure, base_ext), year)
+        add(f"debt-neutral: D/Y tracks the reference {year + 1}-36", c["ok"], c)
 
     # 6. the 2028 jump
-    add("2028 investment jump <= old 2026 +17%", g28["I"] <= I_JUMP_FLAG_PCT,
-        {"I_2028_pct": g28["I"], "L_2028_pct": g28["L"]}, level="flag")
+    add(f"{year} investment jump <= old 2026 +17%", g28["I"] <= I_JUMP_FLAG_PCT,
+        {f"I_{year}_pct": g28["I"], f"L_{year}_pct": g28["L"]}, level="flag")
 
     # 7. red-flag diagnostics (#37 section 6), reported, never failed
-    diag = diagnostics(rec, ref, base_rec, target, k_)
+    diag = diagnostics(rec, ref, base_rec, target, k_, H)
     add("diagnostics (red flags 1-3)", True, diag, level="info")
-    out = _finish(closure, label, res, g31, g28)
+    out = _finish(closure, label, res, g31, g28, H, year)
     out["scenario"] = scen
     out["diagnostics"] = diag
     return out
@@ -310,11 +325,11 @@ def effective_rates(x, i, delta=sp.DELTA_ANNUAL, tau_payroll=TAU_PAYROLL):
             "household_capital_income_pct_gdp": HK / Y * 100}
 
 
-def diagnostics(rec, ref, base_rec, target, kind_) -> dict:
+def diagnostics(rec, ref, base_rec, target, kind_, H=HEADLINE) -> dict:
     s, b = rec["series"], ref["series"]
     g1 = sp.G_BASE + target["labour_share_fall_pp"] / 100
     out = {"capital_supply_elasticity": {}, "gdp_per_tfp": {}}
-    for y in (HEADLINE, sp.window()["debt_rule_year"]):
+    for y in (H, sp.window()["debt_rule_year"]):
         i = y - START
         out["capital_supply_elasticity"][y] = capital_elasticity(
             s["Y"][i], s["K"][i], b["Y"][i], b["K"][i], g1)
@@ -326,13 +341,13 @@ def diagnostics(rec, ref, base_rec, target, kind_) -> dict:
             ss_a["Y"], ss_a["K"], ss_b["Y"], ss_b["K"], g1)
         if kind_ == "tfp" and target["tfp_gain"]:
             out["gdp_per_tfp"]["SS"] = (ss_a["Y"] / ss_b["Y"] - 1) / target["tfp_gain"]
-    i = HEADLINE - START
+    i = H - START
     if all(v in s and v in b for v in REV):
         dec = {v: (s[v][i] / s["Y"][i] - b[v][i] / b["Y"][i]) * 100 for v in REV}
         dtax = (s["total_tax_revenue"][i] / s["Y"][i]
                 - b["total_tax_revenue"][i] / b["Y"][i]) * 100
         lsf = -gaps(s, b, i)["labour_share_pp"]
-        out["tax_gdp_2031"] = {
+        out[f"tax_gdp_{H}"] = {
             "change_pp": dtax, "by_base_pp": dec,
             "per_pp_of_labour_share_fall": dtax / lsf if lsf else None,
             "obr_per_pp": [-0.19, -0.23],
@@ -341,23 +356,24 @@ def diagnostics(rec, ref, base_rec, target, kind_) -> dict:
             "obr_receipts_6_18_pct_gdp": OBR_RECEIPTS_PCT_GDP,
             "labour_share_fall_pp": lsf}
         tp = rec.get("tau_payroll", TAU_PAYROLL)
-        out["effective_rates_2031"] = {"arm": effective_rates(s, i, tau_payroll=tp),
+        out[f"effective_rates_{H}"] = {"arm": effective_rates(s, i, tau_payroll=tp),
                                        "reference": effective_rates(b, i, tau_payroll=tp),
                                        "obr": OBR_RATES}
-        ra, rb = out["effective_rates_2031"]["arm"], out["effective_rates_2031"]["reference"]
-        out["tax_gdp_2031"]["by_base_pp_payroll_split"] = {
+        ra, rb = out[f"effective_rates_{H}"]["arm"], out[f"effective_rates_{H}"]["reference"]
+        out[f"tax_gdp_{H}"]["by_base_pp_payroll_split"] = {
             "payroll (employer NICs, tau_payroll)": ra["payroll_pct_gdp"] - rb["payroll_pct_gdp"],
             "income tax and employee NICs": (ra["income_tax_and_employee_nics_pct_gdp"]
                                              - rb["income_tax_and_employee_nics_pct_gdp"])}
     return out
 
 
-def _finish(closure, label, res, g31, g28):
+def _finish(closure, label, res, g31, g28, H=HEADLINE, year=sp.SURPRISE_YEAR):
     fails = [r for r in res if not r["ok"] and r["level"] == "fail"]
     flags = [r for r in res if not r["ok"] and r["level"] == "flag"]
     return {"closure": closure, "label": label, "ok": not fails,
             "fails": [r["check"] for r in fails], "flags": [r["check"] for r in flags],
-            "gaps_2031": g31, "gaps_2028": g28, "checks": res}
+            f"gaps_{H}": g31, f"gaps_{year}": g28, "headline_year": H, "surprise_year": year,
+            "checks": res}
 
 
 # --- progress table for #27 -------------------------------------------------------------
@@ -390,6 +406,8 @@ def main(argv=None) -> int:
     a.add_argument("--outdir", default=str(OUTDIR))
     a.add_argument("--write-expectations", action="store_true")
     a.add_argument("--progress", action="store_true")
+    a.add_argument("--year", type=int, default=sp.SURPRISE_YEAR,
+                   help="the surprise (announcement) year: 2028, or 2027 for the earlier set")
     args = a.parse_args(argv)
     if args.write_expectations:
         print("wrote", write_expectations())
@@ -397,7 +415,7 @@ def main(argv=None) -> int:
     if args.progress:
         print(progress(args.outdir))
         return 0
-    out = check(args.closure, args.label, Path(args.outdir))
+    out = check(args.closure, args.label, Path(args.outdir), year=args.year)
     f = Path(args.outdir) / args.closure / f"{args.label}.sanity.json"
     f.write_text(json.dumps(out, indent=1, default=float))
     for r in out["checks"]:

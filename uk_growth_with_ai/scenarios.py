@@ -4,16 +4,16 @@ Two AI scenarios for the UK, each measured against the "OBR central" baseline
 (see ``G_Y_ANNUAL``: the baseline already embeds the OBR's own AI assumption):
 
   share_shift      Capital's share gamma ramps 0.35 -> 0.389 (labour share -3.9pp)
-                   with NO technology gain: Z is solved so that the (gamma, Z)
-                   pair leaves output unchanged at the baseline's 2026 K and L,
-                   i.e. a zero technology wedge.  Compared with, but NOT a
+                   with Z set so that GDP in the headline year equals the
+                   reference's (R4, #8: Z is found by a secant over full solves,
+                   to within 0.01pp).  Before R4, Z gave a zero technology wedge
+                   at the baseline's fixed 2026 K and L, and the arm delivered GDP
+                   +1.4% by 2030 because saving moved K; that Z is still recorded
+                   as Z_share_shift_fixed_input.  Compared with, but NOT a
                    reproduction of, the OBR's March 2026 EFO Box 2.2
-                   technological-displacement case ("higher trend productivity
-                   fully offsets lower employment to leave the LEVEL of GDP
-                   unchanged"): K and L are endogenous, so neutrality at fixed
-                   2026 inputs still lets saving move K and the arm delivers GDP
-                   +1.4% by 2030, not an unchanged level.  Box 2.2 publishes no
-                   labour-share number either.
+                   technological-displacement case, which reaches an unchanged
+                   GDP level through lower employment; OG-UK has no
+                   unemployment, and Box 2.2 publishes no labour-share number.
   share_shift_tfp  The same share shift plus +3.1% output at fixed baseline
                    inputs.
 
@@ -87,10 +87,10 @@ SHARE_SHIFT_TFP = Scenario(
 )
 
 # The share shift alone.  Box 2.2 publishes no labour-share number, so the
-# 3.9pp is Korinek et al.'s, and Z offsets the pure-gamma output change.  The
-# defining feature is the ZERO technology wedge at the baseline's fixed 2026
-# inputs -- not an unchanged GDP level, which is what the OBR's case targets and
-# what this arm does not deliver (see the module docstring).
+# 3.9pp is Korinek et al.'s.  The Z here is the starting point (a zero technology
+# wedge at the baseline's fixed 2026 inputs); the reruns then solve Z so that
+# headline-year GDP equals the reference's (R4; see the module docstring).  The
+# target text below is recorded in results files as written.
 SHARE_SHIFT = Scenario(
     name="share_shift",
     labour_share_fall_pp=3.9,

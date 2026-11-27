@@ -75,8 +75,13 @@ Every re-trended figure produced so far inherits this, including the AI scenario
    adoption along a non-linear path (Briefing paper No.9: a central ~0.2pp at the
    forecast horizon, para B.14; its J-curve reaches 0.1pp a year by year five, para B.12). `g_y` is a scalar and cannot carry that profile, so netting a flat
    0.2pp off (0.008, briefly tried in #22) would remove more AI than the OBR assumes over
-   2026–30. The baseline is therefore described as "OBR central", and each scenario's gap
-   is an AI effect *in addition to* the OBR's own assumption (decision in issue #27). The
+   2026–30. The baseline is therefore described as "OBR central". The scenario inputs
+   are published whole-AI effects and are not net of the OBR's own. Each gap is the
+   effect of inputs of that size, between two runs with the same `g_y`. Against the
+   OBR's forecast itself, the labour-share shift is all additional; the productivity
+   gain is not (the OBR path has about 0.19–0.33% by year 4 of adoption, BP9 Chart
+   B.4, that is all or nearly all of UK low's input, 48–83% of UK central's, 12–21% of UK high's and 6–11% of Korinek's), so that comparison lies between `share_shift_tfp` and the fixed-input
+   `share_shift` (`_zfixed`) arm (issue #27, revised 18 Nov 2026). The
    committed results record `g_y_annual_used = 0.010`.
 2. **The "1.73% to 1.63%" arithmetic above is stale.** It was computed on the vendored
    OG-UK default `g_n` (0.748% falling to 0.625%). The committed run's own demographics

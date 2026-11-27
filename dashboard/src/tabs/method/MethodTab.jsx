@@ -1,537 +1,662 @@
 'use client';
 
+import SourceLine from '@/components/ui/SourceLine.jsx';
+import { docItem } from '@/lib/sourceItems.js';
 import Icon from '@/components/ab/Icon.jsx';
 import InfoCard from '@/components/ab/InfoCard.jsx';
-import Disclosure from '@/components/ab/Disclosure.jsx';
-import { S, SCENARIOS, KORINEK_FULL, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, ARMS, fixedInputVsTz, gap, signed } from '@/tabs/ai/surprise.js';
-import { REPO, issue } from '@/tabs/ai/links.js';
-import F from '@/data/methodFacts.json';
-import { ext, GoTo, StepRail, StepSection } from '../shared/ui.jsx';
-import SubTabs, { SubTabPanel, useSubTabParam } from '../shared/subtabs.jsx';
-import Timeline from './Timeline.jsx';
-import ScenarioMap from './ScenarioMap.jsx';
-import ModelFlow from './ModelFlow.jsx';
+import FoldGrid from './FoldGrid.jsx';
+import Card, { SectionHeading } from '@/components/ui/Card.jsx';
+import PageIntro from '@/components/ui/PageIntro.jsx';
+import OnThisPage from '@/components/ui/OnThisPage.jsx';
+import { Items } from '@/components/story/Items.jsx';
+import IconLine from '@/components/ui/IconLine.jsx';
+import RefList from '@/components/ui/RefList.jsx';
+import CiteFoot from '@/components/ui/CiteFoot.jsx';
+import CautionPanel from '@/components/ui/CautionPanel.jsx';
+import { MACRO_REFS } from '@/data/references.js';
+import { iconFor } from '@/lib/concepts.js';
+import IconText from './IconText.jsx';
+import { NavLink } from '@/lib/nav.jsx';
+import { METHOD, MEASURE, RULES as RULE_NAMES, MACRO_ABOUT, MACRO_FOLLOWS } from '@/lib/labels.js';
+import { ADOPTION, CALENDAR, OBR_YEAR_ONE, clockText, earlyOnlyFlips, overlapShares, pctRange, tfpInput } from '@/lib/obrOverlap.js';
+import { S, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, foreignShareOf, signed, scenarioById } from '@/tabs/ai/surprise.js';
+import { SET } from '@/lib/dataKeys.js';
+import { REPO, URLS, issue, pr } from '@/tabs/ai/links.js';
+import { METHOD_FACTS as F } from '@/lib/dataKeys.js';
+import { ext } from '../shared/ui.jsx';
+import ModelDiagram, { flowTable, diagramSvg } from './ModelDiagram.jsx';
 import Cohorts from './Cohorts.jsx';
+import { ArmsPart, ScenariosPart, SubHead, TimingPart } from './ScenariosSection.jsx';
+import { investStep } from './investStep.js';
+import UsedBy from './UsedBy.jsx';
+import { SRC, code } from './sources.js';
+import SettingRow, { SettingHeads } from './SettingRow.jsx';
+import SensitivityGrid from './SensitivityGrid.jsx';
+import { ROWS, name, pc, pp } from './inputs.js';
+import MathSym, { mathNodes } from '@/components/ui/MathSym.jsx';
 
-// Scenarios and method, a guided sequence: the shock, its timing, the
-// scenarios, the arms (sub-tab Scenarios); closures, rules and the model
-// (How it's built); Limitations; History. Each fact has one home here.
-// Results live on Results, sources on Literature, commands on Code.
+const cite = (k) => ext(SRC[k].url, SRC[k].label);
 
-const DOC = (p) => `${REPO}/blob/rerun/surprise-2028/docs/${p}`;
+// The OBR overlap, sized (issue #27; obr-overlap-fable.md, "keep and
+// disclose"): every figure from lib/obrOverlap.js and the data. The upper
+// case goes by its role, so the list reads as one sentence.
+const OVERLAP_NAME = { korinek: 'the upper case' };
+const overlapList = () => {
+  const xs = overlapShares().map((x) => `${x.words} in ${OVERLAP_NAME[x.sid] ?? x.name}`);
+  return xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}` : (xs[0] ?? '');
+};
+const CENTRAL_TFP = tfpInput('uk_central');
+// names for the earlier-start note (María re-review M5)
+const SN_FULL = { uk_low: 'UK low', uk_central: 'UK central', uk_high: 'UK high', korinek: 'Korinek et al.' };
+const FLIP_NAME = { Y: 'GDP', GNI: 'GNI', NNI: 'national income', w: 'pay rate', debt_gdp_pp: 'debt/GDP', tax_gdp_pp: 'tax/GDP' };
+const signedPp = (x, v) => `${x < 0 ? '−' : '+'}${Math.abs(x).toFixed(2)}${v.endsWith('_pp') ? 'pp' : '%'}`;
+
+// The macro model's method, one page in the model pages' one anatomy
+// (Method redesign, section 4; M5): what it is (the intro), how it works
+// (the flow from an AI scenario to a result, and the three versions), key
+// settings (eight rows, each opening to its detail), sensitivities (one
+// setting changed at a time), what the model leaves out, and its sources. Each fact has its one home here; chart cards link
+// to the rows by anchor, and a link opens its row. Every input and its
+// source is on Inputs; published figures on Evidence; commands, vintages
+// and the revision history on Data and code.
+
+const DOC = (p) => `${REPO}/blob/${SET.branch}/docs/${p}`;
 const DOC_MAIN = (p) => `${REPO}/blob/main/docs/${p}`;
 const pct = (x, dp = 1) => `${(x * 100).toFixed(dp)}%`;
 
-export const METHOD_SUBS = [
-  { id: 'scenarios', label: 'Scenarios', icon: 'target' },
-  { id: 'built', label: 'How it’s built', icon: 'sigma' },
-  { id: 'limits', label: 'Limitations', icon: 'alert' },
-  { id: 'history', label: 'History', icon: 'history' },
+// The reading order (Method redesign, 4; M18 supersedes push D, Q9.2):
+// every old id is kept, as a section (#m-model, #m-limits) or as a Key
+// settings row (#m-shock, #m-scenarios, #m-timing, #m-closures, #m-rules,
+// #m-generations, #m-tax, #m-path) or inside one. Every input and its
+// source (#m-inputs, its rows #in-…) is its own page, InputsPage.jsx;
+// lib/nav.jsx sends those anchors there.
+const SECTIONS = [
+  { id: METHOD.model.id, title: 'How it works', icon: iconFor('model') },
+  { id: 'm-settings', title: 'Key settings', icon: iconFor('rule') },
+  { id: 'm-sens', title: 'Sensitivities', icon: iconFor('compare') },
+  { id: METHOD.limits.id, title: 'What the model leaves out', icon: iconFor('limit') },
+  { id: 'm-sources', title: 'Sources', icon: iconFor('record') },
 ];
 
-// The step indicator runs across the first three sub-tabs.
-const STEPS = [
-  { id: 'm-shock', label: 'The shock', sub: 'scenarios' },
-  { id: 'm-timing', label: 'Timing', sub: 'scenarios' },
-  { id: 'm-scenarios', label: 'Scenarios', sub: 'scenarios' },
-  { id: 'm-arms', label: 'Arms', sub: 'scenarios' },
-  { id: 'm-closures', label: 'Closures and rules', sub: 'built' },
-  { id: 'm-model', label: 'The model', sub: 'built' },
-  { id: 'm-limits', label: 'Limitations', sub: 'limits' },
+function ClosureCards() {
+  return (
+    <FoldGrid className="card-grid cols-2">
+      <InfoCard
+        icon={iconFor('foreign')}
+        title="Some foreign capital"
+        className="mx-card"
+        id="closure-central"
+        more={
+          <Items
+            items={[
+              { icon: 'foreign', text: <><MathSym name="zetaK" />, in OG-Core&rsquo;s definition: the share of excess capital demand (the extra capital firms want) that foreigners supply ({cite('ogCoreParams')}).</> },
+              { icon: 'model', text: <>{pct(ZETA[CENTRAL], 0)} is OG-Core&rsquo;s US default, chosen by the study and kept by the macro model ({cite('ogukParams')}); not calibrated to the UK.</> },
+              { icon: 'interest', text: <>World interest rate 2%: the macro model&rsquo;s default ({cite('ogukParams')}; OG-Core&rsquo;s is 4%). A modelling choice, not from a published source.</> },
+              { icon: 'debt', text: <>Foreigners buy 40% of new government debt (<MathSym name="zetaD" />): OG-Core&rsquo;s default, kept by the macro model ({cite('ogukParams')}). A modelling choice, not from a UK source.</> },
+              { icon: 'data', text: <>Its baseline income paid abroad sits inside the UK&rsquo;s ({cite('pinkBook')}).</> },
+              { icon: 'caveat', text: <>It misses the current account; the no-foreign-capital case is closer on the net foreign-asset stock ({ext(DOC_MAIN('closure_choice.md'), 'closure memo')}).</> },
+              { icon: 'timing', text: 'Each year’s foreign-owned capital is set from that year’s excess demand.' },
+              { icon: 'foreign', text: 'It is not accumulated from past inflows.' },
+              { icon: 'capital', text: <>So part of the {SURPRISE_YEAR} capital gap is an instant inflow.</> },
+            ]}
+          />
+        }
+        moreTitle="Why it is central"
+        morePreview="UK income paid abroad, GNI/GDP"
+      >
+        <p className="mx-big">
+          <Icon name={iconFor('foreign')} size={18} className="mx-dt-icon" />
+          <MathSym name="zetaK" value={ZETA[CENTRAL]} />
+        </p>
+        <Items
+          items={[
+            { icon: 'foreign', text: 'A share of the extra capital firms want, not of added capital.' },
+            { icon: 'gni', text: `${FOREIGN_DK != null && FOREIGN_DK < 50 ? 'Some' : 'Most'} added capital is foreign-owned: ${MEASURE.GNI.name.toLowerCase()} (${MEASURE.GNI.abbr}) trails GDP.` },
+            { icon: 'rule', text: <>OG-Core&rsquo;s US default, chosen by the study ({cite('closureMemo')}).</> },
+          ]}
+        />
+      </InfoCard>
+      <InfoCard
+        icon={iconFor('closed')}
+        title="No-foreign-capital bound"
+        className="mx-card"
+        id="closure-bound"
+        more={
+          <Items
+            items={[
+              { icon: 'households', text: 'UK households’ saving finances all the extra capital.' },
+              { icon: 'gni', text: 'GNI and GDP nearly coincide.' },
+              { icon: 'closure', text: <>The {S.closures[BOUND].role}: on Explore, choose No foreign capital or Both.</> },
+            ]}
+          />
+        }
+        moreTitle="What it bounds"
+        morePreview="Household-financed capital"
+      >
+        <p className="mx-big">
+          <Icon name={iconFor('closed')} size={18} className="mx-dt-icon" />
+          <MathSym name="zetaK" value={ZETA[BOUND]} />
+        </p>
+        <Items
+          items={[
+            { icon: 'closed', text: 'No foreign private capital flows in.' },
+            { icon: 'debt', text: 'Foreigners still buy 40% of new gilts.' },
+            { icon: 'interest', text: 'Results do not depend on the world interest rate.' },
+          ]}
+        />
+      </InfoCard>
+    </FoldGrid>
+  );
+}
+
+// The foreign-owned share of UK central's extra capital in the headline year
+// (main arm, some foreign capital, common rule): the data file's
+// foreign-share key (lib/dataKeys.js), whole per cent. Its figure has one home (the
+// story's GNI tile); Method says only whether it is most.
+const FOREIGN_DK = (() => {
+  const x = foreignShareOf(S.results?.uk_central?.tfp?.[CENTRAL]);
+  return x == null ? null : Math.round(x);
+})();
+
+const MEASURES = [
+  { k: 'GDP', icon: 'gdp', t: 'Output produced in the UK', d: `The stress test holds it at the OBR’s central forecast path in ${HEADLINE_YEAR}.` },
+  { k: 'NNI', icon: 'gni', t: MEASURE.NNI.title, d: 'The income UK residents keep: GNI − δK, with δ = 0.065 a year (the macro model’s default parameters). It leads the headline figures.', href: SRC.ogukParams.url },
+  { k: 'GNI', icon: 'depreciation', t: MEASURE.GNI.title, d: 'GDP less the return paid on foreign-owned capital and gilts, before depreciation.' },
 ];
 
-// The stress test's technology change, from the solves (UK central), per
-// closure: a cut under the central closure, a slight rise with closed
-// capital (results sanity audit, #39). Words follow the signs.
-const REF_SID = 'uk_central';
-const fx = (cl) => fixedInputVsTz(REF_SID, 'ss', cl);
-const move = (x) => (x == null ? null : x < 0 ? `fall (UK central: ${signed(x, 2)}%)` : `rise slightly (UK central: ${signed(x, 2)}%)`);
-function stressLine() {
-  const c = move(fx(CENTRAL));
-  const b = move(fx(BOUND));
-  const parts = [];
-  if (c) parts.push(`Under the central closure that needs output at fixed inputs to ${c}, against technology unchanged.`);
-  if (b) parts.push(`With closed capital it needs them to ${b}, so it almost coincides with technology unchanged.`);
-  return parts.join(' ');
-}
-function stressFixedText() {
-  const c = fx(CENTRAL);
-  const b = fx(BOUND);
-  const w = (x) => (x == null ? 'pending' : x < 0 ? 'falls' : 'rises slightly');
-  return `Central closure: ${w(c)}; closed capital: ${w(b)}`;
-}
-function tzGdpLine() {
-  const c = gap(REF_SID, 'tz', CENTRAL, 'Y');
-  const b = gap(REF_SID, 'tz', BOUND, 'Y');
-  const w = (x) => (x == null ? 'is pending' : Math.abs(x) < 0.005 ? 'is unchanged' : x > 0 ? 'rises a little as capital deepens' : 'ends slightly below the OBR-central path');
-  return `In UK central, GDP ${w(c)} under the central closure and ${w(b)} with closed capital. So the stress test’s zero is imposed, not a model outcome.`;
-}
-
-const ARM_TEXT = {
-  tfp: {
-    icon: 'trend',
-    role: 'Main result',
-    line: 'The capital share rises, and output at fixed inputs rises by the scenario’s gain.',
-    fixedText: 'Rises by the scenario’s gain',
-    glyph: <path d="M4 14 L12 6 L20 14" />,
-    preview: 'Anchored at the starting year',
-    more: (
-      <>
-        <p>Z is solved jointly with &gamma;.</p>
-        <p>
-          The gain is measured at the baseline&rsquo;s {FIRST_YEAR} capital and labour. No scenario has touched those
-          inputs yet.
-        </p>
-      </>
-    ),
+// The three fiscal rules: name and one-line meaning from lib/labels.js (the
+// one definition the pickers, tooltips and downloads read), with Method's
+// detail. Rendered once, here.
+const RULE_TEXT = {
+  common: {
+    id: 'rule-default',
+    icon: 'rule',
+    tag: 'Default: every solve, and Explore unless you choose another',
+    // the rule in two lines (push D, Q9.5), then what happens in the debt
+    // rule's first year and UK central's figures (step), then the rest
+    rule: [{ icon: 'finances', text: 'Government consumption and transfers are fixed shares of GDP.' }],
+    // M11: the step in the debt rule's first year (only while the data shows it)
+    step: investStep(),
+    items: [
+      { icon: 'rule', text: <>A modelling choice, against the model&rsquo;s default of 4 ({ext(SRC.tg1.url, <MathSym name="tG1" value={10} />)}).</> },
+      { icon: 'timing', text: `So debt is quoted for ${HEADLINE_YEAR} and ${LATE_YEAR}.` },
+    ],
   },
-  tz: {
-    icon: 'scale',
-    role: 'Shown beside the stress test',
-    line: 'The same rise in the capital share, with output at fixed inputs unchanged.',
-    fixedText: 'Unchanged',
-    glyph: <path d="M4 10 H20" />,
-    preview: 'Why it is shown',
-    more: (
-      <>
-        <p>Income moves from labour to capital, with no productivity gain.</p>
-        <p>{tzGdpLine()}</p>
-      </>
-    ),
+  fixed: {
+    id: 'rule-fixed',
+    icon: 'finances',
+    tag: 'A choice on Explore (UK central, Korinek et al.)',
+    items: [{ icon: 'rule', text: <>A modelling choice ({cite('fiscalRules')}).</> }],
   },
-  ss: {
-    icon: 'alert',
-    role: 'A bound, not a forecast',
-    line: `${HEADLINE_YEAR} GDP is held at the OBR-central path. ${stressLine()}`,
-    fixedText: stressFixedText(),
-    glyph: <path d="M4 6 L12 14 L20 6" />,
-    preview: 'The R4 secant, the OBR comparison',
-    more: (
-      <>
-        <p>
-          Z is solved by secant over full solves (&ldquo;R4&rdquo;). It stops when the {HEADLINE_YEAR} GDP gap is
-          within 0.01pp of zero.
-        </p>
-        <p>It is named after the OBR&rsquo;s March 2026 displacement scenario, where GDP is unchanged.</p>
-        <p>It matches the OBR only on GDP. The OBR adjusts through jobs; OG-UK, with no unemployment, through the wage.</p>
-      </>
-    ),
+  dn: {
+    id: 'rule-dn',
+    icon: 'debt',
+    tag: 'Headline rule on Who gains',
+    items: [
+      { icon: 'rule', text: <>A modelling choice ({cite('fiscalRules')}).</> },
+      { icon: 'timing', text: 'The debt rule applies in every run but one: the Who gains run that keeps debt-neutral transfers on to the horizon.' },
+    ],
   },
 };
+// A list item is at most 12 words (check_text): a full sentence over that
+// is set as a short paragraph under its card's list, its wording kept.
+const longItem = (it) => typeof it.text === 'string' && it.text.trim().split(/\s+/).length > 12;
+const NOTE_ICON = { common: 'path', fixed: 'finances', dn: 'households' };
+const RULES = RULE_NAMES.map((r) => ({
+  ...RULE_TEXT[r.id],
+  title: r.label,
+  rule: [{ icon: NOTE_ICON[r.id], text: `${r.note}.` }, ...(RULE_TEXT[r.id].rule ?? [])],
+}));
 
-function ArmCards() {
+// One fiscal-rule card (push D, Q9.5; Vahid: "better ui"): the same
+// template for every rule and for how debt is repriced, in one even grid:
+// a kicker, the rule as a short list, then, for the common rule, what
+// happens in the debt rule's first year and UK central's stat row (every
+// value from the data, the years from the constants), then the remaining
+// lines. A sentence over 12 words is a short paragraph (check_text).
+const sentences = (xs) =>
+  xs.flatMap((it) =>
+    longItem(it)
+      ? it.text.split(/(?<=\.) (?=[A-Z])/).map((t) => (
+          <p key={t} className="mx-card-para">
+            {t}
+          </p>
+        ))
+      : [],
+  );
+function RuleCard({ r }) {
+  const st = r.step;
   return (
-    <div className="card-grid mx-arms">
-      {ARMS.map((a) => {
-        const t = ARM_TEXT[a.id];
-        if (!t) return null;
-        return (
-          <InfoCard
-            key={a.id}
-            id={`arm-${a.id}`}
-            icon={t.icon}
-            title={a.label}
-            className={`mx-card mx-arm mx-arm-${a.id}`}
-            more={t.more}
-            moreTitle="How Z is set"
-            morePreview={t.preview}
-          >
-            <p className="mx-kicker">{t.role}</p>
-            <p>{t.line}</p>
-            <div className="mx-fixed" aria-label={`Output at fixed inputs: ${t.fixedText}`}>
-              <svg viewBox="0 0 24 20" width="24" height="20" aria-hidden="true">
-                <g fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  {t.glyph}
-                </g>
-              </svg>
-              <span>
-                <span className="mx-fixed-label">Output at fixed inputs</span>
-                <b>{t.fixedText}</b>
-              </span>
+    <InfoCard id={r.id} icon={iconFor(r.icon)} title={r.title} className="mx-card mx-rule-card">
+      {r.tag ? (
+        <p className="mx-kicker">
+          <IconText icon="link">{r.tag}</IconText>
+        </p>
+      ) : null}
+      <Items items={r.rule.filter((it) => !longItem(it))} />
+      {sentences(r.rule)}
+      {st ? (
+        <div className="mx-rule-step" data-step={st.late}>
+          <p className="mx-rule-step-head">
+            <IconText icon="jump">In {st.late}, the debt rule&rsquo;s first year</IconText>
+          </p>
+          <p className="mx-card-para">Investment steps up again: in the model, the shock has left debt above the forecast path, so the rule cuts government spending by more.</p>
+          <dl className="why-stats mx-rule-stats" aria-label="UK central, against the forecast path">
+            <div className="why-stat">
+              <dt className="why-stat-label">UK central: investment, {st.prev}</dt>
+              <dd className="why-stat-value">{signed(st.iPrev, 1)}%</dd>
             </div>
-          </InfoCard>
+            <div className="why-stat">
+              <dt className="why-stat-label">Investment, {st.late}</dt>
+              <dd className="why-stat-value">{signed(st.iLate, 1)}%</dd>
+            </div>
+            <div className="why-stat">
+              <dt className="why-stat-label">Debt, % of GDP, {st.late}</dt>
+              <dd className="why-stat-value">{signed(st.dLate, 1)}pp</dd>
+            </div>
+          </dl>
+          <p className="why-unit">Gaps against the forecast path: investment, %; debt, pp of GDP</p>
+        </div>
+      ) : null}
+      {r.items?.length ? <Items items={r.items.filter((it) => !longItem(it))} /> : null}
+      {sentences(r.items ?? [])}
+    </InfoCard>
+  );
+}
+const DEBT_CARD = {
+  id: 'm-debt',
+  icon: 'interest',
+  title: 'How debt is repriced',
+  rule: [
+    { icon: 'interest', text: 'All model debt is one-year: a rate rise reprices the whole stock.' },
+    { icon: 'finances', text: 'UK gilts reprice more slowly.' },
+  ],
+  items: [
+    { icon: 'limit', text: <>So the model overstates the rise in debt/GDP after {HEADLINE_YEAR}.</> },
+    { icon: 'check', text: <>Repriced at the OBR&rsquo;s ready-reckoner speed: {ext(pr(43), 'PR #43')}.</> },
+    { icon: 'source', text: <>That speed: {cite('efoOct')}.</> },
+  ],
+};
+
+// OG-UK's gap between the effective tax rates on labour and on gross
+// capital income, some foreign capital (as Explore > Finances reads it)
+const ETR = S.closures[CENTRAL].reference_effective_tax_rates;
+const TAX_GAP = ETR.labour - ETR.capital_gross;
+
+// The limitations' four groups (push D, Q9.6), by the items' titles.
+export const LIMIT_GROUPS = [
+  { key: 'structure', title: 'Structure', icon: 'model', titles: ['One sector', 'No unemployment', 'No regions or housing', 'No money, trade or exchange rate'] },
+  { key: 'behaviour', title: 'Behaviour', icon: 'households', titles: ['Perfect foresight', 'Slow capital response', 'No markups', 'Substitution fixed at one'] },
+  { key: 'inputs', title: 'Inputs', icon: 'scenario', titles: ['Imposed technology paths', 'Productivity overlaps the OBR’s'] },
+  { key: 'finances', title: 'Public finances', icon: 'finances', titles: ['Revenue may respond too little', 'Foreign AI providers'] },
+];
+// What the model leaves out: one short list, a line each, every fact once.
+function Limitations() {
+  const items = [
+    { title: 'One sector', text: 'no shift towards goods that stay scarce.' },
+    { title: 'No unemployment', text: <>displacement shows in pay, not jobs ({ext(SRC.efoMarBox22.url, 'OBR Box 2.2')}).</> },
+    { title: 'Imposed technology paths', text: 'from OBR and IMF figures, not estimated.' },
+    { title: 'Slow capital response', text: <>elasticity below {ext(SRC.korinekT5.url, 'Korinek et al.’s')} lowest ({ext(DOC('red_flags_1_3.md'), 'red flag 1')}).</> },
+    {
+      title: 'Revenue may respond too little',
+      // a full sentence over 12 words: a paragraph under the list
+      para: true,
+      text: (
+        <>
+          The macro model&rsquo;s gap between tax on labour and on capital income ({TAX_GAP.toFixed(1)}pp) is{' '}
+          <NavLink tab="explore" sub="finances" anchor="tax-gap">
+            narrower than the OBR&rsquo;s rates imply
+          </NavLink>
+          .
+        </>
+      ),
+    },
+    {
+      title: 'Productivity overlaps the OBR’s',
+      // a sentence over 12 words: a paragraph under the list (at most 25)
+      para: true,
+      text: (
+        <>
+          its {ext(SRC.bp9B14.url, 'forecast path')} adds {pctRange(CALENDAR)} over {SURPRISE_YEAR}–{HEADLINE_YEAR} if its curve starts in {OBR_YEAR_ONE} ({pctRange(ADOPTION)} if with the shock)
+          {CENTRAL_TFP != null ? `, against +${CENTRAL_TFP.toFixed(1)}% in UK central` : ''}; inputs are not net of it ({ext(issue(27), 'issue #27')}).
+        </>
+      ),
+    },
+    { title: 'Perfect foresight', text: `from ${SURPRISE_YEAR} everyone knows the path; no precautionary saving.` },
+    { title: 'Substitution fixed at one', text: 'the labour share follows γ exactly.' },
+    { title: 'No markups', text: 'wages and rents equal marginal products.' },
+    { title: 'Foreign AI providers', text: 'their returns enter only through ζK.' },
+    { title: 'No money, trade or exchange rate', text: 'links abroad are capital and gilts.' },
+    { title: 'No regions or housing', text: 'one national economy.' },
+  ];
+  // grouped under four headings with icons (push D, Q9.6); text and links
+  // unchanged, each limitation once
+  const byTitle = Object.fromEntries(items.map((it) => [it.title, it]));
+  const used = LIMIT_GROUPS.flatMap((g) => g.titles);
+  if (used.length !== items.length || items.some((it) => !used.includes(it.title))) throw new Error('Limitations: every item in exactly one group');
+  return (
+    <div className="mx-limit-groups">
+      {LIMIT_GROUPS.map((g) => {
+        const xs = g.titles.map((t) => byTitle[t]);
+        return (
+          <div key={g.key} className="mx-limit-group" data-group={g.key}>
+            <h3 className="mx-limit-head">
+              <Icon name={iconFor(g.icon)} size={16} />
+              <span>{g.title}</span>
+            </h3>
+            {xs.some((it) => !it.para) ? (
+              <ul className="mx-limit-list">
+                {xs
+                  .filter((it) => !it.para)
+                  .map((it) => (
+                    <li key={it.title}>
+                      <span className="mx-limit-title">{it.title}:</span> {mathNodes(it.text)}
+                    </li>
+                  ))}
+              </ul>
+            ) : null}
+            {xs
+              .filter((it) => it.para)
+              .map((it) => (
+                <p key={it.title} className="mx-limit-para">
+                  <span className="mx-limit-title">{it.title}:</span> {mathNodes(it.text)}
+                </p>
+              ))}
+          </div>
         );
       })}
     </div>
   );
 }
 
-function ClosureCards() {
+
+// The bodies of the Key settings rows that were inline sections: each is
+// today's content, its wording unchanged (Method redesign, M5).
+function ShockCards() {
   return (
-    <div className="card-grid cols-2">
+    <FoldGrid className="card-grid">
       <InfoCard
-        icon="globe"
-        title="Central closure"
+        icon={iconFor('ai')}
+        title="Automation"
         className="mx-card"
-        id="closure-central"
         more={
-          <>
-            <p>
-              Foreign investors supply {pct(ZETA[CENTRAL], 0)} of the excess demand for capital at a 2% world rate.
-              Foreigners hold 40% of new government debt (&zeta;<sub>D</sub>). Both are OG-UK&rsquo;s defaults.
-            </p>
-            <p>
-              On UK data it fits income paid abroad and GNI/GDP better than a closed account (
-              {ext(DOC_MAIN('closure_choice.md'), 'closure memo')}).
-            </p>
-            <p>Foreign capital resets each year. So part of the {SURPRISE_YEAR} capital gap is an instant inflow.</p>
-          </>
+          <Items
+            items={[
+              { icon: 'equation', text: <>Cobb-Douglas production: the labour share is exactly 1 &minus; <MathSym name="gamma" />.</> },
+              { icon: 'scenario', text: <>A fall of f points sets <MathSym name="gamma" /> to 0.35 + f/100; 0.35 is the macro model&rsquo;s default ({cite('ogukParams')}).</> },
+              {
+                icon: 'code',
+                text: (
+                  <>
+                    The ramp needs a small OG-Core patch (<NavLink tab="method" sub="code" anchor="before">Data and code</NavLink>).
+                  </>
+                ),
+              },
+            ]}
+          />
         }
-        moreTitle="Why it is central"
-        morePreview="UK income paid abroad, GNI/GDP"
+        moreTitle="How it maps"
+        morePreview="Labour share = 1 − γ"
       >
-        <p className="mx-big">
-          &zeta;<sub>K</sub> = {ZETA[CENTRAL]}
-        </p>
-        <p>Part of the extra capital is foreign-owned, so GNI rises less than GDP.</p>
+        <Items
+          items={[
+            { icon: 'capital', text: <>The capital share <MathSym name="gamma" /> rises.</> },
+            { icon: 'labour', text: 'The labour share falls by the same points.' },
+          ]}
+        />
       </InfoCard>
       <InfoCard
-        icon="lock"
-        title="Closed-capital bound"
+        icon={iconFor('productivity')}
+        title="Productivity"
         className="mx-card"
-        id="closure-bound"
         more={
-          <>
-            <p>UK households&rsquo; saving finances all the extra capital. GNI and GDP nearly coincide.</p>
-            <p>It is shown beside the central closure everywhere, as the {S.closures[BOUND].role}.</p>
-          </>
+          <Items
+            items={[
+              { icon: 'measure', text: 'Z also absorbs the model’s arbitrary units of capital and labour.' },
+              { icon: 'caveat', text: 'So its level is not comparable across arms.' },
+              { icon: 'compare', text: 'Each arm fixes output at given inputs instead.' },
+            ]}
+          />
         }
-        moreTitle="What it bounds"
-        morePreview="Household-financed capital"
+        moreTitle="Why Z is not a percentage"
+        morePreview="Z is also a units constant"
       >
-        <p className="mx-big">
-          &zeta;<sub>K</sub> = {ZETA[BOUND]}
-        </p>
-        <p>No foreign capital flows in. Results do not depend on the world interest rate.</p>
+        <Items items={[{ icon: 'productivity', text: 'Z moves so output at fixed inputs changes by the scenario’s gain.' }]} />
       </InfoCard>
-    </div>
+      <InfoCard
+        icon={iconFor('forecast')}
+        title="Everything else unchanged"
+        className="mx-card"
+        more={
+          <Items
+            items={[
+              { icon: 'forecast', text: <>Forecast path: the macro model&rsquo;s path, set to the OBR&rsquo;s central forecast, which already includes the OBR&rsquo;s own assumption about AI ({cite('bp9B14')}; {cite('efoOct127')}).</> },
+              { icon: 'ai', text: <>Its trend productivity growth is 1% a year, from the March 2026 EFO ({cite('efoMarPath')}).</> },
+              { icon: 'scenario', text: 'Each scenario’s sizes rest on estimates of AI’s whole effect, against no AI.' },
+              { icon: 'scenario', text: 'The UK sizes are derived from them; only Korinek et al.’s pair is printed.' },
+              { icon: 'scenario', text: 'They are not net of the OBR’s own.' },
+              {
+                icon: 'path',
+                text: (
+                  <>
+                    {clockText()} The curves are {cite('bp9B14')}, Chart B.4; the OBR&rsquo;s path has no labour-share shift ({cite('frs87')}).
+                  </>
+                ),
+              },
+              { icon: 'compare', text: `So the labour-share shift is all extra to the OBR’s path. The productivity gain is only partly extra: on the assumed clock the path already has this share of each scenario’s input: ${overlapList()}.` },
+              // what an earlier start would add (María re-review M5): no label changes
+              ...earlyOnlyFlips().map((f) => ({ key: `early-${f.sid}-${f.cl}-${f.v}`, icon: 'timing', text: `If the curve started a year earlier, one more direction would change: ${SN_FULL[f.sid]}’s ${FLIP_NAME[f.v] ?? f.v} with ${f.cl === 'zk0' ? 'no' : 'some'} foreign capital, ${signedPp(f.x, f.v)} in the main version, about ${signedPp(f.y, f.v)} once netted. No label changes on the assumed clock.` })),
+              { icon: 'debt', text: <>Spending is set so 2030 debt/GDP matches the OBR&rsquo;s March 2026 forecast ({cite('efoMarDebt')}; {cite('debtTarget')}).</> },
+              { icon: 'compare', text: 'Every gap is against that path, restarted without the scenario’s inputs.' },
+              { icon: 'range', text: `For the gap against the OBR’s own forecast, read between the main version and “technology unchanged”, which has the share shift and no productivity gain${CENTRAL_TFP != null ? `: for UK central that equals netting all of its +${CENTRAL_TFP.toFixed(1)}%` : ''}.` },
+            ]}
+          />
+        }
+        moreTitle="The forecast path"
+        morePreview="Forecast path, the restart"
+      >
+        <Items
+          items={[
+            { icon: 'generations', text: <>Demographics: {cite('unWpp')}, via OG-Core.</> },
+            { icon: 'model', text: <>Tax functions ({cite('peUk')}) and policy: as on the forecast path.</> },
+            { icon: 'forecast', text: <>Forecast path: built on the March EFO ({cite('efoMarPath')}).</> },
+          ]}
+        />
+      </InfoCard>
+    </FoldGrid>
   );
 }
 
-const MEASURES = [
-  { k: 'GDP', t: 'Output produced in the UK', d: `The stress test holds it at the OBR-central path in ${HEADLINE_YEAR}.` },
-  { k: 'GNI', t: 'Income UK residents keep', d: 'GDP less the return paid on foreign-owned capital. The headline.' },
-  { k: 'NNI', t: 'GNI after depreciation', d: 'GNI − δK, with δ = 0.065 a year (OG-UK, ONS capital stocks).' },
-];
-
-const RULES = [
-  {
-    id: 'rule-default',
-    icon: 'sliders',
-    title: 'Spending follows GDP',
-    tag: 'Default, on every Results chart',
-    line: `Government consumption and transfers are fixed shares of GDP. From ${LATE_YEAR} a debt rule steers spending.`,
-  },
-  {
-    id: 'rule-fixed',
-    icon: 'landmark',
-    title: 'Fixed spending',
-    tag: 'Sensitivity',
-    line: 'Consumption and transfers stay at their OBR-central levels. This is the OBR’s convention.',
-  },
-  {
-    id: 'rule-dn',
-    icon: 'scale',
-    title: 'Debt-neutral',
-    tag: 'For cohort welfare',
-    line: `Transfers adjust from ${SURPRISE_YEAR + 1} so debt/GDP follows the OBR-central path. Households bear the fiscal effect.`,
-  },
-];
-
-function Limitations({ onTab }) {
-  const items = [
-    {
-      icon: 'factory',
-      title: 'One sector',
-      line: 'Spending cannot shift towards goods that stay scarce.',
-      more: <p>OG-UK has an eight-sector build; these runs do not use it.</p>,
-    },
-    {
-      icon: 'users',
-      title: 'No unemployment',
-      line: 'The labour market always clears. Displacement shows in the wage, not in jobs.',
-      more: <p>There is no search or matching. The OBR&rsquo;s scenario adjusts through jobs instead.</p>,
-    },
-    {
-      icon: 'target',
-      title: 'Imposed technology paths',
-      line: 'The capital-share and productivity paths are calibrated, not estimated.',
-      more: <p>Adoption, new tasks and diffusion are folded into the ramps of &gamma; and Z.</p>,
-    },
-    {
-      icon: 'construction',
-      title: 'Slow capital response',
-      line: `Capital has three years to respond by ${HEADLINE_YEAR}, and foreign inflows are capped.`,
-      more: (
-        <>
-          <p>The implied capital-supply elasticity is below every case in Korinek et al.&rsquo;s Table 5.</p>
-          <p>
-            It rises towards the steady state as saving builds up ({ext(DOC('red_flags_1_3.md'), 'red flag 1')}).
-          </p>
-        </>
-      ),
-    },
-    {
-      icon: 'receipt',
-      title: 'Revenue responds too little',
-      line: 'One income-tax schedule covers labour and capital income alike. With closed capital, tax/GDP can even rise.',
-      more: (
-        <p>
-          The gap against the OBR&rsquo;s tax rates is on{' '}
-          <GoTo tab="results" id="tax-gap" onTab={onTab}>
-            Results, in the tax-gap card
-          </GoTo>
-          .
-        </p>
-      ),
-    },
-    {
-      icon: 'layers',
-      title: 'Part of the effect may be counted twice',
-      line: 'UK central’s TFP target partly uses the OBR central AI path, which the baseline already contains.',
-      more: (
-        <p>
-          So part of the effect may be counted twice. Recorded on {ext(issue(27), 'issue #27')}; a decision is pending.
-        </p>
-      ),
-    },
-    {
-      icon: 'history',
-      title: 'Perfect foresight',
-      line: `From ${SURPRISE_YEAR} everyone knows the whole path. There is no uncertainty.`,
-      more: <p>Earnings differ only by permanent ability type. Precautionary saving is not a channel.</p>,
-    },
-  ];
+// The labour tax card (its id is now the row's, #m-tax)
+function LabourTax({ nic }) {
   return (
-    <div className="card-grid mx-limits">
-      {items.map((it) => (
-        <InfoCard key={it.title} icon={it.icon} title={it.title} className="mx-card" more={it.more} moreTitle="Detail">
-          <p>{it.line}</p>
-        </InfoCard>
-      ))}
-    </div>
-  );
-}
-
-const HISTORY = [
-  ['11 Nov 2026', 'Corrective reruns R1–R4: OBR debt path, UK demographics, a stated closure, a GDP-neutral share-only arm.', 27],
-  ['12 Nov 2026', `Central closure ζK = ${ZETA[CENTRAL]}, GNI first; ζK = ${ZETA[BOUND]} shown beside it as a bound.`, 16],
-  ['12 Nov 2026', `AI becomes an unanticipated ${SURPRISE_YEAR} shock from one ${FIRST_YEAR} start. Headline year ${HEADLINE_YEAR}.`, 27],
-  ['12 Nov 2026', 'Scenarios calibrated to UK sources; Korinek et al.’s US case kept as an upper case.', 27],
-  ['12 Nov 2026', 'OG-UK already includes NICs, so nothing is added. The tax gap becomes a limitation.', 27],
-  ['12 Nov 2026', 'Debt-neutral variant for cohort welfare; NNI reported beside GNI.', 27],
-  ['12 Nov 2026', '“Automation only” renamed the OBR-style stress test; technology-unchanged arm added.', 27],
-];
-
-export default function MethodTab({ onTab, active = true }) {
-  const nic = F.nics;
-  const [sub, setSub] = useSubTabParam(METHOD_SUBS.map((t) => t.id), active);
-  const show = (id) => sub === id;
-  return (
-    <div className="mx-tab mx-method">
-      <SubTabs
-        tabs={METHOD_SUBS.map((t) => ({ value: t.id, label: t.label, icon: t.icon }))}
-        value={sub}
-        onChange={setSub}
-        ariaLabel="Scenarios and method sections"
-        idPrefix="msub"
+    <InfoCard
+      icon={iconFor('tax')}
+      title="How labour is taxed"
+      className="mx-card"
+      more={
+        <Items
+          items={[
+            { icon: 'tax', text: 'Fitted functions already include employee NICs; adding them double-counts.' },
+            { icon: 'labour', text: 'Employer NICs: a payroll tax from the first pound, no allowance.' },
+            {
+              icon: 'data',
+              text: (
+                <>
+                  PolicyEngine UK, {nic.year}: <span data-path="methodFacts.nics.employer_avg_of_employment_income">{pct(nic.employer_avg_of_employment_income)}</span> of employment income;{' '}
+                  <span data-path="methodFacts.nics.employer_marginal">{pct(nic.employer_marginal)}</span> at the margin (
+                  {ext(`${REPO}/blob/${SET.branch}/analysis/nics/measure_nics.py`, 'measure_nics.py')}).
+                </>
+              ),
+            },
+          ]}
+        />
+      }
+      moreTitle="Employee and employer NICs"
+      morePreview="Fitted function, flat payroll tax"
+    >
+      <Items
+        items={[
+          { icon: 'labour', text: 'Employee NICs: inside the fitted income-tax function.' },
+          {
+            icon: 'link',
+            text: (
+              <>
+                Employer NICs: flat payroll tax; rate against average on{' '}
+                <NavLink tab="explore" sub="finances" anchor="tax-gap">
+                  Explore, public finances
+                </NavLink>
+                .
+              </>
+            ),
+          },
+        ]}
       />
-      <SubTabPanel idPrefix="msub" value={sub}>
-        {sub !== 'history' ? <StepRail key={sub} steps={STEPS} sub={sub} onSub={setSub} label="Steps on this tab" /> : null}
+    </InfoCard>
+  );
+}
 
-        {show('scenarios') ? (
-          <>
-            <StepSection id="m-shock" n={1} icon="zap" title="What the shock is" lede="OG-UK has no AI parameter. AI changes two numbers in production.">
-              <div className="card-grid">
-                <InfoCard
-                  icon="cpu"
-                  title="Automation"
-                  className="mx-card"
-                  more={
-                    <>
-                      <p>Production is Cobb-Douglas, so the labour share is exactly 1 &minus; &gamma;.</p>
-                      <p>A fall of f points sets &gamma; to 0.35 + f/100. The ramp needs a small OG-Core patch (see Code).</p>
-                    </>
-                  }
-                  moreTitle="How it maps"
-                  morePreview="Labour share = 1 − γ"
-                >
-                  <p>The capital share &gamma; rises. The labour share falls by the same number of points.</p>
-                </InfoCard>
-                <InfoCard
-                  icon="gauge"
-                  title="Productivity"
-                  className="mx-card"
-                  more={
-                    <>
-                      <p>Z also absorbs the model&rsquo;s arbitrary units of capital and labour.</p>
-                      <p>So its level is not comparable across arms. Each arm fixes output at given inputs instead.</p>
-                    </>
-                  }
-                  moreTitle="Why Z is not a percentage"
-                  morePreview="Z is also a units constant"
-                >
-                  <p>Productivity Z moves so that output at fixed inputs changes by the scenario&rsquo;s gain.</p>
-                </InfoCard>
-                <InfoCard
-                  icon="layers"
-                  title="Everything else unchanged"
-                  className="mx-card"
-                  more={
-                    <>
-                      <p>
-                        The baseline is the OBR-central path: trend productivity growth of 1% a year, the OBR&rsquo;s central
-                        figure. That figure already includes the OBR&rsquo;s own central AI assumption, so every result is AI
-                        beyond that path, not against a world with no AI.
-                      </p>
-                      <p>Its spending is set so 2030 debt/GDP matches the OBR&rsquo;s (rerun R1).</p>
-                      <p>Every gap is measured against a no-shock restart of that path.</p>
-                    </>
-                  }
-                  moreTitle="The OBR-central path"
-                  morePreview="OBR-central baseline, the restart"
-                >
-                  <p>Demographics, tax functions and policy stay as on the OBR-central path.</p>
-                </InfoCard>
-              </div>
-            </StepSection>
+function SolvingCards() {
+  return (
+    <FoldGrid className="card-grid cols-2">
+      <InfoCard
+        icon={iconFor('path')}
+        title="Steady state, then the path"
+        className="mx-card"
+        more={
+          <Items
+            items={[
+              { icon: 'path', text: 'Time path iteration guesses whole price paths.' },
+              { icon: 'generations', text: 'It solves every cohort, then updates the guess.' },
+              { icon: 'measure', text: <>Path tolerance 10<sup>−4</sup>: a solver setting, not from a published source.</> },
+              { icon: 'timing', text: <>Run times: <NavLink tab="method" sub="code">Data and code</NavLink>.</> },
+            ]}
+          />
+        }
+        moreTitle="Time path iteration"
+        morePreview="Nested fixed points"
+      >
+        <Items items={[{ icon: 'breakEven', text: 'Each run finds the long run, then the yearly path to it.' }]} />
+      </InfoCard>
+      <InfoCard
+        icon={iconFor('check')}
+        title="Gated before and after"
+        className="mx-card"
+        more={
+          <Items
+            items={[
+              {
+                icon: 'start',
+                text: (
+                  <>
+                    Restarted without the scenario’s inputs, the model must reproduce the OBR’s central forecast path, {SURPRISE_YEAR}–{LATE_YEAR}: within 10<sup>−4</sup> for GDP, capital and debt/GDP, 10<sup>−3</sup> for the rest.
+                  </>
+                ),
+              },
+              { icon: 'check', text: <>After each solve, a sanity check tests identities and the labour share ({cite('sanity')}).</> },
+              { icon: 'limit', text: 'Any failure stops the run.' },
+            ]}
+          />
+        }
+        moreTitle="The two gates"
+        morePreview="Continuation gate, sanity check"
+      >
+        <Items
+          items={[
+            { icon: 'check', text: 'A restart test and a sanity check guard every number.' },
+            { icon: 'code', text: <>Commands: <NavLink tab="method" sub="code" anchor="pipeline">Data and code</NavLink>.</> },
+          ]}
+        />
+      </InfoCard>
+    </FoldGrid>
+  );
+}
 
-            <StepSection
-              id="m-timing"
-              n={2}
-              icon="calendar"
-              title="When it happens"
-              lede={`One start in ${FIRST_YEAR}, a surprise in ${SURPRISE_YEAR}, full weight by ${HEADLINE_YEAR}.`}
+// Key settings (Method redesign, 4.3): eight rows, each what the study
+// sets and what else was run; every value is bound to the data or a
+// constant. The generations row is said from the inputs table's row (its
+// label and value), so the figure has one home.
+const SCEN_OTHERS = ['uk_low', 'uk_high', 'korinek'];
+const HH_ROW = ROWS.find((r) => r.id === 'in-households-80-ages-seven-earnings-groups');
+const GENERATIONS = (() => {
+  const [ages, groups] = HH_ROW.input.replace(/^Households: /, '').split(', ');
+  return `${ages} (${HH_ROW.value.replace('–', ' to ')}), ${groups}`;
+})();
+const ZK_HALF = S.sensitivity?.['zk0.5']?.zeta_K;
+
+export default function MethodTab() {
+  const nic = F.nics;
+  return (
+    <div className="page-with-contents mx-tab mx-method">
+      <OnThisPage tab="method" sub="how" sections={SECTIONS} label="Method contents" />
+      <div className="page-body">
+        <PageIntro
+          question="How does the macro model turn an AI scenario into these results?"
+          answer={<IconText icon="model">The macro model (<span data-package="">OG-UK</span>) is {MACRO_ABOUT}. {MACRO_FOLLOWS}. Every market clears. Each result is a gap against the OBR’s central forecast path: the model’s own path on the OBR’s March 2026 productivity growth and debt target, restarted in {SURPRISE_YEAR} without the extra AI. Not a forecast.</IconText>}
+        />
+        <section>
+          <SectionHeading id="m-model" icon={iconFor('model')} title="How it works">
+            <IconText icon="ai">The macro model has no AI parameter. AI changes two numbers in production.</IconText>
+          </SectionHeading>
+          <Card
+            id="model-diagram"
+            sources={[docItem('OG-UK, the UK calibration', URLS.ogUkFork, 'OG-UK'), docItem('OG-Core, the model it is built on', URLS.ogCore, 'OG-Core')]}
+            replication={{ code: code('uk_growth_with_ai/solve.py'), result: SRC.ogukParams.url }}
+            icon={iconFor('model')}
+            title="From an AI scenario to a result"
+            finding={<IconText icon="breakEven">Households, firms, a government and the rest of the world, trading until every market clears.</IconText>}
+            logo={false}
+            download={{ title: 'From an AI scenario to a result', context: 'An AI scenario enters at firms; the flows between the blocks of the model; the result is read against the forecast path', table: flowTable, svg: diagramSvg, legend: () => [] }}
+          >
+            <ModelDiagram />
+          </Card>
+          {/* the three versions, open at rest: the stress-test card prints
+              the page's two counted figures (check_numbers reads them) */}
+          <ArmsPart />
+        </section>
+
+        <section>
+          <SectionHeading id="m-settings" icon={iconFor('rule')} title="Key settings">
+            <IconText icon="rule">What the study sets, and what else was run. Open a row for the detail.</IconText>
+          </SectionHeading>
+          <div className="mx-settings">
+            <SettingHeads />
+            <SettingRow id="m-shock" setting={METHOD.shock.label} uses="Capital share γ up; productivity Z up">
+              <SubHead id="m-shock-head" title="The shock" />
+              <ShockCards />
+              <UsedBy id="m-shock" />
+            </SettingRow>
+            <SettingRow id="m-scenarios" setting="Scenarios" uses={`${name('uk_central')}: ${pp('uk_central')} labour share, ${pc('uk_central')} output at fixed inputs`} also={SCEN_OTHERS.map(name).join(', ')}>
+              <ScenariosPart />
+              <UsedBy id="m-scenarios" />
+            </SettingRow>
+            <SettingRow id="m-timing" setting="When it happens" uses={`A surprise in ${SURPRISE_YEAR}; full weight by ${HEADLINE_YEAR}`}>
+              <TimingPart />
+            </SettingRow>
+            <SettingRow
+              id="m-closures"
+              setting={METHOD.closures.label}
+              uses={`Some foreign capital, ζK = ${ZETA[CENTRAL]}; national income (NNI) leads`}
+              also={`No foreign capital, ζK = ${ZETA[BOUND]}${ZK_HALF != null ? `; ζK = ${ZK_HALF}` : ''}`}
             >
-              <div className="info-card mx-card mx-figure">
-                <Timeline />
-              </div>
-              <div className="card-grid">
-                <InfoCard
-                  icon="flag"
-                  title={`One starting point, ${FIRST_YEAR}`}
-                  className="mx-card"
-                  more={
-                    <>
-                      <p>OG-Core always starts a run in the baseline&rsquo;s first year.</p>
-                      <p>So inputs are shifted two years, and the run inherits the {FIRST_YEAR} wealth, debt and population.</p>
-                      <p>Details: {ext(DOC('surprise_2028.md'), 'design note')}.</p>
-                    </>
-                  }
-                  moreTitle="How the restart works"
-                  morePreview="Shifted inputs, inherited wealth"
-                >
-                  <p>2026 and {FIRST_YEAR} are identical in every scenario. There is no anticipation.</p>
-                </InfoCard>
-                <InfoCard
-                  icon="zap"
-                  title={`A surprise in ${SURPRISE_YEAR}`}
-                  className="mx-card"
-                  more={
-                    <>
-                      <p>Households re-plan from the wealth they hold.</p>
-                      <p>The {SURPRISE_YEAR} gap is the news plus the ramp&rsquo;s first quarter, not news alone.</p>
-                    </>
-                  }
-                  moreTitle="What the first year contains"
-                  morePreview="News plus the first ramp step"
-                >
-                  <p>Nobody expects AI before {SURPRISE_YEAR}. From then on, everyone knows the whole path.</p>
-                </InfoCard>
-                <InfoCard
-                  icon="construction"
-                  title={`The ${SURPRISE_YEAR} jump`}
-                  className="mx-card"
-                  id="m-jump"
-                  more={
-                    <>
-                      <p>OG-Core 0.17 defines an adjustment cost (<code>firm.adj_cost</code>) but never calls it.</p>
-                      <p>So investment jumps for one year. It reflects frictionless capital, not a forecast of a boom.</p>
-                    </>
-                  }
-                  moreTitle="Why there is a spike"
-                  morePreview="No adjustment costs in OG-Core 0.17"
-                >
-                  <p>With no adjustment costs, investment and hours jump in the announcement year.</p>
-                </InfoCard>
-              </div>
-            </StepSection>
-
-            <StepSection
-              id="m-scenarios"
-              n={3}
-              icon="target"
-              title="The scenarios"
-              lede={`Three UK scenarios and a US upper case. Each is a pair reached in ${HEADLINE_YEAR}.`}
-            >
-              <div className="info-card mx-card mx-figure">
-                <ScenarioMap />
-              </div>
-              <div className="card-grid mx-scen-grid">
-                {SCENARIOS.map((s) => (
-                  <InfoCard
-                    key={s.id}
-                    id={`scen-${s.id}`}
-                    icon={s.id === 'korinek' ? 'globe' : 'landmark'}
-                    title={s.id === 'korinek' ? KORINEK_FULL : s.label}
-                    className={`mx-card mx-scen${s.id === 'korinek' ? ' is-upper' : ''}`}
-                    more={
-                      <dl className="mx-facts">
-                        {Object.entries(s.sources).map(([k, v]) => (
-                          <div key={k}>
-                            <dt>{k === 'tfp' ? 'Productivity' : k === 'labour_share' ? 'Labour share' : 'Both inputs'}</dt>
-                            <dd>{v}</dd>
-                          </div>
-                        ))}
-                      </dl>
-                    }
-                    moreTitle="Sources and arithmetic"
-                    morePreview={s.id === 'korinek' ? 'Korinek et al., Table 3' : 'IMF UK, OBR FRS, BP9'}
-                  >
-                    <p className="mx-kicker">
-                      {s.id === 'uk_central' ? 'Headline scenario' : s.id === 'korinek' ? 'US inputs' : 'UK range'}
-                    </p>
-                    <dl className="mx-pair">
-                      <div>
-                        <dt>Labour share</dt>
-                        <dd>−{s.labour_share_fall_pp.toFixed(1)}pp</dd>
-                      </div>
-                      <div>
-                        <dt>Output at fixed inputs</dt>
-                        <dd>+{s.tfp_gain_pct.toFixed(1)}%</dd>
-                      </div>
-                    </dl>
-                    <p className="mx-sub">&gamma; reaches {s.gamma_terminal.toFixed(3)}.</p>
-                  </InfoCard>
-                ))}
-              </div>
-              <p className="mx-foot">
-                Derivations: {ext(DOC('uk_calibration.md'), 'UK calibration note')}. Published figures are compared on
-                Literature.
+              <p className="mx-setting-lead">
+                <IconText icon="capital">Who finances new capital, and which measure of income leads.</IconText>
               </p>
-            </StepSection>
-
-            <StepSection id="m-arms" n={4} icon="shuffle" title="Three arms per scenario" lede="The same labour-share fall in each. They differ in output at fixed inputs.">
-              <ArmCards />
-            </StepSection>
-          </>
-        ) : null}
-
-        {show('built') ? (
-          <>
-            <StepSection id="m-closures" n={5} icon="globe" title="Closures and the spending rule" lede="Who finances new capital, which income leads, how the budget adjusts.">
               <ClosureCards />
               <div className="info-card mx-card mx-measures" id="m-measures">
                 <h3 className="info-card-title">
-                  <Icon name="ruler" size={18} />
+                  <Icon name={iconFor('measure')} size={18} />
                   <span>Three income measures</span>
                 </h3>
                 <div className="mx-measure-row">
                   {MEASURES.map((m, i) => (
                     <div key={m.k} className="mx-measure">
-                      <span className="mx-measure-k">{m.k}</span>
+                      <span className="mx-measure-k">
+                        <Icon name={iconFor(m.icon)} size={16} className="mx-measure-icon" />
+                        {m.k}
+                      </span>
                       <span className="mx-measure-t">{m.t}</span>
-                      <span className="mx-measure-d">{m.d}</span>
+                      <span className="mx-measure-d">{m.href ? ext(m.href, mathNodes(m.d)) : mathNodes(m.d)}</span>
                       {i < MEASURES.length - 1 ? (
                         <span className="mx-measure-arrow" aria-hidden="true">
                           →
@@ -541,131 +666,91 @@ export default function MethodTab({ onTab, active = true }) {
                   ))}
                 </div>
               </div>
-              <div className="card-grid mx-rules">
-                {RULES.map((r) => (
-                  <InfoCard key={r.id} id={r.id} icon={r.icon} title={r.title} className="mx-card">
-                    <p className="mx-kicker">{r.tag}</p>
-                    <p>{r.line}</p>
-                  </InfoCard>
-                ))}
-              </div>
-              <p className="mx-foot">
-                The debt rule starts in {LATE_YEAR} in every run. So debt is quoted for {HEADLINE_YEAR} and {LATE_YEAR}.
+              <UsedBy id="m-closures" />
+            </SettingRow>
+            <SettingRow id="m-rules" setting={METHOD.rules.label} uses={`${RULE_NAMES[0].label}; debt rule from ${LATE_YEAR}`} also={`${RULE_NAMES[1].label}; ${RULE_NAMES[2].label}`}>
+              <p className="mx-setting-lead">
+                <IconText icon="rule">How the budget adjusts, and how debt responds to the interest rate.</IconText>
               </p>
-            </StepSection>
-
-            <StepSection id="m-model" n={6} icon="sigma" title="How it is solved" lede="OG-UK, the UK calibration of OG-Core: households, firms, a government, markets.">
-              <ModelFlow />
-              <div className="card-grid cols-2">
-                <div className="info-card mx-card mx-figure">
-                  <h3 className="info-card-title">
-                    <Icon name="usersRound" size={18} />
-                    <span>Many generations at once</span>
-                  </h3>
-                  <Cohorts />
-                </div>
-                <InfoCard
-                  icon="receipt"
-                  title="How labour is taxed"
-                  className="mx-card"
-                  id="m-tax"
-                  more={
-                    <>
-                      <p>The fitted functions already include employee NICs. Adding NICs would count them twice.</p>
-                      <p>Employer NICs are a payroll tax from the first pound, with no threshold or allowance.</p>
-                      <p>
-                        PolicyEngine-UK, {nic.year}: {pct(nic.employer_avg_of_employment_income)} of employment income;{' '}
-                        {pct(nic.employer_marginal)} at the margin (
-                        {ext(`${REPO}/blob/rerun/surprise-2028/analysis/nics/measure_nics.py`, 'measure_nics.py')}).
-                      </p>
-                    </>
-                  }
-                  moreTitle="Employee and employer NICs"
-                  morePreview="Fitted function, flat payroll tax"
-                >
-                  <dl className="mx-pair">
-                    <div>
-                      <dt>Employee NICs</dt>
-                      <dd className="mx-dd-text">In the fitted income-tax function</dd>
-                    </div>
-                    <div>
-                      <dt>Employer NICs</dt>
-                      <dd>
-                        {pct(nic.oguk_tau_payroll, 0)} flat
-                        <span className="mx-vs">vs {pct(nic.employer_avg_of_labour_cost)} average</span>
-                      </dd>
-                    </div>
-                  </dl>
-                  <p className="mx-sub">The average is PolicyEngine-UK&rsquo;s, as a share of labour cost.</p>
-                </InfoCard>
-              </div>
-              <div className="card-grid cols-2">
-                <InfoCard
-                  icon="repeat"
-                  title="Steady state, then the path"
-                  className="mx-card"
-                  more={
-                    <>
-                      <p>Time path iteration guesses whole price paths. It solves every cohort, then updates the guess.</p>
-                      <p>OG-UK&rsquo;s path tolerance is 10<sup>−4</sup>. Run times are on Code.</p>
-                    </>
-                  }
-                  moreTitle="Time path iteration"
-                  morePreview="Nested fixed points"
-                >
-                  <p>Each run finds the long-run equilibrium, then the yearly path from {SURPRISE_YEAR}.</p>
-                </InfoCard>
-                <InfoCard
-                  icon="lock"
-                  title="Gated before and after"
-                  className="mx-card"
-                  more={
-                    <>
-                      <p>
-                        A no-shock restart must reproduce the baseline over {SURPRISE_YEAR}–{LATE_YEAR}, within 10
-                        <sup>−4</sup>.
-                      </p>
-                      <p>After each solve, a sanity check tests identities and the labour share. Any failure stops the run.</p>
-                    </>
-                  }
-                  moreTitle="The two gates"
-                  morePreview="Continuation gate, sanity check"
-                >
-                  <p>A restart test and a sanity check guard every number. The commands are on Code.</p>
-                </InfoCard>
-              </div>
-            </StepSection>
-          </>
-        ) : null}
-
-        {show('limits') ? (
-          <StepSection id="m-limits" n={7} icon="alert" title="Limitations" lede="What the model leaves out, each stated once.">
-            <Limitations onTab={onTab} />
-          </StepSection>
-        ) : null}
-
-        {show('history') ? (
-          <div className="info-card mx-card mx-history" id="m-history">
-            <h3 className="info-card-title">
-              <Icon name="history" size={18} />
-              <span>Revision history</span>
-            </h3>
-            <p className="mx-sub">How the design changed. Each decision is recorded on the tracker.</p>
-            <Disclosure inCard title="All changes" preview={`${HISTORY.length} changes, 11–12 Nov 2026`}>
-              <ol className="mx-history-list">
-                {HISTORY.map(([d, t, n], i) => (
-                  <li key={i}>
-                    <span className="mx-history-date">{d}</span>
-                    <span>
-                      {t} {ext(issue(n), `#${n}`)}
-                    </span>
-                  </li>
+              {/* the three rules and how debt is repriced: one template, one
+                  even 2 × 2 grid (push D, Q9.5) */}
+              <div className="card-grid cols-2 mx-rules">
+                {[...RULES, DEBT_CARD].map((r) => (
+                  <RuleCard key={r.id} r={r} />
                 ))}
-              </ol>
-            </Disclosure>
+              </div>
+              <UsedBy id="m-rules" />
+            </SettingRow>
+            <SettingRow id="m-generations" setting={METHOD.welfare.label} uses={GENERATIONS}>
+              <div className="info-card mx-card mx-figure">
+                <h3 className="info-card-title">
+                  <Icon name={iconFor('generations')} size={18} />
+                  <span>Many generations at once</span>
+                  <SourceLine items={[docItem('OG-Core, the model it is built on', URLS.ogCore, 'OG-Core'), docItem('OG-UK, the UK calibration', URLS.ogUkFork, 'OG-UK')]} />
+                </h3>
+                <Cohorts />
+              </div>
+            </SettingRow>
+            <SettingRow id="m-tax" setting="How labour is taxed" uses="Fitted to PolicyEngine UK; employer NICs a flat payroll tax">
+              <LabourTax nic={nic} />
+            </SettingRow>
+            <SettingRow id="m-path" setting="Solving and checks" uses="Steady state, then the yearly path; two gates on every run">
+              <p className="mx-setting-lead">
+                <IconText icon="check">
+                  How each run is solved and checked. When the extra AI starts and how it ramps up is on{' '}
+                  <NavLink tab="method" sub="how" anchor="m-timing">
+                    Scenarios, when it happens
+                  </NavLink>
+                  .
+                </IconText>
+              </p>
+              <SolvingCards />
+              <UsedBy id="m-path" />
+            </SettingRow>
           </div>
-        ) : null}
-      </SubTabPanel>
+        </section>
+
+        <section>
+          <SectionHeading id="m-sens" icon={iconFor('compare')} title="Sensitivities">
+            <IconText icon="compare">
+              What changing one setting does to {scenarioById('uk_central').label}&rsquo;s {HEADLINE_YEAR} figures, with everything else as in the main case.
+            </IconText>
+          </SectionHeading>
+          <SensitivityGrid />
+        </section>
+
+        <CautionPanel
+          heading={
+            <SectionHeading id="m-limits" icon={iconFor('limit')} title="What the model leaves out">
+              <IconText icon="excluded">What the model leaves out, each stated once.</IconText>
+            </SectionHeading>
+          }
+        >
+          <Limitations />
+        </CautionPanel>
+
+        <section>
+          <SectionHeading id="m-sources" icon={iconFor('record')} title="Sources" />
+          <RefList ids={MACRO_REFS} compact />
+          <IconLine concept="link" className="mx-sources-line">
+            All sources, with where each figure is read:{' '}
+            <NavLink tab="method" sub="studies" anchor="sources">
+              Evidence, sources
+            </NavLink>
+          </IconLine>
+          <UsedBy id="m-limits" />
+          <CiteFoot />
+          <p className="mx-moved" id="m-history" tabIndex={-1}>
+            <IconText icon="revision">
+              Revision history: one list with the changelog, on{' '}
+              <NavLink tab="method" sub="code" anchor="changelog">
+                Data and code
+              </NavLink>
+              .
+            </IconText>
+          </p>
+        </section>
+      </div>
     </div>
   );
 }

@@ -1,0 +1,237 @@
+/* ---------- The chart type scale (item 9, typography-spec.md) ----------
+   One scale for every chart and figure card on the Story, Explore and
+   Method. Sizes are RENDERED sizes: an svg drawn through a viewBox that
+   scales it divides its font sizes by its scale (--svg-k, written by
+   useSvgScale), so its text lands on these numbers.
+
+     tick   14  axis ticks, unit lines, footnotes, notes, chips, sources
+     label  15  value and series labels (weights kept)
+     head   16  in-card section headings, 600
+     sub    16  card subtitles (the line under a card's title)
+     title  18  card titles, 600: clearly above the 16px heads
+
+   At phone widths (480px and under) each drops by 1px; none goes under
+   13px. scripts/check_fontsize.mjs holds the floor (14 desktop, 13 phone).
+   This file loads last, so its rules win ties with the part files. */
+:root {
+  --chart-fs-tick: 14px;
+  --chart-fs-label: 15px;
+  --chart-fs-head: 16px;
+  --chart-fs-sub: 16px;
+  --chart-fs-title: 18px;
+}
+@media (max-width: 480px) {
+  :root {
+    --chart-fs-tick: 13px;
+    --chart-fs-label: 14px;
+    --chart-fs-head: 15px;
+    --chart-fs-sub: 15px;
+    --chart-fs-title: 17px;
+  }
+}
+
+/* Inside a chart or figure card the small steps of the page scales (the
+   Story's 12px meta, Explore and Method's 12-13px caption and micro, the
+   chart Frame's 12px tick) resolve to the chart floor. */
+:is(figure, .ch-frame, .chart-card, .scrolly-graphic-inner, .story-frame, [data-chart], .card:has(svg[role="img"], svg.story-svg, [data-chart], .chart-plot)) {
+  --t-meta: var(--chart-fs-tick);
+  --fs-caption: var(--chart-fs-tick);
+  --fs-micro: var(--chart-fs-tick);
+  --ch-tick: 400 var(--chart-fs-tick) / 1 var(--ch-font);
+}
+
+/* The chart Frame's tokens (components/story/chart/*; ab.css) on the scale */
+:root {
+  --ch-title: 600 var(--chart-fs-title) / 1.3 var(--ch-font);
+  --ch-unit: 400 var(--chart-fs-sub) / 1.4 var(--ch-font);
+  --ch-tick: 400 var(--chart-fs-tick) / 1 var(--ch-font);
+  --ch-label: 600 var(--chart-fs-label) / 1.2 var(--ch-font);
+  --ch-note: 500 var(--chart-fs-tick) / 1.25 var(--ch-font);
+  --ch-source: 400 var(--chart-fs-tick) / 1.45 var(--ch-font);
+}
+
+/* Figure heads: the card title, then its subtitle (the line under it) */
+.story-figure-title {
+  font-size: var(--chart-fs-title);
+  line-height: 1.3;
+}
+.story-figure-unit {
+  font-size: var(--chart-fs-sub);
+  line-height: 1.4;
+}
+/* a panel's own unit line, under its in-card heading */
+.story-figure-unit.p3-group-unit {
+  font-size: var(--chart-fs-tick);
+}
+
+/* ---- Charts drawn through a scaled viewBox: sizes over --svg-k ----
+   (lib/svgScale.js writes --svg-k on the svg; the fallback is the desktop
+   scale, for the server render) */
+/* Part 2's GDP canvas and welfare curve (viewBox 400 wide) */
+.p2-svg {
+  --svg-k: 1.35;
+}
+.p2-svg text {
+  font-size: calc(var(--chart-fs-tick) / var(--svg-k));
+}
+.p2-svg .p2-end-label {
+  font-size: calc(var(--chart-fs-label) / var(--svg-k));
+}
+/* The hero's fan: Hero.jsx sets --hf-fs (tick) and --hf-lfs (label) in
+   user units from the measured scale */
+.hf-svg text.hf-end {
+  font-size: var(--hf-lfs, var(--hf-fs));
+}
+/* Method's scenario map (viewBox 560 wide) */
+.mx-map svg {
+  --svg-k: 0.838;
+}
+.mx-map svg .mx-tick,
+.mx-map svg .mx-axis-title {
+  font-size: calc(var(--chart-fs-tick) / var(--svg-k));
+}
+.mx-map svg .mx-pt-label {
+  font-size: calc(var(--chart-fs-label) / var(--svg-k));
+}
+
+/* ---- HTML chart text on the scale ---- */
+/* ticks, unit lines, notes, chips, model tags and sources: 14 */
+.ch-badge,
+.story-figure-kicker,
+.src-essential,
+.lens-chip,
+.lens-overlap,
+.mx-tl-year,
+.mx-tl-mark,
+.mx-tl-w,
+.hh-ref,
+.hh-axis-title,
+.p2-shock-strip-head {
+  font-size: var(--chart-fs-tick);
+}
+.ex-spark-end {
+  font-size: var(--chart-fs-tick);
+}
+/* value and series labels: 15, weights kept */
+.p1-end-label,
+.p3-row-label,
+.p3-row-value,
+.p3-db-val,
+.p3-dot-val,
+.p3-plane-label,
+.hh-val,
+.hh-off-val,
+.hh-group-name,
+.hh-list-group,
+.sankey-label,
+.sankey-value {
+  font-size: var(--chart-fs-label);
+}
+#story-part-3 .p3-row-label,
+#story-part-3 .p3-dec .p3-row-value,
+.hh-page .hh-val,
+.hh-page .hh-uc-vals .hh-val,
+.hh-uc-vals .hh-val {
+  font-size: var(--chart-fs-label);
+}
+/* in-card section headings: 16, semibold */
+.p3-group-head {
+  font-size: var(--chart-fs-head);
+  font-weight: 600;
+}
+.hh-page .hh-ref,
+.ex-axis-titles,
+.ex-dots-key,
+p.mx-axis-title,
+.p2-shock-cap {
+  font-size: var(--chart-fs-tick);
+}
+.ex-dotstrip figcaption {
+  font-size: var(--chart-fs-head);
+}
+.sankey-leader {
+  fill: none;
+}
+
+/* ---- Reflow at the larger sizes ---- */
+@media (max-width: 600px) {
+  /* the rules plane on phones: the central label ends at its ring, so it
+     ran into Uniform's (below its dot, to the right). The labels below
+     the dots take three rows: Uniform, then Ages 16 to 24, then the main
+     case, in a taller plot */
+  .p3-plane-plot {
+    height: 210px;
+  }
+  .p3-plane-label[data-row='exposure'] {
+    --lead: 100px !important;
+  }
+}
+/* series labels that wrapped at the larger size */
+.p3-dec .p3-dec-label,
+.mx-olg-label {
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .mx-olg-plot {
+    gap: 4px;
+  }
+  .mx-olg-stage {
+    padding: 6px 2px;
+  }
+}
+@media (max-width: 600px) {
+  /* part 2's charts on phones: the x title at the larger size reaches
+     below the viewBox; keep the answer line 24px clear of it */
+  .p2-svg {
+    margin-bottom: 6px;
+  }
+}
+/* the hero's stat lines at 14px: their columns may narrow, and the lines
+   wrap, rather than run past the card */
+.hf-stat-line {
+  white-space: normal;
+}
+@container (min-width: 540px) {
+  .hf-stats {
+    grid-template-columns: repeat(3, minmax(0, max-content));
+  }
+}
+
+/* ---- Phone type against sticky figures (phone-type-vs-sticky-fable.md) ---- */
+/* p2-who: the case as a chip beside the badge, shown on phones only */
+.p2-chip-top .p2-fig-chip {
+  display: none;
+}
+@media (max-width: 600px) {
+  .p2-chip-top .p2-fig-chip {
+    display: inline-block;
+  }
+  /* p3-changes: the figure's study line (ruling, 18 Nov evening) sits
+     tight to the title, so the tallest state (the rules plane) stays under
+     the 0.55 phone cap */
+  #story-part-3 .p3-ch:not(.is-all) > .story-figure-unit {
+    margin-bottom: 0;
+  }
+  /* p3-changes: one margins group per step (steps 1 and 2 share the panel;
+     item 32): step 1 the pence group and the note (its range is the pence
+     group's), step 2 the gains group; this keeps the tallest state, with
+     the figure's study line (ruling, 18 Nov evening), under the 0.55 cap */
+  .p3-ch:not(.is-all):not([data-step='2']) [data-panel='margin'] .p3-margin-group.is-gains,
+  .p3-ch:not(.is-all)[data-step='2'] [data-panel='margin'] .p3-margin-group.is-alone,
+  .p3-ch:not(.is-all)[data-step='2'] [data-panel='margin'] > .p3-margin-def,
+  .p3-ch:not(.is-all)[data-step='2'] [data-panel='margin'] > .p3-margin-note {
+    display: none;
+  }
+  /* the rules panel: the axis titles carry the units */
+  .p3-ch:not(.is-all) [data-panel='rules'] .p3-group-unit {
+    display: none;
+  }
+  .p3-ch:not(.is-all) .p3-plane-heads {
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+  .p3-ch:not(.is-all) .p3-plane-ytitle {
+    flex: none;
+    white-space: nowrap;
+  }
+}

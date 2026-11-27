@@ -23,7 +23,7 @@ table.panel-grid td.pg-text { font-weight: 500; color: var(--text-mid); }
 
 /* Economic effects: lede under a section heading, and the effect table. */
 .section-lede { margin: 4px 0 20px; }
-.effect-table { width: 100%; max-width: 1000px; margin: 0 auto; border-collapse: collapse; font-variant-numeric: tabular-nums; table-layout: fixed; }
+.effect-table { width: 100%; max-width: 1000px; margin: 0 auto; border-collapse: collapse;table-layout: fixed; }
 .effect-table th, .effect-table td { padding: 6px 12px; border-bottom: 1px solid var(--border); text-align: left; }
 .effect-table thead th { vertical-align: bottom; font-weight: 600; font-size: 0.85rem; color: var(--pe-color-gray-800); }
 .effect-table thead th:not(:first-child) { text-align: center; }

@@ -1,64 +1,45 @@
 'use client';
 
 import Icon from '@/components/ab/Icon.jsx';
+import IconLine from '@/components/ui/IconLine.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
-import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_LIGHT, SCENARIOS, SCEN_NAME as STRIP_LABEL, gap, fmt, result } from '@/tabs/ai/surprise.js';
+import { NavLink } from '@/lib/nav.jsx';
+import { Items } from '@/components/story/Items.jsx';
+import { iconFor } from '@/lib/concepts.js';
+import { MEASURE } from '@/lib/labels.js';
+import { CHART_COLOURS } from '@/lib/chartTheme.js';
+import { cssColour, esc } from '@/lib/download.js';
+import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result, PENDING, fmtHeld, ZETA, fixedInputVsTz } from '@/tabs/ai/surprise.js';
+import { ext } from '@/tabs/shared/ui.jsx';
+import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
+import { mathNodes } from '@/components/ui/MathSym.jsx';
 
 // The Results headline: a takeaway sentence built from the data, a dumbbell
 // panel (one row per measure, one marker pair per arm: the central value as a
-// filled dot, the closed-capital bound as a hollow dot, on one axis centred on
-// the OBR-central path), and a strip comparing the four scenarios. Every value comes
-// from surprise2028.json through gap()/fmt(); a pending one says "pending".
+// filled dot, the no-foreign-capital bound as a hollow dot, on one axis centred on
+// the forecast path), and a strip comparing the four scenarios. Every value comes
+// from surprise2028.json through gap()/fmt(); a pending one says PENDING ("not yet solved").
 
-export const ARM_ICON = { tfp: 'trend', tz: 'arrowLeftRight', ss: 'alert' };
-
+// names from lib/labels.js MEASURE (R1-14): national income leads as NNI,
+// with GNI, before depreciation, beside it (Maria's point 2)
 export const MEASURES = [
-  { v: 'w', label: 'Wage rate', sub: 'pay per unit of labour', icon: 'wallet' },
-  { v: 'GNI', label: 'Income UK residents keep', sub: 'national income, GNI', icon: 'home' },
-  { v: 'NNI', label: '… after depreciation', sub: 'net national income, NNI', icon: 'layers' },
-  { v: 'Y', label: 'Total output', sub: 'GDP', icon: 'factory' },
+  { v: 'w', label: MEASURE.w.name, sub: 'pay per unit of labour', icon: iconFor('pay') },
+  { v: 'NNI', label: MEASURE.NNI.name, sub: 'net national income, NNI, after depreciation', icon: iconFor('gni') },
+  { v: 'GNI', label: '… before depreciation', sub: 'gross national income, GNI', icon: iconFor('depreciation') },
+  { v: 'Y', label: MEASURE.Y.name, sub: 'gross domestic product', icon: iconFor('gdp') },
 ];
 
-export function ArmTag({ arm, label, off = false }) {
-  return (
-    <span className={`arm-tag${ARM_LIGHT[arm] ? ' is-light' : ''}${off ? ' is-off' : ''}`}>
-      <span className="swatch" style={{ borderTopColor: ARM_COLOR[arm] }} aria-hidden="true" />
-      {arm !== 'ss' ? <Icon name="cpu" size={14} /> : null}
-      <Icon name={ARM_ICON[arm]} size={14} />
-      <span>{label}</span>
-    </span>
-  );
-}
-
-// A legend whose entries show or hide a series (aria-pressed, fill only).
-export function ArmToggles({ hidden, onToggle, arms = ARMS }) {
-  return (
-    <div className="headline-key" role="group" aria-label="Show or hide a series">
-      {arms.map((a) => (
-        <button key={a.id} type="button" className="legend-toggle" aria-pressed={!hidden[a.id]} onClick={() => onToggle(a.id)}>
-          <ArmTag arm={a.id} label={a.label} off={hidden[a.id]} />
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function Dir({ x }) {
-  if (x == null) return null;
-  const name = Math.abs(x) < 0.005 ? 'minus' : x > 0 ? 'arrowUp' : 'arrowDown';
-  return <Icon name={name} size={13} className="dir-icon" />;
-}
-
-// One block built from the signs and the values, never a fixed claim: the
-// main arm first, then technology unchanged, then the stress test as the
-// pessimistic bound.
-function Num({ x }) {
-  return (
-    <span className="num">
-      <Dir x={x} />
-      {fmt(x)}
-    </span>
-  );
+// The dumbbell card's values as a CSV table
+export function dumbbellTable(sid, arms, closure, rule = 'common') {
+  const cls = closure === 'closed' ? [BOUND] : closure === 'both' ? [CENTRAL, BOUND] : [CENTRAL];
+  return {
+    columns: ['Measure', 'Version', 'Foreign capital', `Gap in ${HEADLINE_YEAR} (%)`],
+    rows: MEASURES.flatMap((m) =>
+      ARMS.filter((a) => arms.includes(a.id)).flatMap((a) =>
+        cls.map((cl) => [`${m.label} (${m.sub})`.replace('… ', `${MEASURE.NNI.name} `), a.label, cl === BOUND ? 'No foreign capital' : 'Some foreign capital', gap(sid, a.id, cl, m.v, HEADLINE_YEAR, rule)]),
+      ),
+    ),
+  };
 }
 
 // Does holding 2031 GDP flat need output at fixed inputs to fall, i.e. is the
@@ -71,60 +52,34 @@ export function stressFalls(sid, closure) {
   return s.Z_terminal < t.Z_terminal;
 }
 
-export function StressNote({ sid }) {
+// The stress test in items. Each direction icon follows the sign of the
+// stress test's Z against the technology-unchanged Z at that closure
+// (stressFalls): a cut with some foreign capital, a slight rise with closed
+// capital for UK central and Korinek (results sanity audit).
+export const stressDir = (falls) => (falls == null ? null : falls ? 'gapDown' : 'gapUp');
+export function stressItems(sid) {
   const c = stressFalls(sid, CENTRAL);
   const b = stressFalls(sid, BOUND);
-  const phrase = (x) => (x ? 'output at fixed inputs has to fall' : 'output at fixed inputs has to rise slightly');
-  // (signs from the Z values: a cut at the central closure, a slight rise
-  // with closed capital for UK central and Korinek; results sanity audit)
-  return (
-    <p className="disclosure-text">
-      The stress test holds {HEADLINE_YEAR} GDP at the OBR-central path, as in the OBR&rsquo;s Box 2.2 displacement scenario.
-      {c != null ? (
-        <>
-          {' '}Under the central closure {phrase(c)} for that{c ? ', so it is a pessimistic bound, not a forecast' : ''}.
-        </>
-      ) : null}
-      {b != null ? (
-        <>
-          {' '}Under closed capital {phrase(b)}{b === c ? ' too' : ', so there it almost coincides with “technology unchanged” and is not a pessimistic bound'}.
-        </>
-      ) : null}{' '}
-      &ldquo;Technology unchanged&rdquo; shifts the labour share and leaves output at fixed inputs where it was.
-    </p>
-  );
+  // the size from the scenario's own Z pair (dashboard review D3): the cut
+  // grows with the scenario, so it is printed, not just its sign
+  const size = (cl) => fixedInputVsTz(sid, 'ss', cl);
+  const phrase = (x, cl) => {
+    const v = size(cl);
+    if (v == null) return x ? 'has to fall' : 'has to rise slightly';
+    return x ? `has to fall ${Math.abs(v).toFixed(1)}%` : `has to rise slightly (+${Math.abs(v).toFixed(2)}%)`;
+  };
+  return [
+    { key: 'held', icon: 'shock', text: <>Stress test: {HEADLINE_YEAR} GDP held on the forecast path ({ext(efo(EFO_PAGE.box22), 'OBR, March 2026 EFO, Box 2.2')})</> },
+    c != null ? { key: 'c', icon: stressDir(c), text: `Some foreign capital: output at fixed inputs ${phrase(c, CENTRAL)}` } : null,
+    c ? { key: 'c2', icon: 'limit', text: 'A stress test, not a bound or a forecast' } : null,
+    b != null ? { key: 'b', icon: stressDir(b), text: `No foreign capital: output at fixed inputs ${phrase(b, BOUND)}${b === c ? ' too' : ''}` } : null,
+    b != null && b !== c ? { key: 'b2', icon: 'compare', text: 'There it almost matches “technology unchanged”' } : null,
+    { key: 'tz', icon: 'productivity', text: '“Technology unchanged” shifts the labour share, not output at fixed inputs' },
+  ].filter(Boolean);
 }
 
-export function Takeaway({ sid }) {
-  const y = gap(sid, 'tfp', CENTRAL, 'Y');
-  const w = gap(sid, 'tfp', CENTRAL, 'w');
-  if (y == null || w == null) {
-    return <p className="takeaway">The solves for this scenario are still running; figures show “pending” until they land.</p>;
-  }
-  const ty = gap(sid, 'tz', CENTRAL, 'Y');
-  const tw = gap(sid, 'tz', CENTRAL, 'w');
-  const sg = gap(sid, 'ss', CENTRAL, 'GNI');
-  return (
-    <div className="takeaway">
-      <p>
-        <b>AI with a productivity gain:</b> GDP <Num x={y} />, wages <Num x={w} />.
-      </p>
-      {(ty != null && tw != null) || sg != null ? (
-        <p>
-          {ty != null && tw != null ? (
-            <>
-              <b>Without a productivity gain:</b> GDP <Num x={ty} />, wages <Num x={tw} />.{' '}
-            </>
-          ) : null}
-          {sg != null ? (
-            <>
-              <b>Stress test:</b> national income <Num x={sg} />.
-            </>
-          ) : null}
-        </p>
-      ) : null}
-    </div>
-  );
+export function StressNote({ sid }) {
+  return <Items items={stressItems(sid)} />;
 }
 
 function niceMax(m) {
@@ -132,39 +87,132 @@ function niceMax(m) {
   return steps.find((s) => s >= m) ?? Math.ceil(m);
 }
 
-function DotTip({ arm, closure, measure, value }) {
+export function DotTip({ arm, closure, measure, value }) {
   return (
     <>
       <b>{measure}, {HEADLINE_YEAR}</b>
       <span>{arm}</span>
-      <span>{closure}</span>
-      <span className="tip-value">{fmt(value)} against the OBR-central path</span>
+      <span>{mathNodes(closure)}</span>
+      <span className="tip-value">{fmt(value)} against the OBR’s central forecast path</span>
     </>
   );
 }
 
-export function Dumbbells({ sid, hidden = {} }) {
-  const shown = ARMS.filter((a) => !hidden[a.id]);
-  const vals = MEASURES.flatMap((m) => shown.flatMap((a) => [gap(sid, a.id, CENTRAL, m.v), gap(sid, a.id, BOUND, m.v)])).filter((x) => x != null);
+// The main arm's GDP, wage-rate and GNI values are the story's headline tiles: their
+// one home. Here those three markers keep their tooltip and the download
+// keeps the value; the printed label links to the story instead.
+export const ON_SUMMARY = { arm: 'tfp', measures: ['Y', 'w', 'GNI'] };
+// Only under the common fiscal rule: the story shows no other rule.
+const onSummary = (arm, v, rule = 'common') => rule === 'common' && arm === ON_SUMMARY.arm && ON_SUMMARY.measures.includes(v);
+
+// The axis both drawings share: half-width D (room for the labels beyond
+// the outer dots) and the ticks.
+function dumbbellScale(sid, arms, closure, rule = 'common') {
+  const shown = ARMS.filter((a) => arms.includes(a.id));
+  const showC = closure !== 'closed';
+  const showB = closure !== 'central';
+  const g = (a, cl, v) => gap(sid, a, cl, v, HEADLINE_YEAR, rule);
+  const vals = MEASURES.flatMap((m) => shown.flatMap((a) => [showC ? g(a.id, CENTRAL, m.v) : null, showB ? g(a.id, BOUND, m.v) : null])).filter((x) => x != null);
   const top = niceMax(Math.max(0.25, ...vals.map(Math.abs)));
-  const D = top * 1.6; // room for the labels beyond the outer dots
-  const pct = (x) => `${(((x + D) / (2 * D)) * 100).toFixed(3)}%`;
+  // room beyond the outer dots for their labels, also on a phone, where the
+  // arm names take a narrow column beside the track
+  const D = top * 1.9;
   const step = [0.1, 0.25, 0.5, 1, 2, 5].find((st) => top / st <= 2.5) ?? top;
   const ticks = [];
   for (let t = -Math.floor(top / step) * step; t <= top + 1e-9; t += step) ticks.push(Math.round(t * 100) / 100);
-  const tickText = (t) => (t === 0 ? '0%' : `${t > 0 ? '+' : '−'}${Math.abs(t)}%`);
-  const ssHeld = !hidden.ss && gap(sid, 'ss', CENTRAL, 'Y') != null;
+  return { shown, showC, showB, D, ticks };
+}
+const tickText = (t) => (t === 0 ? '0%' : `${t > 0 ? '+' : '−'}${Math.abs(t)}%`);
+
+// The same chart drawn as SVG from the data, for the PNG and SVG downloads
+// (the page draws it in HTML). Every value is printed here, the main arm's
+// too: the file stands alone.
+export function dumbbellSvg(sid, arms, closure, rule = 'common') {
+  const { shown, showC, showB, D, ticks } = dumbbellScale(sid, arms, closure, rule);
+  const W = 1000;
+  const x0 = 400;
+  const x1 = W - 10;
+  const X = (v) => x0 + ((v + D) / (2 * D)) * (x1 - x0);
+  const ROW = 26;
+  const GAP = 14;
+  const C = CHART_COLOURS;
+  let y = 8;
+  let out = '';
+  const groupsTop = y;
+  for (const m of MEASURES) {
+    const gTop = y;
+    out += `<text x="0" y="${gTop + 16}" font-size="13" font-weight="600" fill="${C.ink}">${esc(m.label)}</text>`;
+    out += `<text x="0" y="${gTop + 32}" font-size="11" fill="${C.muted}">${esc(m.sub)}</text>`;
+    for (const a of shown) {
+      const cy = y + ROW / 2;
+      const col = cssColour(ARM_COLOR[a.id]);
+      const txt = cssColour(ARM_TEXT_COLOR[a.id]);
+      out += `<line x1="200" x2="214" y1="${cy}" y2="${cy}" stroke="${col}" stroke-width="2.5"/>`;
+      out += `<text x="220" y="${cy + 4}" font-size="11" fill="${C.axisTitle}">${esc(a.short || a.label)}</text>`;
+      const c = showC ? gap(sid, a.id, CENTRAL, m.v, HEADLINE_YEAR, rule) : null;
+      const b = showB ? gap(sid, a.id, BOUND, m.v, HEADLINE_YEAR, rule) : null;
+      const main = showC ? c : b;
+      if (main == null) {
+        out += `<text x="${X(0) + 8}" y="${cy + 4}" font-size="11" fill="${C.muted}">${PENDING}</text>`;
+      } else {
+        if (b != null && c != null) out += `<line x1="${X(b)}" x2="${X(c)}" y1="${cy}" y2="${cy}" stroke="${col}" stroke-width="3" opacity="0.5"/>`;
+        if (b != null) out += `<rect x="${X(b) - 4.5}" y="${cy - 4.5}" width="9" height="9" transform="rotate(45 ${X(b)} ${cy})" fill="${C.surface}" stroke="${col}" stroke-width="2"/>`;
+        if (c != null) out += `<circle cx="${X(c)}" cy="${cy}" r="5.5" fill="${col}"/>`;
+        const right = main >= 0 || Math.abs(main) < 0.005;
+        const outer = b == null ? c : c == null ? b : right ? Math.max(b, c) : Math.min(b, c);
+        const label = showC && showB ? `${fmt(c)} · closed ${fmt(b)}` : fmt(main);
+        out += `<text x="${X(outer) + (right ? 10 : -10)}" y="${cy + 4}" font-size="12" font-weight="700" text-anchor="${right ? 'start' : 'end'}" fill="${txt}">${esc(label)}</text>`;
+      }
+      y += ROW;
+    }
+    y = Math.max(y, gTop + 40) + GAP;
+    out += `<line x1="0" x2="${W}" y1="${y - GAP / 2}" y2="${y - GAP / 2}" stroke="${C.grid}"/>`;
+  }
+  out = `<line x1="${X(0)}" x2="${X(0)}" y1="${groupsTop}" y2="${y - GAP / 2}" stroke="${C.zeroLine}"/>` + out;
+  for (const t of ticks) out += `<text x="${X(t)}" y="${y + 14}" font-size="11" text-anchor="middle" fill="${C.tick}">${tickText(t)}</text>`;
+  return { w: W, h: y + 24, markup: out };
+}
+
+export function dumbbellLegend(arms, closure) {
+  const keys = ARMS.filter((a) => arms.includes(a.id)).map((a) => ({ label: a.short || a.label, color: cssColour(ARM_COLOR[a.id]) }));
+  if (closure === 'both') keys.push({ label: 'Circle: some foreign capital, diamond: no foreign capital', color: CHART_COLOURS.muted, shape: 'dot' });
+  return keys;
+}
+
+// Short arm names for narrow screens, beside each row's swatch.
+export const ARM_SHORT = { tfp: 'Auto. + prod.', tz: 'Tech. unchanged', ss: 'Stress test' };
+
+// One line under the chart, in place of a "Headline" chip on each of the
+// main arm's GDP, GNI and wage-rate rows: their grey values are the story's
+// headline figures, whose one home is the story.
+export function HeadlineNote({ rule = 'common' }) {
+  if (rule !== 'common') return null;
+  return (
+    <IconLine concept="story" tier="ui" className="db-headline-note">
+      Grey values: the{' '}
+      <NavLink tab="story" anchor="story-part-2">
+        Story
+      </NavLink>
+      &rsquo;s headline figures (main version).
+    </IconLine>
+  );
+}
+
+export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'central', rule = 'common' }) {
+  const { shown, showC, showB, D, ticks } = dumbbellScale(sid, arms, closure, rule);
+  const pct = (x) => `${(((x + D) / (2 * D)) * 100).toFixed(3)}%`;
+  const ssHeld = arms.includes('ss') && gap(sid, 'ss', showC ? CENTRAL : BOUND, 'Y', HEADLINE_YEAR, rule) != null;
 
   return (
-    <div className="dumbbells" role="group" aria-label={`${HEADLINE_YEAR} gaps against the OBR-central path, by measure and arm`}>
+    <div className="dumbbells" role="group" aria-label={`${HEADLINE_YEAR} gaps against the OBR’s central forecast path, by measure and version`}>
       <div className="db-row db-axis-head" aria-hidden="true">
         <span />
         <div className="db-track db-track-head">
           <span className="db-side db-side-left">
-            <Icon name="arrowDown" size={12} /> Lower<span className="db-side-long"> than the OBR-central path</span>
+            <Icon name="arrowDown" size={12} /> Lower<span className="db-side-long"> than the forecast path</span>
           </span>
           <span className="db-side db-side-right">
-            Higher<span className="db-side-long"> than the OBR-central path</span> <Icon name="arrowUp" size={12} />
+            Higher<span className="db-side-long"> than the forecast path</span> <Icon name="arrowUp" size={12} />
           </span>
         </div>
       </div>
@@ -173,7 +221,7 @@ export function Dumbbells({ sid, hidden = {} }) {
           <div className="db-label">
             <Icon name={m.icon} size={16} />
             <span>
-              <span className="db-label-main">{m.label}</span>
+              <span className="db-label-main">{m.label}</span>{' '}
               <span className="db-label-sub">{m.sub}</span>
               {m.v === 'Y' && ssHeld ? (
                 <span className="db-label-held">
@@ -184,27 +232,32 @@ export function Dumbbells({ sid, hidden = {} }) {
           </div>
           <div className="db-arms">
             {shown.map((a) => {
-              const c = gap(sid, a.id, CENTRAL, m.v);
-              const b = gap(sid, a.id, BOUND, m.v);
+              const c = showC ? gap(sid, a.id, CENTRAL, m.v, HEADLINE_YEAR, rule) : null;
+              const b = showB ? gap(sid, a.id, BOUND, m.v, HEADLINE_YEAR, rule) : null;
+              // the value printed beside the markers: central, or no foreign capital alone
+              const main = showC ? c : b;
               const color = ARM_COLOR[a.id];
               // The value sits beyond the outer dot, away from 0, so it never
               // crosses the zero line.
-              const right = c >= 0 || (c != null && Math.abs(c) < 0.005);
-              const outer = b == null ? c : right ? Math.max(b, c) : Math.min(b, c);
-              const name = `${m.label} (${m.sub})`;
+              const right = main >= 0 || (main != null && Math.abs(main) < 0.005);
+              const outer = b == null ? c : c == null ? b : right ? Math.max(b, c) : Math.min(b, c);
+              const name = `${m.label} (${m.sub})`.replace('… ', `${MEASURE.NNI.name} `);
               return (
                 <div key={a.id} className={`db-arm${ARM_LIGHT[a.id] ? ' is-light' : ''}`}>
-                  <span className="db-arm-key" title={a.label}>
+                  <span className="db-arm-key">
                     <span className="swatch" style={{ borderTopColor: color }} aria-hidden="true" />
-                    <span className="visually-hidden">{a.label}: </span>
+                    <span className="db-arm-name">{a.short || a.label}</span>
+                    <span className="db-arm-short" aria-hidden="true">
+                      {ARM_SHORT[a.id] ?? a.label}
+                    </span>
                   </span>
                   <div className="db-track">
                     <span className="db-zero" style={{ left: pct(0) }} aria-hidden="true" />
-                    {c == null ? (
-                      <span className="db-pending">pending</span>
+                    {main == null ? (
+                      <span className="db-pending">{PENDING}</span>
                     ) : (
                       <>
-                        {b != null ? (
+                        {b != null && c != null ? (
                           <span
                             className="db-bar"
                             style={{ left: pct(Math.min(b, c)), width: `${((Math.abs(b - c) / (2 * D)) * 100).toFixed(3)}%`, background: color }}
@@ -215,25 +268,29 @@ export function Dumbbells({ sid, hidden = {} }) {
                           <TipTarget
                             className="db-dot is-diamond"
                             style={{ left: pct(b), borderColor: color }}
-                            label={`${a.label}, closed capital, ${name}: ${fmt(b)}`}
-                            tip={<DotTip arm={a.label} closure="Closed capital (none foreign-owned)" measure={name} value={b} />}
+                            label={`${a.label}, no foreign capital, ${name}: ${fmt(b)}`}
+                            tip={<DotTip arm={a.label} closure="No foreign capital (closure ζK = 0: no foreign-owned private capital)" measure={name} value={b} />}
                           />
                         ) : null}
-                        <TipTarget
-                          className="db-dot"
-                          style={{ left: pct(c), background: color, borderColor: color }}
-                          label={`${a.label}, central closure, ${name}: ${fmt(c)}`}
-                          tip={<DotTip arm={a.label} closure="Central closure (some new capital foreign-owned)" measure={name} value={c} />}
-                        />
+                        {c != null ? (
+                          <TipTarget
+                            className="db-dot"
+                            style={{ left: pct(c), background: color, borderColor: color }}
+                            label={`${a.label}, some foreign capital, ${name}: ${fmt(c)}`}
+                            tip={<DotTip arm={a.label} closure={`Some foreign capital (closure ζK = ${ZETA[CENTRAL]}: foreign investors supply ${Math.round(ZETA[CENTRAL] * 100)}% of the extra capital firms want)`} measure={name} value={c} />}
+                          />
+                        ) : null}
+                        {/* the main arm's GDP, wage and GNI: a muted reference
+                            value; their home is the story tile, linked by the chip */}
                         <span
-                          className={`db-value${right ? ' is-right' : ' is-left'}`}
-                          style={right ? { left: pct(outer) } : { right: `calc(100% - ${pct(outer)})` }}
+                          className={`db-value${right ? ' is-right' : ' is-left'}${onSummary(a.id, m.v, rule) ? ' is-ref' : ''}`}
+                          style={{ ...(right ? { left: pct(outer) } : { right: `calc(100% - ${pct(outer)})` }), ...(onSummary(a.id, m.v, rule) ? {} : { color: ARM_TEXT_COLOR[a.id] }) }}
                         >
-                          {fmt(c)}
+                          {fmtHeld(a.id, m.v, main)}
                         </span>
                       </>
                     )}
-                    <span className="visually-hidden">closed capital {fmt(b)}</span>
+                    {showC && showB ? <span className="visually-hidden">{` no foreign capital ${fmtHeld(a.id, m.v, b)}`}</span> : null}
                   </div>
                 </div>
               );
@@ -255,106 +312,3 @@ export function Dumbbells({ sid, hidden = {} }) {
   );
 }
 
-// Axis shorthand under the strip's dots; the full names are SCEN_NAME.
-const STRIP_SHORT = { uk_low: 'Low', uk_central: 'Central', uk_high: 'High', korinek: 'Korinek' };
-
-function DotRow({ v, label, icon, sid, onChoose }) {
-  const pts = SCENARIOS.map((s) => ({ id: s.id, x: gap(s.id, 'tfp', CENTRAL, v) }));
-  const xs = pts.filter((p) => p.x != null).map((p) => p.x);
-  const lo = Math.min(0, ...xs);
-  const hi = Math.max(0, ...xs);
-  const pad = (hi - lo || 1) * 0.12;
-  const frac = (x) => ((x - lo + pad) / (hi - lo + 2 * pad)) * 100;
-  const pct = (x) => `${frac(x).toFixed(2)}%`;
-  // Coincident dots (within 1.5% of the track) stack upwards and share one
-  // name ("High · Central"); names of dots closer than 12% alternate above
-  // and below.
-  const order = pts.filter((p) => p.x != null).sort((a, b) => a.x - b.x);
-  const clusters = [];
-  for (const p of order) {
-    const last = clusters[clusters.length - 1];
-    if (last && frac(p.x) - frac(last[last.length - 1].x) < 1.5) last.push(p);
-    else clusters.push([p]);
-  }
-  const place = {};
-  clusters.forEach((c, ci) => {
-    const below = ci > 0 && frac(c[0].x) - frac(clusters[ci - 1][0].x) < 12 && !place[clusters[ci - 1][0].id]?.below;
-    c.forEach((p, k) => {
-      place[p.id] = { dy: -k * 12, below, name: k === c.length - 1 ? c.map((q) => STRIP_SHORT[q.id]).join(' · ') : null };
-    });
-  });
-  return (
-    <div className="dotrow">
-      <span className="dotrow-label">
-        <Icon name={icon} size={14} />
-        {label}
-      </span>
-      <div className="dotrow-track">
-        <span className="db-zero" style={{ left: pct(0) }} aria-hidden="true" />
-        {pts.map((p) =>
-          p.x == null ? null : (
-            <TipTarget
-              key={p.id}
-              className={`dotrow-dot${p.id === sid ? ' is-on' : ''}`}
-              style={{ left: pct(p.x), marginTop: place[p.id].dy }}
-              label={`${STRIP_LABEL[p.id]}, ${label}: ${fmt(p.x)}. Select this scenario`}
-              onActivate={() => onChoose(p.id)}
-              tip={
-                <>
-                  <b>{STRIP_LABEL[p.id]}</b>
-                  <span>{label}, automation + productivity, central closure, {HEADLINE_YEAR}</span>
-                  <span className="tip-value">{fmt(p.x)}</span>
-                </>
-              }
-            >
-              {place[p.id].name ? (
-                <span className={`dotrow-name${place[p.id].below ? ' is-below' : ''}`} aria-hidden="true">
-                  {place[p.id].name}
-                </span>
-              ) : null}
-            </TipTarget>
-          ),
-        )}
-      </div>
-    </div>
-  );
-}
-
-export function ScenarioStrip({ sid, onChoose }) {
-  return (
-    <div className="scen-strip-wrap is-plain">
-      <div className="dotplot">
-        <DotRow v="GNI" label="GNI" icon="home" sid={sid} onChoose={onChoose} />
-        <DotRow v="w" label="Wage rate" icon="wallet" sid={sid} onChoose={onChoose} />
-      </div>
-      <div className="scen-strip" role="group" aria-label="Choose a scenario">
-        {SCENARIOS.map((s) => {
-          const on = s.id === sid;
-          const g = gap(s.id, 'tfp', CENTRAL, 'GNI');
-          const w = gap(s.id, 'tfp', CENTRAL, 'w');
-          return (
-            <button key={s.id} type="button" className={`scen-col${on ? ' is-on' : ''}`} aria-pressed={on} onClick={() => onChoose(s.id)}>
-              <span className="scen-col-name">{STRIP_LABEL[s.id]}</span>
-              {g == null ? (
-                <span className="scen-col-empty" aria-label="not solved yet" />
-              ) : (
-                <>
-                  <span className="scen-col-line">
-                    <Icon name="home" size={13} />
-                    <span className="scen-col-k">GNI</span>
-                    <span className="scen-col-v">{fmt(g)}</span>
-                  </span>
-                  <span className="scen-col-line">
-                    <Icon name="wallet" size={13} />
-                    <span className="scen-col-k">Wage rate</span>
-                    <span className="scen-col-v">{fmt(w)}</span>
-                  </span>
-                </>
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}

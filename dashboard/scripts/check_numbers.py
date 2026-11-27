@@ -1,17 +1,39 @@
-"""Every number the Results, Public finances and Cohorts tabs print equals
-the data file, and appears exactly as often as expected (each fact once).
+"""Every number the Results and Who gains tabs print equals the data file,
+and appears exactly as often as expected (each fact once).
 
-    python3 scripts/check_numbers.py dump.json [path/to/surprise2028.json]
+    python3 scripts/check_numbers.py dump.json [path/to/surprise20xx.json]
 
-dump.json is scripts/dumptabs.mjs's output. Expected counts: the headline\ndumbbells print each central value once and each closed-capital bound once\n(screen-reader text); the takeaway repeats three of them and the scenario\nstrip shows each scenario's GNI and wage (both asked for by Vahid). Signed figures with a unit
-(+0.57%, -1.6pp) are pulled from the page text as a multiset and compared
-with the multiset built from the data file with the page's own formatting.
+The data file defaults to the active one (scripts/active_data.py: set
+NEXT_PUBLIC_DATA=2027 for surprise2027.json), and so do the solve outputs
+the raw-solve recompute reads (UGAI_OUT overrides them). Without those
+outputs the recompute is reported NOT RUN, never passed.
+
+dump.json is scripts/dumptabs.mjs's output. Where each figure is printed:
+Summary, the three headline tiles (main arm, at the closure picked in the
+header; with Both, the closed-capital value beside it); Income and output,
+the four-measure card (one value per arm and measure at the closure picked;
+with Both, the closed-capital value as screen-reader text; the main arm's
+GDP, wage and GNI as a muted reference row linked to the story); Economy,
+each line's headline-year end label, on all eight tiles (GNI and GDP too); Public finances, the debt/GDP and tax/GDP end labels and the tax
+card (its model figure only with closed capital, when the chart's end
+label is a different number); the foreign-capital dumbbells, last on
+Income, one-decimal values with no unit, checked in order on their own. Signed figures with a unit (+0.57%, -1.6pp) are pulled from the page
+text as a multiset and compared with the multiset built from the data file
+with the page's own formatting.
 """
-import json, re, sys
+import json, os, re, sys
 from collections import Counter
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import active_data  # noqa: E402
 
 dump = json.load(open(sys.argv[1]))
-D = json.load(open(sys.argv[2] if len(sys.argv) > 2 else 'src/data/surprise2028.json'))
+# dumptabs.mjs appends each closed "More info" fold's text after this mark
+# (item-36-fable.md §1.3). The counts below are of the printed figures, so
+# they read the text before it; the fold's text stays in the dump for the
+# checks that only need a figure to be present.
+MORE_MARK = '[[more info]]'
+dump = {sid: {k: (v.split(MORE_MARK)[0] if isinstance(v, str) else v) for k, v in tabs.items()} for sid, tabs in dump.items()}
+D = active_data.load_surprise(sys.argv[2] if len(sys.argv) > 2 else None)
 Y = D['years']; H = D['headline_year']; LATE = D['late_year']
 ARMS = [a['id'] for a in D['arms']]
 C, B = 'zk0.1', 'zk0'
@@ -25,97 +47,183 @@ def g(sid, arm, cl, v, year=H):
     r = D['results'].get(sid, {}).get(arm, {}).get(cl, {'status': 'pending'})
     return r['gaps'][v][Y.index(year)] if r['status'] == 'done' else None
 
+# R4 holds the stress test's headline-year GDP within 0.01pp of zero
+# (surprise.js R4_TOL_PP, review round 3, R3-05): inside it the page prints
+# 0.00% (held), not the solver's residue
+R4_TOL_PP = 0.01
+def held(arm, v, x):
+    return 0.0 if arm == 'ss' and v == 'Y' and x is not None and abs(x) <= R4_TOL_PP else x
+
 NUM = re.compile(r"[+−]?\d+\.\d+(?:%|pp)")
+# the economy wall: every tile's lines end in their headline-year value,
+# national income (NNI, M1: it leads, GNI beside it in the open tile's
+# finding) and GDP included (item 13, 18 Nov: values on every panel)
+ECON = [('NNI', '%', 1), ('Y', '%', 1), ('C', '%', 1), ('I', '%', 1), ('K', '%', 1), ('L', '%', 1), ('r_bp', 'pp', 0.01), ('labour_share_pp', 'pp', 1)]
+SUBS = ['summary', 'income', 'economy', 'finances']
 bad = 0
-for sid in dump:
+
+WINDOW = [y for y in Y if D['window'][0] <= y <= D['window'][1]]
+
+def coincides(sid, arm, cl, v, k, years=None):
+    path = lambda a: [g(sid, a, cl, v, yr) for yr in (years or WINDOW)]
+    mine = path(arm)
+    for a in ARMS[:ARMS.index(arm)]:
+        other = path(a)
+        if None in other or None in mine:
+            continue
+        if signed(mine[-1] * k, 2) == signed(other[-1] * k, 2) and all(abs(p * k - q * k) < 0.005 for p, q in zip(mine, other)):
+            return True
+    return False
+
+def expected(sid, mode):
+    """The figures Results prints for a scenario with the closure picker at mode."""
     exp = Counter()
     def add(x, dp, unit):
         if x is not None:
             exp[signed(x, dp) + unit] += 1
-    # Overview landing: the three KPI tiles (main arm, central closure). The
-    # "Why" bullets print no figure: the labour-share move's home is By variable.
-    for v in ['Y', 'w', 'GNI']:
-        add(g(sid, 'tfp', C, v), 2, '%')
+    main = B if mode == 'closed' else C          # the closure single values read
+    shown = [C, B] if mode == 'both' else [main]  # dumbbell markers (B as screen-reader text with Both)
+    # Summary: the headline stat list (22 Nov, "consilidate"): GDP, the pay
+    # rate and national income (NNI, M1), with Both the no-foreign-capital
+    # value beside each; GNI in national income's note ("before
+    # depreciation"); consumption in the headline year, a row of its own
+    # whenever solved (no GDP beside it now); public debt in the late year,
+    # pp, at the OBR's repricing pace where the data has it, else the
+    # model's own
+    for v in ['Y', 'w', 'NNI']:
+        add(g(sid, 'tfp', main, v), 2, '%')
+        if mode == 'both':
+            add(g(sid, 'tfp', B, v), 2, '%')
+    if g(sid, 'tfp', main, 'NNI') is not None:
+        add(g(sid, 'tfp', main, 'GNI'), 2, '%')
+    add(g(sid, 'tfp', main, 'C'), 2, '%')
+    if g(sid, 'tfp', main, 'debt_gdp_pp', LATE) is not None:
+        obr = D['results'][sid]['tfp'][main].get('debt_gdp_pp_obr_repricing_late')
+        add(obr if isinstance(obr, (int, float)) else g(sid, 'tfp', main, 'debt_gdp_pp', LATE), 2, 'pp')
     for arm in ARMS:
-        # dumbbells: central label and closed-capital bound (screen-reader text)
+        # Income and output: the four-measure card. The main arm's GDP, wage
+        # and GNI have their home in the story's headline tiles; the card
+        # prints them as one muted reference row linked to that home (the
+        # reference-row rule: one per comparison chart).
         for v in ['GNI', 'Y', 'NNI', 'w']:
-            for cl in (C, B):
-                add(g(sid, arm, cl, v), 2, '%')
-        # small multiples: 2031 end labels, central closure
-        for v, unit, k in [('C', '%', 1), ('I', '%', 1), ('K', '%', 1), ('L', '%', 1), ('r_bp', 'pp', 0.01), ('labour_share_pp', 'pp', 1)]:
-            x = g(sid, arm, C, v)
-            if x is not None: add(x * k, 1, unit)
-        # public finances: debt/GDP 2036 and tax/GDP 2031 end labels
-        add(g(sid, arm, C, 'debt_gdp_pp', LATE), 2, 'pp')
-        add(g(sid, arm, C, 'tax_gdp_pp', H), 2, 'pp')
-    # the tax-bias card: model tax/GDP 2031 (main arm) and the top of the
-    # rough UK-rates range, labour-share fall x 0.23 (the bottom prints
-    # without a unit)
+            for cl in shown:
+                add(held(arm, v, g(sid, arm, cl, v)), 2, '%')
+        # Economy: headline-year end labels (the central line with Both)
+        for v, unit, k in ECON:
+            x = g(sid, arm, main, v)
+            # an arm whose path coincides with an earlier arm's (within half the
+            # last printed digit in every year, same printed end value) prints
+            # no end value (ResultsTab)
+            if x is not None and not coincides(sid, arm, main, v, k): add(held(arm, v, x) * k, 2, unit)  # Economy end labels, 2dp (ResultsTab endDp)
+        # Public finances: debt/GDP late-year and tax/GDP headline-year end labels
+        if not coincides(sid, arm, main, 'debt_gdp_pp', 1, [y for y in Y if D['window'][0] <= y <= LATE]):
+            add(g(sid, arm, main, 'debt_gdp_pp', LATE), 2, 'pp')
+        if not coincides(sid, arm, main, 'tax_gdp_pp', 1):
+            add(g(sid, arm, main, 'tax_gdp_pp', H), 2, 'pp')
+    # the tax card stays central: the rough UK-rates range, labour-share
+    # fall x 0.19 to x 0.23 (both ends carry the unit and are checked). Its first
+    # row prints the model's central tax/GDP (main arm) at its mark in every
+    # case (22 Nov: the value was missing; a small "see chart" link stays)
     add(g(sid, 'tfp', C, 'tax_gdp_pp', H), 2, 'pp')
     ls = g(sid, 'tfp', C, 'labour_share_pp')
     if ls is not None:
+        add(ls * 0.19, 2, 'pp')
         add(ls * 0.23, 2, 'pp')
-    text = '\n'.join(v for k, v in dump[sid].items() if k.startswith('results') and k.count(':') < 2)
-    got = Counter(NUM.findall(text))
-    if got != exp:
-        bad += 1
-        print(sid, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
-    else:
-        print(sid, 'ok:', sum(exp.values()), 'figures, each as often as expected')
-    # a pending tile prints "pending", never a number
+    # and OG-UK's labour vs capital effective tax-rate gap on the path in the
+    # headline year, central closure (one decimal, unsigned): the causes chart
+    etr = D['closures'][C]['reference_effective_tax_rates']
+    exp[f"{etr['labour'] - etr['capital_gross']:.1f}pp"] += 1
+    # (the card's separate "taxes labour ...pp more" bullet is gone, 22 Nov:
+    # row 2 says it, so the gap prints once)
+    # and PolicyEngine UK's average employer NICs rate, % of earnings (one
+    # decimal): the causes chart's NICs row, from analysis/nics/nics_<year>.json
+    # (copied to src/tabs/explore/nics<year>.json); OG-UK's flat rate prints
+    # as a whole number
+    nics = active_data.load_nics()
+    exp[f"{nics['avg_employer_rate_on_employment_income'] * 100:.1f}%"] += 1
+    return exp
+
+for sid in dump:
+    for mode in ('central', 'closed', 'both'):
+        keys = [f'results:{s_}' + ('' if mode == 'central' else f':{mode}') for s_ in SUBS]
+        if any(k not in dump[sid] for k in keys):
+            bad += 1; print(sid, mode, 'not in the dump'); continue
+        exp = expected(sid, mode)
+        got = Counter(NUM.findall('\n'.join(dump[sid][k] for k in keys)))
+        if got != exp:
+            bad += 1
+            print(sid, mode, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
+        else:
+            print(sid, mode, 'ok:', sum(exp.values()), 'figures, each as often as expected')
+    # a pending value prints "not yet solved" (surprise.js PENDING), never a number
     n_pending = sum(1 for arm in ARMS for v in ['GNI', 'Y', 'NNI', 'w'] for cl in (C, B) if g(sid, arm, cl, v) is None)
-    if dump[sid].get('results:overview', dump[sid].get('results', '')).count('pending') < n_pending:
+    if dump[sid].get('results:income:both', '').count('not yet solved') < n_pending:
         bad += 1; print(sid, 'too few "pending" on Results')
 # Every finished gap in the data file equals the raw solve over its
 # continuation (as the session's check_numbers.py did).
-import os
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'analysis', 'surprise', 'output')
+OUT = active_data.OUT
 raw_bad = 0
-for sid, arms in D['results'].items():
+raw_run = 0
+if not active_data.HAVE_OUT:
+    print('raw-solve recompute: NOT RUN, no solve outputs at', OUT)
+for sid, arms in (D['results'].items() if active_data.HAVE_OUT else []):
     for a, cls in arms.items():
         for cl, r in cls.items():
             if r['status'] != 'done':
                 continue
+            raw_run += 1
             s_ = json.load(open(f"{OUT}/{cl}/{r['label']}.json"))['series']
             b_ = json.load(open(f"{OUT}/{cl}/continuation.json"))['series']
             for v in ['Y', 'GNI', 'NNI', 'w', 'C', 'I', 'K', 'L']:
                 for k in range(len(Y)):
                     if abs((s_[v][k] / b_[v][k] - 1) * 100 - r['gaps'][v][k]) > 1e-9:
                         raw_bad += 1
-print('raw-solve recompute mismatches:', raw_bad)
+print('raw-solve recompute mismatches:', raw_bad, f'({raw_run} done cells checked)')
 
-# The closure selector: By variable and Public finances with closed capital
-# (end labels are the closed-capital values; the tax-bias card stays
-# central) and with both (end labels on the central lines only).
+# The foreign-capital dumbbells (Income and output, last card,
+# ClosureSlope.jsx): a row per measure and version, each with its some- and
+# no-foreign-capital value at the headline year to one decimal and no unit
+# (so outside NUM and the multiset above). The card's text runs from its
+# title to its note under the figure ("Each row shows"); its one-decimal
+# figures there, in order, are the rows' values (GDP, NNI, GNI, pay rate;
+# versions in data order; some, then none; a missing value prints no
+# figure). The axis ("Forecast path", the ticks) is data-axis, which the
+# dump leaves out. A scenario with no main-case value shows no figure.
+SLOPE_TITLE = 'Some foreign capital to no foreign capital'
+ONE_DP = re.compile(r"(?<![\d.])[+−]?\d+\.\d(?![\d%p])")
+def end_text(x):
+    a = f"{abs(x):.1f}"
+    return '0.0' if float(a) == 0 else ('+' if x > 0 else '−') + a
 for sid in dump:
-    for mode in ('closed', 'both'):
-        if f'results:variables:{mode}' not in dump[sid]:
+    for mode in ('', ':closed', ':both'):
+        t = dump[sid].get(f'results:income{mode}', '')
+        k = t.find('Each row shows')
+        j = t.rfind(SLOPE_TITLE, 0, k) if k >= 0 else -1
+        want = []
+        for v in ['Y', 'NNI', 'GNI', 'w']:
+            for arm in ARMS:
+                c, b_ = g(sid, arm, C, v), g(sid, arm, B, v)
+                if c is not None:
+                    want.append(end_text(c))
+                    if b_ is not None:
+                        want.append(end_text(b_))
+        if j < 0:
+            if want:
+                bad += 1; print(sid, mode or 'central', 'foreign-capital dumbbells not found on Income')
             continue
-        cl = B if mode == 'closed' else C
-        exp = Counter()
-        for arm in ARMS:
-            for v, unit, k in [('C', '%', 1), ('I', '%', 1), ('K', '%', 1), ('L', '%', 1), ('r_bp', 'pp', 0.01), ('labour_share_pp', 'pp', 1)]:
-                x = g(sid, arm, cl, v)
-                if x is not None: exp[signed(x * k, 1) + unit] += 1
-            for v, yr in [('debt_gdp_pp', LATE), ('tax_gdp_pp', H)]:
-                x = g(sid, arm, cl, v, yr)
-                if x is not None: exp[signed(x, 2) + 'pp'] += 1
-        x = g(sid, 'tfp', C, 'tax_gdp_pp', H)
-        if x is not None: exp[signed(x, 2) + 'pp'] += 1
-        ls = g(sid, 'tfp', C, 'labour_share_pp')
-        if ls is not None: exp[signed(ls * 0.23, 2) + 'pp'] += 1
-        text = dump[sid][f'results:variables:{mode}'] + '\n' + dump[sid][f'results:finances:{mode}']
-        got = Counter(NUM.findall(text))
-        if got != exp:
-            bad += 1
-            print(sid, mode, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
+        got = ONE_DP.findall(t[j:k])
+        if got != want:
+            bad += 1; print(sid, mode or 'central', 'foreign-capital dumbbells: expected', want, 'got', got)
         else:
-            print(sid, mode, 'ok:', sum(exp.values()), 'figures')
-# The spending-rule card with a rule chosen (Public finances): a solved
-# variant prints the headline-year GDP, GNI, wage and consumption gaps of
-# each arm for the closure(s) in view, once each, and only for the scenarios
-# the variant is solved for; an unsolved rule or scenario prints no figure.
-RULE_BTN = {'debt_neutral': 'Debt-neutral'}
+            print(sid, mode or 'central', 'foreign-capital dumbbells ok:', len(want), 'values')
+
+# The fiscal-rule box with a rule chosen (Public finances; none under the
+# common rule): every chart
+# follows the rule, so the card prints how far the rule moves each arm's
+# headline-year GDP, GNI, wage and consumption gap against the common rule
+# (pp), for the closure(s) in view, once each, and only for the scenarios the
+# variant is solved for; an unsolved rule or scenario prints no figure.
+RULE_BTN = {'debt_neutral': 'dn', 'fixed_spending': 'fixed'}
 for rid, rule in D.get('rules', {}).items():
     for sid in dump:
         for mode, cls in (('central', [C]), ('closed', [B]), ('both', [C, B])):
@@ -128,7 +236,7 @@ for rid, rule in D.get('rules', {}).items():
                     r = rule['results'].get(sid, {}).get(arm, {}).get(cl, {'status': 'pending'})
                     if r['status'] == 'done':
                         for v in ['Y', 'GNI', 'w', 'C']:
-                            exp[signed(r['gaps'][v][Y.index(H)], 2) + '%'] += 1
+                            exp[signed(r['gaps'][v][Y.index(H)] - g(sid, arm, cl, v), 2) + 'pp'] += 1
             got = Counter(NUM.findall(dump[sid][key]))
             if got != exp:
                 bad += 1
@@ -139,7 +247,7 @@ for rid, rule in D.get('rules', {}).items():
     for sid, arms in rule['results'].items():
         for a, by_cl in arms.items():
             for cl, r in by_cl.items():
-                if r['status'] != 'done':
+                if r['status'] != 'done' or not active_data.HAVE_OUT:
                     continue
                 s_ = json.load(open(f"{OUT}/{cl}/{r['label']}.json"))['series']
                 b_ = json.load(open(f"{OUT}/{cl}/continuation.json"))['series']
@@ -147,33 +255,173 @@ for rid, rule in D.get('rules', {}).items():
                     for k in range(len(Y)):
                         if abs((s_[v][k] / b_[v][k] - 1) * 100 - r['gaps'][v][k]) > 1e-9:
                             bad += 1; print('raw-solve mismatch', rid, sid, a, cl, v)
-for sid in dump:
-    t = dump[sid].get('results:finances:central:Fixed spending')
-    if t is not None and (NUM.findall(t) or 'No solve for this rule yet' not in t):
-        bad += 1; print(sid, 'fixed spending should print no figure and say it is not solved')
-# The Cohorts tab (default view: central closure, debt-neutral, main arm)
+# The Who gains tab (default view: central closure, debt-neutral, main arm)
 # prints, once each: the average, the no-bequest average, the average with
 # the post-2035 cost charged (a range), the capital and labour sources, the
 # bottom and top earnings groups, and the 45-year-old's transfer cost. Two
 # different facts can round to the same figure (the no-bequest average and
-# the top 1%), so this is a multiset. The by-form parts sit in a closed fold
-# and are not in the page text.
-CO = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'data', 'cohorts2028.json')))
+# the top 1%), so this is a multiset. The welfare breakdown card's parts
+# (consumption, leisure, bequests: parts_alive) print once, at each bar's
+# end, at the central closure (with Both too); its Total row restates the
+# average tile and is marked data-axis, so dumptabs leaves it out.
+CO = active_data.load_cohorts()
+def tiles(c, cl=None):
+    exp = Counter(signed(x, 2) + '%' for x in [c['alive_avg'], c['no_bequest_alive_avg'], c['sources_alive']['capital'], c['sources_alive']['labour']])
+    # where the cell is solved to the horizon (cohorts2028.json `dnfull`) that
+    # replaces the first-order charge-back on the page
+    full = CO.get('dnfull') or {}
+    solved = full.get('ready') and full.get('closure') == cl and full.get('rule') == 'dn' and full.get('arm') == 'tfp'
+    rng = full['range'] if solved else c.get('charged')
+    # "Both" (no_bequest_avg) and, since review round 1 (R1-10), "Transfers
+    # pay" (joint_avg): each a range, an equal low and high printed once
+    for key in ('no_bequest_avg', 'joint_avg'):
+        if rng and rng.get(key):
+            lo, hi = (signed(x, 2) + '%' for x in rng[key])
+            for t in {lo, hi}:
+                exp[t] += 1
+    return exp
+# What drives the result (item 21; Who cards, Fable 5.2 ruling for Vahid):
+# the bottom and top earnings groups (box B), the consumption card's two
+# stats (box A: the first c_gap year, then the year consumption first rises
+# above the path, first_year_c_above, or with no such year the last c_gap
+# year's gap; CohortsTab consumptionStats), card 3's pair and the stress
+# test at ages 20 and 65 (box D). The crossing year is not a percentage, so
+# it is checked on its own below. Card 3's pair under debt-neutral
+# transfers is the age-45 transfer change over the window (the cell's
+# income_* key, as lib/dataKeys.js windowIncomeOf reads it: bottom 25% and
+# top 1%), now on the card's face; More info no longer prints it. Under the
+# common rule the pair is the public debt gap in pp ("+1.99 pp", with a
+# space, so NUM does not read it) and the default view is debt-neutral.
+def why(c, cl=C, rule='dn'):
+    s = CO['closures'][cl]['rules'][rule]['stress']
+    xs = CO['closures'][cl]['birth_year']
+    ys = sorted(c['c_gap'], key=int)
+    vals = [c['alive_by_group'][0], c['alive_by_group'][6], c['c_gap'][ys[0]]]
+    if c.get('first_year_c_above') is None:
+        vals.append(c['c_gap'][ys[-1]])
+    if rule == 'dn':
+        inc = c[next(k for k in c if k.startswith('income_'))]
+        vals += [inc['transfers'][0], inc['transfers'][6]]
+    vals += [s['cev_all'][xs.index(CO['shock_year'] - 20)], s['cev_all'][xs.index(CO['shock_year'] - 65)]]
+    return Counter(signed(x, 2) + '%' for x in vals)
 c = CO['closures'][C]['rules']['dn']['tfp']
-exp = Counter(signed(x, 2) + '%' for x in [c['alive_avg'], c['no_bequest_alive_avg'], c['alive_by_group'][0], c['alive_by_group'][6],
-                                           c['sources_alive']['capital'], c['sources_alive']['labour']])
-if c.get('charged'):
-    lo, hi = (signed(x, 2) + '%' for x in c['charged']['no_bequest_avg'])
-    for t in {lo, hi}:  # an equal low and high print once
-        exp[t] += 1
-for x in (c['income_2028_35_age45']['transfers'][0], c['income_2028_35_age45']['transfers'][6]):
-    exp[f"{abs(x):.1f}%"] += 1
+def parts(c):
+    return Counter(signed(c['parts_alive'][k], 2) + '%' for k in ('consumption', 'leisure', 'bequests'))
+# With Closure = Both (who:both) the tiles print once per closure; the Why
+# cards stay at the central closure.
+EXPECT = {'who': tiles(c, C) + why(c) + parts(c), 'who:both': tiles(c, C) + tiles(CO['closures'][B]['rules']['dn']['tfp'], B) + why(c) + parts(c)}
 for sid in dump:
-    got = Counter(NUM.findall(dump[sid].get('cohorts', '')))
-    if got != exp:
-        bad += 1
-        print(sid, 'cohorts missing:', dict(exp - got), 'extra:', dict(got - exp))
-    else:
-        print(sid, 'cohorts ok:', sum(exp.values()), 'figures')
+    for key, exp in EXPECT.items():
+        got = Counter(NUM.findall(dump[sid].get(key, '')))
+        if got != exp:
+            bad += 1
+            print(sid, key, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
+        else:
+            print(sid, key, 'ok:', sum(exp.values()), 'figures')
+# The consumption card's crossing year (box A): with first_year_c_above set,
+# "First year above the path" is printed once with that year and the
+# fallback ("the last year shown") is not; with none, the label is absent.
+CROSS = re.compile(r"First year above the path\s*(\d{4})")
+cross = c.get('first_year_c_above')
+bad_cross = bad
+for sid in dump:
+    for key in EXPECT:
+        t = dump[sid].get(key, '')
+        got = CROSS.findall(t)
+        if cross is not None:
+            ok = got == [str(cross)] and 'the last year shown' not in t
+        else:
+            ok = not got
+        if not ok:
+            bad += 1; print(sid, key, 'crossing year: printed', got, 'expected', cross)
+# The data behind it, every cell with a consumption line: no c_gap year
+# before the crossing year is above the path (to 2 dp), the crossing year's
+# gap is above 0 when it is a c_gap year, and with no crossing year no
+# c_gap year is above 0.
+last_cg = None
+for cl_, cd in CO['closures'].items():
+    for rule_, rd in cd['rules'].items():
+        for arm_, cell in rd.items():
+            if not isinstance(cell, dict) or not cell.get('c_gap'):
+                continue
+            yr = cell.get('first_year_c_above')
+            cg = {int(k): v for k, v in cell['c_gap'].items()}
+            last_cg = max(cg)
+            if yr is None:
+                above = [k for k, v in cg.items() if round(v, 2) > 0]
+            else:
+                above = [k for k, v in cg.items() if k < yr and round(v, 2) > 0] + ([yr] if yr in cg and not cg[yr] > 0 else [])
+            if above:
+                bad += 1; print('crossing year: data inconsistent', cl_, rule_, arm_, 'crossing', yr, 'at', above)
+if cross is not None:
+    tail = f' (checked against the field only: it lies after the last c_gap year, {last_cg})' if last_cg is not None and cross > last_cg else ''
+    print(f'who crossing year ok: {cross}{tail}' if bad == bad_cross else f'who crossing year: {cross}{tail}')
+# Across scenarios (#explore-part-all: on Economy, and on the All scenarios
+# sub-tab while it exists; results:all) prints:
+#   - the zk0.5 sensitivity dot rows: each scenario and arm's headline-year
+#     GDP, GNI, NNI and wage gaps once, every shown gap equal to its raw solve
+#     over that closure's continuation;
+#   - the matrix explorer at load (main arm, GDP): every solved scenario x
+#     closure x fiscal-rule cell's headline-year gap once, the cell in view
+#     too (the address's scenario, central closure, common rule): its figure
+#     has its home in the story's headline tiles, and the matrix prints it as
+#     a muted reference value linked to that home (reference-row rule).
+# Method no longer prints the table.
+RULE_RES = {'common': D['results'], **{k: v['results'] for k, v in (('fixed', D.get('rules', {}).get('fixed_spending', {})), ('dn', D.get('rules', {}).get('debt_neutral', {}))) if v}}
+def matrix(view):
+    exp = Counter()
+    for rule, res in RULE_RES.items():
+        for sid_ in res:
+            for cl_ in (C, B):
+                r = res.get(sid_, {}).get('tfp', {}).get(cl_, {'status': 'pending'})
+                if r['status'] == 'done':
+                    exp[signed(r['gaps']['Y'][Y.index(H)], 2) + '%'] += 1
+    return exp
+for cl, sens in D.get('sensitivity', {}).items():
+    exp = Counter()
+    for sid, arms in sens['results'].items():
+        for a, r in arms.items():
+            if r['status'] != 'done':
+                continue
+            for v in ['Y', 'GNI', 'NNI', 'w']:
+                exp[signed(r['gaps'][v][Y.index(H)], 2) + '%'] += 1
+            if not active_data.HAVE_OUT:
+                continue
+            s_ = json.load(open(f"{OUT}/{cl}/{r['label']}.json"))['series']
+            b_ = json.load(open(f"{OUT}/{cl}/continuation.json"))['series']
+            for v in ['Y', 'GNI', 'NNI', 'w', 'C', 'I', 'K', 'L']:
+                for k in range(len(Y)):
+                    if abs((s_[v][k] / b_[v][k] - 1) * 100 - r['gaps'][v][k]) > 1e-9:
+                        bad += 1; print('raw-solve mismatch', cl, sid, a, v)
+    for sid in dump:
+        if 'results:all' not in dump[sid]:
+            bad += 1; print(sid, 'results:all not in the dump'); continue
+        got = Counter(NUM.findall(dump[sid]['results:all']))
+        want = exp + matrix(sid)
+        if got != want:
+            bad += 1
+            print(sid, 'all scenarios', cl, 'missing:', dict(want - got), 'extra:', dict(got - want))
+        else:
+            print(sid, 'all scenarios', cl, 'ok:', sum(want.values()), 'figures')
+        # Method's other figures (rates, shares) are not two-decimal gaps,
+        # except the stress-test arm card (Scenarios, in OG-UK method): UK
+        # central's output at fixed inputs against technology unchanged,
+        # once per closure (fixedInputVsTz: Z_terminal of 'ss' over 'tz')
+        left = Counter(re.findall(r"[+−]\d+\.\d\d%", dump[sid].get('method', '')))
+        stress = Counter()
+        for scl, ss in D['results']['uk_central'].get('ss', {}).items():
+            tz = D['results']['uk_central'].get('tz', {}).get(scl, {})
+            if ss.get('status') == 'done' and tz.get('status') == 'done':
+                stress[signed((ss['Z_terminal'] / tz['Z_terminal'] - 1) * 100, 2) + '%'] += 1
+        if left != stress:
+            bad += 1; print(sid, 'method gaps: expected the stress-test pair', dict(stress), 'got', dict(left))
+
+# The story's parts 1 and 3, and any later part, are checked by their own
+# modules in scripts/checks/ (one writer each): check(dump) -> failures.
+import importlib, pkgutil
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import checks
+for m in sorted(pkgutil.iter_modules(checks.__path__), key=lambda m: m.name):
+    bad += importlib.import_module(f'checks.{m.name}').check(dump)
 bad += raw_bad
-print('FAIL' if bad else 'PASS'); sys.exit(1 if bad else 0)
+print('FAIL' if bad else ('PASS' if active_data.HAVE_OUT else 'PASS on the dump only: raw-solve recompute NOT RUN')); sys.exit(1 if bad else 0)

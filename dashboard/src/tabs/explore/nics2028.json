@@ -1,0 +1,20 @@
+{
+ "year": 2028,
+ "utc": "2026-11-12T15:38:25Z",
+ "employment_income_bn": 1329.8267209567682,
+ "employer_nics_bn": 163.72389934523156,
+ "employee_class1_nics_bn": 54.15362945708835,
+ "all_nics_bn": 220.77116715759493,
+ "avg_employee_rate_on_employment_income": 0.04072232013666151,
+ "avg_employer_rate_on_employment_income": 0.12311671646019971,
+ "avg_employer_rate_on_total_labour_cost": 0.10962058943280151,
+ "marginal_employer_rate_earnings_weighted": 0.13911903591620897,
+ "marginal_employee_rate_earnings_weighted": 0.04611803431754474,
+ "share_of_earners_with_employer_marginal_15pct": 0.8278250549140599,
+ "nics_share_of_pe_gov_tax": 0.20702591632775147,
+ "pe_gov_tax_bn": 1066.3938654331703,
+ "obr_nics_bn_approx": 180.0,
+ "oguk_tau_payroll": 0.15,
+ "perturbed_input": "employment_income_before_lsr",
+ "delta_gbp": 100.0
+}

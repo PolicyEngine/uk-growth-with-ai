@@ -1,0 +1,744 @@
+// Story part 3 (round 2): four Scrolly scenes in the paper's order, the
+// last ("What changes the answer", the old rules, margin and moves scenes)
+// at most four steps and the others at most two, each one sentence naming
+// the marks it lights, no folds,
+// one source line per figure; it prints the uk-ai-study headline findings
+// from aiStudy2425.json once each (the detail, take-up and JSA and the
+// lost-pound Sankey included, is on Explore > Households), decile 1 with its
+// value and caveat, and a plain list of what the study leaves out. The close
+// is one header and one ruled table.
+import { afterEach, describe, expect, it } from 'vitest';
+import { act, cleanup, fireEvent, render } from '@testing-library/react';
+import D from '@/data/aiStudy2425.json';
+import Part3 from './Part3.jsx';
+import { FIG, counts, storyFigures } from '@/tabs/households/figures.js';
+import { CENTRAL_RATE, CENTRAL_SUB, DISPLACED_TILES, centralRate, centralTiles } from './part3/Central.jsx';
+import { CHANNELS_SUB, waterfall } from './part3/Channels.jsx';
+import { BREAKS, CHANGES_STEPS, PANEL_OF, changesSub, marginClaims, rulesClaims } from './part3/Changes.jsx';
+import { CHANNEL_STEPS, effectWords, fillFor } from './part3/Channels.jsx';
+import { stepsWithoutHighlight } from '@/components/story/highlight.jsx';
+import { DECILES_SUB, bottomDecileRankings, decileShape } from './part3/Deciles.jsx';
+import Closing, { CLOSING_SUB, LEFT_OUT, OUT_GROUPS } from './part3/Closing.jsx';
+import StoryTab from './StoryTab.jsx';
+import { NavProvider } from '@/lib/nav.jsx';
+import { MODEL_YEAR, PROVISIONAL, ladder, rule } from './part3/shared.jsx';
+import TwoLenses, { CLOSE_NEXT, CLOSE_SUB, CLOSE_WHY, LENSES, PAY_RESULT, closeWhy } from './TwoLenses.jsx';
+import { SURPRISE_YEAR, YEARS } from '@/tabs/ai/surprise.js';
+import { readFileSync } from 'node:fs';
+import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtGini, fmtMonths, fmtPct1, fmtPctSigned0, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp, fmtShare, MINUS } from './part3/format.js';
+import { fmtGiniLevel, fmtGiniPts, giniLevel } from '@/tabs/households/figures.js';
+
+afterEach(cleanup);
+
+// The part as StoryTab passes it (not imported, so other parts' edits cannot break this test).
+const SRC = readFileSync('src/tabs/story/TwoLenses.jsx', 'utf8');
+const PART = { id: 'story-part-3', n: 3, icon: 'usersRound', kicker: 'Part 3', title: 'A model of households' };
+const renderPart = () => render(<Part3 part={PART} />);
+// The text a number check reads: axis labels and quoted inputs removed.
+const checkedText = (container, extra = '') => {
+  const c = container.cloneNode(true);
+  // a figure's notes behind its "Sources and notes" button are read as
+  // present (SourceLine's hidden record), as the page's number check does
+  c.querySelectorAll('[data-source-notes]').forEach((n) => n.removeAttribute('hidden'));
+  c.querySelectorAll(`[data-axis], [data-input], [hidden]${extra}`).forEach((n) => n.remove());
+  // block elements end a line, as innerText does in the browser
+  c.querySelectorAll('li, p, div').forEach((n) => n.append(' '));
+  return c.textContent;
+};
+
+describe('format', () => {
+  it('formats with U+2212 minus and the stated shapes', () => {
+    expect(fmtBn(7.38)).toBe('£7.4bn');
+    expect(fmtBn(-10.4)).toBe(`${MINUS}£10.4bn`);
+    expect(fmtPp(2.34)).toBe('+2.34pp');
+    expect(fmtPp(-0.01)).toBe(`${MINUS}0.01pp`);
+    expect(fmtPence(28.8)).toBe('29p');
+    expect(fmtShare(47.9)).toBe('48%');
+    expect(fmtGbp(1385)).toBe('£1,385');
+    expect(fmtDecilePct(-2.86)).toBe(`${MINUS}2.86%`);
+    expect(fmtBn2(0.1502)).toBe('£0.15bn');
+    expect(fmtPct1(11.401)).toBe('11.4%');
+    expect(fmtPctSigned1(3.73)).toBe('+3.7%');
+    expect(fmtGini(0.3021)).toBe('0.302');
+    expect(fmtMonths(9.36)).toBe('9.4 months');
+    expect(fmtPenceRange(40.6, 43.0)).toBe('41p–43p');
+  });
+});
+
+describe('Part3', () => {
+  it('titles each figure with a finding true of the data file (story-finding-titles-fable.md)', () => {
+    const { container } = renderPart();
+    const titles = [...container.querySelectorAll('.story-figure-title, .p3-group-head.p3-group-first')].map((t) => {
+      const c = t.cloneNode(true);
+      c.querySelectorAll('button, [class^="src-"], [hidden], .p3-head-actions').forEach((x) => x.remove());
+      return c.textContent.replace(/\s+/g, ' ').trim();
+    });
+    const H = D.headline;
+    expect(H.central_poverty.value).toBeGreaterThan(H.central_poverty_relative.value);
+    expect(D.sankey.total.tax_ni_bn).toBeGreaterThan(D.sankey.total.benefits_bn);
+    expect(D.deciles.values.slice(1, 9).every((v) => v < 0)).toBe(true);
+    expect(titles).toEqual(
+      expect.arrayContaining([
+        'Absolute poverty rises more than relative poverty',
+        'Two assumed gains offset most of job loss’s cost',
+        'Disposable income falls in every decile from 2 to 9',
+        'Lower tax absorbs more of the lost earnings than benefits',
+        'The cost changes with every assumption tested',
+        'The main case’s cost sits between the other rules’',
+        'Wage cuts of the same size raise poverty far less',
+        'Any one of three changes brings the cost to zero',
+      ]),
+    );
+    expect(container.querySelector('[data-title-fallback]')).toBeNull();
+    expect(CHANNELS_SUB.answer).toBe('Both gains are assumptions, not results: without them the cost is the first bar.');
+  });
+  it('prints every figure at its home exactly once, and nothing else', () => {
+    const { container } = renderPart();
+    const text = checkedText(container);
+    const got = counts(text.match(FIG) ?? []);
+    const exp = counts(storyFigures());
+    const off = [...new Set([...Object.keys(got), ...Object.keys(exp)])].filter((k) => got[k] !== exp[k]);
+    expect(off.map((k) => `${k}: printed ${got[k] ?? 0}, expected ${exp[k] ?? 0}`)).toEqual([]);
+    // the Gini level on the 0 to 100 scale of its change (R1-06)
+    expect(text).toContain(`from ${fmtGiniLevel(giniLevel(D.baseline.gini))}`);
+    expect(text).not.toContain(`from ${fmtGini(D.baseline.gini.value)}`);
+    expect(text).toContain(fmtMonths(D.breakeven.duration.value_months));
+    expect(text).not.toMatch(/NaN|undefined/);
+  });
+
+  it('prints the headline figures the paper prints', () => {
+    const text = checkedText(renderPart().container);
+    // read from the data, so the test follows a rerun of the study
+    const H = D.headline;
+    const L = (id) => ladder(id);
+    for (const s of [
+      fmtBn(H.central_cost.value),
+      fmtPp(H.central_poverty.value),
+      fmtPct1(D.baseline.absolute_bhc_pct.value),
+      fmtPct1(D.baseline.relative_bhc_pct.value),
+      fmtGiniPts(H.central_gini.value),
+      fmtGiniLevel(giniLevel(D.baseline.gini)),
+      fmtBn(D.channels.rows.find((r) => r.id === 'displacement').cost_bn),
+      fmtBn(D.channels.rows.find((r) => r.id === 'wage').cost_bn),
+      fmtBn(D.channels.rows.find((r) => r.id === 'capital').cost_bn),
+      fmtPctSigned0(D.breakeven.capital.value_pct),
+      fmtPence(D.per_pound_20.job_loss.government_p),
+      fmtPenceRange(D.per_pound_20.job_loss.min_p, D.per_pound_20.job_loss.max_p),
+      fmtPence(D.per_pound.find((r) => r.id === 'wage_cuts').government_p),
+      fmtPctSigned1(D.breakeven.wage.value_pct),
+      fmtMonths(D.breakeven.duration.value_months),
+      fmtPp(L('central_20').poverty_pp),
+    ])
+      expect(text, s).toContain(s);
+    // full take-up and JSA print on Explore > Households, not here; the lost-pound Sankey is back here (item 19)
+    for (const s of [fmtBn(L('takeup').cost_bn), fmtBn(L('takeup_jsa').cost_bn)]) expect(text, s).not.toContain(s);
+    expect(text).toContain(fmtBn(D.sankey.total.earnings_lost_bn));
+  });
+
+  it('runs four Scrolly scenes in the paper order; one step, one sentence, one highlight', () => {
+    const { container } = renderPart();
+    const topics = [...container.querySelectorAll('.scrolly > .scene-head[data-scene]')].map((h) => h.dataset.scene);
+    expect(topics).toEqual(['The main case', 'Three channels', 'Where the loss falls', 'Where a lost pound goes', 'What changes the answer']);
+    // the leaves-out list is its own section after the part (push D, Q4)
+    expect(container.querySelector('#p3-close-h, .p3-close')).toBeNull();
+    // at most two steps a scene, four in the merged one; the step ids links point at are kept
+    for (const s of container.querySelectorAll('.scrolly')) expect(s.querySelectorAll('.scrolly-step').length, s.id).toBeLessThanOrEqual(s.id === 'p3-changes' ? 4 : 2);
+    for (const id of ['p3-central-step', 'p3-channels-step', 'p3-deciles-step', 'p3-rules-step', 'p3-margin-step', 'p3-moves-step']) expect(container.querySelector(`#${id}`), id).not.toBeNull();
+    expect(container.querySelector('#p3-absorb, #p3-rules, #p3-margin, #p3-moves')).toBeNull();
+    expect(container.querySelector('#p3-takeup-step')).toBeNull();
+    expect(stepsWithoutHighlight(container)).toEqual([]);
+    // no folds, kickers or kind labels in the steps
+    expect(container.querySelector('#story-part-3 details, details')).toBeNull();
+    expect(container.textContent).not.toMatch(/About these figures|Key takeaway|Step \d ·/);
+    // each step's sentence is 18 words at most (the review's T7 and T12 wordings), and every id it lights is a mark in its figure
+    for (const st of container.querySelectorAll('.scrolly-step')) {
+      const t = st.querySelector('.p3-step-line');
+      if (t) {
+        const c = t.cloneNode(true);
+        c.querySelectorAll('.hl-num').forEach((m) => m.remove());
+        expect(c.textContent.trim().split(/\s+/).length, st.id).toBeLessThanOrEqual(18);
+      }
+      const block = st.closest('.scrolly');
+      const marks = new Set([...block.querySelectorAll('.scrolly-graphic [data-mark]')].flatMap((m) => m.dataset.mark.split(/\s+/)));
+      for (const id of st.dataset.highlight.split(' ')) expect(marks.has(id), `${st.id}: ${id}`).toBe(true);
+    }
+    expect(container.querySelector('#story-part-3 .scrolly-takeaway')).toBeNull();
+    const line = (id) => container.querySelector(`#${id} .p3-step-line`).textContent;
+    // T14; the central cost is a residual: said once, in the figure's note
+    // round 2 sign-off #3: the cost is net of the assumed gains, said in the sentence (the next scene's job loss alone is gross)
+    expect(line('p3-central-step-2')).toMatch(/^After assumed pay and capital-income gains, the cost is £\d+\.\dbn a year\. Absolute poverty rises by \d\.\d\dpp$/);
+    expect(line('p3-channels-step-2')).toContain('Assumed');
+    // T12, T7, T6
+    // R2-17: in prose the verb carries the direction, the values unsigned
+    expect(line('p3-moves-step')).toBe(`Cost falls to zero if wages rise ${fmtPct1(D.breakeven.wage.value_pct)}, capital income rises ${Math.round(D.breakeven.capital.value_pct)}%, or job loss lasts ${fmtMonths(D.breakeven.duration.value_months)}`);
+    expect(line('p3-margin-step-2')).toBe('With the assumed gains added back, wage cuts still cost more; job loss raises poverty far more');
+    expect(line('p3-deciles-step-2')).toBe('Decile 1’s direction depends on how households are ranked, so no conclusion is drawn');
+  });
+
+  it('gives every Scrolly topic a neutral question, a hint and one closing line; no takeaway, no recap', () => {
+    for (const sub of [CENTRAL_SUB, CHANNELS_SUB, DECILES_SUB, changesSub(), CLOSE_SUB]) {
+      expect(sub.question, sub.title).toMatch(/\?$/);
+      expect(sub.question, sub.title).not.toMatch(/\d/);
+      expect(sub.takeaway, sub.title).toBeUndefined();
+      expect(sub.recap, sub.title).toBeUndefined();
+    }
+    for (const sub of [CENTRAL_SUB, CHANNELS_SUB, DECILES_SUB, changesSub()]) {
+      expect(sub.hint, sub.title).toBeTruthy();
+      expect(sub.answer, sub.title).toBeTruthy();
+      expect(sub.answerTo, sub.title).toMatch(/^p3-.*-step$/);
+    }
+    // the leaves-out panel is headed, not asked
+    expect(CLOSING_SUB.question).toBeUndefined();
+  });
+
+  it('states the study status from the data and gives each figure one source line with one link, at the commit', () => {
+    const { container } = renderPart();
+    expect(MODEL_YEAR).toMatch(/^FY \d{4}–\d{2}$/);
+    if (D.model_year_label) expect(MODEL_YEAR).toBe(D.model_year_label);
+    const commit = D.commit ?? D.source.commit;
+    if (D.source.files_base_url) expect(D.source.files_base_url).toContain(commit);
+    // one quiet "Sources and notes" button a figure, after its title; nothing under the chart
+    const btns = container.querySelectorAll('.p3-figure .story-figure-title button.src-line-btn');
+    expect(btns.length).toBe(container.querySelectorAll('.scrolly').length);
+    expect(container.querySelectorAll('.story-source, .p3-key')).toHaveLength(0);
+    btns.forEach((b) => {
+      fireEvent.click(b);
+      const pop = document.getElementById(b.getAttribute('aria-controls'));
+      expect(pop.textContent).toContain(`PolicyEngine UK microsimulation${PROVISIONAL ? ', provisional' : ''}, ${MODEL_YEAR}`);
+      const links = [...pop.querySelectorAll('.src-pop-list a')];
+      expect(links[0].textContent).toBe('Household study results');
+      expect(links[0].getAttribute('href')).toBe(`https://github.com/PolicyEngine/uk-ai-study/tree/${commit}/results`);
+      // each result file linked at the commit
+      for (const a of links.filter((x) => x.textContent.startsWith('results/'))) expect(a.getAttribute('href')).toContain(commit);
+      fireEvent.click(b);
+    });
+    // no call-out, chip or flag boxes
+    expect(container.querySelector('.story-callout, .p3-chip, .p3-chip-frame, .p3-draws svg')).toBeNull();
+    expect(container.textContent).not.toMatch(/\b(our|we assume)\b/i);
+  });
+
+  it('names and links every external input', () => {
+    const hrefs = [...renderPart().container.querySelectorAll('a.p3-ref')].map((a) => a.getAttribute('href'));
+    // Felten, Pizzinelli, DfE and HBAI are named on Method > Household method
+    // the OBR scenario is named on Explore > Households since the lost-pound Sankey moved there (round 2)
+    for (const u of ['https://doi.org/10.26504/jr16', 'https://doi.org/10.3982/ECTA19815', 'https://www.gov.uk/guidance/new-style-jobseekers-allowance'])
+      expect(hrefs, u).toContain(u);
+  });
+
+  it('titles the axes of every part 3 figure, the value axis "y"', () => {
+    const { container } = renderPart();
+    for (const id of ['p3-central', 'p3-channels', 'p3-deciles', 'p3-changes'])
+      expect(container.querySelector(`#${id} .scrolly-graphic [data-axis-title="y"]`), id).not.toBeNull();
+  });
+
+  it('has no "A different model" call-out: the opener’s handover line carries the change of model', () => {
+    const { container } = renderPart();
+    expect(container.querySelector('.story-callout, .p3-model')).toBeNull();
+    expect(container.textContent).not.toContain('A different model');
+  });
+
+  it('draws decile 1 neutral, with its value and the caveat; the table gives it under the other rankings', () => {
+    const { container } = renderPart();
+    const d1 = container.querySelector('[data-decile="1"]');
+    expect(d1.querySelector('.p3-fill-caveat')).not.toBeNull();
+    expect(d1.querySelector('.p3-row-value').textContent).toBe(fmtDecilePct(D.deciles.values[0]));
+    const note = d1.querySelector('.p3-dec-note');
+    expect(note.textContent).toMatch(/^not a reliable result: see why/);
+    expect(note.querySelector('button').getAttribute('aria-expanded')).toBe('false');
+    const why = d1.querySelector('.p3-dec-why-pop');
+    expect(why.hidden).toBe(true);
+    expect(why.textContent).toContain('only look low-income');
+    expect(why.textContent).toContain('this decile loses 0.32%');
+    expect(why.querySelector('a[href*="paper/sections/results.tex#L54"]')).not.toBeNull();
+    const step = container.querySelector('#p3-deciles-step-2');
+    expect(step.textContent).toContain('so no conclusion is drawn');
+    // the flows by decile are one link away, in the lost-pound scene
+    expect(container.querySelector('#p3-deciles a[href*="#p3-pound"]')).not.toBeNull();
+    const cav = step.querySelector('[data-caveat="bottom-decile"]');
+    for (const s of [`${MINUS}0.32%`, `${MINUS}0.10%`]) expect(cav.textContent).toContain(s);
+    expect(cav.textContent).not.toContain(fmtDecilePct(D.deciles.values[0]));
+    expect(cav.querySelector('[data-input]')).toBeNull();
+    // 2 to 9 in the loss token, and the mark is the bar alone (labels never fade)
+    expect(container.querySelector('[data-decile="2"] .p3-fill-loss')).not.toBeNull();
+    for (const li of container.querySelectorAll('[data-decile]')) {
+      expect(li.hasAttribute('data-mark')).toBe(false);
+      expect(li.querySelector('.p3-row-bar').dataset.mark).toBe(`d${li.dataset.decile}`);
+    }
+  });
+
+  it('reads the quoted inputs from the data and keeps them out of the count', () => {
+    const { container } = renderPart();
+    const inputs = [...container.querySelectorAll('[data-input]')].map((n) => n.textContent);
+    expect(inputs).toEqual(expect.arrayContaining(['7%', '+2.6%', '+39.8%', '0.4']));
+    // the assumed pay and capital-income rises are quoted twice (the number checks skip [data-input], so count here):
+    // on the channel bars, and as the main settings of the break-even rows (C11); the OBR-sized rate on Explore
+    const text = container.textContent;
+    for (const s of ['2.6%', '39.8%']) expect(text.split(s).length - 1, s).toBe(2);
+    for (const b of container.querySelectorAll('.p3-ch-be-from [data-input]')) expect(b.closest('.p3-ch-be-row')).not.toBeNull();
+    // the OBR-sized run's rate is quoted once, in its run-switch marker (data-input)
+    expect(inputs).toContain('1.67%');
+    expect(text.split('1.67%').length - 1).toBe(1);
+  });
+
+  it('uses neutral wording and draws no regions', () => {
+    const text = renderPart().container.textContent;
+    expect(text).not.toMatch(/\b(should|crisis|needs|poor|rich|cost-effective)\b/i);
+    expect(text).not.toMatch(/region/i);
+    expect(text).not.toMatch(/\d-\d*\.?\d+(pp|%|bn)/);
+    expect(text).not.toMatch(/(^|[\s(])-(£|\d)/);
+  });
+
+  // push D, Q4 (Vahid: "it should have its separate section"): after part
+  // 3's section, its own section on a full-width band, a section-level h2,
+  // the anchors kept, then the bridge to part 4, centred, as its last child
+  it('puts what the study leaves out in its own section between part 3 and the bridge to part 4', () => {
+    window.history.replaceState(null, '', '/?tab=story');
+    const { container } = render(
+      <NavProvider>
+        <StoryTab />
+      </NavProvider>,
+    );
+    const p3 = container.querySelector('#story-part-3');
+    const sec = container.querySelector('section#story-leaves-out');
+    expect(p3.querySelector('.p3-close, .story-next')).toBeNull();
+    expect(p3.nextElementSibling).toBe(sec);
+    expect(sec.getAttribute('aria-labelledby')).toBe('p3-close-h');
+    expect([...sec.children].map((c) => c.className.split(' ')[0])).toEqual(['p3-close', 'part-links']);
+    expect(sec.querySelector('header#q-p3-close h2#p3-close-h').textContent.trim()).toBe(CLOSING_SUB.title);
+    expect(sec.lastElementChild.querySelector('a.story-next-link').getAttribute('href')).toBe('#story-close');
+    expect(sec.nextElementSibling.id).toBe('story-close');
+  });
+
+  it('ends with what the study leaves out as three labelled groups, and no band: the close carries the links', () => {
+    const { container } = render(
+      <>
+        <Part3 part={PART} />
+        <Closing />
+      </>,
+    );
+    const close = container.querySelector('.p3-close');
+    expect(close.closest('.scrolly')).toBeNull();
+    // item 33 and dc-B: one h3 (the title said once, no caption), one lead, the two column heads once,
+    // three labelled group sections (an h4 with one icon each), a row per item (the item, then its assumption), one foot line
+    expect(close.querySelectorAll('h2')).toHaveLength(1);
+    expect(close.querySelectorAll('h3')).toHaveLength(0);
+    expect(close.querySelector('caption, table')).toBeNull();
+    expect(close.textContent.split(CLOSING_SUB.title).length - 1).toBe(1);
+    expect(close.querySelectorAll('.p3-close-lead')).toHaveLength(1);
+    const list = close.querySelector('.p3-out[aria-labelledby="p3-close-h"]');
+    expect([...list.querySelectorAll('.p3-out-heads > span')].map((t) => t.textContent)).toEqual(['Left out', 'What the study assumes']);
+    const groups = [...list.querySelectorAll('section.p3-out-group')];
+    expect(groups.map((g) => g.querySelector('h4').textContent)).toEqual(OUT_GROUPS.map((g) => g.title));
+    for (const g of groups) {
+      expect(g.getAttribute('aria-labelledby')).toBe(g.querySelector('h4').id);
+      expect(g.querySelector('h4').querySelectorAll('svg')).toHaveLength(1);
+      expect(g.querySelectorAll('svg')).toHaveLength(1);
+    }
+    const rows = [...list.querySelectorAll('dl .p3-out-row[data-item]')];
+    expect(rows.map((r) => `${r.querySelector('dt').textContent}: ${r.querySelector('dd').textContent}`)).toEqual(LEFT_OUT.map((t) => t.text));
+    for (const t of LEFT_OUT) expect(t.text.split(/\s+/).length, t.id).toBeLessThanOrEqual(16);
+    expect(close.textContent).not.toMatch(/\d/);
+    // reported JSA awards are paid; only the newly jobless get none
+    expect(LEFT_OUT.find((t) => t.id === 'jsa').text).toBe('New-style Jobseeker’s Allowance: Paid only where the survey already records it');
+    // one "See also" line with the same two links
+    expect(close.querySelectorAll('.p3-close-foot')).toHaveLength(1);
+    expect(close.querySelector('.p3-close-foot').textContent).toMatch(/^See also: /);
+    const foot = close.querySelectorAll('.p3-close-foot a');
+    expect([...foot].map((a) => a.getAttribute('href'))).toEqual([expect.stringMatching(/tab=explore.*sub=households.*hh-ladder|hh-ladder/), expect.stringMatching(/hm-out/)]);
+    // one tinted panel (22 Nov): its title led by the limits icon (the
+    // shared IconLine), a one-line lead with no icon, the links its footer
+    expect(close.classList.contains('p3-close-panel')).toBe(true);
+    const title = close.querySelector('.p3-close-head h2#p3-close-h');
+    expect(title.classList.contains('icon-line')).toBe(true);
+    expect(title.querySelectorAll('svg')).toHaveLength(1);
+    expect(close.querySelector('.p3-close-lead').textContent).toBe('The first year after the job loss, before households or employers respond. A test, not a forecast.');
+    expect(close.querySelectorAll('.p3-close-lead svg')).toHaveLength(0);
+    expect(close.querySelector('.p3-close-foot').classList.contains('p3-close-panel-foot')).toBe(true);
+    expect(close.querySelector('.p3-close-chip, .story-panel, button, .p3-chip-frame')).toBeNull();
+    expect(container.textContent).not.toContain('None in the main case');
+    expect(container.textContent).not.toContain('A one-year test, not a forecast');
+    expect(container.querySelector('.story-next')).toBeNull();
+    // the dividend and corporation tax asymmetry is said once, in the channels scene
+    expect(container.textContent.match(/corporation tax/gi)).toHaveLength(1);
+    expect(container.querySelector('#p3-channels .src-essential').textContent).toBe('Dividend tax is counted; corporation tax on the profits is not');
+  });
+
+  it('keeps unused formats importable', () => {
+    expect([fmtGbp, fmtShare, fmtPence].every((f) => typeof f === 'function')).toBe(true);
+  });
+
+  // Part 3 does not change with the header's scenario, closure or rule (one
+  // provisional study, one year), so each direction is checked once per value.
+  it('draws every direction icon and word from the sign of its value', () => {
+    for (const r of D.channels.rows) {
+      expect(fillFor(r.cost_bn), r.id).toBe(r.cost_bn > 0 ? 'p3-fill-loss' : 'p3-fill-gain');
+      expect(effectWords(r.cost_bn), r.id).toBe(r.cost_bn > 0 ? 'costs the public finances' : 'raises net receipts');
+    }
+    const first = render(<>{CHANNEL_STEPS[0].title}</>).container.textContent;
+    expect(first).toContain(effectWords(D.channels.rows.find((r) => r.id === 'displacement').cost_bn));
+    expect(bottomDecileRankings()).toHaveLength(2);
+    // "upper bound" qualifies the poverty rise; the cost note follows the take-up runs' sign
+    const text = renderPart().container.textContent;
+    // scoped to time out of work (Fable round 7, S4): other displacement
+    // rules give a higher rise, so it is not an upper bound overall
+    expect(text).toContain('Poverty rise is an upper bound for time out of work');
+    expect(text).not.toMatch(/Poverty rise is an upper bound(?! for time out of work)/);
+    expect(text).toContain(ladder('takeup').cost_bn > ladder('central_20').cost_bn ? 'fuller benefit take-up raises it' : 'Fuller benefit take-up moves the cost');
+    // uniform displacement costs least
+    const rules = ['uniform', 'junior', 'exposure', 'compression'].map(rule);
+    expect(rule('uniform').cost_bn).toBe(Math.min(...rules.map((r) => r.cost_bn)));
+  });
+
+  it('keeps part 3 and the close itemised: no block over 25 words, no item over 12', () => {
+    const { container } = render(
+      <>
+        <Part3 part={PART} />
+        <TwoLenses />
+      </>,
+    );
+    const long = [];
+    for (const el of container.querySelectorAll('p, li, dd, summary')) {
+      if (el.querySelector('p, li, dd') || el.closest('svg, [aria-hidden="true"]')) continue;
+      // a step's sentence (at most 16 words, checked above) and a recap chip (its question and answer, each checked) are not list items
+      if (el.matches('.scrolly-step, .story-recap li')) continue;
+      if (el.matches('.story-source, .story-source *')) continue; // citation lines
+      const c = el.cloneNode(true);
+      // a figure's notes behind its "Sources and notes" are not on the page
+      c.querySelectorAll('[hidden]').forEach((h) => h.remove());
+      // a text's phone copy (.p3-short) and desktop copy (.p3-long): one shows
+      c.querySelectorAll('.p3-short').forEach((h) => h.remove());
+      // a linked citation ("Doorley et al. (2026)") counts as one word
+      c.querySelectorAll('.p3-ref').forEach((a) => a.replaceWith('ref'));
+      // numbered markers are scale, not words
+      c.querySelectorAll('.hl-num, .p3-nm').forEach((m) => m.remove());
+      c.querySelectorAll('span').forEach((s) => s.append(' '));
+      const n = c.textContent.replace(/\s+/g, ' ').trim().split(' ').filter(Boolean).length;
+      // the close's recap and What's next lines are sentences (item 34), capped as a paragraph
+      const cap = el.matches('.close-recap li, .close-next li') ? 25 : el.tagName === 'LI' ? 12 : 25;
+      if (n > cap) long.push(`${n}: ${el.textContent.slice(0, 60)}`);
+    }
+    expect(long).toEqual([]);
+    // no icon inside a fact, a note, a source line or a table cell
+    expect(container.querySelectorAll('.story-fact svg, .p3-key svg, .story-source svg, .lens-chips svg')).toHaveLength(0);
+  });
+
+  it('says once in the close why the two models are never added, sign-aware', () => {
+    const { container } = render(<TwoLenses />);
+    const why = container.querySelector('#story-close .close-why').textContent;
+    expect(why).toBe(CLOSE_WHY);
+    const opposite = Math.sign(PAY_RESULT) !== Math.sign(Number(D.method.survivor_wage_pct));
+    expect(why.includes('opposite directions')).toBe(opposite);
+    expect(container.textContent.match(/never added/g)).toHaveLength(1);
+    expect(container.textContent).not.toMatch(/not added or compared/);
+    // forced to one sign, the reason prints the fallback (check 5a)
+    const same = closeWhy(Math.abs(PAY_RESULT) || 1, Math.abs(Number(D.method.survivor_wage_pct)) || 1);
+    expect(same).not.toContain('opposite directions');
+    expect(same).toContain('pay is a result in one and an input in the other');
+    expect(closeWhy(-1, 2)).toContain('pay moves in opposite directions');
+    const cards = container.querySelectorAll('.lens-pay-card');
+    expect([...cards].map((c) => c.querySelector('.lens-pay-head').textContent)).toEqual(['Pay is a result', 'Pay is an input']);
+    // the input is quoted (data-input); the result restates part 2's pay tile (data-axis), linked to it
+    expect(cards[1].querySelector('[data-input]').textContent).toBe(`+${D.method.survivor_wage_pct}%`);
+    const res = cards[0].querySelector('[data-axis]');
+    expect(res.textContent).toBe(`${PAY_RESULT < 0 ? '−' : '+'}${Math.abs(PAY_RESULT).toFixed(2)}%`);
+    expect(res.getAttribute('href')).toContain('#story-headline');
+  });
+
+  it('opens the close with a centred header: kicker, title, a two-line recap from the data and the reason', () => {
+    const { container } = render(<TwoLenses />);
+    const sec = container.querySelector('#story-close');
+    // DOM order: the question screen, the header, the figure, What's next; nothing after it
+    expect([...sec.children].map((c) => c.className.split(' ')[0])).toEqual(['q-stage', 'part-opener', 'lens-fig', 'close-next']);
+    const head = sec.querySelector('header.part-opener.close-opener');
+    // the reason is a shared icon line (IconLine: role class first)
+    expect([...head.children].map((c) => c.tagName + (c.className ? '.' + c.className.split(' ')[0] : ''))).toEqual(['P.part-opener-meta', 'H2', 'UL.close-recap', 'P.close-why']);
+    expect(head.querySelector('.part-opener-meta').textContent).toBe('Part 4 · Both models');
+    expect(CLOSE_SUB.hint).toBe('The macro model for the whole economy over years; the household study for one year');
+    const lines = [...head.querySelectorAll('.close-recap li')];
+    expect(lines).toHaveLength(2);
+    for (const li of lines) expect(li.querySelectorAll('svg')).toHaveLength(1);
+    expect(lines.map((li) => li.querySelector('strong').textContent)).toEqual(['The macro model', 'The household study (PolicyEngine UK)']);
+    expect(lines[0].textContent).toContain(`${SURPRISE_YEAR} to ${YEARS[YEARS.length - 1]} and beyond`);
+    expect(lines[1].textContent).toContain(`one year, ${MODEL_YEAR}`);
+    // each line names its method, then why the story needs it (push D, Q2)
+    expect(lines[0].textContent).toContain('The macro model: an overlapping-generations model of the UK economy,');
+    expect(lines[1].textContent).toContain('(PolicyEngine UK): a tax-benefit microsimulation of UK households');
+    for (const li of lines) expect(li.textContent).toMatch(/\. Needed for [^.]+\.$/);
+    // the scope and time lines left the circles; the old foot line and Go deeper are gone
+    expect(sec.querySelector('.lens-close, .lens-scope, .lens-time, .go-deeper, .lens-deeper')).toBeNull();
+    // no four-digit year typed into the close's strings (a citation's year in JSX text aside)
+    expect(SRC.replace(/\/\/.*$/gm, '').match(/['`"][^'`"\n]*\b20\d\d\b[^'`"\n]*['`"]/g)).toBeNull();
+  });
+
+  it('ends on What’s next: three link cards, each an icon, a bold title, one short line and an arrow', () => {
+    const { container } = render(<TwoLenses />);
+    const nav = container.querySelector('nav.close-next');
+    expect(nav.querySelector('.close-next-kicker').textContent).toBe('What’s next');
+    const links = [...nav.querySelectorAll('li > a')];
+    expect(links).toHaveLength(3);
+    const params = links.map((a) => new URLSearchParams(a.getAttribute('href').split('?')[1] ?? ''));
+    expect(params.map((q) => [q.get('tab'), q.get('sub')])).toEqual([
+      ['explore', null],
+      ['method', null],
+      ['method', 'code'],
+    ]);
+    // "Method and sources" opens the tab's landing (Method redesign, 10)
+    expect(links.map((a) => a.querySelector('strong').textContent)).toEqual(['Explore', 'Method and sources', 'Data and code']);
+    expect(CLOSE_NEXT.map((l) => l.sub)).toEqual(['economy', 'overview', 'code']);
+    expect(links.map((a) => a.querySelector('.close-next-desc').textContent)).toEqual([
+      'Results by topic: economy, public finances, who gains, households',
+      'How each model works, every input and its source',
+      'The data files, the model code and how to rerun it',
+    ]);
+    for (const a of links) {
+      // the whole card is the link: the icon in the IconLine title, one line, the arrow
+      expect(a.classList.contains('close-next-card')).toBe(true);
+      expect(a.querySelector('.close-next-title.icon-line > .icon-line-icon svg')).not.toBeNull();
+      expect(a.querySelector('.close-next-desc').textContent.split(/\s+/).length).toBeLessThanOrEqual(12);
+      expect(a.querySelector('.close-next-arrow svg')).not.toBeNull();
+    }
+    expect(nav.querySelector('.story-panel, .story-frame')).toBeNull();
+  });
+
+  it('draws the two lenses as real lists of chip links, then three links', () => {
+    const { container } = render(<TwoLenses />);
+    // the question is on the pinned screen only; the header is the title
+    expect(container.querySelector('#story-close-h').textContent.trim()).toBe('Two lenses');
+    expect(container.textContent.split(CLOSE_SUB.question).length - 1).toBeLessThanOrEqual(1);
+    expect(container.querySelector('.lens-table, .story-recap, .scrolly-answer')).toBeNull();
+    // one heading per lens naming its model; 4 + 3 "can say" chips, each a link to its scene; 2 outside chips each
+    expect([...container.querySelectorAll('h3.lens-kicker')].map((h) => h.textContent.trim())).toEqual(['The macro model', expect.stringMatching(/^Household study/)]);
+    // each circle is its model name over its chips: no icon, no scope or time line
+    for (const c of container.querySelectorAll('.lens-circle')) expect([...c.children].map((x) => x.tagName)).toEqual(['H3', 'H4', 'UL']);
+    for (const h of container.querySelectorAll('h3.lens-kicker')) expect(h.querySelector('svg')).toBeNull();
+    const can = [...container.querySelectorAll('.lens-circle ul.lens-chips')];
+    expect(can.map((u) => u.querySelectorAll('li a').length)).toEqual([4, 3]);
+    for (const a of container.querySelectorAll('.lens-circle .lens-chip')) expect(a.getAttribute('href')).toMatch(/#(p2-morph|story-headline|story-output|p2-who|p3-deciles|p3-central-step-2)$/);
+    expect([...container.querySelectorAll('.lens-outside ul.lens-chips')].map((u) => u.querySelectorAll('li').length)).toEqual([2, 2]);
+    for (const l of LENSES) for (const c of [...l.can, ...l.outside]) expect(c.text.split(/\s+/).length, c.text).toBeLessThanOrEqual(4);
+    expect(container.querySelector('.lens-overlap').textContent.trim()).toBe('The public finances');
+    // the overlap and the study's pay input link to their scenes in the story
+    expect(container.querySelector('.lens-overlap a').getAttribute('href')).toMatch(/#p3-channels$/);
+    const payIn = container.querySelector('.lens-pay-card.is-study a.lens-pay-num');
+    expect(payIn.getAttribute('href')).toMatch(/#beat-7pct$/);
+    expect(payIn.hasAttribute('data-input')).toBe(true);
+    for (const a of container.querySelectorAll('.lens-outside a')) expect(a).toBeNull();
+    // decorative circles; no hidden table
+    for (const svg of container.querySelectorAll('.lens-rings')) expect(svg.getAttribute('aria-hidden')).toBe('true');
+    expect(container.querySelector('table')).toBeNull();
+    expect(container.querySelectorAll('.close-next a')).toHaveLength(3);
+  });
+
+  // ---- wave 2 scenes: entry beats, derived claims, one home per figure ----
+
+  it('reads the central rate from the data, and never draws NaN tiles', () => {
+    expect(CENTRAL_RATE).toBe(7);
+    expect(centralRate('Weighted count; no rate stated.')).toBeNull();
+    expect(centralRate(null)).toBeNull();
+    expect(DISPLACED_TILES).toBe(Math.round(CENTRAL_RATE));
+    const before = centralTiles(false);
+    const after = centralTiles(true);
+    expect(before).toHaveLength(100);
+    expect(before.every((t) => t.color === 'var(--pe-gray-300)')).toBe(true);
+    // the displaced peel out to a group two columns away, in ink; the count is conserved
+    const out = after.filter((t) => t.out);
+    expect(out).toHaveLength(DISPLACED_TILES);
+    expect(out.every((t) => t.x === 12 && t.color === 'var(--pe-gray-800)')).toBe(true);
+    expect(after.filter((t) => !t.out).every((t) => t.x < 10)).toBe(true);
+  });
+
+  it('nets the channels as a waterfall that prints no running total', () => {
+    const bars = waterfall();
+    expect(bars.map((b) => b.id)).toEqual(['displacement', 'wage', 'capital', 'sum']);
+    // each channel starts where the one above ends; the landing bar stands from zero
+    expect(bars[0].from).toBe(0);
+    expect(bars[1].from).toBeCloseTo(bars[0].to, 9);
+    expect(bars[2].from).toBeCloseTo(bars[1].to, 9);
+    expect(bars[3]).toMatchObject({ from: 0, to: D.channels.sum_bn });
+    const fig = renderPart().container.querySelector('#p3-channels .p3-figure');
+    // the drawing's own text (its notes behind "Sources and notes" set aside)
+    const t = checkedText(fig, ', [data-source-notes]');
+    for (const end of [bars[1].to, bars[2].to]) if (Math.abs(end - D.channels.sum_bn) > 0.05) expect(t).not.toContain(fmtBn(end));
+    expect(t.match(/[−]?£[\d.]+bn/g)).toEqual(bars.map((b) => fmtBn(b.value)));
+    // the interaction is in the figure's notes, behind its "Sources and notes"
+    expect(fig.querySelector('[data-source-notes]').textContent).toContain(fmtBn2(D.channels.interaction_bn));
+    expect(t).toContain('Sum of the three runs');
+  });
+
+  it('prints the draws as plain words, one basis per figure', () => {
+    const { container } = renderPart();
+    expect(container.textContent).not.toMatch(/three bases|Other bases|Central, step 1|these draws: step 6/);
+    for (const f of container.querySelectorAll('.p3-figure')) expect(f.querySelectorAll('.p3-draws svg')).toHaveLength(0);
+  });
+
+  it('derives the decile claims and the highlight from the data', () => {
+    const v = D.deciles.values;
+    const shape = decileShape();
+    expect(shape.worst).toBe(v.indexOf(Math.min(...v)) + 1);
+    const { container } = renderPart();
+    expect(container.querySelector('#p3-deciles .is-worst').dataset.decile).toBe(String(shape.worst));
+    const card = container.querySelector('#p3-deciles-step').textContent;
+    expect(card).toContain(`decile ${shape.worst}`);
+    if (shape.upperMiddle) expect(card).toContain('Income falls most in deciles 6 to 9, most in');
+    // a different shape changes the words
+    const flat = decileShape([1, -3, -2, -1, -1, -1, -1, -1, -1, -0.5]);
+    expect(flat).toMatchObject({ worst: 2, upperMiddle: false, hump: false });
+  });
+
+  it('derives the rules claims from the data and prints each rule’s poverty rise beside its dot', () => {
+    const rs = ['uniform', 'junior', 'exposure', 'compression'].map(rule);
+    const c = rulesClaims();
+    expect(c.cheapest).toBe(rs.reduce((a, b) => (b.cost_bn < a.cost_bn ? b : a)).id);
+    const { container } = renderPart();
+    expect(container.querySelector('#p3-rules-step .p3-step-line').textContent).toContain(c.spreadWords);
+    const fig = container.querySelector('#p3-changes .p3-ch-panel[data-panel="rules"]');
+    // B10: the three non-central rules' poverty rises are counted here; the central one restates step 1
+    expect(checkedText(fig).match(/[+−]\d\.\d\dpp/g)).toEqual(['uniform', 'junior', 'compression'].map((k) => fmtPp(rule(k).poverty_pp)));
+    // one cost x poverty plane, both axes from zero (charts-finale A): ticks on both axes, scale only
+    expect(fig.querySelectorAll('.p3-plane-ticks[data-axis]')).toHaveLength(2);
+    expect(fig.querySelector('.p3-plane-ticks.is-x').textContent).toContain('£0');
+    expect(fig.querySelector('[data-axis-title="x"]').textContent).toBe('Cost to the public finances, £bn a year');
+    expect(fig.querySelector('[data-axis-title="y"]').textContent).toBe('Absolute poverty rise, pp');
+    // one direct label per rule, each with both values; the main case's restate step 1 (data-axis)
+    const labels = [...fig.querySelectorAll('ol.p3-plane-labels > li')];
+    expect(labels.map((l) => l.dataset.row)).toEqual(['uniform', 'junior', 'exposure', 'compression']);
+    const central = fig.querySelector('[data-row="exposure"] .p3-plane-vals');
+    expect(central.textContent).toBe(`${fmtBn(rule('exposure').cost_bn)} · ${fmtPp(rule('exposure').poverty_pp)}`);
+    expect([...central.querySelectorAll('[data-axis]')]).toHaveLength(2);
+    expect(fig.querySelectorAll('.p3-plane-dot.is-ring')).toHaveLength(1);
+    // the stress test is named, not drawn or printed
+    expect(fig.querySelector('.p3-plane-stress').textContent).not.toMatch(/\d/);
+  });
+
+  it('derives the margin sentences and the aria sentence from the signs, and names each margin’s dots', () => {
+    const c = marginClaims();
+    const pj = D.per_pound_20.job_loss.government_p;
+    const pw = D.per_pound.find((r) => r.id === 'wage_cuts').government_p;
+    expect(c.perPoundMore).toBe(pw > pj ? 'cut' : 'job');
+    expect(c.povertyMore).toBe(ladder('central_20').poverty_pp > ladder('wage_cuts').poverty_pp ? 'job' : 'cut');
+    const { container } = renderPart();
+    const t1 = container.querySelector('#p3-margin-step .p3-step-line').textContent;
+    expect(t1).toContain(c.perPoundMore === 'cut' ? 'wage cuts cost the public finances more than' : 'job loss costs the public finances more than');
+    expect(container.querySelector('#p3-margin-step-2 .p3-step-line').textContent).toContain(`${c.povertyMore === 'job' ? 'job loss raises' : 'wage cuts raise'} poverty`);
+    const fig = container.querySelector('#p3-changes .p3-ch-panel[data-panel="margin"]');
+    // item 32: each value row names its margin in its own column (sign-off #5), job loss first
+    const row = (k) => fig.querySelector(`.p3-db-vals [data-mark="m-pence ${k}"]`);
+    expect([row('job').querySelector('dt').textContent, row('job').querySelector('dd').textContent]).toEqual(['Job loss', fmtPence(pj)]);
+    expect([row('cut').querySelector('dt').textContent, row('cut').querySelector('dd').textContent]).toEqual(['Wage cuts', fmtPence(pw)]);
+    expect(fig.querySelectorAll('.p3-ch-ticks[data-axis]')).toHaveLength(3);
+    // three panels, each one head, two dots, two value rows; no text on a track
+    const dbs = [...fig.querySelectorAll('.p3-db')];
+    expect(dbs.map((d) => d.querySelector('.p3-db-head').textContent)).toEqual(['Cost per £1 of pay removed', 'Cost to the public finances, £bn a year', 'Absolute poverty rise, pp']);
+    for (const d of dbs) {
+      expect(d.querySelectorAll('.p3-db-dot')).toHaveLength(2);
+      expect([...d.querySelectorAll('.p3-db-vals dt')].map((t) => t.textContent)).toEqual(['Job loss', 'Wage cuts']);
+      expect(d.querySelector('.p3-db-track').textContent).toBe('');
+    }
+    expect([...fig.querySelectorAll('.p3-margin-group-label')].map((g) => g.textContent)).toEqual(['Each case alone', 'With the assumed gains added back']);
+    // the definition sentence: the gross pay once the build carries it; the range in the note line
+    const G = D.per_pound_20.gross_cut_bn;
+    const def = fig.querySelector('.p3-margin-def').textContent.replace(/\s+/g, ' ').trim();
+    expect(def).toBe(`Each pair removes the same gross pay${Number.isFinite(G) ? `, ${fmtBn(G)} a year` : ''}: as job loss, or as wage cuts graded by each occupation’s AI exposure, with no jobs lost.`);
+    expect(fig.querySelector('.p3-margin-note').textContent).toBe(`Means of ${D.per_pound_20.draws} paired draws, so job loss differs slightly from the main case above. Job loss alone: ${fmtPenceRange(D.per_pound_20.job_loss.min_p, D.per_pound_20.job_loss.max_p)} across them.`);
+    const all = container.querySelector('#p3-changes').textContent;
+    for (const s of ['each with its own unit line', 'across draws)', 'these 20 draws', 'sized to the same gross earnings loss', 'holds the other two at main settings']) expect(all, s).not.toContain(s);
+    expect(container.querySelector('#p3-changes figure').textContent.match(/same gross/g)).toHaveLength(1);
+    // the citation is in the figure's notes only, not its open text; the figure names the study (ruling, 18 Nov evening)
+    expect(fig.textContent).not.toMatch(/Acemoglu/);
+    expect(container.querySelector('#p3-changes figure > .story-figure-unit').textContent).toMatch(/^The household study, FY \d{4}–\d{2}$/);
+  });
+
+  it('shows each break-even as one row: main setting, an arrow, the break-even setting', () => {
+    const { container } = renderPart();
+    const fig = container.querySelector('#p3-changes .p3-ch-panel[data-panel="breakeven"]');
+    expect(fig.querySelectorAll('.p3-ch-be-row')).toHaveLength(3);
+    for (const b of BREAKS) {
+      const row = fig.querySelector(`[data-row="be-${b.id}"]`);
+      expect(row.querySelector('.p3-ch-be-from [data-input]').textContent).toBe(b.centralText);
+      expect(row.querySelector('.p3-ch-be-arrow')).not.toBeNull();
+      expect(row.querySelector('.p3-ch-be-to .p3-row-value').textContent).toBe(b.valueText);
+      expect(checkedText(row).match(FIG) ?? []).toEqual(b.id === 'duration' ? [] : [b.valueText]);
+    }
+  });
+
+  it('draws the merged scene’s panel from the active step alone: every panel mounted, one shown, all shown when drawn once', () => {
+    expect(PANEL_OF).toHaveLength(CHANGES_STEPS.length);
+    expect(CHANGES_STEPS.length).toBeLessThanOrEqual(4);
+    const { container } = renderPart();
+    const panels = container.querySelectorAll('#p3-changes .scrolly-graphic .p3-ch-panel');
+    expect([...panels].map((p) => p.dataset.panel)).toEqual(['rules', 'margin', 'breakeven']);
+    const shown = [...panels].filter((p) => p.classList.contains('is-shown'));
+    // the panel of the step the figure draws (or all, when it is drawn once on a narrow screen)
+    const fig = container.querySelector('#p3-changes .p3-ch');
+    const step = Number(container.querySelector('#p3-changes .scrolly-graphic-inner').dataset.step);
+    if (fig.classList.contains('is-all')) expect(shown).toHaveLength(3);
+    else {
+      expect(shown.map((p) => p.dataset.panel)).toEqual([['rules', 'margin', 'breakeven'][PANEL_OF[step]]]);
+      for (const p of panels) expect(p.hasAttribute('inert')).toBe(!p.classList.contains('is-shown'));
+    }
+  });
+
+  it('gives each one-card scene a Replay button and plays it again', () => {
+    const { container } = renderPart();
+    const buttons = container.querySelectorAll('.ch-icon-btn[aria-label="Replay the animation"]');
+    expect(buttons.length).toBe(5);
+    buttons.forEach((b) => expect(b.getAttribute('aria-label')).toBe('Replay the animation'));
+    act(() => fireEvent.click(buttons[0]));
+    expect(container.querySelector('#p3-central .p3-scene')).not.toBeNull();
+  });
+
+  it('keeps the dividend tax figure on Explore: the story says the asymmetry in words and links there', () => {
+    const { container } = renderPart();
+    const ch = container.querySelector('#p3-channels');
+    expect(ch.querySelector('a[href*="hh-cost-lines"]')).not.toBeNull();
+    expect(checkedText(ch)).not.toContain(fmtBn(Math.abs(D.cost_components.rows.find((r) => r.id === 'dividend_tax').cost_bn)));
+  });
+
+  it('gives each Scrolly block its own topic header (one scheme: no separate scene heads)', () => {
+    const { container } = renderPart();
+    expect(container.querySelector('.p3-scene-head')).toBeNull();
+    for (const sc of container.querySelectorAll('.scrolly')) expect(sc.querySelector(':scope > .scene-head'), sc.id).not.toBeNull();
+  });
+
+  it('keeps the break-evens panel to the break-evens, with one link to take-up and JSA on Explore', () => {
+    const { container } = renderPart();
+    const fig = container.querySelector('#p3-changes .p3-ch-panel[data-panel="breakeven"]');
+    expect(fig.querySelector('.p3-state, .p3-ladder')).toBeNull();
+    // its notes (take-up and JSA, linked to Explore) sit behind the figure's "Sources and notes"
+    const b = container.querySelector('#p3-changes button.src-line-btn');
+    fireEvent.click(b);
+    const pop = document.getElementById(b.getAttribute('aria-controls'));
+    expect(pop.querySelector('a[href*="hh-ladder"]')).not.toBeNull();
+    expect(pop.textContent).toContain('Break-even');
+    fireEvent.click(b);
+    expect(fig.textContent).not.toContain(fmtBn(ladder('takeup').cost_bn));
+  });
+});
+
+// M15 wording (Fable 5.2 ruling for Vahid, 24 Nov): each closing line's gate
+describe('closing lines carry no figure from their scene', () => {
+  it('main result: the meaning, gated on cost and poverty both rising', () => {
+    const H = D.headline;
+    const holds = H.central_cost.value > 0 && H.central_poverty.value > 0;
+    expect(CENTRAL_SUB.answer === 'Even after the assumed gains, the public finances lose money and absolute poverty rises.').toBe(holds);
+    if (holds) expect(CENTRAL_SUB.answer.match(FIG)).toBeNull();
+  });
+  it('deciles: the 6-to-9 group and the top decile, each from decileShape', async () => {
+    const { DECILES_SUB, decileShape } = await import('./part3/Deciles.jsx');
+    const s = decileShape();
+    const exp = s.upperMiddle ? `Deciles 6 to 9 lose the largest share of income${s.topNearZero ? '; the top decile shows no clear change' : ''}.` : `The largest fall, as a share of income, is in decile ${s.worst}.`;
+    expect(DECILES_SUB.answer).toBe(exp);
+    expect(DECILES_SUB.answer.match(FIG)).toBeNull();
+  });
+  it('what changes the answer: costFar, then the three break-evens against their main settings', () => {
+    const [w, c, d] = BREAKS;
+    const gains = w.value > w.central && c.value > c.central && d.value < d.central;
+    const first = rulesClaims().costFar ? 'Who loses the job moves the cost far more than poverty.' : 'Who loses the job moves the cost.';
+    const a = changesSub().answer;
+    if (gains) {
+      expect(a).toBe(`${first} A larger assumed gain or shorter job loss would bring the cost to zero.`);
+      expect(a.split(/\s+/).length).toBeLessThanOrEqual(25);
+      expect(a.match(FIG)).toBeNull();
+    } else expect(a.startsWith('Cost ')).toBe(true);
+  });
+});

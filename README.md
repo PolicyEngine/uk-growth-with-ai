@@ -3,10 +3,31 @@
 The macroeconomic effects of AI on the UK, 2026–2030, in
 [OG-UK](https://github.com/PSLmodels/OG-UK), the UK calibration of the
 [OG-Core](https://github.com/PSLmodels/OG-Core) overlapping-generations model. The
-model results are committed, so every table and the dashboard rebuild without
-re-running the model.
+model results are committed, so the results files, their checks and most dashboard data
+files rebuild without re-running the model. The exception is the dashboard's main data
+file, `dashboard/src/data/surprise2027.json`: its builder also reads the solves' TPI
+pickles, which are not committed (see [Reproduce](#reproduce)).
 
 ## Scenarios
+
+The dashboard's results are the **2027 surprise set**: AI arrives unannounced at the start
+of 2027 and ramps in to 2030 (`docs/surprise_2027.md`). It has four input sizes, each a
+labour-share fall and a productivity gain at fixed inputs, derived from published estimates;
+only Korinek et al.'s pair is printed in its source (`analysis/surprise/uk_targets.json`,
+`docs/uk_calibration.md`):
+
+| Scenario | Labour share | Productivity at fixed inputs |
+|---|---|---|
+| UK low | −0.7pp | +0.2% |
+| UK central | −1.6pp | +0.4% |
+| UK high | −2.9pp | +1.6% |
+| Korinek et al. (upper) | −3.9pp | +3.1% |
+
+The arms and their names are the same in every set. The dashboard calls them "Automation
++ productivity" (`share_shift_tfp`), "Stress test" (`share_shift`, GDP held at the path in
+the headline year) and "Technology unchanged" (the fixed-input `_zfixed` arm). The rest
+of this section describes the earlier **2026-start set**, which uses the Korinek-sized
+inputs only and is not shown on the dashboard.
 
 AI enters production `Y = Z K^γ (e^{g_y t} L)^{1−γ}` in two ways, both phased in
 linearly from 2026 to 2030 and held thereafter:
@@ -19,11 +40,13 @@ linearly from 2026 to 2030 and held thereafter:
 
 At `epsilon = 1` (Cobb-Douglas) the labour share is exactly `1 − γ`. All runs are
 1-sector (`multi_sector=False`). Z is solved jointly with γ, because raising γ alone
-changes output at fixed inputs (+6.06% at the baseline's K/L). In the central results
+changes output at fixed inputs (+6.06% at the baseline's K/L). In the 2026-start results
 (`zeta_K = 0.1`) Z is 0.972112 for Automation + productivity. For Automation only, Z is
 solved by secant over full solves so that 2030 GDP equals the baseline's: 0.931148,
 against 0.942883 for a zero technology wedge at fixed inputs (recorded as
 `Z_share_shift_fixed_input`). Each closure has its own Z values (`docs/rerun_r1_r4.md`).
+In the headline 2027 set, UK central at `zeta_K = 0.1` has Z = 0.980065, 0.972037 and
+0.976160 for the same three arms (`assumptions` in each `scenarios_surprise2027_*.json`).
 Their level below 1 reflects the units of K/L and has no economic meaning.
 
 Every scenario shares the baseline's initial assets and debt and its government
@@ -33,7 +56,12 @@ past the reported window; and `g_y_annual = 0.010`, the OBR's 1.0% medium-term
 productivity growth. That path already contains the OBR's own AI assumption, which
 builds non-linearly with adoption (Briefing paper No.9 paras B.12, B.14), and a scalar `g_y` cannot
 strip a ramp out, so the baseline is **"OBR central"**, not a no-AI counterfactual:
-each scenario's gap is an AI effect *in addition to* the OBR's own. A run
+the scenario inputs are published whole-AI effects and are not net of the OBR's
+own. Each gap is the effect of inputs of that size, between two runs with the same
+`g_y`. Against the OBR's forecast itself, the labour-share shift is all additional;
+the productivity gain is not (the OBR path has about 0.19–0.33% by year 4 of
+adoption, BP9 Chart B.4, that is all or nearly all of UK low's input, 48–83% of UK central's, 12–21% of UK high's and 6–11% of Korinek's), so that comparison lies between `share_shift_tfp` and the
+fixed-input `share_shift` (`_zfixed`) arm (issue #27). A run
 holding government spending and transfers at baseline levels instead
 (`--baseline-spending`, the OBR's convention) has not been redone on the corrected
 baseline; the earlier one is kept in `data/legacy/` and is not used. By default (`--g-n vendored`) a run stops
@@ -61,13 +89,29 @@ from OG-Core, not calibrated to the UK), with `zeta_D = 0.4` and a 2% world rate
 (`docs/closure_choice.md`, #16, #27). National income (GNI) leads, because about three
 quarters of the extra capital is foreign-owned at 0.1, so the GNI gap is below the GDP gap.
 
-**Results, 2030, against the OBR-central baseline** (`data/scenarios.json`, bound in
-`data/scenarios_zk0.json`): with Automation + productivity, GNI +3.8% (bound +2.9%) and
-GDP +4.9% (bound +3.1%); with Automation only, GDP is unchanged by construction, GNI
-−0.8% (bound −0.2%) and the wage rate −5.3% (bound −5.0%). The labour share falls 3.9pp
-in both. The sign of the wage change with productivity gains depends on the closure.
-Debt/GDP gaps keep moving after 2030; quote them with their 2035 values. Tables are in
-`docs/rerun_r1_r4.md`; full results and caveats are in the dashboard.
+**Results, 2030, against the OBR's central forecast path** (the dashboard's default
+set: `data/scenarios_surprise2027_*.json`, AI arriving unannounced in 2027 and ramping
+to 2030; `docs/surprise_2027.md`, `docs/results_sanity_2027.md`). Main arm (automation
++ productivity), common fiscal rule, `zeta_K = 0.1` (bound `zeta_K = 0` in brackets):
+
+| Scenario | GDP | GNI | NNI | Pay rate |
+|---|---|---|---|---|
+| UK low | +0.41% (+0.18%) | +0.27% (+0.16%) | +0.14% (+0.13%) | −0.54% (−0.72%) |
+| UK central | +0.91% (+0.37%) | +0.57% (+0.30%) | +0.27% (+0.23%) | −1.27% (−1.71%) |
+| UK high | +2.73% (+1.55%) | +2.02% (+1.43%) | +1.58% (+1.46%) | −1.28% (−2.21%) |
+| Korinek et al. | +4.88% (+3.04%) | +3.79% (+2.88%) | +3.32% (+3.09%) | −0.61% (−2.04%) |
+
+The labour share falls by exactly each scenario's input (0.7, 1.6, 2.9 and 3.9pp). The
+pay rate is below the path in every main-arm case at both closures: the share fall
+lowers it, and capital arrives too slowly to make up the difference. Only the `zeta_K =
+0.5` sensitivity puts it on the path (UK low, UK central) or above it (UK high,
+Korinek et al.), and that sensitivity's UK high and Korinek et al. files fail the
+national-accounts check (`docs/results_sanity_2027.md`). Korinek et al. report GDP
++8.3% for the two inputs the upper case takes from them: the model gives about 60% of
+that, because its capital rises about 6% by 2030 against their 13.8%. Debt/GDP gaps
+keep moving after 2030; quote them with their 2035 values. The earlier 2026-start results
+(`data/scenarios.json`, `data/scenarios_zk0.json`; tables in `docs/rerun_r1_r4.md`) are
+not shown on the dashboard. Full results and caveats are in the dashboard.
 
 ## Install
 
@@ -79,7 +123,8 @@ pip install -e ".[test]"
 `solve.py` imports them lazily, so every other command works without them. The
 committed results used OG-Core 0.17.0 and OG-UK 0.3.2 at
 [vahid-ahmadi/OG-UK@d0e6ae5](https://github.com/vahid-ahmadi/OG-UK/commit/d0e6ae535da4ffbface55f0e64fb2074583a46a6),
-with policyengine 5.0.4 and policyengine-uk 2.90.2. OG-UK's calibration reads
+with policyengine 5.0.4 and policyengine-uk 2.90.2. The whole solve environment is pinned in `requirements-solve.txt`
+(`pip install -r requirements-solve.txt`, then apply the patch below). OG-UK's calibration reads
 PolicyEngine's UK data from Hugging Face, so `run` needs `HUGGING_FACE_TOKEN` set.
 
 ### Time-varying γ patch
@@ -100,30 +145,53 @@ patch -d "$SITE" -p1 < patches/ogcore-0.17.0-firm-gamma-tv.diff
 
 ## Reproduce
 
-The committed results come from the corrective reruns (`docs/rerun_r1_r4.md`): one solve
-per process, about 7 minutes each, one at a time, resumable. `analysis/rerun/driver.sh`
-loops over `rerun next` / `rerun step`. It also commits each solve's record and pushes it
-to the `rerun/r1-r4` branch, and updates the progress comment on #27, so edit `BRANCH`
-and `progress` before running it from a fork.
+**Check the committed results (no solve, a few minutes):**
 
 ```bash
-export HUGGING_FACE_TOKEN=...
-export PY=/path/to/og-uk/venv/bin/python WORK=~/ugai-rerun-work
-analysis/rerun/driver.sh baseline zk0.1 zk0       # R1 baseline passes, per closure
-python -m uk_growth_with_ai rerun gate --closure zk0.1          # read the gate report
-python -m uk_growth_with_ai rerun gate --closure zk0.1 --approve --note "..."
-python -m uk_growth_with_ai rerun gate --closure zk0 --approve --note "..."
-analysis/rerun/driver.sh arms zk0.1 zk0           # both arms, R4 secant for share_shift
-python -m uk_growth_with_ai rerun assemble --closure zk0.1 --out uk_growth_with_ai/data/scenarios.json
-python -m uk_growth_with_ai rerun assemble --closure zk0 --out uk_growth_with_ai/data/scenarios_zk0.json
-python -m uk_growth_with_ai check --results uk_growth_with_ai/data/scenarios.json
-python -m uk_growth_with_ai check --results uk_growth_with_ai/data/scenarios_zk0.json
-python -m uk_growth_with_ai dashboard
+pip install -e ".[test]"
+python -m uk_growth_with_ai check --results uk_growth_with_ai/data/scenarios_surprise2027_uk_central.json
+python -m uk_growth_with_ai dashboard --check
 python -m pytest
 ```
 
+Every solve's record is committed, and `rerun next` / `surprise next` skip any solve whose
+record exists, so running a driver on a fresh clone solves nothing: it only reassembles the
+committed records. To re-solve from scratch, point the output folder at an empty
+directory, as the 22 Nov 2026 reproduction did (UK central 2027, `zeta_K = 0.1`,
+identical to the committed data on all 36 reported series).
+
+**Re-solve the headline 2027 set.** The commands, the run order and the exports are in
+`docs/surprise_2027.md` ("Pipeline commands (2027)"). Each solve takes about 7 minutes,
+one per process, one at a time. The baselines it starts from are the accepted R1–R4
+baselines in `analysis/rerun/output`.
+
+**Rebuild the dashboard data.** `python -m uk_growth_with_ai dashboard` writes
+`aiScenarios.json` and `ukAiPaths.json` from the committed 2026-start results.
+`surprise2027.json` and `surprise2028.json` come from
+`analysis/surprise/build_dashboard_data.py --year 2027|2028`, which needs `WORK` set to the
+folder holding the solves' TPI pickles (for the 2037–2040 investment gaps).
+`cohorts2027.json` comes from `paper/cohort_welfare.py` and `methodFacts2027.json` from
+`dashboard/scripts/build_method_facts.py`; both run from committed files.
+
+**Re-solve the 2026-start set** (`docs/rerun_r1_r4.md`). `analysis/rerun/driver.sh` loops
+over `rerun next` / `rerun step` and commits each solve's record by path. It pushes and
+updates the progress comment on #27 only with `NO_PUSH=0`; `OUT` sets the output folder.
+
+```bash
+export HUGGING_FACE_TOKEN=...
+export PY=/path/to/og-uk/venv/bin/python WORK=~/ugai-rerun-work OUT=~/ugai-rerun-out
+analysis/rerun/driver.sh baseline zk0.1 zk0       # R1 baseline passes, per closure
+python -m uk_growth_with_ai rerun gate --closure zk0.1 --outdir "$OUT"          # read the gate report
+python -m uk_growth_with_ai rerun gate --closure zk0.1 --outdir "$OUT" --approve --note "..."
+python -m uk_growth_with_ai rerun gate --closure zk0 --outdir "$OUT" --approve --note "..."
+analysis/rerun/driver.sh arms zk0.1 zk0           # both arms, R4 secant for share_shift
+python -m uk_growth_with_ai rerun assemble --closure zk0.1 --outdir "$OUT" --out scenarios.json
+python -m uk_growth_with_ai check --results scenarios.json
+```
+
 `assemble` without `--out` writes `uk_growth_with_ai/data/scenarios_<closure>.json`.
-Keep the machine awake (`caffeinate -i` on macOS); run times are wall-clock. The plain
+Keep the machine awake (`caffeinate -i` on macOS; the drivers and `run_locked.sh` use
+macOS-only `caffeinate` and `date -j`); run times are wall-clock. The plain
 `run` command below solves with OG-UK's stock settings (no closure, demographics or
 debt calibration) and writes to `./results/`; do not copy its output over the committed
 files.
@@ -138,7 +206,14 @@ python -m uk_growth_with_ai check [--results PATH] [--baseline-only]
 python -m uk_growth_with_ai report [--arm share_shift_tfp_ramp|share_shift_ramp]
 python -m uk_growth_with_ai obr
 python -m uk_growth_with_ai dashboard [--check]
+python -m uk_growth_with_ai rerun   {next,step,gate,assemble,status} --closure zk0.1|zk0 ...
+python -m uk_growth_with_ai surprise {prepare,check-specs,next,step,gate,assemble,status} \
+                                     --closure zk0.1|zk0|zk0.5 --start 2027|2028 [--scenario ...]
 ```
+
+`report`, `obr` and `dashboard` read `uk_growth_with_ai/data/scenarios.json` (the
+2026-start set) unless `--results` is given. `surprise --outdir` defaults to the folder for
+`--start`, and the command stops if that folder was prepared for another year.
 
 * `run` solves the steady state and transition path for the baseline and the shocked
   scenarios and writes `./results/scenarios.json` (never the committed file unless
@@ -168,7 +243,8 @@ python -m uk_growth_with_ai dashboard [--check]
 * `obr` compares the OBR-central baseline with the OBR's March 2026 EFO: GDP growth
   2027–30 and its components (productivity, population growth, balanced-growth rate).
 * `dashboard` writes `dashboard/src/data/aiScenarios.json` and `ukAiPaths.json` from
-  the results; `--check` writes nothing and exits 1 if the committed files are stale.
+  the 2026-start results (the 2027 and 2028 sets' files are built as in
+  [Reproduce](#reproduce)); `--check` writes nothing and exits 1 if the committed files are stale.
   The test suite runs the same check, so hand edits to those files fail `pytest`.
 
 Model output is detrended; the readers re-trend it with the `g_y` and `g_n` each
@@ -181,8 +257,11 @@ only for results files that predate those fields).
 cd dashboard && bun install && bun dev
 ```
 
-A Next.js app with five tabs: Economic effects, Model, Scenario design, Model
-comparison and Code. Its data files are generated, not edited by hand.
+A Next.js app with three tabs: Story (the study read in four parts), Explore (Economy,
+Public finances, Who gains and who loses, Households) and Method and sources (Overview,
+Macro model method, Household method, Inputs, Evidence, Data and code). The 2027 set is
+the default; `NEXT_PUBLIC_DATA=2028` reads the 2028-start set. Its model data files are
+generated, not edited by hand.
 
 ## Layout
 
@@ -197,15 +276,23 @@ uk_growth_with_ai/
   obr.py             the OBR baseline comparison and the published OBR figures
   dashboard_data.py  builds the dashboard's data files from the results
   data_access.py     data loading
-  cli.py             run | rerun | check | report | obr | dashboard
+  cli.py             run | rerun | surprise | check | report | obr | dashboard
   rerun.py           the corrective reruns R1-R4, one solve per process
-  data/              scenarios.json (zeta_K = 0.1), scenarios_zk0.json (zeta_K = 0),
+  surprise.py        the unanticipated shock (2027 and 2028 sets), R4, assembly
+  demography.py      the g_n guard; un_cache.py, the UN data cache
+  data/              scenarios_surprise2027_*.json and scenarios_surprise2028_*.json
+                     (20 each: four scenarios, closures, fiscal rules),
+                     scenarios.json (2026 start, zeta_K = 0.1), scenarios_zk0.json (zeta_K = 0),
                      legacy/ (earlier runs, unused), og_uk_params.json,
                      obr_history.json (OBR/ONS chart series, with provenance),
                      anthropic_us_2030.json
 patches/             ogcore-0.17.0-firm-gamma-tv.diff
 tests/               pytest over the functions and the committed numbers
-analysis/            the original scripts these modules were refactored from
+analysis/            the solve pipelines and their committed records: rerun/ (R1-R4),
+                     surprise/ and surprise2027/ (the 2028 and 2027 sets, drivers,
+                     sanity and dashboard builders), closure/ (the #30 solves, used as
+                     first guesses)
+paper/               cohort_welfare.py (the cohort data behind the dashboard)
 docs/                the OBR comparison write-up, the patch design
 dashboard/           the Next.js front end
 ```
