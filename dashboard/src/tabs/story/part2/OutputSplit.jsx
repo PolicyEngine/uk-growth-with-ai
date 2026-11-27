@@ -484,7 +484,7 @@ function ownershipLine(sid, ch, cl, base) {
   const f = foreignShareOf(result(sid, 'tfp', CENTRAL));
   if (!kept || !little || f == null || !(f > 50)) return null;
   // no figure: the Story prints figures only in its fixed places
-  return 'Most of the capital added is foreign-owned, yet little capital income is paid abroad: the higher capital share is earned on all capital.';
+  return 'Most of the capital added is foreign-owned, yet little capital income is paid abroad: the gain is earned on all capital.';
 }
 
 function outputSteps(sid, ch, cl, base) {

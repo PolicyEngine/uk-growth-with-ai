@@ -918,6 +918,9 @@ function Rankings() {
             <span role="columnheader" className="hh-db-head">
               {HBAI}
             </span>
+            <span role="columnheader" className="visually-hidden">
+              Other rankings
+            </span>
           </div>
           {Array.from({ length: 10 }, (_, i) => {
             const vs = R.map((r) => r.values[i]);
@@ -930,9 +933,7 @@ function Rankings() {
                 {/* a diverging bar from zero for the study's ranking, the
                     two other rankings as dots on the same row (Households
                     redesign, R9: no toggle, so decile 1's sign change shows) */}
-                {/* the dots as a labelled cell, so screen readers reach the
-                    two other rankings (dashboard review D9) */}
-                <span className="hh-db-track" role="cell" aria-label={R.slice(1).map((r, k) => `${r.label}: ${fmtDecilePct(vs[k + 1])}`).join('; ')}>
+                <span className="hh-db-track" aria-hidden="true">
                   <span className="hh-db-zero" style={{ left: `${X(0)}%` }} />
                   <span
                     className={`hh-db-bar ${first ? 'p3-fill-muted' : RANK_FILL[0]}${vs[0] < 0 ? ' is-neg' : ''}`}
@@ -948,6 +949,10 @@ function Rankings() {
                 <span role="cell" className={`hh-db-val${first ? ' hh-muted' : ''}`}>
                   <Ax>{fmtDecilePct(D.deciles.values[i])}</Ax>
                 </span>
+                {/* the two other rankings, drawn as dots, for screen readers
+                    (dashboard review D9; an aria-label, so the figure
+                    registry, which reads visible text, counts them once) */}
+                <span role="cell" className="visually-hidden" aria-label={R.slice(1).map((r, k) => `${r.label}: ${fmtDecilePct(vs[k + 1])}`).join('; ')} />
               </div>
             );
           })}

@@ -12,8 +12,9 @@ pickles, which are not committed (see [Reproduce](#reproduce)).
 
 The dashboard's results are the **2027 surprise set**: AI arrives unannounced at the start
 of 2027 and ramps in to 2030 (`docs/surprise_2027.md`). It has four input sizes, each a
-labour-share fall and a productivity gain at fixed inputs, read from published estimates
-(`analysis/surprise/uk_targets.json`, `docs/uk_calibration.md`):
+labour-share fall and a productivity gain at fixed inputs, derived from published estimates;
+only Korinek et al.'s pair is printed in its source (`analysis/surprise/uk_targets.json`,
+`docs/uk_calibration.md`):
 
 | Scenario | Labour share | Productivity at fixed inputs |
 |---|---|---|
@@ -275,7 +276,7 @@ uk_growth_with_ai/
   obr.py             the OBR baseline comparison and the published OBR figures
   dashboard_data.py  builds the dashboard's data files from the results
   data_access.py     data loading
-  cli.py             run | rerun | check | report | obr | dashboard
+  cli.py             run | rerun | surprise | check | report | obr | dashboard
   rerun.py           the corrective reruns R1-R4, one solve per process
   surprise.py        the unanticipated shock (2027 and 2028 sets), R4, assembly
   demography.py      the g_n guard; un_cache.py, the UN data cache

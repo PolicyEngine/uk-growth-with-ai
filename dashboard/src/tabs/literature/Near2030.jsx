@@ -81,7 +81,7 @@ export function imfNote() {
 // the line alone.
 function capitalLine() {
   const u = IMF.unchanged_return_gdp_pct;
-  if (!u || u.surprise_year !== SURPRISE_YEAR) return 'Capital’s speed could account for the gap (arithmetic, not a model run).';
+  if (!u || u.surprise_year !== SURPRISE_YEAR) return 'Capital’s speed could account for the gap (arithmetic, not a model run). The baselines differ too: the IMF’s has no AI.';
   return `Capital’s speed could account for the gap: at an unchanged return, UK central’s inputs would give about ${pct1(u.lo)} to ${pct1(u.hi)} (arithmetic, not a model run). The baselines differ too: the IMF’s has no AI.`;
 }
 

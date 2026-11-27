@@ -432,7 +432,8 @@ function ShockCards() {
             items={[
               { icon: 'forecast', text: <>Forecast path: the macro model&rsquo;s path, set to the OBR&rsquo;s central forecast, which already includes the OBR&rsquo;s own assumption about AI ({cite('bp9B14')}; {cite('efoOct127')}).</> },
               { icon: 'ai', text: <>Its trend productivity growth is 1% a year, from the March 2026 EFO ({cite('efoMarPath')}).</> },
-              { icon: 'scenario', text: 'Each scenario’s sizes rest on estimates of AI’s whole effect, against no AI. The UK sizes are derived from them; only Korinek et al.’s pair is printed.' },
+              { icon: 'scenario', text: 'Each scenario’s sizes rest on estimates of AI’s whole effect, against no AI.' },
+              { icon: 'scenario', text: 'The UK sizes are derived from them; only Korinek et al.’s pair is printed.' },
               { icon: 'scenario', text: 'They are not net of the OBR’s own.' },
               {
                 icon: 'path',
