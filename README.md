@@ -122,7 +122,8 @@ pip install -e ".[test]"
 `solve.py` imports them lazily, so every other command works without them. The
 committed results used OG-Core 0.17.0 and OG-UK 0.3.2 at
 [vahid-ahmadi/OG-UK@d0e6ae5](https://github.com/vahid-ahmadi/OG-UK/commit/d0e6ae535da4ffbface55f0e64fb2074583a46a6),
-with policyengine 5.0.4 and policyengine-uk 2.90.2. OG-UK's calibration reads
+with policyengine 5.0.4 and policyengine-uk 2.90.2. The whole solve environment is pinned in `requirements-solve.txt`
+(`pip install -r requirements-solve.txt`, then apply the patch below). OG-UK's calibration reads
 PolicyEngine's UK data from Hugging Face, so `run` needs `HUGGING_FACE_TOKEN` set.
 
 ### Time-varying γ patch

@@ -102,6 +102,12 @@ def _load_oguk():
     from dask.distributed import Client, LocalCluster
     import ogcore.TPI as TPI
 
+    import ogcore
+    # surprise.py relies on 0.17.0 internals (TPI.get_initial_SS_values,
+    # fiscal.get_TR, fiscal.D_G_path) and the patch is written against 0.17.0.
+    if getattr(ogcore, "__version__", None) != "0.17.0":
+        raise RuntimeError(f"ogcore {getattr(ogcore, '__version__', '?')} found; the patch and "
+                           "the solves need ogcore 0.17.0 (requirements-solve.txt)")
     TPI.ENFORCE_SOLUTION_CHECKS = False   # SS keeps its own flag, left at True
     from ogcore import SS
     import ogcore.firm as firm

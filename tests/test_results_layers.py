@@ -91,3 +91,26 @@ def test_dashboard_gaps_equal_results_files(year):
             assert cell["gaps"][v] == pytest.approx(want, abs=1e-9), (f.name, arm, v)
         n += 1
     assert n >= 40, n
+
+
+# --- the targets file against what each solve read (needs no git history) ----
+
+TARGET_ID = {"uk_low": "uk_low", "uk_central": "uk_central", "uk_high": "uk_high",
+             "korinek": "korinek_us_substantial_upper"}
+
+
+@pytest.mark.parametrize("path", FILES, ids=lambda p: p.stem)
+def test_targets_file_matches_what_the_solves_read(path):
+    """A change to uk_targets.json after the solves would make the results stale.
+
+    tests/test_uk_targets_notes.py checks the same against an old commit, which
+    skips on a shallow clone; this one reads each results file's own record.
+    """
+    targets = json.loads((ROOT / "analysis/surprise/uk_targets.json").read_text())["scenarios"]
+    r = json.loads(path.read_text())
+    sid = NAME.match(path.name)["scenario"]
+    t = targets[TARGET_ID[sid]]
+    read = r["assumptions"]["scenario_targets"]
+    assert read["labour_share_fall_pp"] == pytest.approx(t["labour_share_fall_pp"], abs=1e-12)
+    assert read["tfp_gain"] * 100 == pytest.approx(t["tfp_gain_pct"], abs=1e-9)
+    assert r["share_shift_tfp_ramp"]["gamma_terminal"] == pytest.approx(t["gamma_terminal"], abs=1e-12)
