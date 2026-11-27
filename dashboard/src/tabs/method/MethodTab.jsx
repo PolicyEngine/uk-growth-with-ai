@@ -95,7 +95,8 @@ function ClosureCards() {
               { icon: 'debt', text: <>Foreigners buy 40% of new government debt (<MathSym name="zetaD" />): OG-Core&rsquo;s default, kept by the macro model ({cite('ogukParams')}). A modelling choice, not from a UK source.</> },
               { icon: 'data', text: <>Its baseline income paid abroad sits inside the UK&rsquo;s ({cite('pinkBook')}).</> },
               { icon: 'caveat', text: <>It misses the current account; the no-foreign-capital case is closer on the net foreign-asset stock ({ext(DOC_MAIN('closure_choice.md'), 'closure memo')}).</> },
-              { icon: 'timing', text: 'Foreign capital resets each year.' },
+              { icon: 'timing', text: 'Each year’s foreign-owned capital is set from that year’s excess demand.' },
+              { icon: 'foreign', text: 'It is not accumulated from past inflows.' },
               { icon: 'capital', text: <>So part of the {SURPRISE_YEAR} capital gap is an instant inflow.</> },
             ]}
           />

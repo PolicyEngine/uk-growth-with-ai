@@ -8,7 +8,8 @@ import Icon from '@/components/ab/Icon.jsx';
 import { ChartHover, ModelBadge, Replay, Pause } from '@/components/story/chart/index.js';
 import { useIsPhone, useReducedMotion } from '@/components/story/motion.js';
 import { NavLink } from '@/lib/nav.jsx';
-import { SCEN_NAME, CENTRAL, BOUND, NOT_SOLVED, scenarioById } from '@/tabs/ai/surprise.js';
+import { SCEN_NAME, CENTRAL, BOUND, NOT_SOLVED, scenarioById, result } from '@/tabs/ai/surprise.js';
+import { foreignShareOf } from '@/lib/dataKeys.js';
 import { fracWord, payTest } from './caveats.js';
 import { Tx } from './frame.jsx';
 import { OutputSource } from './sources.jsx';
@@ -472,8 +473,23 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
 // for UK central, to the IMF comparison on Evidence.
 // Two steps, two stories (Maria M2): the forecast path's flows, then the scenario minus the path (the baseline's two-way split is the shock scene's first card):
 // the Sankey with both columns, then the waterfall.
-function outputSteps(sid, ch, cl) {
+// Income kept against ownership (dashboard review D11, Fable 5.2 ruling for
+// Vahid, 26 Nov): the "kept" title is about income, the foreign share about
+// the capital added. Shown only with some foreign capital, under the "kept"
+// title, and while little of the path's capital income is paid abroad.
+function ownershipLine(sid, ch, cl, base) {
+  if (cl !== CENTRAL || !ch || !base) return null;
+  const kept = ch.gross_capital > 0 && ch.domestic > ch.gross_capital / 2;
+  const little = base.foreign < 0.25 * (base.domestic + base.foreign);
+  const f = foreignShareOf(result(sid, 'tfp', CENTRAL));
+  if (!kept || !little || f == null || !(f > 50)) return null;
+  // no figure: the Story prints figures only in its fixed places
+  return 'Most of the capital added is foreign-owned, yet little capital income is paid abroad: the higher capital share is earned on all capital.';
+}
+
+function outputSteps(sid, ch, cl, base) {
   const test = ch ? payTest(sid, cl) : null;
+  const own = ownershipLine(sid, ch, cl, base);
   const k = (id, text) => <Key id={`wf-${id}`}>{text}</Key>;
   return [
     {
@@ -500,10 +516,10 @@ function outputSteps(sid, ch, cl) {
         </Say>
         {test ? (
           <p className="p2-paytest" data-claim="pay-test">
-            {test.lines.join(' ')} Capital is slow to arrive in this model.
+            {own ? `${own} ` : null}{test.lines.join(' ')} Capital is slow to arrive in this model.
             {/* the pay clause only where the pay rate is below the path
                 (M1 spot-check, Fable 5.2, 24 Nov) */}
-            {test.payBelow || sid === 'uk_central' ? ' That is why ' : null}
+            {test.payBelow ? ' That is why ' : sid === 'uk_central' ? ' That could be why ' : null}
             {test.payBelow ? (
               <NavLink tab="explore" sub="economy" anchor="measures">
                 pay ends below the path
@@ -511,7 +527,7 @@ function outputSteps(sid, ch, cl) {
             ) : null}
             {sid === 'uk_central' ? (
               <>
-                {test.payBelow ? ', and why ' : null}
+                {test.payBelow ? ', and could be why ' : null}
                 <NavLink tab="method" sub="studies" anchor="imf-gap">
                   GDP is below the IMF’s
                 </NavLink>
@@ -554,7 +570,7 @@ export default function OutputSplit({ sid, closure }) {
   // the part picked by a chip, a ribbon or a row, and the graphic state it
   // was picked in: { id, s }
   const [hl, setHl] = useState(null);
-  const steps = outputSteps(sid, ch, cl);
+  const steps = outputSteps(sid, ch, cl, base);
   const [phoneRef, phoneSt] = useScrollState(phone);
   return (
     <section id="story-output" className="p2-output" aria-labelledby="story-output-h">

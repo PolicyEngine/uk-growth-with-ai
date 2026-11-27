@@ -72,7 +72,17 @@ export function imfNote() {
   const y = gap('uk_central', 'tfp', CENTRAL, 'Y');
   const t = tfpInput('uk_central');
   if (y == null || !(y > 0) || t == null) return null;
-  return `The IMF’s productivity input at year 4 (${pct2(IMF.imf_y4_tfp_pct)}) is close to UK central’s (${pct1(t)}). Its output is about ${(IMF.imf_y4_output_pct / y).toFixed(1)} times UK central’s: ${pct1(IMF.imf_y4_output_pct)} against ${pct1(y)}. The difference is how fast capital responds.`;
+  return `The IMF’s productivity input at year 4 (${pct2(IMF.imf_y4_tfp_pct)}) is close to UK central’s (${pct1(t)}). Its output is about ${(IMF.imf_y4_output_pct / y).toFixed(1)} times UK central’s: ${pct1(IMF.imf_y4_output_pct)} against ${pct1(y)}. ${capitalLine()}`;
+}
+
+// Dashboard review D4 (Fable 5.2 ruling for Vahid, 26 Nov): capital's speed
+// could account for the gap, not "is" it. The unchanged-return range is
+// one set's arithmetic (imfGap.json records which), so the other set prints
+// the line alone.
+function capitalLine() {
+  const u = IMF.unchanged_return_gdp_pct;
+  if (!u || u.surprise_year !== SURPRISE_YEAR) return 'Capital’s speed could account for the gap (arithmetic, not a model run).';
+  return `Capital’s speed could account for the gap: at an unchanged return, UK central’s inputs would give about ${pct1(u.lo)} to ${pct1(u.hi)} (arithmetic, not a model run). The baselines differ too: the IMF’s has no AI.`;
 }
 
 // The overlap note: how much of UK low's and UK central's inputs the OBR's

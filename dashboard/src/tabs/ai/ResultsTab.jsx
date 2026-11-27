@@ -26,6 +26,7 @@ import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS, efo, EFO_PAGE, OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import { SOURCES as LIT } from '@/data/literature.js';
 import { investmentFlags, I_FLAG_PCT, belowThrough, investHighTo } from '@/tabs/explore/caveats.js';
+import { SENS } from '@/tabs/explore/SensitivityTable.jsx';
 import { payCaveat, payWhy, payPath, paySteadyFrom } from '@/tabs/story/part2/caveats.js';
 import { CENTRAL, BOUND, LATE_YEAR, SCEN_NAME as SN, ARM_COLOR } from '@/tabs/ai/surprise.js';
 import { TipTarget } from '@/components/ab/Tip.jsx';
@@ -256,7 +257,10 @@ function coincideFinding(sid, closure, rule = 'common') {
 // shown (UK central, main arm, some foreign capital, common rule) and the largest
 // investment jump above the project's flag (explore/caveats.js).
 const C_BELOW = belowThrough('uk_central', CENTRAL) === LATE_YEAR ? LATE_YEAR : null;
-const TOP_FLAG = investmentFlags()[0] ?? null;
+// the published closures only: no ζK 0.5 investment figure is printed as a
+// result (results review Q3; dashboard review D13, Fable 5.2 ruling for Vahid)
+const TOP_FLAG = investmentFlags().find((f) => f.cl !== SENS) ?? null;
+const sameFlag = (a, b) => a.sid === b.sid && a.arm === b.arm && a.cl === b.cl;
 
 // The investment flag on the cell in view (Fable round 7, S1): the main
 // version's shock-year jump for the scenario and each closure shown, where
@@ -326,14 +330,14 @@ const ECONOMY = [
             `This scenario, main version, ${symText('zetaK', f.zeta)}: +${Math.round(f.x)}% in ${SURPRISE_YEAR}`
           ),
         })),
-        TOP_FLAG && !shownInvestFlags(sid, closure, rule).includes(TOP_FLAG) ? { key: 'flag', icon: 'caveat', text: <>{SN[TOP_FLAG.sid]}{TOP_FLAG.arm === 'tfp' ? ', main version' : ''}, <MathSym name="zetaK" value={TOP_FLAG.zeta} />: +{Math.round(TOP_FLAG.x)}% in {SURPRISE_YEAR}</> } : null,
+        TOP_FLAG && !shownInvestFlags(sid, closure, rule).some((f) => sameFlag(f, TOP_FLAG)) ? { key: 'flag', icon: 'caveat', text: <>{SN[TOP_FLAG.sid]}{TOP_FLAG.arm === 'tfp' ? ', main version' : ''}, <MathSym name="zetaK" value={TOP_FLAG.zeta} />: +{Math.round(TOP_FLAG.x)}% in {SURPRISE_YEAR}</> } : null,
         TOP_FLAG ? { key: 'flag2', icon: 'limit', text: <>Above our +{I_FLAG_PCT}% {ext(OG_RESULT_URLS.sanity, 'investment flag')}: a model property (no adjustment costs), not a forecast of a boom</> } : null,
       ]} />,
     }) },
   ] },
   { group: 'Factors', concept: 'capital', lede: 'The capital and labour that production uses.', rows: [
     { v: 'K', title: 'Capital stock', name: 'the capital stock', concept: 'capital', about: { caveats: <Items items={[
-      { key: 'reset', icon: 'foreign', text: <>Foreign capital resets each year ({ext(URLS.ogCoreParams, <>OG-Core’s <MathSym name="zetaK" /> rule</>)})</> },
+      { key: 'reset', icon: 'foreign', text: <>Foreign-owned capital is set each year, not accumulated ({ext(URLS.ogCoreParams, <>OG-Core’s <MathSym name="zetaK" /> rule</>)})</> },
       { key: 'inflow', icon: 'capital', text: 'Part of the first-year gap is an inflow with no investment recorded' },
     ]} /> } },
     { v: 'L', title: 'Labour', name: 'labour (hours worked, not jobs)', concept: 'labour', about: { caveats: <Items items={[
