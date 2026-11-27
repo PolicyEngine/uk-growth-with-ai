@@ -78,7 +78,7 @@ export const PARTS = [
             icon: 'forecast',
             text: (
               <>
-                The forecast path: the <a href={OBR_MARCH_2026} {...ext}>OBR&rsquo;s {MODEL_BASE_VINTAGE} forecast</a>,{' '}
+                The forecast path: the macro model&rsquo;s own, set to the <a href={OBR_MARCH_2026} {...ext}>OBR&rsquo;s {MODEL_BASE_VINTAGE} productivity growth</a> and 2030 debt,{' '}
                 <a href={`${URLS.obrBp9}#page=51`} {...ext}>its AI included</a>
               </>
             ),

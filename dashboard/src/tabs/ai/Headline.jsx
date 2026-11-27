@@ -9,7 +9,7 @@ import { iconFor } from '@/lib/concepts.js';
 import { MEASURE } from '@/lib/labels.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
-import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result, PENDING, fmtHeld, ZETA } from '@/tabs/ai/surprise.js';
+import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result, PENDING, fmtHeld, ZETA, fixedInputVsTz } from '@/tabs/ai/surprise.js';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import { mathNodes } from '@/components/ui/MathSym.jsx';
@@ -60,12 +60,19 @@ export const stressDir = (falls) => (falls == null ? null : falls ? 'gapDown' : 
 export function stressItems(sid) {
   const c = stressFalls(sid, CENTRAL);
   const b = stressFalls(sid, BOUND);
-  const phrase = (x) => (x ? 'has to fall' : 'has to rise slightly');
+  // the size from the scenario's own Z pair (dashboard review D3): the cut
+  // grows with the scenario, so it is printed, not just its sign
+  const size = (cl) => fixedInputVsTz(sid, 'ss', cl);
+  const phrase = (x, cl) => {
+    const v = size(cl);
+    if (v == null) return x ? 'has to fall' : 'has to rise slightly';
+    return x ? `has to fall ${Math.abs(v).toFixed(1)}%` : `has to rise slightly (+${Math.abs(v).toFixed(2)}%)`;
+  };
   return [
     { key: 'held', icon: 'shock', text: <>Stress test: {HEADLINE_YEAR} GDP held on the forecast path ({ext(efo(EFO_PAGE.box22), 'OBR, March 2026 EFO, Box 2.2')})</> },
-    c != null ? { key: 'c', icon: stressDir(c), text: `Some foreign capital: output at fixed inputs ${phrase(c)}` } : null,
+    c != null ? { key: 'c', icon: stressDir(c), text: `Some foreign capital: output at fixed inputs ${phrase(c, CENTRAL)}` } : null,
     c ? { key: 'c2', icon: 'limit', text: 'A stress test, not a bound or a forecast' } : null,
-    b != null ? { key: 'b', icon: stressDir(b), text: `No foreign capital: output at fixed inputs ${phrase(b)}${b === c ? ' too' : ''}` } : null,
+    b != null ? { key: 'b', icon: stressDir(b), text: `No foreign capital: output at fixed inputs ${phrase(b, BOUND)}${b === c ? ' too' : ''}` } : null,
     b != null && b !== c ? { key: 'b2', icon: 'compare', text: 'There it almost matches “technology unchanged”' } : null,
     { key: 'tz', icon: 'productivity', text: '“Technology unchanged” shifts the labour share, not output at fixed inputs' },
   ].filter(Boolean);

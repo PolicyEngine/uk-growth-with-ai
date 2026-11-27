@@ -37,7 +37,7 @@ const KPIS = [
     concept: 'gdp',
     title: MEASURE.Y.name,
     line: 'everything produced in the UK',
-    tip: `${MEASURE.Y.def} The figure is a gap in the level ${HEADLINE_YEAR - SURPRISE_YEAR + 1} years on, not a growth rate.`,
+    tip: `${MEASURE.Y.def} The figure is a gap in the level in year ${HEADLINE_YEAR - SURPRISE_YEAR + 1} of the shock, not a growth rate.`,
   },
   {
     v: 'w',

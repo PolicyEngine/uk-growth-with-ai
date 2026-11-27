@@ -375,7 +375,7 @@ describe('story part 1, real data', () => {
     const rise = (k) => S[k].y.at(-1) - S[k].y[0];
     expect(rise('business_ai_use_10plus')).toBeGreaterThan(rise('business_ai_use'));
     expect(text).toContain('among all businesses, AI use has risen every September since 2023.');
-    expect(text).toContain(`It has risen fastest in businesses with 10 or more employees, to ${pct1(real.facts.business_ai_use_10plus.value)}.`);
+    expect(text).toContain(`It has risen by more points in businesses with 10 or more employees, to ${pct1(real.facts.business_ai_use_10plus.value)}.`);
     // quarters: every quarter of the latest year grew
     const q = S.gdp_quarterly;
     const yr = q.x.at(-1).slice(0, 4);
@@ -727,7 +727,7 @@ describe('hero', () => {
       expect(gni.textContent).toBe(sign(S.results[s].tfp[cl].gaps.GNI[i]));
       expect(stats[2].querySelector('.hf-stat-beside').textContent).toMatch(/^Before depreciation \(GNI\) [+−0]/);
       // the GDP tip says it is a level
-      expect(heroStats(s, cl)[0].tip).toMatch(/A gap in the level, \d+ years on; not a growth rate\.( Its sign depends on the productivity gain.*)?$/);
+      expect(heroStats(s, cl)[0].tip).toMatch(/A gap in the level in year \d+ of the shock; not a growth rate\.( Its sign depends on the productivity gain.*)?$/);
       // the gilt holders where no capital is foreign-owned
       expect(heroStats(s, cl)[2].tip).toContain(cl === 'zk0' ? 'gilt holders abroad' : 'owners abroad');
       // the kicker: plain, the sources icon on its line

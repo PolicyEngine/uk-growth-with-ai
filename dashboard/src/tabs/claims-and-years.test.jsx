@@ -90,7 +90,7 @@ const ARITH = [
   ['tabs/ai/surprise.js', 'SURPRISE_YEAR + 1', 'RAMP_STEPS: years from the shock to the headline year, inclusive'],
   ['tabs/story/Hero.jsx', 'SURPRISE_YEAR + 1', 'YEARS_ON: the same inclusive count'],
   ['tabs/story/part2/charts.jsx', 'SURPRISE_YEAR + 1', 'the same inclusive count'],
-  ['tabs/ai/Landing.jsx', 'SURPRISE_YEAR + 1', '"years on": the same inclusive count'],
+  ['tabs/ai/Landing.jsx', 'SURPRISE_YEAR + 1', '"year N of the shock": the same inclusive count'],
   ['tabs/cohorts/CohortsTab.jsx', 'shockYear - 20', 'the youngest adult alive at the shock is 20'],
   ['tabs/story/part2/charts.jsx', 'shock_year - 20', 'the same: LAST_ALIVE'],
   ['tabs/cohorts/CohortsTab.jsx', 'lastFlowYear + 1', 'the debt rule starts the year after the last flow year'],

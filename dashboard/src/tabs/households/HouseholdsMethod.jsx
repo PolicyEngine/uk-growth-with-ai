@@ -332,8 +332,8 @@ export default function HouseholdsMethod() {
                 className="mx-facts-row"
                 facts={[
                   { icon: 'draws', value: '50', label: 'draws: main case, five rules, policy responses' },
-                  { icon: 'draws', value: `${DRAWS_VARIANTS}`, label: 'draws: channel split, take-up and JSA, wage cuts', sub: 'also OBR-sized, break-evens' },
-                  { icon: 'caveat', value: `${DRAWS_ONE}`, label: 'draw (seed 0): a few labelled sensitivities' },
+                  { icon: 'draws', value: `${DRAWS_VARIANTS}`, label: 'draws: channel split, take-up and JSA, wage cuts', sub: 'also OBR-sized; capital and duration break-evens' },
+                  { icon: 'caveat', value: `${DRAWS_ONE}`, label: 'draw (seed 0): the wage break-even and a few labelled sensitivities' },
                 ]}
               />
               <Items

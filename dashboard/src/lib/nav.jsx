@@ -81,6 +81,7 @@ function applyPatch(cur, patch) {
 // NAV_PENDING script, which hides the Story while an old address resolves.
 const LEGACY_TAB = {
   cohorts: ['explore', 'who'],
+  households: ['explore', 'households'],
   literature: ['method', 'studies'],
   finances: ['explore', 'finances'],
   'public-finances': ['explore', 'finances'],

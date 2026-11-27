@@ -253,7 +253,7 @@ export function heroStats(sid, cl) {
       line: 'produced in the UK',
       // the sign caveat where GDP's side may not survive netting the OBR's
       // own AI productivity (obr-overlap-fable.md, direction chips)
-      tip: [`${MEASURE.Y.def} A gap in the level, ${YEARS_ON} years on; not a growth rate.`, signCaveat(sid, cl, 'Y')].filter(Boolean).join(' '),
+      tip: [`${MEASURE.Y.def} A gap in the level in year ${YEARS_ON} of the shock; not a growth rate.`, signCaveat(sid, cl, 'Y')].filter(Boolean).join(' '),
     },
     {
       id: 'pay',

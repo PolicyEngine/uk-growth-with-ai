@@ -452,7 +452,7 @@ const VARIANTS = [
   { id: 'takeup', n: 2, label: 'Full Universal Credit (UC) take-up for the displaced', lab: 'Full take-up', pos: 'b' },
   { id: 'takeup_jsa', n: 3, label: 'Full take-up and 26 weeks of Jobseeker’s Allowance (JSA)', lab: 'Plus JSA', pos: 'r' },
   { id: 'wage_cuts', n: 4, label: 'Wage cuts of the same gross size', story: true, lab: 'Wage cuts', pos: 'tl' },
-  { id: 'obr', n: 5, label: 'Job loss', group: 'b', npos: 'l' },
+  { id: 'obr', n: 5, label: 'Job loss alone', group: 'b', npos: 'l' },
   { id: 'obr_takeup', n: 6, label: 'Full UC take-up', group: 'b', lab: 'OBR-sized shock', pos: 'b', npos: 't' },
   { id: 'obr_takeup_jsa', n: 7, label: 'Full take-up and JSA', group: 'b' },
 ];
@@ -642,7 +642,7 @@ function Rules() {
       more={[
         { label: 'Measure', text: 'Absolute poverty before housing costs; the Gini on its 0 to 100 scale.' },
         { label: 'Sample', text: `${rule('uniform').draws} draws, the same seeds for every rule.` },
-        { label: 'Not ranked', text: `Rules whose poverty rises are within ${RULE_MARGIN_PP}pp of the main rule’s are not ranked: the spread across draws is wider.` },
+        { label: 'Not ranked', text: `Rules whose poverty rises are within ${RULE_MARGIN_PP}pp of the main rule’s are not ranked. The margin is this page’s choice, narrower than the spread of a single draw.` },
       ]}
       download={{
         title: 'Five rules for who loses the job',
@@ -756,7 +756,7 @@ function Displaced() {
           </>
         </Lead>
       }
-      unit={<span data-axis-title="y">Share of benefit units with a displaced worker, %</span>}
+      unit={<span data-axis-title="y">Share of benefit units, %; Universal Credit, £ a year</span>}
       more={[
         {
           label: 'Settings',

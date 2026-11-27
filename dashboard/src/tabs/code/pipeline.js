@@ -66,8 +66,8 @@ DEADLINE_AT=23:00 analysis/surprise/run_locked.sh zk0.1:arms:uk_central`,
     more: [
       // the 2027 caveat: that run never pushed; its outputs reached this site
       // with the swap's merge of the run branch
-      ...(Y ? [`The ${Y} run set NO_PUSH=1: its outputs were committed on ${SET.runBranch}, not pushed, and came into the dashboard with the swap’s merge.`] : []),
-      `It refuses to run on any branch but ${SET.runBranch}.`,
+      ...(Y ? [`The ${Y} run set NO_PUSH=1: its outputs were committed on its run branch, not pushed, and came into the dashboard with the swap’s merge.`] : []),
+      'It refuses to run on any branch but its own run branch.',
       'For a fork, edit BRANCH and progress().',
       'Items: check, nics, <closure>:continuation, <closure>:gate, <closure>:<arms|arms_dn|arms_fs>:<scenario>.',
     ],

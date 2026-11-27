@@ -40,6 +40,7 @@ describe('address', () => {
 
   it('resolves addresses from before the redesign', () => {
     expect(parseUrl('?tab=cohorts')).toMatchObject({ tab: 'explore', sub: 'who' });
+    expect(parseUrl('?tab=households')).toMatchObject({ tab: 'explore', sub: 'households' });
     expect(parseUrl('?tab=literature&sub=numbers')).toMatchObject({ tab: 'method', sub: 'studies', anchor: 'numbers' });
     expect(parseUrl('?tab=literature&sub=matrix')).toMatchObject({ tab: 'method', sub: 'studies', anchor: 'coverage' });
     expect(parseUrl('?tab=method&sub=scenarios')).toMatchObject({ tab: 'method', sub: 'how', anchor: 'm-scenarios' });

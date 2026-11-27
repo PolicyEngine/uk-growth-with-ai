@@ -210,7 +210,7 @@ export function taxWhy(sid, closure, rule) {
     // one full stop where the list ends in "et al."
     const lead = `So tax/GDP barely falls${rises.length ? `, and rises in the main version of ${andList(rises)}` : ''}`.replace(/\.?$/, '.');
     return [
-      { key: 'closed', text: 'With no foreign capital, household capital income rises about as much as pay falls, and the model taxes both alike.' },
+      { key: 'closed', text: 'With no foreign capital, household capital income rises about as much as pay falls, and the model’s household income tax treats both alike.' },
       { key: 'closed2', text: `${lead} The OBR taxes profits less than wages: treat these figures as a model limit. See the card below.` },
     ];
   }
