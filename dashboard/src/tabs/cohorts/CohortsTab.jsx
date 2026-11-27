@@ -386,7 +386,7 @@ export function Headline({ c, rule, cl, arm, measure = 'M' }) {
         </ul>
       </StatTile>
       <StatTile icon={iconFor('inequality')} name="Where it comes from" value={pct(s.capital)} tone={tone(s.capital)} sub={<Lead c="capital">From capital income, at unchanged behaviour</Lead>}>
-        <div className="ex-split" aria-label="Capital income against labour income">
+        <div className="ex-split" role="img" aria-label="Capital income against labour income">
           <span className="ex-axis-zero" style={{ left: spos(0) }} aria-hidden="true" />
           <span className={`ex-split-bar ${s.capital >= 0 ? 'is-gain' : 'is-loss'}`} style={{ left: spos(Math.min(0, s.capital)), width: `${((Math.abs(s.capital) / (2 * S)) * 100).toFixed(1)}%` }} aria-hidden="true" />
           <span className={`ex-split-bar ${s.labour >= 0 ? 'is-gain' : 'is-loss'}`} style={{ left: spos(Math.min(0, s.labour)), width: `${((Math.abs(s.labour) / (2 * S)) * 100).toFixed(1)}%` }} aria-hidden="true" />

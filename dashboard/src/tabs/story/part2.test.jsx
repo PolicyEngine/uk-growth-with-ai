@@ -559,7 +559,7 @@ describe('direction icons follow the signs', () => {
   it('says once, in the About fold, which OBR vintage the path uses', async () => {
     const { PARTS } = await import('@/tabs/story/StoryTab.jsx');
     const { container } = render(<div>{PARTS[1].about}</div>);
-    expect(container.textContent).toContain('The forecast path: the OBR’s March 2026 forecast, its AI included');
+    expect(container.textContent).toContain('The forecast path: the macro model’s own, set to the OBR’s March 2026 productivity growth and 2030 debt, its AI included');
   });
 
   it('shows each model’s key limit open, above the About fold, in parts 2 and 3 (item 4)', async () => {

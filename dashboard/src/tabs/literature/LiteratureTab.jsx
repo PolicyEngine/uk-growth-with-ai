@@ -108,7 +108,7 @@ function ImfGap() {
 
 // Literature: the comparison matrix first, then where our numbers sit, then
 // the sources. Published figures come from data/literature.js (each with its
-// location); ours from surprise2028.json and methodFacts.json.
+// location); ours from the active set's surprise and method-facts files.
 
 // `key`: the download legend's label and mark (built from the levels used,
 // as the on-page key is: review round 2, R2-15). `text`: the page key's

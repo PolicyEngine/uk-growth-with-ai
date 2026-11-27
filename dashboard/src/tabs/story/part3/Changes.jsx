@@ -300,7 +300,7 @@ function Dumbbell({ head, panel, max, marks, on, delay, fmt, scale = false }) {
         <span className="p3-db-link" data-mark={panel} style={{ left: `${Math.min(...xs)}%`, width: `${Math.abs(xs[1] - xs[0])}%` }} />
         {marks.map((m, i) => (
           <span key={m.id} className={`p3-db-mark is-${m.id}${i ? ' is-second' : ''}`} data-mark={`${panel} ${m.id}`}>
-            <span className="p3-db-dot" data-tip={i} style={{ left: `${xs[i]}%` }} aria-label={m.name} />
+            <span className="p3-db-dot" data-tip={i} style={{ left: `${xs[i]}%` }} role="img" aria-label={m.name} />
           </span>
         ))}
       </div>

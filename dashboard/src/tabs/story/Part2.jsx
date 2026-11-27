@@ -88,7 +88,7 @@ export function shockAnswer(shock) {
 // path and 0 < GNI gap < GDP gap gives "Output is up. Part of the gain goes
 // abroad."; otherwise the plain form. null while the solve is pending (no
 // beat). Pay rates are left out on purpose: their sign can flip.
-export function beat2031(sid, cl) {
+export function beatHeadline(sid, cl) {
   const y = gap(sid, 'tfp', cl, 'Y');
   const g = gap(sid, 'tfp', cl, 'GNI');
   if (y == null) return null;
@@ -107,7 +107,7 @@ export default function Part2({ part }) {
   const closure = st.closure;
   const cl = primaryClosure(closure);
   const marks = partMarks(sid);
-  const b3 = beat2031(sid, cl);
+  const b3 = beatHeadline(sid, cl);
   const shock = shockFor(sid, closure);
   return (
     <MarkProvider marks={marks}>

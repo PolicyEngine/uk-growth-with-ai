@@ -19,5 +19,6 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
-  test: { environment: 'jsdom', include: skip2027 ? [] : ['src/**/*.test.{js,jsx}'], passWithNoTests: skip2027 },
+  // heavy render tests near 5 s on a loaded machine; CI now runs the suite
+  test: { environment: 'jsdom', testTimeout: 15000, include: skip2027 ? [] : ['src/**/*.test.{js,jsx}'], passWithNoTests: skip2027 },
 });

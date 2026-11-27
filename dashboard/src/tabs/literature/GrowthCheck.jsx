@@ -130,7 +130,7 @@ export default function GrowthCheck() {
             <IconText icon="measure">Average GDP growth a year, {span}.</IconText>
           </p>
         </div>
-        <div className="mx-kpi-chart" aria-label={`GDP growth by year, ${span}: macro model forecast path bars, OBR forecast marks`}>
+        <div className="mx-kpi-chart" role="group" aria-label={`GDP growth by year, ${span}: macro model forecast path bars, OBR forecast marks`}>
           <ul className="ev-kpi-key" aria-hidden="true">
             <li>
               <span className="ev-kpi-key-bar" /> Macro model forecast path

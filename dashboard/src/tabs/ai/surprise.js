@@ -12,11 +12,11 @@ export { foreignShareOf };
 
 export { S };
 
-export const YEARS = S.years; // 2026-2036
-export const HEADLINE_YEAR = S.headline_year; // 2031
+export const YEARS = S.years; // 2026-2036 on both sets
+export const HEADLINE_YEAR = S.headline_year; // 2030 (2027 set), 2031 (2028 set)
 export const LATE_YEAR = S.late_year; // 2036
-export const SURPRISE_YEAR = S.surprise_year; // 2028
-export const WINDOW_YEARS = YEARS.filter((y) => y >= S.window[0] && y <= S.window[1]); // 2027-2031
+export const SURPRISE_YEAR = S.surprise_year; // 2027 or 2028
+export const WINDOW_YEARS = YEARS.filter((y) => y >= S.window[0] && y <= S.window[1]); // 2026-2030 (2027 set)
 export const FIRST_YEAR = WINDOW_YEARS[0];
 // The ramp, one step a year from the surprise to the headline year
 // (four steps in both data sets), as a count and a word.

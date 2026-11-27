@@ -1,6 +1,7 @@
 // Every scenario input and model parameter, with what kind of source it has
 // (from the Method claim audit's inputs table, 16 Nov 2026). Values are the
-// ones the model used: the scenario pairs come from surprise2028.json.
+// ones the model used: the scenario pairs come from the active set's surprise file
+// (surprise2027.json by default).
 // kind: published (printed in the source), derived (computed by this study
 // from printed figures, by a rule the source does not state), default (OG-UK's
 // default parameter, no UK estimate behind it), choice (a modelling choice,

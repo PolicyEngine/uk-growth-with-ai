@@ -150,7 +150,7 @@ function ArmCards() {
               <IconText icon={a.id === 'ss' ? 'limit' : 'caveat'}>{t.role}</IconText>
             </p>
             <Items items={t.items} />
-            <div className="mx-fixed" aria-label={`Output at fixed inputs: ${t.fixedText}`}>
+            <div className="mx-fixed">
               <svg viewBox="0 0 24 20" width="24" height="20" aria-hidden="true">
                 <g fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   {t.glyph}

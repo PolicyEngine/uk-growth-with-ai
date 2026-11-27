@@ -8,7 +8,7 @@ import S from '@/lib/activeData.js';
 import U from '@/data/ukContext.json';
 import StoryTab from './StoryTab.jsx';
 import { NavProvider } from '@/lib/nav.jsx';
-import { beat2031 } from './Part2.jsx';
+import { beatHeadline } from './Part2.jsx';
 import { AI_SINCE } from './Part1.jsx';
 import { CENTRAL_RATE } from './part3/Central.jsx';
 import { MODELS } from './PartHead.jsx';
@@ -99,7 +99,7 @@ describe('story beats', () => {
     for (const s of S.scenarios) {
       for (const cl of ['zk0.1', 'zk0']) {
         const r = S.results[s.id].tfp[cl];
-        const b = beat2031(s.id, cl);
+        const b = beatHeadline(s.id, cl);
         if (r.status !== 'done') {
           expect(b).toBeNull();
           continue;
